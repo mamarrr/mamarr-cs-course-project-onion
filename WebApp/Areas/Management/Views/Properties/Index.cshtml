@@ -1,0 +1,69 @@
+@{
+    ViewData["Title"] = "Management Properties";
+}
+
+<div class="mock-grid mock-grid-2">
+    <section class="mock-card">
+        <h2>Property portfolio snapshot</h2>
+        <ul class="mock-link-list">
+            <li>Apartment buildings: 28</li>
+            <li>Commercial properties: 9</li>
+            <li>Private houses: 16</li>
+        </ul>
+    </section>
+    <section class="mock-card">
+        <h2>Hotspots</h2>
+        <p class="mock-muted">Locations with repeated unresolved tickets over the last 30 days.</p>
+        <span class="mock-badge danger">3 properties need intervention</span>
+    </section>
+</div>
+
+<section class="mock-card">
+    <h2>Property list</h2>
+    <table class="mock-table">
+        <thead>
+        <tr>
+            <th>Property</th>
+            <th>Type</th>
+            <th>Open tickets</th>
+            <th>Units</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Riverside 12</td>
+            <td>Apartment building</td>
+            <td>7</td>
+            <td>34</td>
+            <td>
+                <a asp-area="Management" asp-controller="Properties" asp-action="Details" asp-route-id="201">Details</a> |
+                <a asp-area="Management" asp-controller="Properties" asp-action="Units" asp-route-id="201">Units</a> |
+                <a asp-area="Management" asp-controller="Units" asp-action="Details" asp-route-id="501">Unit details</a>
+            </td>
+        </tr>
+        <tr>
+            <td>Oak Street 5</td>
+            <td>Apartment building</td>
+            <td>5</td>
+            <td>21</td>
+            <td>
+                <a asp-area="Management" asp-controller="Properties" asp-action="Details" asp-route-id="202">Details</a> |
+                <a asp-area="Management" asp-controller="Properties" asp-action="Units" asp-route-id="202">Units</a> |
+                <a asp-area="Management" asp-controller="Units" asp-action="Details" asp-route-id="502">Unit details</a>
+            </td>
+        </tr>
+        <tr>
+            <td>Harbor View 2</td>
+            <td>Commercial property</td>
+            <td>4</td>
+            <td>12</td>
+            <td>
+                <a asp-area="Management" asp-controller="Properties" asp-action="Details" asp-route-id="203">Details</a> |
+                <a asp-area="Management" asp-controller="Properties" asp-action="Units" asp-route-id="203">Units</a> |
+                <a asp-area="Management" asp-controller="Units" asp-action="Details" asp-route-id="503">Unit details</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</section>

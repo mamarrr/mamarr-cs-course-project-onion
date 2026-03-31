@@ -1,0 +1,29 @@
+@{
+    var vendorId = (int?)ViewData["VendorId"] ?? 401;
+    ViewData["Title"] = $"Vendor Details #{vendorId}";
+}
+
+<div class="mock-grid mock-grid-2">
+    <section class="mock-card">
+        <h2>Vendor profile</h2>
+        <ul class="mock-link-list">
+            <li>Name: Northfix OÜ</li>
+            <li>Specialization: General maintenance, plumbing</li>
+            <li>Availability: <span class="mock-badge success">Available now</span></li>
+            <li>Average completion time: 2.4 days</li>
+        </ul>
+    </section>
+    <section class="mock-card">
+        <h2>Current assignments</h2>
+        <ul class="mock-link-list">
+            <li><a asp-area="Management" asp-controller="Tickets" asp-action="Scheduling" asp-route-id="1001">#MT-1001 Scheduling</a> — Riverside 12 / Unit 5B</li>
+            <li><a asp-area="Management" asp-controller="Tickets" asp-action="Details" asp-route-id="1005">#MT-1005 Details</a> — Harbor View 2 / Unit C-3</li>
+        </ul>
+    </section>
+</div>
+
+<div class="mock-actions">
+    <a class="mock-btn ghost" asp-area="Management" asp-controller="Properties" asp-action="Details" asp-route-id="201">Open related property</a>
+    <a class="mock-btn ghost" asp-area="Management" asp-controller="Units" asp-action="Details" asp-route-id="501">Open related unit</a>
+    <a class="mock-btn ghost" asp-area="Management" asp-controller="Vendors" asp-action="Index">Back to vendors list</a>
+</div>

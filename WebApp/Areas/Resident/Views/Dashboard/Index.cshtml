@@ -1,0 +1,76 @@
+@{
+    ViewData["Title"] = "Resident Dashboard";
+}
+
+<div class="mock-alert info">Aggregated overview across all resident-linked units, including units under different properties.</div>
+
+<div class="mock-grid mock-grid-3">
+    <section class="mock-card">
+        <h2>Linked units</h2>
+        <p class="mock-kpi">3</p>
+        <p class="mock-muted">Across Riverside 12 and Oak Street 5.</p>
+    </section>
+    <section class="mock-card">
+        <h2>Open tickets</h2>
+        <p class="mock-kpi">4</p>
+        <p class="mock-muted">Combined ticket load from all linked units.</p>
+    </section>
+    <section class="mock-card">
+        <h2>Needs your response</h2>
+        <p class="mock-kpi">2 items</p>
+        <span class="mock-badge warning">Action required</span>
+    </section>
+</div>
+
+<section class="mock-card">
+    <h2>Unit activity snapshot</h2>
+    <table class="mock-table">
+        <thead>
+        <tr>
+            <th>Unit</th>
+            <th>Property</th>
+            <th>Open tickets</th>
+            <th>Next event</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>Unit 18</td>
+            <td>Riverside 12</td>
+            <td>2</td>
+            <td><span class="mock-badge">Vendor visit Tomorrow 14:00</span></td>
+            <td>
+                <a asp-area="Resident" asp-controller="Units" asp-action="Details" asp-route-id="301">Unit details</a> |
+                <a asp-area="Resident" asp-controller="Properties" asp-action="Details" asp-route-id="201">Property details</a>
+            </td>
+        </tr>
+        <tr>
+            <td>Unit A-02</td>
+            <td>Oak Street 5</td>
+            <td>1</td>
+            <td><span class="mock-badge warning">Awaiting resident confirmation</span></td>
+            <td>
+                <a asp-area="Resident" asp-controller="Units" asp-action="Details" asp-route-id="302">Unit details</a> |
+                <a asp-area="Resident" asp-controller="Properties" asp-action="Details" asp-route-id="202">Property details</a>
+            </td>
+        </tr>
+        <tr>
+            <td>Unit 21</td>
+            <td>Riverside 12</td>
+            <td>1</td>
+            <td><span class="mock-badge success">In Progress</span></td>
+            <td>
+                <a asp-area="Resident" asp-controller="Units" asp-action="Details" asp-route-id="303">Unit details</a> |
+                <a asp-area="Resident" asp-controller="Tickets" asp-action="Details" asp-route-id="703">Latest ticket</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div class="mock-actions">
+        <a class="mock-btn ghost" asp-area="Resident" asp-controller="Units" asp-action="Index">Open my units</a>
+        <a class="mock-btn ghost" asp-area="Resident" asp-controller="Tickets" asp-action="MyTickets">Open my tickets</a>
+        <a class="mock-btn ghost" asp-area="Resident" asp-controller="Tickets" asp-action="NewTicket">Create new ticket</a>
+    </div>
+</section>

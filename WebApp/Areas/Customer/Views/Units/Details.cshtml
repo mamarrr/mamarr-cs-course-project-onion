@@ -1,0 +1,35 @@
+@{
+    var unitId = (int?)ViewData["UnitId"] ?? 501;
+    ViewData["Title"] = $"Unit Details #{unitId}";
+}
+
+<div class="mock-grid mock-grid-2">
+    <section class="mock-card">
+        <h2>Unit summary</h2>
+        <ul class="mock-link-list">
+            <li>Unit: 5B</li>
+            <li>Floor: 5</li>
+            <li>Area: 62 m²</li>
+            <li>Occupancy: Occupied</li>
+        </ul>
+    </section>
+    <section class="mock-card">
+        <h2>Linked context</h2>
+        <ul class="mock-link-list">
+            <li>Property: <a asp-area="Customer" asp-controller="Properties" asp-action="Details" asp-route-id="201">Riverside 12</a></li>
+            <li>Property units: <a asp-area="Customer" asp-controller="Units" asp-action="Index" asp-route-propertyId="201">View full unit list</a></li>
+            <li>Latest ticket: <a asp-area="Customer" asp-controller="Tickets" asp-action="Details" asp-route-id="506">#CT-506 Corridor lighting</a></li>
+        </ul>
+    </section>
+</div>
+
+<section class="mock-card">
+    <h2>Unit-level collaboration actions</h2>
+    <p class="mock-muted">This mock keeps unit details read-focused with representative collaboration affordances only.</p>
+    <div class="mock-actions">
+        <a class="mock-btn ghost" asp-area="Customer" asp-controller="Updates" asp-action="Index">Add unit comment intent (mock)</a>
+        <a class="mock-btn ghost" asp-area="Customer" asp-controller="Updates" asp-action="Index">Confirm completion intent (mock)</a>
+        <a class="mock-btn ghost" asp-area="Customer" asp-controller="Updates" asp-action="Index">Escalate issue intent (mock)</a>
+        <a class="mock-btn ghost" asp-area="Customer" asp-controller="Units" asp-action="Index">Back to units overview</a>
+    </div>
+</section>

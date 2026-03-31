@@ -1,0 +1,47 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Management Mock</title>
+    <link rel="stylesheet" href="~/css/mock-ui.css" asp-append-version="true" />
+</head>
+<body class="mock-body">
+<div class="mock-shell">
+    <header class="mock-header">
+        <div>
+            <p class="mock-eyebrow">Management Area</p>
+            <strong>Maintenance Control Center</strong>
+        </div>
+        <nav class="mock-role-switch" aria-label="Role switch navigation">
+            <a asp-area="" asp-controller="MockUi" asp-action="Index">Mock UI</a>
+            <a asp-area="Management" asp-controller="Dashboard" asp-action="Index">Management</a>
+            <a asp-area="Customer" asp-controller="Dashboard" asp-action="Index">Customer</a>
+            <a asp-area="Resident" asp-controller="Dashboard" asp-action="Index">Resident</a>
+        </nav>
+    </header>
+
+    <div class="mock-body-grid">
+        <aside class="mock-sidebar">
+            <div class="mock-company-name">Acme Property Services</div>
+            <nav>
+                <a class="mock-sidebar-link @(currentController == "Dashboard" ? "active" : "")" asp-area="Management" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                <a class="mock-sidebar-link @(currentController == "Tickets" ? "active" : "")" asp-area="Management" asp-controller="Tickets" asp-action="Index">Tickets</a>
+                <a class="mock-sidebar-link @(currentController == "Properties" ? "active" : "")" asp-area="Management" asp-controller="Properties" asp-action="Index">Properties</a>
+                <a class="mock-sidebar-link @(currentController == "Customers" ? "active" : "")" asp-area="Management" asp-controller="Customers" asp-action="Index">Customers</a>
+                <a class="mock-sidebar-link @(currentController == "Vendors" ? "active" : "")" asp-area="Management" asp-controller="Vendors" asp-action="Index">Vendors</a>
+            </nav>
+        </aside>
+
+        <main class="mock-main">
+            <h1 class="mock-page-title">@ViewData["Title"]</h1>
+            @RenderBody()
+        </main>
+    </div>
+</div>
+</body>
+</html>

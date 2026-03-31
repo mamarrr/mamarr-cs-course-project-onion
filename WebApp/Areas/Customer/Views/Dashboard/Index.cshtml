@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Customer Dashboard";
+}
+
+<div class="mock-grid mock-grid-3">
+    <section class="mock-card">
+        <h2>Open tickets</h2>
+        <p class="mock-kpi">27</p>
+        <span class="mock-badge warning">5 delayed</span>
+        <p><a asp-area="Customer" asp-controller="Tickets" asp-action="Index">Open ticket list</a></p>
+    </section>
+    <section class="mock-card">
+        <h2>Awaiting confirmation</h2>
+        <p class="mock-kpi">4 tickets</p>
+        <p class="mock-muted">Completed work pending representative sign-off.</p>
+        <p><a asp-area="Customer" asp-controller="Tickets" asp-action="Details" asp-route-id="505">Review latest completion</a></p>
+    </section>
+    <section class="mock-card">
+        <h2>Portfolio units</h2>
+        <p class="mock-kpi">67 units</p>
+        <p class="mock-muted">Unit-level health and lifecycle context across customer-visible properties.</p>
+        <p><a asp-area="Customer" asp-controller="Units" asp-action="Index">Open units overview</a></p>
+    </section>
+</div>
+
+<section class="mock-card">
+    <h2>Property hotspots</h2>
+    <ul class="mock-link-list">
+        <li><a asp-area="Customer" asp-controller="Properties" asp-action="Details" asp-route-id="201">Riverside 12</a> — electrical incidents rising</li>
+        <li><a asp-area="Customer" asp-controller="Properties" asp-action="Details" asp-route-id="202">Oak Street 5</a> — repeated plumbing issues</li>
+        <li><a asp-area="Customer" asp-controller="Properties" asp-action="Details" asp-route-id="203">Harbor View 2</a> — HVAC noise reports</li>
+    </ul>
+    <div class="mock-actions">
+        <a class="mock-btn ghost" asp-area="Customer" asp-controller="Properties" asp-action="Index">View all properties</a>
+        <a class="mock-btn ghost" asp-area="Customer" asp-controller="Units" asp-action="Details" asp-route-id="501">Open unit details</a>
+        <a class="mock-btn ghost" asp-area="Customer" asp-controller="Updates" asp-action="Index">Open updates</a>
+    </div>
+</section>

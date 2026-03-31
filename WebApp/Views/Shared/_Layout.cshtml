@@ -27,12 +27,42 @@
                     <li class="nav-item">
                         <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                    </li>
-                    
-                    <partial name="_LanguageSelection"/>
-                </ul>
+                     <li class="nav-item">
+                         <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                     </li>
+
+                     <li class="nav-item dropdown">
+                         <a class="nav-link dropdown-toggle text-dark" href="#" id="mockUiDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                             Mock UI
+                         </a>
+                         <ul class="dropdown-menu" aria-labelledby="mockUiDropdown">
+                             <li><a class="dropdown-item" asp-area="" asp-controller="MockUi" asp-action="Index">Mock UI Landing</a></li>
+                             <li><hr class="dropdown-divider" /></li>
+                             <li><h6 class="dropdown-header">Management</h6></li>
+                             <li><a class="dropdown-item" asp-area="Management" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                             <li><a class="dropdown-item" asp-area="Management" asp-controller="Tickets" asp-action="Index">Tickets</a></li>
+                             <li><a class="dropdown-item" asp-area="Management" asp-controller="Properties" asp-action="Index">Properties</a></li>
+                             <li><a class="dropdown-item" asp-area="Management" asp-controller="Customers" asp-action="Index">Customers</a></li>
+                             <li><a class="dropdown-item" asp-area="Management" asp-controller="Vendors" asp-action="Index">Vendors</a></li>
+                             <li><hr class="dropdown-divider" /></li>
+                             <li><h6 class="dropdown-header">Customer</h6></li>
+                             <li><a class="dropdown-item" asp-area="Customer" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                             <li><a class="dropdown-item" asp-area="Customer" asp-controller="Tickets" asp-action="Index">Tickets</a></li>
+                             <li><a class="dropdown-item" asp-area="Customer" asp-controller="Properties" asp-action="Index">Properties</a></li>
+                             <li><a class="dropdown-item" asp-area="Customer" asp-controller="Updates" asp-action="Index">Updates</a></li>
+                             <li><a class="dropdown-item" asp-area="Customer" asp-controller="Profile" asp-action="Index">Profile</a></li>
+                             <li><hr class="dropdown-divider" /></li>
+                             <li><h6 class="dropdown-header">Resident</h6></li>
+                             <li><a class="dropdown-item" asp-area="Resident" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
+                             <li><a class="dropdown-item" asp-area="Resident" asp-controller="Tickets" asp-action="MyTickets">My Tickets</a></li>
+                             <li><a class="dropdown-item" asp-area="Resident" asp-controller="Tickets" asp-action="NewTicket">New Ticket</a></li>
+                             <li><a class="dropdown-item" asp-area="Resident" asp-controller="Support" asp-action="Index">Support</a></li>
+                             <li><a class="dropdown-item" asp-area="Resident" asp-controller="Profile" asp-action="Index">Profile</a></li>
+                         </ul>
+                     </li>
+                     
+                     <partial name="_LanguageSelection"/>
+                 </ul>
                 <partial name="_LoginPartial"/>
             </div>
         </div>
