@@ -32,17 +32,10 @@ Run from WebApp folder!
 ~~~bash
 cd WebApp
 
-dotnet aspnet-codegenerator controller -name ListItemsController        -actions -m  App.Domain.ListItem        -dc AppDbContext -outDir Controllers --useDefaultLayout --useAsyncActions --referenceScriptLibraries -f
-
 # use area
 
 dotnet aspnet-codegenerator controller -name RefreshTokensController        -actions -m  App.Domain.Identity.AppRefreshToken        -dc AppDbContext -outDir Areas/Admin/Controllers --useDefaultLayout --useAsyncActions --referenceScriptLibraries -f
 
-~~~
-
-Api controllers
-~~~bash
-dotnet aspnet-codegenerator controller -name ListItemsController  -m  App.Domain.ListItem        -dc AppDbContext -outDir ApiControllers -api --useAsyncActions -f
 ~~~
 
 

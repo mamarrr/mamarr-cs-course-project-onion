@@ -89,8 +89,8 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
     // UI translated strings
     options.SupportedUICultures = supportedCultures;
     // if nothing is found, use this
-    options.DefaultRequestCulture = new RequestCulture("et-EE", "et-EE");
-    options.SetDefaultCulture("et-EE");
+    options.DefaultRequestCulture = new RequestCulture("en", "en");
+    options.SetDefaultCulture("en");
 
     options.RequestCultureProviders = new List<IRequestCultureProvider>
     {
