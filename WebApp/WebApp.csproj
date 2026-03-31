@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>aspnet-WebApp-7bc0e7de-2ef9-4f75-99e8-4d9d09badc92</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.5" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.5" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.5" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.5">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\App.DAL.EF\App.DAL.EF.csproj" />
+      <ProjectReference Include="..\App.DTO\App.DTO.csproj" />
+      <ProjectReference Include="..\App.Resources\App.Resources.csproj" />
+      <ProjectReference Include="..\Base.Helpers\Base.Helpers.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Views\Companies\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Companies\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Companies\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Companies\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Companies\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Contacts\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Contacts\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Contacts\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Contacts\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Contacts\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\ContactTypes\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\ContactTypes\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\ContactTypes\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\ContactTypes\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\ContactTypes\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Persons\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Persons\Delete.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Persons\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Persons\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Views\Persons\Index.cshtml" />
+    </ItemGroup>
+
+</Project>

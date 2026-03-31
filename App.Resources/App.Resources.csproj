@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Views\Home.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>Home.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Domain\Person.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>Person.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Views\Home.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Home.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Domain\Person.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Person.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+</Project>
