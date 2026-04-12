@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using App.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class TicketStatus : BaseEntity
+public class TicketStatus : BaseEntity, ILookUpEntity
 {
     [Required]
     [StringLength(50, MinimumLength = 1)]

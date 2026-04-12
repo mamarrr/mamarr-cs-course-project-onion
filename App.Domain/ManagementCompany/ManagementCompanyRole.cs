@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using App.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class ManagementCompanyRole : BaseEntity
+public class ManagementCompanyRole : BaseEntity, ILookUpEntity
 {
     [Required]
     [StringLength(100, MinimumLength = 1)]

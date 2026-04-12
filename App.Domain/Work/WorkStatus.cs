@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using App.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class WorkStatus : BaseEntity
+public class WorkStatus : BaseEntity, ILookUpEntity
 {
     [Required]
     [StringLength(50, MinimumLength = 1)]

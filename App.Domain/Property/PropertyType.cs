@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using App.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class PropertyType : BaseEntity
+public class PropertyType : BaseEntity, ILookUpEntity
 {
     [Required]
     [StringLength(100, MinimumLength = 1)]

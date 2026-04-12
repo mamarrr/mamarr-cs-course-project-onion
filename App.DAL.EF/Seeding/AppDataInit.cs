@@ -1,5 +1,7 @@
+using App.Contracts;
 using App.Domain;
 using App.Domain.Identity;
+using Base.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +22,38 @@ public static class AppDataInit
 
     public static void SeedAppData(AppDbContext context)
     {
+        SeedLookUpTable(context.ManagementCompanyRoles, InitialData.ManagementCompanyRoleSeeds);
+        SeedLookUpTable(context.CustomerRepresentativeRoles, InitialData.CustomerRepresentativeRoleSeeds);
+        SeedLookUpTable(context.ContactTypes, InitialData.ContactTypeSeeds);
+        SeedLookUpTable(context.PropertyTypes, InitialData.PropertyTypeSeeds);
+        SeedLookUpTable(context.LeaseRoles, InitialData.LeaseRoleSeeds);
+        SeedLookUpTable(context.TicketCategories, InitialData.TicketCategorySeeds);
+        SeedLookUpTable(context.TicketStatuses, InitialData.TicketStatusSeeds);
+        SeedLookUpTable(context.TicketPriorities, InitialData.TicketPrioritySeeds);
+        SeedLookUpTable(context.WorkStatuses, InitialData.WorkStatusSeeds);
+        
+        context.SaveChanges();
+    }
+
+    public static void SeedLookUpTable<T> (DbSet<T> table, (string code, string en, string et)[] seed)
+    where T : class, ILookUpEntity, new()
+    {
+        foreach ((string code, string en, string et) in seed)
+        {
+            if (table.Any(x => x.Code == code)) continue;
+            
+            var entity = new T
+            {
+                Code = code,
+                Label = new LangStr
+                {
+                    ["en"] = en,
+                    ["et-ee"] = et
+                }
+            };
+            table.Add(entity);
+        }
+        
     }
     
      public static void SeedIdentity(UserManager<AppUser> userManager, RoleManager<AppRole> roleManager)
@@ -52,6 +86,8 @@ public static class AppDataInit
                 {
                     Email = userInfo.email,
                     UserName = userInfo.email,
+                    FirstName = userInfo.FirstName,
+                    LastName = userInfo.LastName,
                     EmailConfirmed = true
                 };
                 var result = userManager.CreateAsync(user, userInfo.password).Result;
