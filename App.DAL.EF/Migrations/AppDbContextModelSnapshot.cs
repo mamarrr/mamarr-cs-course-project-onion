@@ -47,9 +47,14 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ContactTypeId");
+                    b.HasAlternateKey("ManagementCompanyId", "ContactTypeId", "ContactValue")
+                        .HasName("uq_contact_mcompany_type_value");
 
-                    b.HasIndex("ManagementCompanyId");
+                    b.HasIndex("ContactTypeId")
+                        .HasDatabaseName("ix_contact_contact_type_id_fk");
+
+                    b.HasIndex("ManagementCompanyId")
+                        .HasDatabaseName("ix_contact_mcompany_id_fk");
 
                     b.ToTable("Contacts");
                 });
@@ -70,6 +75,9 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("jsonb");
 
                     b.HasKey("Id");
+
+                    b.HasAlternateKey("Code")
+                        .HasName("uq_CONTACT_TYPE_CODE");
 
                     b.ToTable("ContactTypes");
                 });
@@ -116,7 +124,12 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ManagementCompanyId");
+                    b.HasAlternateKey("ManagementCompanyId", "RegistryCode")
+                        .HasName("uq_customer_mcompany_registry");
+
+                    b.HasIndex("ManagementCompanyId")
+                        .HasDatabaseName("ix_customer_active_by_company")
+                        .HasFilter("\"IsActive\" = TRUE");
 
                     b.ToTable("Customers");
                 });
@@ -153,11 +166,14 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_customer_representative_customer_id_fk");
 
-                    b.HasIndex("CustomerRepresentativeRoleId");
+                    b.HasIndex("CustomerRepresentativeRoleId")
+                        .HasDatabaseName("ix_customer_representative_role_id_fk");
 
-                    b.HasIndex("ResidentId");
+                    b.HasIndex("ResidentId")
+                        .HasDatabaseName("ix_customer_representative_resident_id_fk");
 
                     b.ToTable("CustomerRepresentatives");
                 });
@@ -178,6 +194,9 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("jsonb");
 
                     b.HasKey("Id");
+
+                    b.HasAlternateKey("Code")
+                        .HasName("uq_CUSTOMER_REPRESENTATIVE_ROLE_CODE");
 
                     b.ToTable("CustomerRepresentativeRoles");
                 });
@@ -356,11 +375,14 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LeaseRoleId");
+                    b.HasIndex("LeaseRoleId")
+                        .HasDatabaseName("ix_lease_lease_role_id_fk");
 
-                    b.HasIndex("ResidentId");
+                    b.HasIndex("ResidentId")
+                        .HasDatabaseName("ix_lease_resident_id_fk");
 
-                    b.HasIndex("UnitId");
+                    b.HasIndex("UnitId")
+                        .HasDatabaseName("ix_lease_unit_id_fk");
 
                     b.ToTable("Leases");
                 });
@@ -429,6 +451,9 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasAlternateKey("RegistryCode")
+                        .HasName("uq_MANAGMENT_COMPANY_REGISTRY_CODE");
+
                     b.ToTable("ManagementCompanies");
                 });
 
@@ -448,6 +473,12 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("jsonb");
 
                     b.HasKey("Id");
+
+                    b.HasAlternateKey("Code")
+                        .HasName("uq_MCOMPANY_ROLE_CODE");
+
+                    b.HasAlternateKey("Label")
+                        .HasName("uq_MCOMPANY_ROLE_LABEL");
 
                     b.ToTable("ManagementCompanyRoles");
                 });
@@ -486,11 +517,17 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AppUserId");
+                    b.HasAlternateKey("ManagementCompanyId", "AppUserId")
+                        .HasName("uq_mcompany_user_pair");
 
-                    b.HasIndex("ManagementCompanyId");
+                    b.HasIndex("AppUserId")
+                        .HasDatabaseName("ix_mcompany_user_appuser_id_fk");
 
-                    b.HasIndex("ManagementCompanyRoleId");
+                    b.HasIndex("ManagementCompanyId")
+                        .HasDatabaseName("ix_mcompany_user_mcompany_id_fk");
+
+                    b.HasIndex("ManagementCompanyRoleId")
+                        .HasDatabaseName("ix_mcompany_user_mcompany_role_id_fk");
 
                     b.ToTable("ManagementCompanyUsers");
                 });
@@ -538,9 +575,11 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_property_customer_id_fk");
 
-                    b.HasIndex("PropertyTypeId");
+                    b.HasIndex("PropertyTypeId")
+                        .HasDatabaseName("ix_property_property_type_id_fk");
 
                     b.ToTable("Properties");
                 });
@@ -561,6 +600,9 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("jsonb");
 
                     b.HasKey("Id");
+
+                    b.HasAlternateKey("Code")
+                        .HasName("uq_PROPERTY_TYPE_CODE");
 
                     b.ToTable("PropertyTypes");
                 });
@@ -600,7 +642,9 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ManagementCompanyId");
+                    b.HasIndex("ManagementCompanyId")
+                        .HasDatabaseName("ix_resident_active_by_company")
+                        .HasFilter("\"IsActive\" = TRUE");
 
                     b.ToTable("Residents");
                 });
@@ -631,9 +675,13 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ContactId");
+                    b.HasIndex("ContactId")
+                        .HasDatabaseName("ix_resident_contact_contact_id_fk");
 
-                    b.HasIndex("ResidentId");
+                    b.HasIndex("ResidentId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_resident_contact_one_primary")
+                        .HasFilter("\"IsPrimary\" = TRUE");
 
                     b.ToTable("ResidentContacts");
                 });
@@ -664,9 +712,14 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AppUserId");
+                    b.HasAlternateKey("ResidentId", "AppUserId")
+                        .HasName("uq_resident_user_pair");
 
-                    b.HasIndex("ResidentId");
+                    b.HasIndex("AppUserId")
+                        .HasDatabaseName("ix_resident_user_appuser_id_fk");
+
+                    b.HasIndex("ResidentId")
+                        .HasDatabaseName("ix_resident_user_resident_id_fk");
 
                     b.ToTable("ResidentUsers");
                 });
@@ -706,11 +759,17 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TicketId");
+                    b.HasIndex("TicketId")
+                        .HasDatabaseName("ix_scheduled_work_ticket_id_fk");
 
-                    b.HasIndex("VendorId");
+                    b.HasIndex("VendorId")
+                        .HasDatabaseName("ix_scheduled_work_vendor_id_fk");
 
-                    b.HasIndex("WorkStatusId");
+                    b.HasIndex("WorkStatusId")
+                        .HasDatabaseName("ix_scheduled_work_work_status_id_fk");
+
+                    b.HasIndex("VendorId", "ScheduledStart")
+                        .HasDatabaseName("ix_scheduled_work_vendor_scheduled_start");
 
                     b.ToTable("ScheduledWorks");
                 });
@@ -773,23 +832,47 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
+                    b.HasAlternateKey("ManagementCompanyId", "TicketNr")
+                        .HasName("uq_ticket_mcompany_ticketnr");
 
-                    b.HasIndex("ManagementCompanyId");
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_ticket_customer_id_fk");
 
-                    b.HasIndex("PropertyId");
+                    b.HasIndex("ManagementCompanyId")
+                        .HasDatabaseName("ix_ticket_mcompany_id_fk");
 
-                    b.HasIndex("ResidentId");
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("ix_ticket_property_id_fk");
 
-                    b.HasIndex("TicketCategoryId");
+                    b.HasIndex("ResidentId")
+                        .HasDatabaseName("ix_ticket_resident_id_fk");
 
-                    b.HasIndex("TicketPriorityId");
+                    b.HasIndex("TicketCategoryId")
+                        .HasDatabaseName("ix_ticket_ticket_category_id_fk");
 
-                    b.HasIndex("TicketStatusId");
+                    b.HasIndex("TicketPriorityId")
+                        .HasDatabaseName("ix_ticket_ticket_priority_id_fk");
 
-                    b.HasIndex("UnitId");
+                    b.HasIndex("TicketStatusId")
+                        .HasDatabaseName("ix_ticket_ticket_status_id_fk");
 
-                    b.HasIndex("VendorId");
+                    b.HasIndex("UnitId")
+                        .HasDatabaseName("ix_ticket_unit_id_fk");
+
+                    b.HasIndex("VendorId")
+                        .HasDatabaseName("ix_ticket_vendor_id_fk");
+
+                    b.HasIndex("ManagementCompanyId", "TicketNr")
+                        .IsUnique()
+                        .HasDatabaseName("ux_ticket_company_ticket_nr");
+
+                    b.HasIndex("ManagementCompanyId", "TicketStatusId", "CreatedAt")
+                        .IsDescending(false, false, true)
+                        .HasDatabaseName("ix_ticket_company_status_created_at");
+
+                    b.HasIndex("VendorId", "TicketStatusId", "CreatedAt")
+                        .IsDescending(false, false, true)
+                        .HasDatabaseName("ix_ticket_vendor_status_created_at");
 
                     b.ToTable("Tickets");
                 });
@@ -810,6 +893,9 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("jsonb");
 
                     b.HasKey("Id");
+
+                    b.HasAlternateKey("Code")
+                        .HasName("uq_TICKET_CATEGORY_CODE");
 
                     b.ToTable("TicketCategories");
                 });
@@ -885,7 +971,15 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PropertyId");
+                    b.HasAlternateKey("PropertyId", "UnitNr")
+                        .HasName("uq_unit_property_unitnr");
+
+                    b.HasIndex("PropertyId")
+                        .HasDatabaseName("ix_unit_property_id_fk");
+
+                    b.HasIndex("PropertyId", "UnitNr")
+                        .IsUnique()
+                        .HasDatabaseName("ux_unit_property_unit_nr");
 
                     b.ToTable("Units");
                 });
@@ -921,7 +1015,12 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ManagementCompanyId");
+                    b.HasAlternateKey("ManagementCompanyId", "RegistryCode")
+                        .HasName("uq_vendor_mcompany_registry");
+
+                    b.HasIndex("ManagementCompanyId")
+                        .HasDatabaseName("ix_vendor_active_by_company")
+                        .HasFilter("\"IsActive\" = TRUE");
 
                     b.ToTable("Vendors");
                 });
@@ -960,9 +1059,13 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ContactId");
+                    b.HasIndex("ContactId")
+                        .HasDatabaseName("ix_vendor_contact_contact_id_fk");
 
-                    b.HasIndex("VendorId");
+                    b.HasIndex("VendorId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_vendor_contact_one_primary")
+                        .HasFilter("\"IsPrimary\" = TRUE");
 
                     b.ToTable("VendorContacts");
                 });
@@ -987,9 +1090,14 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TicketCategoryId");
+                    b.HasAlternateKey("VendorId", "TicketCategoryId")
+                        .HasName("uq_vtc_pair");
 
-                    b.HasIndex("VendorId");
+                    b.HasIndex("TicketCategoryId")
+                        .HasDatabaseName("ix_vtc_category_id_fk");
+
+                    b.HasIndex("VendorId")
+                        .HasDatabaseName("ix_vtc_vendor_id_fk");
 
                     b.ToTable("VendorTicketCategories");
                 });
@@ -1029,9 +1137,15 @@ namespace App.DAL.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AppUserId");
+                    b.HasIndex("AppUserId")
+                        .HasDatabaseName("ix_work_log_appuser_id_fk");
 
-                    b.HasIndex("ScheduledWorkId");
+                    b.HasIndex("ScheduledWorkId")
+                        .HasDatabaseName("ix_work_log_scheduled_work_id_fk");
+
+                    b.HasIndex("ScheduledWorkId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_work_log_schedwork_created_at");
 
                     b.ToTable("WorkLogs");
                 });
@@ -1052,6 +1166,9 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("jsonb");
 
                     b.HasKey("Id");
+
+                    b.HasAlternateKey("Code")
+                        .HasName("uq_WORK_STATUS_CODE");
 
                     b.ToTable("WorkStatuses");
                 });
@@ -1184,13 +1301,15 @@ namespace App.DAL.EF.Migrations
                         .WithMany("Contacts")
                         .HasForeignKey("ContactTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_contact_type");
 
                     b.HasOne("App.Domain.ManagementCompany", "ManagementCompany")
                         .WithMany("Contacts")
                         .HasForeignKey("ManagementCompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_contact_mcompany");
 
                     b.Navigation("ContactType");
 
@@ -1203,7 +1322,8 @@ namespace App.DAL.EF.Migrations
                         .WithMany("Customers")
                         .HasForeignKey("ManagementCompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_mcompany");
 
                     b.Navigation("ManagementCompany");
                 });
@@ -1214,19 +1334,22 @@ namespace App.DAL.EF.Migrations
                         .WithMany("CustomerRepresentatives")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_custrep_customer");
 
                     b.HasOne("App.Domain.CustomerRepresentativeRole", "CustomerRepresentativeRole")
                         .WithMany("CustomerRepresentatives")
                         .HasForeignKey("CustomerRepresentativeRoleId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_custrep_role");
 
                     b.HasOne("App.Domain.Resident", "Resident")
                         .WithMany("CustomerRepresentatives")
                         .HasForeignKey("ResidentId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_custrep_resident");
 
                     b.Navigation("Customer");
 
@@ -1252,19 +1375,22 @@ namespace App.DAL.EF.Migrations
                         .WithMany("Leases")
                         .HasForeignKey("LeaseRoleId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_lease_role");
 
                     b.HasOne("App.Domain.Resident", "Resident")
                         .WithMany("Leases")
                         .HasForeignKey("ResidentId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_lease_resident");
 
                     b.HasOne("App.Domain.Unit", "Unit")
                         .WithMany("Leases")
                         .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_lease_unit");
 
                     b.Navigation("LeaseRole");
 
@@ -1279,19 +1405,22 @@ namespace App.DAL.EF.Migrations
                         .WithMany("ManagementCompanyUsers")
                         .HasForeignKey("AppUserId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_mcompany_user_appuser");
 
                     b.HasOne("App.Domain.ManagementCompany", "ManagementCompany")
                         .WithMany("ManagementCompanyUsers")
                         .HasForeignKey("ManagementCompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_mcompany_user_mcompany");
 
                     b.HasOne("App.Domain.ManagementCompanyRole", "ManagementCompanyRole")
                         .WithMany("ManagementCompanyUsers")
                         .HasForeignKey("ManagementCompanyRoleId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_mcompany_user_role");
 
                     b.Navigation("AppUser");
 
@@ -1306,13 +1435,15 @@ namespace App.DAL.EF.Migrations
                         .WithMany("Properties")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_property_customer");
 
                     b.HasOne("App.Domain.PropertyType", "PropertyType")
                         .WithMany("Properties")
                         .HasForeignKey("PropertyTypeId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_property_type");
 
                     b.Navigation("Customer");
 
@@ -1325,7 +1456,8 @@ namespace App.DAL.EF.Migrations
                         .WithMany("Residents")
                         .HasForeignKey("ManagementCompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_resident_mcompany");
 
                     b.Navigation("ManagementCompany");
                 });
@@ -1336,13 +1468,15 @@ namespace App.DAL.EF.Migrations
                         .WithMany("ResidentContacts")
                         .HasForeignKey("ContactId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_resident_contact_contact");
 
                     b.HasOne("App.Domain.Resident", "Resident")
                         .WithMany("ResidentContacts")
                         .HasForeignKey("ResidentId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_resident_contact_resident");
 
                     b.Navigation("Contact");
 
@@ -1355,13 +1489,15 @@ namespace App.DAL.EF.Migrations
                         .WithMany("ResidentUsers")
                         .HasForeignKey("AppUserId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_resident_user_appuser");
 
                     b.HasOne("App.Domain.Resident", "Resident")
                         .WithMany("ResidentUsers")
                         .HasForeignKey("ResidentId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_resident_user_resident");
 
                     b.Navigation("AppUser");
 
@@ -1374,19 +1510,22 @@ namespace App.DAL.EF.Migrations
                         .WithMany("ScheduledWorks")
                         .HasForeignKey("TicketId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_schedwork_ticket");
 
                     b.HasOne("App.Domain.Vendor", "Vendor")
                         .WithMany("ScheduledWorks")
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_schedwork_vendor");
 
                     b.HasOne("App.Domain.WorkStatus", "WorkStatus")
                         .WithMany("ScheduledWorks")
                         .HasForeignKey("WorkStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_schedwork_status");
 
                     b.Navigation("Ticket");
 
@@ -1400,50 +1539,59 @@ namespace App.DAL.EF.Migrations
                     b.HasOne("App.Domain.Customer", "Customer")
                         .WithMany("Tickets")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_ticket_customer");
 
                     b.HasOne("App.Domain.ManagementCompany", "ManagementCompany")
                         .WithMany("Tickets")
                         .HasForeignKey("ManagementCompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ticket_mcompany");
 
                     b.HasOne("App.Domain.Property", "Property")
                         .WithMany("Tickets")
                         .HasForeignKey("PropertyId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_ticket_property");
 
                     b.HasOne("App.Domain.Resident", "Resident")
                         .WithMany("Tickets")
                         .HasForeignKey("ResidentId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_ticket_resident");
 
                     b.HasOne("App.Domain.TicketCategory", "TicketCategory")
                         .WithMany("Tickets")
                         .HasForeignKey("TicketCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_ticket_category");
 
                     b.HasOne("App.Domain.TicketPriority", "TicketPriority")
                         .WithMany("Tickets")
                         .HasForeignKey("TicketPriorityId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ticket_priority");
 
                     b.HasOne("App.Domain.TicketStatus", "TicketStatus")
                         .WithMany("Tickets")
                         .HasForeignKey("TicketStatusId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_ticket_status");
 
                     b.HasOne("App.Domain.Unit", "Unit")
                         .WithMany("Tickets")
                         .HasForeignKey("UnitId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_ticket_unit");
 
                     b.HasOne("App.Domain.Vendor", "Vendor")
                         .WithMany("Tickets")
                         .HasForeignKey("VendorId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_ticket_vendor");
 
                     b.Navigation("Customer");
 
@@ -1470,7 +1618,8 @@ namespace App.DAL.EF.Migrations
                         .WithMany("Units")
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_unit_property");
 
                     b.Navigation("Property");
                 });
@@ -1481,7 +1630,8 @@ namespace App.DAL.EF.Migrations
                         .WithMany("Vendors")
                         .HasForeignKey("ManagementCompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_vendor_mcompany");
 
                     b.Navigation("ManagementCompany");
                 });
@@ -1492,13 +1642,15 @@ namespace App.DAL.EF.Migrations
                         .WithMany("VendorContacts")
                         .HasForeignKey("ContactId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_vendor_contact_contact");
 
                     b.HasOne("App.Domain.Vendor", "Vendor")
                         .WithMany("VendorContacts")
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_vendor_contact_vendor");
 
                     b.Navigation("Contact");
 
@@ -1511,13 +1663,15 @@ namespace App.DAL.EF.Migrations
                         .WithMany("VendorTicketCategories")
                         .HasForeignKey("TicketCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_vtc_category");
 
                     b.HasOne("App.Domain.Vendor", "Vendor")
                         .WithMany("VendorTicketCategories")
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_vtc_vendor");
 
                     b.Navigation("TicketCategory");
 
@@ -1530,13 +1684,15 @@ namespace App.DAL.EF.Migrations
                         .WithMany("WorkLogs")
                         .HasForeignKey("AppUserId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_worklog_appuser");
 
                     b.HasOne("App.Domain.ScheduledWork", "ScheduledWork")
                         .WithMany("WorkLogs")
                         .HasForeignKey("ScheduledWorkId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_worklog_schedwork");
 
                     b.Navigation("AppUser");
 
