@@ -5,10 +5,13 @@ namespace App.Domain.Identity;
 
 public class AppRefreshToken : BaseEntity
 {
+    [Required]
+    [MinLength(1)]
     [MaxLength(64)]
     public string RefreshToken { get; set; } = Guid.NewGuid().ToString();
     public DateTime ExpirationDT { get; set; } = DateTime.UtcNow.AddDays(7);
 
+    [MinLength(1)]
     [MaxLength(64)]
     public string? PreviousRefreshToken { get; set; }
     public DateTime PreviousExpirationDT { get; set; } = DateTime.UtcNow.AddDays(7);
