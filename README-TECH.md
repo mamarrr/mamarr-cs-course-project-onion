@@ -47,7 +47,7 @@ Don't forget to add ***Microsoft.VisualStudio.Web.CodeGeneration.Design*** packa
 MVC Web Controllers (disable global warnings as errors - otherwise only one controller will be generated, then compile starts to fail)
 
 ~~~bash
-dotnet aspnet-codegenerator controller -name GpsLocationsController -m  GpsLocation -actions -dc AppDbContext -outDir Areas/Admin/Controllers --useDefaultLayout --useAsyncActions --referenceScriptLibraries -f
+dotnet aspnet-codegenerator controller -name AppRefreshTokenController -m  AppRefreshToken -actions -dc AppDbContext -outDir Areas/Admin/Controllers --useDefaultLayout --useAsyncActions --referenceScriptLibraries -f
 ~~~
 
 API Controllers
