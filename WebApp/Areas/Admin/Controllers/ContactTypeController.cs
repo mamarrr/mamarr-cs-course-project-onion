@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using App.DAL.EF;
 using App.Domain;
+using WebApp.ViewModels;
 
 namespace WebApp.Areas_Admin_Controllers
 {
@@ -55,16 +56,21 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Code,Label,Id")] ContactType contactType)
+        public async Task<IActionResult> Create(ContactTypeCreateViewModel vm)
         {
             if (ModelState.IsValid)
             {
-                contactType.Id = Guid.NewGuid();
+                ContactType contactType = new ContactType
+                {
+                    Id = Guid.NewGuid(),
+                    Code = vm.Code,
+                    Label = vm.Label
+                };
                 _context.Add(contactType);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(contactType);
+            return View(vm);
         }
 
         // GET: ContactType/Edit/5

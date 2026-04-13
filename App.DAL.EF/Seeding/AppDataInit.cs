@@ -48,7 +48,7 @@ public static class AppDataInit
                 Label = new LangStr
                 {
                     ["en"] = en,
-                    ["et-ee"] = et
+                    ["et"] = et
                 }
             };
             table.Add(entity);
