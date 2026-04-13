@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using App.DAL.EF;
 using App.Domain;
-using WebApp.ViewModels;
+using WebApp.ViewModels.ContactType;
 
 namespace WebApp.Areas_Admin_Controllers
 {
@@ -37,12 +37,21 @@ namespace WebApp.Areas_Admin_Controllers
 
             var contactType = await _context.ContactTypes
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (contactType == null)
             {
                 return NotFound();
             }
 
-            return View(contactType);
+            ContactTypeDetailsViewModel vm = new ContactTypeDetailsViewModel()
+            {
+                Id = contactType.Id,
+                Code = contactType.Code,
+                Label = contactType.Label
+            };
+            
+
+            return View(vm);
         }
 
         // GET: ContactType/Create
@@ -86,7 +95,14 @@ namespace WebApp.Areas_Admin_Controllers
             {
                 return NotFound();
             }
-            return View(contactType);
+
+            var vm = new ContactTypeEditViewModel()
+            {
+                Id = contactType.Id,
+                Code = contactType.Code,
+                Label = contactType.Label
+            };
+            return View(vm);
         }
 
         // POST: ContactType/Edit/5
@@ -94,23 +110,28 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Code,Label,Id")] ContactType contactType)
+        public async Task<IActionResult> Edit(Guid id, ContactTypeEditViewModel vm)
         {
-            if (id != contactType.Id)
+            if (id != vm.Id)
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.ContactTypes.FindAsync(id);
+                if (entity == null) return NotFound();
+                entity.Code = vm.Code;
+                entity.Label.SetTranslation(vm.Label);
+
                 try
                 {
-                    _context.Update(contactType);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ContactTypeExists(contactType.Id))
+                    if (!ContactTypeExists(entity.Id))
                     {
                         return NotFound();
                     }
@@ -121,7 +142,7 @@ namespace WebApp.Areas_Admin_Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(contactType);
+            return View(vm);
         }
 
         // GET: ContactType/Delete/5

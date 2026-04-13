@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using Base.Domain;
 using App.Domain;
 
-namespace WebApp.ViewModels;
+namespace WebApp.ViewModels.ContactType;
 
 public class ContactTypeCreateViewModel
 {
-    [Required]
+    
     [StringLength(20, MinimumLength = 1)]
     public string Code { get; set; } = default!;
 

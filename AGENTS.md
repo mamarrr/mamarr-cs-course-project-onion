@@ -165,6 +165,156 @@ MVC flow rules:
 
 Translation fallback behavior follows `LangStr` implementation in `Base.Domain/LangStr.cs`.
 
+### 9.1 LangStr tutorial (reference implementation with ContactType)
+
+This section explains the expected end-to-end pattern for using `LangStr` in MVC CRUD flows.
+
+Reference implementation files:
+- `WebApp/Areas/Admin/Controllers/ContactTypeController.cs`
+- `WebApp/Areas/Admin/Views/ContactType/Create.cshtml`
+- `WebApp/Areas/Admin/Views/ContactType/Edit.cshtml`
+- `WebApp/Areas/Admin/Views/ContactType/Details.cshtml`
+- `WebApp/Areas/Admin/Views/ContactType/Index.cshtml`
+- `WebApp/ViewModels/ContactType/ContactTypeCreateViewModel.cs`
+- `WebApp/ViewModels/ContactType/ContactTypeEditViewModel.cs`
+- `WebApp/ViewModels/ContactType/ContactTypeDetailsViewModel.cs`
+
+#### 9.1.1 Why LangStr is required
+
+Use `LangStr` for domain fields that must be localizable in UI and persisted as multilingual values in DB.
+
+Do not store separate language-specific columns (for example, `LabelEn`, `LabelEtEe`) for localizable domain fields when `LangStr` is available.
+
+#### 9.1.2 Domain model pattern
+
+In domain entities (for example `ContactType`), localizable field types must be `LangStr`, not plain `string`.
+
+Expected shape:
+
+```csharp
+public class ContactType
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = default!;
+    public LangStr Label { get; set; } = new();
+}
+```
+
+Notes:
+- Keep `Code` as invariant business identifier (`EMAIL`, `PHONE`, etc.).
+- Keep `Label` localized and user-facing.
+
+#### 9.1.3 ViewModel pattern
+
+For MVC input forms, keep localized input fields as plain `string` in view models.
+
+Reference:
+- `ContactTypeCreateViewModel.Label` is `string`.
+- `ContactTypeEditViewModel.Label` is `string`.
+
+Why:
+- Forms submit one visible value in the current UI culture.
+- Controller maps that value into the entity `LangStr`.
+
+#### 9.1.4 Create flow pattern (string -> LangStr)
+
+In create POST action, assign view model string directly to the `LangStr` entity field.
+
+Reference in `ContactTypeController` create action:
+- `Label = vm.Label`
+
+This pattern relies on `LangStr` conversion behavior (constructor/implicit conversion) to place the provided value into the current culture translation bucket.
+
+Create flow checklist:
+- Validate `ModelState`.
+- Map invariant values (`Code`) normally.
+- Map localized form string (`Label`) into entity `LangStr`.
+- Save with EF.
+
+#### 9.1.5 Edit flow pattern (preserve existing translations)
+
+In edit POST action, update translation for current culture without overwriting other languages.
+
+Reference in `ContactTypeController` edit action:
+- `entity.Label.SetTranslation(vm.Label);`
+
+Why this is important:
+- A full replacement of `LangStr` can accidentally drop previously saved translations.
+- `SetTranslation(...)` updates only active culture key while keeping other keys intact.
+
+Edit flow checklist:
+- Load existing entity from DB.
+- Update non-localized fields as needed.
+- Call `SetTranslation` for localized field(s).
+- Save changes.
+
+#### 9.1.6 Details and list rendering pattern (LangStr -> string)
+
+In views, render `LangStr` using `ToString()` (or equivalent display conversion).
+
+References:
+- `ContactType/Index.cshtml`: `@item.Label.ToString()`
+- `ContactType/Details.cshtml`: `@Model.Label.ToString()`
+
+This displays the best translation for current UI culture according to `LangStr` fallback behavior.
+
+#### 9.1.7 Culture and fallback behavior
+
+`LangStr` fallback semantics are defined in `Base.Domain/LangStr.cs`.
+
+Project decision and expectations:
+- Default source-of-truth language is English (`en`).
+- Estonian is stored under `et-ee`.
+- If current culture translation is missing, fallback resolves per `LangStr` implementation.
+
+Contributor rule:
+- Do not re-implement fallback logic in controllers or views.
+- Always rely on `LangStr` behavior centrally.
+
+#### 9.1.8 EF persistence requirements
+
+Ensure EF mapping stores `LangStr` as `jsonb` and round-trips correctly.
+
+Expected stored JSON shape example:
+
+```json
+{ "en": "Email", "et": "E-post" }
+```
+
+Persistence safeguards:
+- Use a converter for `LangStr` <-> `jsonb`.
+- Ensure migration column type is `jsonb`.
+- Verify save/load roundtrip in tests.
+
+#### 9.1.9 Common implementation mistakes to avoid
+
+- Replacing entire `LangStr` during edit and losing translations.
+- Rendering raw JSON instead of relying on `LangStr.ToString()`.
+- Putting localization logic in Razor views beyond display conversion.
+- Treating `Code` as localizable user-facing text.
+- Skipping tests for fallback and translation preservation.
+
+#### 9.1.10 Reusable recipe for any other localized entity
+
+When adding localization to entities follow this exact sequence:
+
+1. Domain: localizable field type is `LangStr`.
+2. EF: ensure converter + `jsonb` column.
+3. Create VM: localizable input is `string`.
+4. Create POST: map string to `LangStr`.
+5. Edit VM: localizable input is `string`.
+6. Edit POST: call `SetTranslation(...)` on existing entity field.
+7. List/details views: render localized value using `ToString()`.
+8. Tests: verify culture-specific update preserves other languages and fallback works.
+
+#### 9.1.11 Minimal verification checklist for PRs touching LangStr
+
+- Create in `en` stores English translation.
+- Edit in `et-ee` updates only Estonian translation.
+- Switching UI culture changes rendered value in index/details.
+- Missing translation falls back as defined in `LangStr`.
+- Database stores multilingual JSON in `jsonb`.
+
 ## 10. Database, migrations, and startup data workflow
 
 ### 10.1 Schema reference
