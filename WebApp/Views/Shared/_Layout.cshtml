@@ -63,7 +63,7 @@
 
                      <li class="nav-item dropdown">
                          <a class="nav-link dropdown-toggle text-dark" href="#" id="adminAreaDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                             Admin
+                             @App.Resources.Views.Home.Admin
                          </a>
                          <ul class="dropdown-menu" aria-labelledby="adminAreaDropdown">
                              <li><h6 class="dropdown-header">Company</h6></li>
@@ -88,7 +88,7 @@
                              <li><a class="dropdown-item" asp-area="Admin" asp-controller="Vendor" asp-action="Index">Vendors</a></li>
                              <li><a class="dropdown-item" asp-area="Admin" asp-controller="VendorContact" asp-action="Index">Vendor Contacts</a></li>
                              <li><a class="dropdown-item" asp-area="Admin" asp-controller="Contact" asp-action="Index">Contacts</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="ContactType" asp-action="Index">Contact Types</a></li>
+                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="ContactType" asp-action="Index">@App.Resources.Domain.ContactType.contactType</a></li>
                              <li><hr class="dropdown-divider" /></li>
                              <li><h6 class="dropdown-header">Tickets</h6></li>
                              <li><a class="dropdown-item" asp-area="Admin" asp-controller="Ticket" asp-action="Index">Tickets</a></li>

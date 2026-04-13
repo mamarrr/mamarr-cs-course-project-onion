@@ -18,7 +18,13 @@
     <resheader name="writer">
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
-    <data name="Admin" xml:space="preserve">
-        <value>Admin</value>
+    <data name="contactType" xml:space="preserve">
+        <value>Contact type</value>
+    </data>
+    <data name="Code" xml:space="preserve">
+        <value>Code</value>
+    </data>
+    <data name="Label" xml:space="preserve">
+        <value>Label</value>
     </data>
 </root>

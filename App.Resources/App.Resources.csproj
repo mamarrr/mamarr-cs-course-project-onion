@@ -11,9 +11,9 @@
         <Generator>PublicResXFileCodeGenerator</Generator>
         <LastGenOutput>Home.Designer.cs</LastGenOutput>
       </EmbeddedResource>
-      <EmbeddedResource Update="Domain\Person.resx">
+      <EmbeddedResource Update="Domain\ContactType.resx">
         <Generator>PublicResXFileCodeGenerator</Generator>
-        <LastGenOutput>Person.Designer.cs</LastGenOutput>
+        <LastGenOutput>ContactType.Designer.cs</LastGenOutput>
       </EmbeddedResource>
     </ItemGroup>
 
@@ -23,10 +23,10 @@
         <AutoGen>True</AutoGen>
         <DependentUpon>Home.resx</DependentUpon>
       </Compile>
-      <Compile Update="Domain\Person.Designer.cs">
+      <Compile Update="Domain\ContactType.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
-        <DependentUpon>Person.resx</DependentUpon>
+        <DependentUpon>ContactType.resx</DependentUpon>
       </Compile>
     </ItemGroup>
 
