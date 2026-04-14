@@ -60,9 +60,9 @@ public class EditManagementUserViewModel
 {
     public Guid MembershipId { get; set; }
     public string CompanySlug { get; set; } = default!;
-    public string CompanyName { get; set; } = default!;
-    public string FullName { get; set; } = default!;
-    public string Email { get; set; } = default!;
+    public string? CompanyName { get; set; }
+    public string? FullName { get; set; }
+    public string? Email { get; set; }
 
     [Required]
     [Display(Name = "Role")]

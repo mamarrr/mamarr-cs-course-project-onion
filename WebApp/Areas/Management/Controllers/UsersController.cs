@@ -14,7 +14,9 @@ public class UsersController : Controller
 {
     private readonly IManagementUserAdminService _managementUserAdminService;
 
-    public UsersController(IManagementUserAdminService managementUserAdminService)
+    public UsersController(
+        IManagementUserAdminService managementUserAdminService,
+        ILogger<UsersController> logger)
     {
         _managementUserAdminService = managementUserAdminService;
     }

@@ -3,6 +3,7 @@ using App.DAL.EF;
 using App.Domain;
 using App.Domain.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Onboarding.Tests;
@@ -23,7 +24,7 @@ public class ManagementUserAdminServiceTests
         dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, appUser.Id, ownerRole.Id, true, "Owner"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext);
+        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
 
         var result = await sut.AuthorizeAsync(appUser.Id, company.Slug);
 
@@ -46,7 +47,7 @@ public class ManagementUserAdminServiceTests
         dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, appUser.Id, supportRole.Id, true, "Support"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext);
+        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
 
         var result = await sut.AuthorizeAsync(appUser.Id, company.Slug);
 
@@ -75,7 +76,7 @@ public class ManagementUserAdminServiceTests
             CreateMembership(otherCompany.Id, otherCompanyUser.Id, managerRole.Id, true, "Manager"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext);
+        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.ListCompanyMembersAsync(auth.Context!);
@@ -100,7 +101,7 @@ public class ManagementUserAdminServiceTests
         dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, actor.Id, ownerRole.Id, true, "Owner"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext);
+        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.AddUserByEmailAsync(auth.Context!, new ManagementUserAddRequest
@@ -135,7 +136,7 @@ public class ManagementUserAdminServiceTests
             CreateMembership(company.Id, targetUser.Id, managerRole.Id, true, "Manager"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext);
+        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.AddUserByEmailAsync(auth.Context!, new ManagementUserAddRequest
@@ -171,7 +172,7 @@ public class ManagementUserAdminServiceTests
             membership);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext);
+        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.UpdateMembershipAsync(auth.Context!, membership.Id, new ManagementUserUpdateRequest
@@ -209,7 +210,7 @@ public class ManagementUserAdminServiceTests
             membership);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext);
+        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.DeleteMembershipAsync(auth.Context!, membership.Id);
@@ -233,7 +234,7 @@ public class ManagementUserAdminServiceTests
         dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, actor.Id, ownerRole.Id, true, "Owner"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext);
+        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.GetPendingAccessRequestsAsync(auth.Context!);

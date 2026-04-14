@@ -2,6 +2,7 @@ using App.DAL.EF;
 using App.Domain;
 using App.Domain.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace App.BLL.ManagementUsers;
 
@@ -19,7 +20,7 @@ public class ManagementUserAdminService : IManagementUserAdminService
         "MANAGER"
     };
 
-    public ManagementUserAdminService(AppDbContext dbContext)
+    public ManagementUserAdminService(AppDbContext dbContext, ILogger<ManagementUserAdminService> logger)
     {
         _dbContext = dbContext;
     }
@@ -257,6 +258,7 @@ public class ManagementUserAdminService : IManagementUserAdminService
     {
         // Find membership scoped to current company
         var membership = await _dbContext.ManagementCompanyUsers
+            .AsTracking()
             .Include(m => m.ManagementCompanyRole)
             .FirstOrDefaultAsync(m => m.Id == membershipId
                                       && m.ManagementCompanyId == context.ManagementCompanyId,
@@ -293,7 +295,16 @@ public class ManagementUserAdminService : IManagementUserAdminService
         membership.ValidFrom = request.ValidFrom;
         membership.ValidTo = request.ValidTo;
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
+
+        if (affectedRows == 0)
+        {
+            return new ManagementUserUpdateResult
+            {
+                Success = false,
+                ErrorMessage = "No changes were saved. Please retry."
+            };
+        }
 
         return new ManagementUserUpdateResult
         {
