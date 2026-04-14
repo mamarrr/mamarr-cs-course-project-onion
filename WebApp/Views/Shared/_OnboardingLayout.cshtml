@@ -26,6 +26,15 @@
                     </li>
                     <partial name="_LanguageSelection"/>
                 </ul>
+                @if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    <div class="ms-auto">
+                        <form asp-controller="Onboarding" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">Logout</button>
+                        </form>
+                    </div>
+                }
             </div>
         </div>
     </nav>

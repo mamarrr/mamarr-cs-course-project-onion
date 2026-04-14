@@ -1,0 +1,183 @@
+@{ 
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+@using App.Domain.Identity
+@using Microsoft.AspNetCore.Builder
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Options
+@using System.Linq
+@using System.Threading
+@inject App.DAL.EF.AppDbContext DbContext
+@inject UserManager<AppUser> UserManager
+@inject IOptions<RequestLocalizationOptions> LocalizationOptions
+
+@{
+    var cultureItems = LocalizationOptions.Value.SupportedUICultures!
+        .Select(c => new { Value = c.Name, Text = c.NativeName }).ToList();
+
+    var appUser = await UserManager.GetUserAsync(User);
+    var managementContexts = appUser == null
+        ? new List<dynamic>()
+        : await DbContext.ManagementCompanyUsers
+            .Where(x => x.AppUserId == appUser.Id && x.IsActive)
+            .Select(x => new { x.ManagementCompanyId, CompanyName = x.ManagementCompany!.Name })
+            .ToListAsync<dynamic>();
+
+    Guid? selectedManagementCompanyId = null;
+    if (Guid.TryParse(Context.Request.Cookies["ctx.management.company"], out var parsedCompanyId) &&
+        managementContexts.Any(x => x.ManagementCompanyId == parsedCompanyId))
+    {
+        selectedManagementCompanyId = parsedCompanyId;
+    }
+
+    var managementCompanyName = managementContexts
+        .Where(x => x.ManagementCompanyId == selectedManagementCompanyId)
+        .Select(x => x.CompanyName)
+        .FirstOrDefault()
+        ?? managementContexts.Select(x => x.CompanyName).FirstOrDefault()
+        ?? "Management Workspace";
+
+    var customerContexts = appUser == null
+        ? new List<dynamic>()
+        : await (
+            from residentUser in DbContext.ResidentUsers
+            join customerRepresentative in DbContext.CustomerRepresentatives
+                on residentUser.ResidentId equals customerRepresentative.ResidentId
+            join customer in DbContext.Customers
+                on customerRepresentative.CustomerId equals customer.Id
+            where residentUser.AppUserId == appUser.Id
+                  && residentUser.IsActive
+                  && customerRepresentative.IsActive
+            select new { customer.Id, customer.Name })
+        .Distinct()
+        .ToListAsync<dynamic>();
+
+    var hasResidentContext = appUser != null && await DbContext.ResidentUsers
+        .AnyAsync(x => x.AppUserId == appUser.Id && x.IsActive);
+
+    var currentPathAndQuery = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Management</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/management-ui.css" asp-append-version="true" />
+</head>
+<body class="management-body">
+<div class="management-shell">
+    <header class="management-header">
+        <div>
+            <p class="management-eyebrow">Management Area</p>
+            <strong>@managementCompanyName</strong>
+        </div>
+        <div class="management-header-actions">
+            <div class="dropdown">
+                <button class="management-btn ghost dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    Context
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><h6 class="dropdown-header">Companies</h6></li>
+                    @if (managementContexts.Count == 0)
+                    {
+                        <li><span class="dropdown-item-text text-muted">No company contexts</span></li>
+                    }
+                    else
+                    {
+                        foreach (var companyContext in managementContexts)
+                        {
+                            <li>
+                                <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="management" asp-route-id="@companyContext.ManagementCompanyId" asp-route-returnUrl="@currentPathAndQuery">@companyContext.CompanyName</a>
+                            </li>
+                        }
+                    }
+
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><h6 class="dropdown-header">Customers</h6></li>
+                    @if (customerContexts.Count == 0)
+                    {
+                        <li><span class="dropdown-item-text text-muted">No customer contexts</span></li>
+                    }
+                    else
+                    {
+                        foreach (var customerContext in customerContexts)
+                        {
+                            <li>
+                                <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="customer" asp-route-id="@customerContext.Id" asp-route-returnUrl="@currentPathAndQuery">@customerContext.Name</a>
+                            </li>
+                        }
+                    }
+
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><h6 class="dropdown-header">Resident</h6></li>
+                    @if (hasResidentContext)
+                    {
+                        <li>
+                            <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="resident" asp-route-returnUrl="@currentPathAndQuery">Resident Dashboard</a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li><span class="dropdown-item-text text-muted">No resident context</span></li>
+                    }
+                </ul>
+            </div>
+
+            <form method="post" asp-area="" asp-controller="Onboarding" asp-action="Logout">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="management-btn ghost">Logout</button>
+            </form>
+        </div>
+    </header>
+
+    <div class="management-body-grid">
+        <aside class="management-sidebar">
+            <div class="management-company-name">@managementCompanyName</div>
+            <nav>
+                <a class="management-sidebar-link @(currentController == "Dashboard" ? "active" : "")" asp-area="Management" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                <a class="management-sidebar-link @(currentController == "Tickets" ? "active" : "")" asp-area="Management" asp-controller="Tickets" asp-action="Index">Tickets</a>
+                <a class="management-sidebar-link @(currentController == "Properties" ? "active" : "")" asp-area="Management" asp-controller="Properties" asp-action="Index">Properties</a>
+                <a class="management-sidebar-link @(currentController == "Customers" ? "active" : "")" asp-area="Management" asp-controller="Customers" asp-action="Index">Customers</a>
+                <a class="management-sidebar-link @(currentController == "Users" ? "active" : "")" asp-area="Management" asp-controller="Users" asp-action="Index">Users</a>
+                <a class="management-sidebar-link @(currentController == "Vendors" ? "active" : "")" asp-area="Management" asp-controller="Vendors" asp-action="Index">Vendors</a>
+            </nav>
+
+            <div class="management-sidebar-footer">
+                <a class="management-btn management-sidebar-cta" asp-area="" asp-controller="Onboarding" asp-action="Index" asp-route-showChooser="true">New context</a>
+                <div class="management-language-title">Language (@Thread.CurrentThread.CurrentUICulture.Name)</div>
+                <div class="management-language-list">
+                    @foreach (var item in cultureItems)
+                    {
+                        var isCurrent = Thread.CurrentThread.CurrentUICulture.Name == item.Value;
+                        <a class="management-language-link @(isCurrent ? "active" : "")"
+                           asp-area=""
+                           asp-controller="Home"
+                           asp-action="SetLanguage"
+                           asp-route-culture="@item.Value"
+                           asp-route-returnUrl="@Context.Request.Path@Context.Request.QueryString">
+                            @item.Text
+                        </a>
+                    }
+                </div>
+                <a class="management-sidebar-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            </div>
+        </aside>
+
+        <main class="management-main">
+            <h1 class="management-page-title">@ViewData["Title"]</h1>
+            @RenderBody()
+        </main>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

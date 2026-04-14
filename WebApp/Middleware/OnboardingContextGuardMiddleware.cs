@@ -1,0 +1,80 @@
+using App.BLL.Onboarding;
+using App.Domain.Identity;
+using Microsoft.AspNetCore.Identity;
+
+namespace WebApp.Middleware;
+
+public class OnboardingContextGuardMiddleware
+{
+    private static readonly HashSet<string> StaticPrefixes =
+    [
+        "/css",
+        "/js",
+        "/lib",
+        "/images",
+        "/favicon"
+    ];
+
+    private readonly RequestDelegate _next;
+
+    public OnboardingContextGuardMiddleware(RequestDelegate next)
+    {
+        _next = next;
+    }
+
+    public async Task InvokeAsync(HttpContext context, IOnboardingService onboardingService, UserManager<AppUser> userManager)
+    {
+        var path = context.Request.Path;
+
+        if (ShouldSkipPath(path))
+        {
+            await _next(context);
+            return;
+        }
+
+        if (context.User.Identity?.IsAuthenticated != true)
+        {
+            await _next(context);
+            return;
+        }
+
+        if (context.User.IsInRole("SystemAdmin"))
+        {
+            await _next(context);
+            return;
+        }
+
+        var appUser = await userManager.GetUserAsync(context.User);
+        if (appUser == null)
+        {
+            await _next(context);
+            return;
+        }
+
+        var hasContext = await onboardingService.HasAnyContextAsync(appUser.Id);
+        if (hasContext)
+        {
+            await _next(context);
+            return;
+        }
+
+        context.Response.Redirect("/Onboarding");
+    }
+
+    private static bool ShouldSkipPath(PathString path)
+    {
+        if (!path.HasValue) return true;
+
+        if (path.StartsWithSegments("/Onboarding", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/Admin", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/Identity", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/swagger", StringComparison.OrdinalIgnoreCase)) return true;
+
+        if (StaticPrefixes.Any(prefix => path.StartsWithSegments(prefix, StringComparison.OrdinalIgnoreCase))) return true;
+
+        var value = path.Value!;
+        if (value.Contains('.', StringComparison.Ordinal)) return true;
+
+        return false;
+    }
+}

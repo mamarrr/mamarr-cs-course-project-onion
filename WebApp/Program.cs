@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApp;
+using WebApp.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -169,6 +170,8 @@ app.UseRouting();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseOnboardingContextGuard();
 
 app.UseSwagger();
 app.UseSwaggerUI(options =>
