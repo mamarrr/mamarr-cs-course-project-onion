@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using App.BLL.Onboarding;
 using App.DAL.EF;
 using App.DAL.EF.Seeding;
 using App.Domain.Identity;
@@ -52,9 +53,10 @@ builder.Services
     .PersistKeysToDbContext<AppDbContext>();
 
 builder.Services.AddIdentity<AppUser, AppRole>(options => options.SignIn.RequireConfirmedAccount = false)
-    .AddDefaultUI()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
 builder.Services
@@ -164,6 +166,8 @@ app.UseCors("CorsAllowAll");
 
 app.UseRouting();
 
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.UseSwagger();
@@ -191,10 +195,7 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
         name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
-app.MapRazorPages()
+        pattern: "{controller=Onboarding}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 app.Run();

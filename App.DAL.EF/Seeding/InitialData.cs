@@ -13,6 +13,7 @@ public static class InitialData
 
     public static readonly (string code, string en, string ee)[] ManagementCompanyRoleSeeds =
     [
+        ("OWNER", "Owner", "Omanik"),
         ("MANAGER", "Manager", "Haldur"),
         ("SUPPORT", "Support specialist", "Tugispetsialist"),
         ("FINANCE", "Finance", "Finants")

@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Welcome";
+}
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-10 col-xl-8">
+        <div class="card shadow-sm border-0 onboarding-hero">
+            <div class="card-body p-4 p-md-5">
+                <h1 class="display-6 fw-semibold mb-3">Property maintenance made simple</h1>
+                <p class="lead text-muted mb-4">
+                    Manage maintenance requests, track lifecycle progress, and collaborate across teams in one secure platform.
+                </p>
+                <div class="d-grid gap-2 d-sm-flex">
+                    <a asp-controller="Onboarding" asp-action="Register" class="btn btn-primary btn-lg px-4">Register</a>
+                    <a asp-controller="Onboarding" asp-action="Login" class="btn btn-outline-primary btn-lg px-4">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
