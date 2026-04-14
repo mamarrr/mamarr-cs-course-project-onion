@@ -19,6 +19,7 @@ using Npgsql;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApp;
 using WebApp.Middleware;
+using WebApp.Services.ManagementLayout;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,7 +65,10 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
+builder.Services.AddScoped<IOnboardingContextService, OnboardingContextService>();
+builder.Services.AddScoped<IUserContextCatalogService, UserContextCatalogService>();
 builder.Services.AddScoped<IManagementUserAdminService, ManagementUserAdminService>();
+builder.Services.AddScoped<IManagementLayoutViewModelProvider, ManagementLayoutViewModelProvider>();
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
 builder.Services

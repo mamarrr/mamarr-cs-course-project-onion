@@ -1,10 +1,8 @@
 using App.BLL.Onboarding;
-using App.DAL.EF;
 using App.Domain.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using WebApp.ViewModels.Onboarding;
 
 namespace WebApp.Controllers;
@@ -12,16 +10,16 @@ namespace WebApp.Controllers;
 public class OnboardingController : Controller
 {
     private readonly IOnboardingService _onboardingService;
-    private readonly AppDbContext _dbContext;
+    private readonly IOnboardingContextService _onboardingContextService;
     private readonly UserManager<AppUser> _userManager;
 
     public OnboardingController(
         IOnboardingService onboardingService,
-        AppDbContext dbContext,
+        IOnboardingContextService onboardingContextService,
         UserManager<AppUser> userManager)
     {
         _onboardingService = onboardingService;
-        _dbContext = dbContext;
+        _onboardingContextService = onboardingContextService;
         _userManager = userManager;
     }
 
@@ -53,7 +51,7 @@ public class OnboardingController : Controller
             return View(new FlowChooserViewModel());
         }
 
-        var redirectTarget = await ResolveContextRedirectAsync(appUser.Id);
+        var redirectTarget = await ResolveContextRedirectAsync(appUser.Id, HttpContext.RequestAborted);
         if (redirectTarget != null)
         {
             return redirectTarget;
@@ -162,7 +160,7 @@ public class OnboardingController : Controller
             return RedirectToAction(nameof(Index));
         }
 
-        var redirectTarget = await ResolveContextRedirectAsync(appUser.Id);
+        var redirectTarget = await ResolveContextRedirectAsync(appUser.Id, HttpContext.RequestAborted);
         if (redirectTarget != null)
         {
             return redirectTarget;
@@ -193,7 +191,6 @@ public class OnboardingController : Controller
             return RedirectToAction(nameof(Login));
         }
 
-        var normalizedType = type.Trim().ToLowerInvariant();
         var cookieOptions = new CookieOptions
         {
             Expires = DateTimeOffset.UtcNow.AddYears(1),
@@ -203,48 +200,31 @@ public class OnboardingController : Controller
             SameSite = SameSiteMode.Lax
         };
 
-        switch (normalizedType)
+        var authorizationResult = await _onboardingContextService.AuthorizeContextSelectionAsync(
+            appUser.Id,
+            type,
+            id,
+            HttpContext.RequestAborted);
+
+        if (authorizationResult.Authorized)
         {
-            case "management":
-                if (!id.HasValue) break;
-
-                var managementCompany = await _dbContext.ManagementCompanyUsers
-                    .Where(x => x.AppUserId == appUser.Id && x.IsActive && x.ManagementCompanyId == id.Value)
-                    .Select(x => new { x.ManagementCompanyId, x.ManagementCompany!.Slug })
-                    .FirstOrDefaultAsync();
-                if (managementCompany == null) break;
-
+            switch (authorizationResult.NormalizedType)
+            {
+                case "management":
                 Response.Cookies.Append("ctx.type", "management", cookieOptions);
-                Response.Cookies.Append("ctx.management.company", managementCompany.ManagementCompanyId.ToString(), cookieOptions);
-                Response.Cookies.Append("ctx.management.slug", managementCompany.Slug, cookieOptions);
-                return RedirectToManagementDashboard(managementCompany.Slug);
+                Response.Cookies.Append("ctx.management.company", authorizationResult.ManagementCompanyId!.Value.ToString(), cookieOptions);
+                Response.Cookies.Append("ctx.management.slug", authorizationResult.ManagementCompanySlug!, cookieOptions);
+                return RedirectToManagementDashboard(authorizationResult.ManagementCompanySlug!);
 
-            case "customer":
-                if (!id.HasValue) break;
-
-                var hasCustomerContext = await (
-                        from residentUser in _dbContext.ResidentUsers
-                        join customerRepresentative in _dbContext.CustomerRepresentatives
-                            on residentUser.ResidentId equals customerRepresentative.ResidentId
-                        where residentUser.AppUserId == appUser.Id
-                              && residentUser.IsActive
-                              && customerRepresentative.IsActive
-                              && customerRepresentative.CustomerId == id.Value
-                        select customerRepresentative.Id)
-                    .AnyAsync();
-                if (!hasCustomerContext) break;
-
+                case "customer":
                 Response.Cookies.Append("ctx.type", "customer", cookieOptions);
-                Response.Cookies.Append("ctx.customer.id", id.Value.ToString(), cookieOptions);
+                Response.Cookies.Append("ctx.customer.id", authorizationResult.CustomerId!.Value.ToString(), cookieOptions);
                 return RedirectToAction("Index", "Dashboard", new { area = "Customer" });
 
-            case "resident":
-                var hasResidentContext = await _dbContext.ResidentUsers
-                    .AnyAsync(x => x.AppUserId == appUser.Id && x.IsActive);
-                if (!hasResidentContext) break;
-
+                case "resident":
                 Response.Cookies.Append("ctx.type", "resident", cookieOptions);
                 return RedirectToAction("Index", "Dashboard", new { area = "Resident" });
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -321,93 +301,53 @@ public class OnboardingController : Controller
     [HttpGet]
     public IActionResult JoinManagementCompany()
     {
-        return View();
+        var viewModel = new JoinManagementCompanyViewModel();
+        ViewData["Title"] = viewModel.Title;
+        return View(viewModel);
     }
 
     [Authorize]
     [HttpGet]
     public IActionResult ResidentAccess()
     {
-        return View();
+        var viewModel = new ResidentAccessViewModel();
+        ViewData["Title"] = viewModel.Title;
+        return View(viewModel);
     }
 
-    private async Task<IActionResult?> ResolveContextRedirectAsync(Guid appUserId)
+    private async Task<IActionResult?> ResolveContextRedirectAsync(Guid appUserId, CancellationToken cancellationToken)
     {
         var selectedContextType = Request.Cookies["ctx.type"]?.Trim().ToLowerInvariant();
-        var selectedManagementSlug = Request.Cookies["ctx.management.slug"];
-        var selectedCustomerCookie = Request.Cookies["ctx.customer.id"];
 
         if (User.IsInRole("SystemAdmin"))
         {
             return RedirectToAction("Index", "Home");
         }
 
-        if (selectedContextType == "management" && !string.IsNullOrWhiteSpace(selectedManagementSlug))
-        {
-            var hasSelectedManagementAccess = await _onboardingService.UserHasManagementCompanyAccessAsync(appUserId, selectedManagementSlug);
-            if (hasSelectedManagementAccess)
+        var redirectTarget = await _onboardingContextService.ResolveContextRedirectAsync(
+            appUserId,
+            new OnboardingContextSelectionCookieState
             {
-                return RedirectToManagementDashboard(selectedManagementSlug);
-            }
-        }
+                ContextType = selectedContextType,
+                ManagementCompanySlug = Request.Cookies["ctx.management.slug"],
+                CustomerId = Request.Cookies["ctx.customer.id"]
+            },
+            cancellationToken);
 
-        if (selectedContextType == "resident")
+        if (redirectTarget == null)
         {
-            var hasSelectedResidentContext = await _dbContext.ResidentUsers
-                .AnyAsync(x => x.AppUserId == appUserId && x.IsActive);
-            if (hasSelectedResidentContext)
-            {
-                return RedirectToAction("Index", "Dashboard", new { area = "Resident" });
-            }
+            return null;
         }
 
-        if (selectedContextType == "customer" && Guid.TryParse(selectedCustomerCookie, out var selectedCustomerId))
+        return redirectTarget.Destination switch
         {
-            var hasSelectedCustomerContext = await (
-                    from residentUser in _dbContext.ResidentUsers
-                    join customerRepresentative in _dbContext.CustomerRepresentatives
-                        on residentUser.ResidentId equals customerRepresentative.ResidentId
-                    where residentUser.AppUserId == appUserId
-                          && residentUser.IsActive
-                          && customerRepresentative.IsActive
-                          && customerRepresentative.CustomerId == selectedCustomerId
-                    select customerRepresentative.Id)
-                .AnyAsync();
-            if (hasSelectedCustomerContext)
-            {
-                return RedirectToAction("Index", "Dashboard", new { area = "Customer" });
-            }
-        }
-
-        var defaultManagementCompanySlug = await _onboardingService.GetDefaultManagementCompanySlugAsync(appUserId);
-        var defaultManagementSlugFound = !string.IsNullOrWhiteSpace(defaultManagementCompanySlug);
-        if (defaultManagementSlugFound)
-        {
-            return RedirectToManagementDashboard(defaultManagementCompanySlug!);
-        }
-
-        var hasResidentContext = await _dbContext.ResidentUsers
-            .AnyAsync(x => x.AppUserId == appUserId && x.IsActive);
-        if (hasResidentContext)
-        {
-            return RedirectToAction("Index", "Dashboard", new { area = "Resident" });
-        }
-
-        var hasCustomerContext = await (
-                from residentUser in _dbContext.ResidentUsers
-                join customerRepresentative in _dbContext.CustomerRepresentatives
-                    on residentUser.ResidentId equals customerRepresentative.ResidentId
-                where residentUser.AppUserId == appUserId
-                      && residentUser.IsActive
-                      && customerRepresentative.IsActive
-                select customerRepresentative.Id)
-            .AnyAsync();
-        if (hasCustomerContext)
-        {
-            return RedirectToAction("Index", "Dashboard", new { area = "Customer" });
-        }
-
-        return null;
+            OnboardingContextRedirectDestination.Home => RedirectToAction("Index", "Home"),
+            OnboardingContextRedirectDestination.ManagementDashboard when !string.IsNullOrWhiteSpace(redirectTarget.CompanySlug)
+                => RedirectToManagementDashboard(redirectTarget.CompanySlug!),
+            OnboardingContextRedirectDestination.CustomerDashboard => RedirectToAction("Index", "Dashboard", new { area = "Customer" }),
+            OnboardingContextRedirectDestination.ResidentDashboard => RedirectToAction("Index", "Dashboard", new { area = "Resident" }),
+            _ => null
+        };
     }
 
     private RedirectToRouteResult RedirectToManagementDashboard(string companySlug)

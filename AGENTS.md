@@ -512,7 +512,7 @@ Minimum expected coverage areas:
 - Keep API contracts versioned and stable.
 - Keep migrations and seed updates synchronized with schema intent.
 - Avoid using ViewBag and ViewData
-- Use Strongly typed Viewmodels as much as possible
+- Use Strongly typed ViewModels as much as possible
 
 ## 15. Definition of done
 

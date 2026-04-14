@@ -1,64 +1,19 @@
-@{
-    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
-    var companySlug = ViewContext.RouteData.Values["companySlug"]?.ToString() ?? string.Empty;
-}
-@using App.Domain.Identity
-@using Microsoft.AspNetCore.Builder
-@using Microsoft.AspNetCore.Identity
-@using Microsoft.EntityFrameworkCore
-@using Microsoft.Extensions.Options
-@using System.Linq
 @using System.Threading
-@inject App.DAL.EF.AppDbContext DbContext
-@inject UserManager<AppUser> UserManager
-@inject IOptions<RequestLocalizationOptions> LocalizationOptions
+@using WebApp.Services.ManagementLayout
+@inject IManagementLayoutViewModelProvider LayoutModelProvider
 
 @{
-    var cultureItems = LocalizationOptions.Value.SupportedUICultures!
-        .Select(c => new { Value = c.Name, Text = c.NativeName }).ToList();
-
-    var appUser = await UserManager.GetUserAsync(User);
-    var managementContexts = appUser == null
-        ? new List<dynamic>()
-        : await DbContext.ManagementCompanyUsers
-            .Where(x => x.AppUserId == appUser.Id && x.IsActive)
-            .Select(x => new { x.ManagementCompanyId, x.ManagementCompany!.Slug, CompanyName = x.ManagementCompany.Name })
-            .ToListAsync<dynamic>();
-
-    var canManageCompanyUsers = appUser != null && !string.IsNullOrWhiteSpace(companySlug) && await DbContext.ManagementCompanyUsers
-        .Where(x => x.AppUserId == appUser.Id
-                    && x.IsActive
-                    && x.ManagementCompany != null
-                    && x.ManagementCompany.Slug == companySlug
-                    && x.ManagementCompanyRole != null)
-        .AnyAsync(x => x.ManagementCompanyRole!.Code == "OWNER" || x.ManagementCompanyRole.Code == "MANAGER");
-
-    var selectedManagementContext = managementContexts
-        .FirstOrDefault(x => string.Equals((string)x.Slug, companySlug, StringComparison.OrdinalIgnoreCase));
-
-    var managementCompanyName = selectedManagementContext?.CompanyName
-        ?? managementContexts.Select(x => x.CompanyName).FirstOrDefault()
-        ?? "Management Workspace";
-
-    var customerContexts = appUser == null
-        ? new List<dynamic>()
-        : await (
-            from residentUser in DbContext.ResidentUsers
-            join customerRepresentative in DbContext.CustomerRepresentatives
-                on residentUser.ResidentId equals customerRepresentative.ResidentId
-            join customer in DbContext.Customers
-                on customerRepresentative.CustomerId equals customer.Id
-            where residentUser.AppUserId == appUser.Id
-                  && residentUser.IsActive
-                  && customerRepresentative.IsActive
-            select new { customer.Id, customer.Name })
-        .Distinct()
-        .ToListAsync<dynamic>();
-
-    var hasResidentContext = appUser != null && await DbContext.ResidentUsers
-        .AnyAsync(x => x.AppUserId == appUser.Id && x.IsActive);
-
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    var companySlug = ViewContext.RouteData.Values["companySlug"]?.ToString() ?? string.Empty;
     var currentPathAndQuery = $"{Context.Request.Path}{Context.Request.QueryString}";
+    var currentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name;
+    var layoutVm = await LayoutModelProvider.BuildAsync(
+        User,
+        currentController,
+        companySlug,
+        currentPathAndQuery,
+        currentUiCultureName,
+        Context.RequestAborted);
 }
 
 <!DOCTYPE html>
@@ -76,7 +31,7 @@
     <header class="management-header">
         <div>
             <p class="management-eyebrow">Management Area</p>
-            <strong>@managementCompanyName</strong>
+            <strong>@layoutVm.ManagementCompanyName</strong>
         </div>
         <div class="management-header-actions">
             <div class="dropdown">
@@ -85,42 +40,42 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><h6 class="dropdown-header">Companies</h6></li>
-                    @if (managementContexts.Count == 0)
+                    @if (layoutVm.ManagementContexts.Count == 0)
                     {
                         <li><span class="dropdown-item-text text-muted">No company contexts</span></li>
                     }
                     else
                     {
-                        foreach (var companyContext in managementContexts)
+                        foreach (var companyContext in layoutVm.ManagementContexts)
                         {
                             <li>
-                                <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="management" asp-route-id="@companyContext.ManagementCompanyId" asp-route-returnUrl="@currentPathAndQuery">@companyContext.CompanyName</a>
+                                <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="management" asp-route-id="@companyContext.Id" asp-route-returnUrl="@layoutVm.CurrentPathAndQuery">@companyContext.Name</a>
                             </li>
                         }
                     }
 
                     <li><hr class="dropdown-divider" /></li>
                     <li><h6 class="dropdown-header">Customers</h6></li>
-                    @if (customerContexts.Count == 0)
+                    @if (layoutVm.CustomerContexts.Count == 0)
                     {
                         <li><span class="dropdown-item-text text-muted">No customer contexts</span></li>
                     }
                     else
                     {
-                        foreach (var customerContext in customerContexts)
+                        foreach (var customerContext in layoutVm.CustomerContexts)
                         {
                             <li>
-                                <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="customer" asp-route-id="@customerContext.Id" asp-route-returnUrl="@currentPathAndQuery">@customerContext.Name</a>
+                                <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="customer" asp-route-id="@customerContext.Id" asp-route-returnUrl="@layoutVm.CurrentPathAndQuery">@customerContext.Name</a>
                             </li>
                         }
                     }
 
                     <li><hr class="dropdown-divider" /></li>
                     <li><h6 class="dropdown-header">Resident</h6></li>
-                    @if (hasResidentContext)
+                    @if (layoutVm.HasResidentContext)
                     {
                         <li>
-                            <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="resident" asp-route-returnUrl="@currentPathAndQuery">Resident Dashboard</a>
+                            <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="resident" asp-route-returnUrl="@layoutVm.CurrentPathAndQuery">Resident Dashboard</a>
                         </li>
                     }
                     else
@@ -139,32 +94,31 @@
 
     <div class="management-body-grid">
         <aside class="management-sidebar">
-            <div class="management-company-name">@managementCompanyName</div>
+            <div class="management-company-name">@layoutVm.ManagementCompanyName</div>
             <nav>
-                <a class="management-sidebar-link @(currentController == "Dashboard" ? "active" : "")" asp-route="management_dashboard" asp-route-companySlug="@companySlug">Dashboard</a>
+                <a class="management-sidebar-link @(layoutVm.CurrentController == "Dashboard" ? "active" : "")" asp-route="management_dashboard" asp-route-companySlug="@layoutVm.CompanySlug">Dashboard</a>
                 <span class="management-sidebar-link disabled">Tickets</span>
                 <span class="management-sidebar-link disabled">Properties</span>
                 <span class="management-sidebar-link disabled">Customers</span>
-                @if (canManageCompanyUsers)
+                @if (layoutVm.CanManageCompanyUsers)
                 {
-                    <a class="management-sidebar-link @(currentController == "Users" ? "active" : "")" asp-area="Management" asp-controller="Users" asp-action="Index" asp-route-companySlug="@companySlug">Users</a>
+                    <a class="management-sidebar-link @(layoutVm.CurrentController == "Users" ? "active" : "")" asp-area="Management" asp-controller="Users" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">Users</a>
                 }
                 <span class="management-sidebar-link disabled">Vendors</span>
             </nav>
 
             <div class="management-sidebar-footer">
                 <a class="management-btn management-sidebar-cta" asp-area="" asp-controller="Onboarding" asp-action="Index" asp-route-showChooser="true">New context</a>
-                <div class="management-language-title">Language (@Thread.CurrentThread.CurrentUICulture.Name)</div>
+                <div class="management-language-title">Language (@layoutVm.CurrentUiCultureName)</div>
                 <div class="management-language-list">
-                    @foreach (var item in cultureItems)
+                    @foreach (var item in layoutVm.CultureOptions)
                     {
-                        var isCurrent = Thread.CurrentThread.CurrentUICulture.Name == item.Value;
-                        <a class="management-language-link @(isCurrent ? "active" : "")"
+                        <a class="management-language-link @(item.IsCurrent ? "active" : "")"
                            asp-area=""
                            asp-controller="Home"
                            asp-action="SetLanguage"
                            asp-route-culture="@item.Value"
-                           asp-route-returnUrl="@Context.Request.Path@Context.Request.QueryString">
+                           asp-route-returnUrl="@layoutVm.CurrentPathAndQuery">
                             @item.Text
                         </a>
                     }

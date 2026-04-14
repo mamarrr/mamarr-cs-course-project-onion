@@ -127,6 +127,50 @@ public class ContinuedOnboardingServiceTests
     }
 
     [Fact]
+    public async Task OnboardingContextService_ResolveContextRedirectAsync_ReturnsSelectedManagementDashboard()
+    {
+        await using var dbContext = CreateDbContext();
+        var appUserId = Guid.NewGuid();
+
+        AddManagementContext(dbContext, appUserId, true, "north-estate", "North Estate");
+        await dbContext.SaveChangesAsync();
+
+        var onboardingService = CreateService(dbContext);
+        var contextService = new OnboardingContextService(dbContext, onboardingService);
+
+        var result = await contextService.ResolveContextRedirectAsync(
+            appUserId,
+            new OnboardingContextSelectionCookieState
+            {
+                ContextType = "management",
+                ManagementCompanySlug = "north-estate"
+            });
+
+        Assert.NotNull(result);
+        Assert.Equal(OnboardingContextRedirectDestination.ManagementDashboard, result!.Destination);
+        Assert.Equal("north-estate", result.CompanySlug);
+    }
+
+    [Fact]
+    public async Task OnboardingContextService_AuthorizeContextSelectionAsync_DeniesCrossTenantManagementContext()
+    {
+        await using var dbContext = CreateDbContext();
+        var appUserId = Guid.NewGuid();
+
+        AddManagementContext(dbContext, appUserId, true, "allowed-company", "Allowed Company");
+        await dbContext.SaveChangesAsync();
+
+        var onboardingService = CreateService(dbContext);
+        var contextService = new OnboardingContextService(dbContext, onboardingService);
+        var unauthorizedCompanyId = Guid.NewGuid();
+
+        var result = await contextService.AuthorizeContextSelectionAsync(appUserId, "management", unauthorizedCompanyId);
+
+        Assert.False(result.Authorized);
+        Assert.Equal("management", result.NormalizedType);
+    }
+
+    [Fact]
     public async Task OnboardingContextGuard_AllowsSystemAdminWithoutRedirect()
     {
         var userManager = CreateUserManagerMock();
@@ -226,9 +270,10 @@ public class ContinuedOnboardingServiceTests
         userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(appUser);
 
         var onboardingService = new OnboardingService(userManager.Object, signInManager.Object, dbContext);
+        var onboardingContextService = new OnboardingContextService(dbContext, onboardingService);
         var controller = new OnboardingController(
             onboardingService,
-            dbContext,
+            onboardingContextService,
             userManager.Object)
         {
             ControllerContext = new ControllerContext
@@ -270,13 +315,14 @@ public class ContinuedOnboardingServiceTests
         userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(appUser);
 
         var onboardingService = new OnboardingService(userManager.Object, signInManager.Object, dbContext);
+        var onboardingContextService = new OnboardingContextService(dbContext, onboardingService);
         var httpContext = new DefaultHttpContext
         {
             User = BuildAuthenticatedPrincipal()
         };
         var controller = new OnboardingController(
             onboardingService,
-            dbContext,
+            onboardingContextService,
             userManager.Object)
         {
             ControllerContext = new ControllerContext
@@ -343,6 +389,7 @@ public class ContinuedOnboardingServiceTests
         userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(appUser);
 
         var onboardingService = new OnboardingService(userManager.Object, signInManager.Object, dbContext);
+        var onboardingContextService = new OnboardingContextService(dbContext, onboardingService);
         var httpContext = new DefaultHttpContext
         {
             User = BuildAuthenticatedPrincipal()
@@ -350,7 +397,7 @@ public class ContinuedOnboardingServiceTests
 
         var controller = new OnboardingController(
             onboardingService,
-            dbContext,
+            onboardingContextService,
             userManager.Object)
         {
             ControllerContext = new ControllerContext
