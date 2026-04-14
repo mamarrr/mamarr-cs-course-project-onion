@@ -511,6 +511,7 @@ Minimum expected coverage areas:
 - Keep controllers thin; centralize business rules in services.
 - Keep API contracts versioned and stable.
 - Keep migrations and seed updates synchronized with schema intent.
+- Avoid using ViewBag and ViewData
 
 ## 15. Definition of done
 

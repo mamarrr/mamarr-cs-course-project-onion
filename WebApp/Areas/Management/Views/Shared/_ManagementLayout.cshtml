@@ -25,6 +25,14 @@
             .Select(x => new { x.ManagementCompanyId, x.ManagementCompany!.Slug, CompanyName = x.ManagementCompany.Name })
             .ToListAsync<dynamic>();
 
+    var canManageCompanyUsers = appUser != null && !string.IsNullOrWhiteSpace(companySlug) && await DbContext.ManagementCompanyUsers
+        .Where(x => x.AppUserId == appUser.Id
+                    && x.IsActive
+                    && x.ManagementCompany != null
+                    && x.ManagementCompany.Slug == companySlug
+                    && x.ManagementCompanyRole != null)
+        .AnyAsync(x => x.ManagementCompanyRole!.Code == "OWNER" || x.ManagementCompanyRole.Code == "MANAGER");
+
     var selectedManagementContext = managementContexts
         .FirstOrDefault(x => string.Equals((string)x.Slug, companySlug, StringComparison.OrdinalIgnoreCase));
 
@@ -137,7 +145,10 @@
                 <span class="management-sidebar-link disabled">Tickets</span>
                 <span class="management-sidebar-link disabled">Properties</span>
                 <span class="management-sidebar-link disabled">Customers</span>
-                <span class="management-sidebar-link disabled">Users</span>
+                @if (canManageCompanyUsers)
+                {
+                    <a class="management-sidebar-link @(currentController == "Users" ? "active" : "")" asp-area="Management" asp-controller="Users" asp-action="Index" asp-route-companySlug="@companySlug">Users</a>
+                }
                 <span class="management-sidebar-link disabled">Vendors</span>
             </nav>
 

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using App.BLL.ManagementUsers;
 using App.BLL.Onboarding;
 using App.DAL.EF;
 using App.DAL.EF.Seeding;
@@ -57,12 +58,22 @@ builder.Services.AddIdentity<AppUser, AppRole>(options => options.SignIn.Require
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.AccessDeniedPath = "/Home/AccessDenied";
+});
+
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
+builder.Services.AddScoped<IManagementUserAdminService, ManagementUserAdminService>();
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
 builder.Services
     .AddAuthentication()
-    .AddCookie(options => { options.SlidingExpiration = true; })
+    .AddCookie(options =>
+    {
+        options.SlidingExpiration = true;
+        options.AccessDeniedPath = "/Home/AccessDenied";
+    })
     .AddJwtBearer(cfg =>
     {
         cfg.RequireHttpsMetadata = false; // TODO: set to true in production!

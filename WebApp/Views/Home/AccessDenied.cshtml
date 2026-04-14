@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Access denied";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4 p-md-5">
+                    <p class="text-uppercase text-muted small mb-2">Authorization</p>
+                    <h1 class="h2 mb-3">Access denied</h1>
+                    <p class="text-muted mb-4">
+                        You do not have permission to access this page in the current company context.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a class="btn btn-primary" asp-controller="Onboarding" asp-action="Index">Go to context chooser</a>
+                        <a class="btn btn-outline-secondary" asp-controller="Home" asp-action="Index">Go to home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

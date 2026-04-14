@@ -1,0 +1,65 @@
+@model WebApp.ViewModels.ManagementUsers.EditManagementUserViewModel
+@{
+    ViewData["Title"] = "Edit user";
+}
+
+<section class="management-card" style="max-width: 860px;">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <p class="management-eyebrow mb-2">Company membership</p>
+            <h2 class="mb-1">Edit user</h2>
+            <p class="management-muted mb-0">Update company membership details for <strong>@Model.FullName</strong>.</p>
+        </div>
+        <a class="management-btn ghost" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">Back to users</a>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <form method="post" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@Model.MembershipId" class="row g-3">
+        @Html.AntiForgeryToken()
+        <input asp-for="MembershipId" type="hidden" />
+
+        <div class="col-md-6">
+            <label class="form-label">Full name</label>
+            <input class="form-control" value="@Model.FullName" disabled />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Email</label>
+            <input class="form-control" value="@Model.Email" disabled />
+        </div>
+        <div class="col-md-6">
+            <label asp-for="RoleId" class="form-label"></label>
+            <select asp-for="RoleId" asp-items="Model.AvailableRoles" class="form-select">
+                <option value="">Select role</option>
+            </select>
+            <span asp-validation-for="RoleId" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="JobTitle" class="form-label"></label>
+            <input asp-for="JobTitle" class="form-control" />
+            <span asp-validation-for="JobTitle" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="ValidFrom" class="form-label"></label>
+            <input asp-for="ValidFrom" class="form-control" type="date" />
+            <span asp-validation-for="ValidFrom" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="ValidTo" class="form-label"></label>
+            <input asp-for="ValidTo" class="form-control" type="date" />
+            <span asp-validation-for="ValidTo" class="text-danger"></span>
+        </div>
+        <div class="col-12 form-check ms-2">
+            <input asp-for="IsActive" class="form-check-input" />
+            <label asp-for="IsActive" class="form-check-label"></label>
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="management-btn">Save changes</button>
+            <a class="management-btn ghost" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">Cancel</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
