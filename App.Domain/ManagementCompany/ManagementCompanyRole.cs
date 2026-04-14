@@ -14,4 +14,5 @@ public class ManagementCompanyRole : BaseEntity, ILookUpEntity
     public LangStr Label { get; set; } = default!;
 
     public ICollection<ManagementCompanyUser>? ManagementCompanyUsers { get; set; }
+    public ICollection<ManagementCompanyJoinRequest>? ManagementCompanyJoinRequests { get; set; }
 }

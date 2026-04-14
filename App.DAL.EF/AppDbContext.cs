@@ -26,6 +26,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
     public DbSet<ManagementCompany> ManagementCompanies { get; set; } = default!;
     public DbSet<ManagementCompanyRole> ManagementCompanyRoles { get; set; } = default!;
     public DbSet<ManagementCompanyUser> ManagementCompanyUsers { get; set; } = default!;
+    public DbSet<ManagementCompanyJoinRequest> ManagementCompanyJoinRequests { get; set; } = default!;
     public DbSet<Property> Properties { get; set; } = default!;
     public DbSet<PropertyType> PropertyTypes { get; set; } = default!;
     public DbSet<Resident> Residents { get; set; } = default!;
@@ -160,6 +161,30 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .WithMany(e => e.ManagementCompanyUsers)
             .HasForeignKey(e => e.ManagementCompanyRoleId)
             .HasConstraintName("fk_mcompany_user_role");
+
+        builder.Entity<ManagementCompanyJoinRequest>()
+            .HasOne(e => e.AppUser)
+            .WithMany(e => e.ManagementCompanyJoinRequests)
+            .HasForeignKey(e => e.AppUserId)
+            .HasConstraintName("fk_mcompany_join_request_appuser");
+
+        builder.Entity<ManagementCompanyJoinRequest>()
+            .HasOne(e => e.ManagementCompany)
+            .WithMany(e => e.JoinRequests)
+            .HasForeignKey(e => e.ManagementCompanyId)
+            .HasConstraintName("fk_mcompany_join_request_mcompany");
+
+        builder.Entity<ManagementCompanyJoinRequest>()
+            .HasOne(e => e.RequestedManagementCompanyRole)
+            .WithMany(e => e.ManagementCompanyJoinRequests)
+            .HasForeignKey(e => e.RequestedManagementCompanyRoleId)
+            .HasConstraintName("fk_mcompany_join_request_requested_role");
+
+        builder.Entity<ManagementCompanyJoinRequest>()
+            .HasOne(e => e.ResolvedByAppUser)
+            .WithMany(e => e.ResolvedManagementCompanyJoinRequests)
+            .HasForeignKey(e => e.ResolvedByAppUserId)
+            .HasConstraintName("fk_mcompany_join_request_resolver_appuser");
 
         builder.Entity<Customer>()
             .HasOne(e => e.ManagementCompany)
@@ -433,6 +458,12 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasAlternateKey(e => new { e.ManagementCompanyId, e.AppUserId })
             .HasName("uq_mcompany_user_pair");
 
+        builder.Entity<ManagementCompanyJoinRequest>()
+            .HasIndex(e => new { e.AppUserId, e.ManagementCompanyId })
+            .IsUnique()
+            .HasDatabaseName("ux_mcompany_join_request_pending_user_company")
+            .HasFilter($"\"Status\" = '{ManagementCompanyJoinRequestStatus.Pending}'");
+
         builder.Entity<ResidentUser>()
             .HasAlternateKey(e => new { e.ResidentId, e.AppUserId })
             .HasName("uq_resident_user_pair");
@@ -465,6 +496,27 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
         builder.Entity<ManagementCompanyUser>()
             .HasIndex(e => e.ManagementCompanyRoleId)
             .HasDatabaseName("ix_mcompany_user_mcompany_role_id_fk");
+
+        builder.Entity<ManagementCompanyJoinRequest>()
+            .HasIndex(e => e.ManagementCompanyId)
+            .HasDatabaseName("ix_mcompany_join_request_mcompany_id_fk");
+
+        builder.Entity<ManagementCompanyJoinRequest>()
+            .HasIndex(e => e.AppUserId)
+            .HasDatabaseName("ix_mcompany_join_request_appuser_id_fk");
+
+        builder.Entity<ManagementCompanyJoinRequest>()
+            .HasIndex(e => e.RequestedManagementCompanyRoleId)
+            .HasDatabaseName("ix_mcompany_join_request_requested_role_id_fk");
+
+        builder.Entity<ManagementCompanyJoinRequest>()
+            .HasIndex(e => e.ResolvedByAppUserId)
+            .HasDatabaseName("ix_mcompany_join_request_resolved_by_appuser_id_fk");
+
+        builder.Entity<ManagementCompanyJoinRequest>()
+            .HasIndex(e => new { e.ManagementCompanyId, e.Status, e.CreatedAt })
+            .HasDatabaseName("ix_mcompany_join_request_company_status_created_at")
+            .IsDescending(false, false, true);
 
         builder.Entity<Customer>()
             .HasIndex(e => e.ManagementCompanyId)

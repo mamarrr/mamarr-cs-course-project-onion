@@ -1,5 +1,6 @@
 using App.DAL.EF;
 using App.Domain;
+using App.BLL.Onboarding;
 using App.Domain.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,7 @@ namespace App.BLL.ManagementUsers;
 public class ManagementUserAdminService : IManagementUserAdminService
 {
     private readonly AppDbContext _dbContext;
+    private readonly IManagementCompanyJoinRequestService _joinRequestService;
 
     // Role codes that are allowed to administer company users
     private static readonly HashSet<string> AdminRoleCodes = new(StringComparer.OrdinalIgnoreCase)
@@ -20,9 +22,13 @@ public class ManagementUserAdminService : IManagementUserAdminService
         "MANAGER"
     };
 
-    public ManagementUserAdminService(AppDbContext dbContext, ILogger<ManagementUserAdminService> logger)
+    public ManagementUserAdminService(
+        AppDbContext dbContext,
+        IManagementCompanyJoinRequestService joinRequestService,
+        ILogger<ManagementUserAdminService> logger)
     {
         _dbContext = dbContext;
+        _joinRequestService = joinRequestService;
     }
 
     /// <inheritdoc />
@@ -358,16 +364,72 @@ public class ManagementUserAdminService : IManagementUserAdminService
     }
 
     /// <inheritdoc />
-    public Task<PendingAccessRequestListResult> GetPendingAccessRequestsAsync(
+    public async Task<PendingAccessRequestListResult> GetPendingAccessRequestsAsync(
         ManagementUserAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
-        // Placeholder implementation - returns empty list
-        // Future implementation will query pending access request entities
-        return Task.FromResult(new PendingAccessRequestListResult
+        var requests = await _joinRequestService.ListPendingForCompanyAsync(context.ManagementCompanyId, cancellationToken);
+
+        return new PendingAccessRequestListResult
         {
-            Requests = Array.Empty<PendingAccessRequestItem>()
-        });
+            Requests = requests.Select(x => new PendingAccessRequestItem
+            {
+                RequestId = x.RequestId,
+                AppUserId = x.AppUserId,
+                RequesterName = x.RequesterName,
+                RequesterEmail = x.RequesterEmail,
+                RequestedRoleCode = x.RequestedRoleCode,
+                RequestedRoleLabel = x.RequestedRoleLabel,
+                Message = x.Message,
+                RequestedAt = x.CreatedAt
+            }).ToList()
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
+        ManagementUserAdminAuthorizedContext context,
+        Guid requestId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _joinRequestService.ApproveRequestAsync(
+            context.AppUserId,
+            context.ManagementCompanyId,
+            requestId,
+            cancellationToken);
+
+        return new PendingAccessRequestActionResult
+        {
+            Success = result.Success,
+            NotFound = result.NotFound,
+            Forbidden = result.Forbidden,
+            AlreadyResolved = result.AlreadyResolved,
+            AlreadyMember = result.AlreadyMember,
+            ErrorMessage = result.ErrorMessage
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
+        ManagementUserAdminAuthorizedContext context,
+        Guid requestId,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _joinRequestService.RejectRequestAsync(
+            context.AppUserId,
+            context.ManagementCompanyId,
+            requestId,
+            cancellationToken);
+
+        return new PendingAccessRequestActionResult
+        {
+            Success = result.Success,
+            NotFound = result.NotFound,
+            Forbidden = result.Forbidden,
+            AlreadyResolved = result.AlreadyResolved,
+            AlreadyMember = result.AlreadyMember,
+            ErrorMessage = result.ErrorMessage
+        };
     }
 
     /// <inheritdoc />

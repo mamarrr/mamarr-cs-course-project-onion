@@ -67,6 +67,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<IOnboardingContextService, OnboardingContextService>();
 builder.Services.AddScoped<IUserContextCatalogService, UserContextCatalogService>();
+builder.Services.AddScoped<IManagementCompanyJoinRequestService, ManagementCompanyJoinRequestService>();
 builder.Services.AddScoped<IManagementUserAdminService, ManagementUserAdminService>();
 builder.Services.AddScoped<IManagementLayoutViewModelProvider, ManagementLayoutViewModelProvider>();
 

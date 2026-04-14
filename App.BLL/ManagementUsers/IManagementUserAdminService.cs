@@ -67,6 +67,22 @@ public interface IManagementUserAdminService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Approves a pending access request in the authorized company context.
+    /// </summary>
+    Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
+        ManagementUserAdminAuthorizedContext context,
+        Guid requestId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Rejects a pending access request in the authorized company context.
+    /// </summary>
+    Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
+        ManagementUserAdminAuthorizedContext context,
+        Guid requestId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets available management company roles for dropdown selection.
     /// </summary>
     Task<IReadOnlyList<ManagementCompanyRole>> GetAvailableRolesAsync(

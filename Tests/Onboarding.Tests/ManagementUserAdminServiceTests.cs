@@ -1,4 +1,5 @@
 using App.BLL.ManagementUsers;
+using App.BLL.Onboarding;
 using App.DAL.EF;
 using App.Domain;
 using App.Domain.Identity;
@@ -24,7 +25,7 @@ public class ManagementUserAdminServiceTests
         dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, appUser.Id, ownerRole.Id, true, "Owner"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
+        var sut = CreateSut(dbContext);
 
         var result = await sut.AuthorizeAsync(appUser.Id, company.Slug);
 
@@ -47,7 +48,7 @@ public class ManagementUserAdminServiceTests
         dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, appUser.Id, supportRole.Id, true, "Support"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
+        var sut = CreateSut(dbContext);
 
         var result = await sut.AuthorizeAsync(appUser.Id, company.Slug);
 
@@ -76,7 +77,7 @@ public class ManagementUserAdminServiceTests
             CreateMembership(otherCompany.Id, otherCompanyUser.Id, managerRole.Id, true, "Manager"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
+        var sut = CreateSut(dbContext);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.ListCompanyMembersAsync(auth.Context!);
@@ -101,7 +102,7 @@ public class ManagementUserAdminServiceTests
         dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, actor.Id, ownerRole.Id, true, "Owner"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
+        var sut = CreateSut(dbContext);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.AddUserByEmailAsync(auth.Context!, new ManagementUserAddRequest
@@ -136,7 +137,7 @@ public class ManagementUserAdminServiceTests
             CreateMembership(company.Id, targetUser.Id, managerRole.Id, true, "Manager"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
+        var sut = CreateSut(dbContext);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.AddUserByEmailAsync(auth.Context!, new ManagementUserAddRequest
@@ -172,7 +173,7 @@ public class ManagementUserAdminServiceTests
             membership);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
+        var sut = CreateSut(dbContext);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.UpdateMembershipAsync(auth.Context!, membership.Id, new ManagementUserUpdateRequest
@@ -210,7 +211,7 @@ public class ManagementUserAdminServiceTests
             membership);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
+        var sut = CreateSut(dbContext);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.DeleteMembershipAsync(auth.Context!, membership.Id);
@@ -221,26 +222,130 @@ public class ManagementUserAdminServiceTests
     }
 
     [Fact]
-    public async Task GetPendingAccessRequestsAsync_ReturnsEmptyPlaceholderList()
+    public async Task GetPendingAccessRequestsAsync_ReturnsCompanyPendingRequestsOnly()
     {
         await using var dbContext = CreateDbContext();
         var actor = CreateUser("owner@test.com", "Owner", "User");
+        var requester = CreateUser("requester@test.com", "Requester", "User");
+        var otherRequester = CreateUser("other-requester@test.com", "Other", "Requester");
         var ownerRole = CreateRole("OWNER", "Owner");
+        var managerRole = CreateRole("MANAGER", "Manager");
         var company = CreateCompany("north-estate", "North Estate");
+        var otherCompany = CreateCompany("south-estate", "South Estate");
 
-        dbContext.Users.Add(actor);
-        dbContext.ManagementCompanyRoles.Add(ownerRole);
-        dbContext.ManagementCompanies.Add(company);
+        dbContext.Users.AddRange(actor, requester, otherRequester);
+        dbContext.ManagementCompanyRoles.AddRange(ownerRole, managerRole);
+        dbContext.ManagementCompanies.AddRange(company, otherCompany);
         dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, actor.Id, ownerRole.Id, true, "Owner"));
+        dbContext.ManagementCompanyJoinRequests.AddRange(
+            new ManagementCompanyJoinRequest
+            {
+                Id = Guid.NewGuid(),
+                AppUserId = requester.Id,
+                ManagementCompanyId = company.Id,
+                RequestedManagementCompanyRoleId = managerRole.Id,
+                Status = ManagementCompanyJoinRequestStatus.Pending,
+                Message = "Please approve",
+                CreatedAt = DateTime.UtcNow
+            },
+            new ManagementCompanyJoinRequest
+            {
+                Id = Guid.NewGuid(),
+                AppUserId = otherRequester.Id,
+                ManagementCompanyId = otherCompany.Id,
+                RequestedManagementCompanyRoleId = managerRole.Id,
+                Status = ManagementCompanyJoinRequestStatus.Pending,
+                CreatedAt = DateTime.UtcNow
+            });
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementUserAdminService(dbContext, NullLogger<ManagementUserAdminService>.Instance);
+        var sut = CreateSut(dbContext);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
         var result = await sut.GetPendingAccessRequestsAsync(auth.Context!);
 
-        Assert.NotNull(result.Requests);
-        Assert.Empty(result.Requests);
+        Assert.Single(result.Requests);
+        Assert.Equal(requester.Email, result.Requests[0].RequesterEmail);
+    }
+
+    [Fact]
+    public async Task ApprovePendingAccessRequestAsync_CreatesMembership_AndResolvesRequest()
+    {
+        await using var dbContext = CreateDbContext();
+        var actor = CreateUser("owner@test.com", "Owner", "User");
+        var requester = CreateUser("requester@test.com", "Requester", "User");
+        var ownerRole = CreateRole("OWNER", "Owner");
+        var managerRole = CreateRole("MANAGER", "Manager");
+        var company = CreateCompany("north-estate", "North Estate");
+
+        dbContext.Users.AddRange(actor, requester);
+        dbContext.ManagementCompanyRoles.AddRange(ownerRole, managerRole);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, actor.Id, ownerRole.Id, true, "Owner"));
+        var request = new ManagementCompanyJoinRequest
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = requester.Id,
+            ManagementCompanyId = company.Id,
+            RequestedManagementCompanyRoleId = managerRole.Id,
+            Status = ManagementCompanyJoinRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        };
+        dbContext.ManagementCompanyJoinRequests.Add(request);
+        await dbContext.SaveChangesAsync();
+
+        var sut = CreateSut(dbContext);
+        var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
+
+        var result = await sut.ApprovePendingAccessRequestAsync(auth.Context!, request.Id);
+
+        Assert.True(result.Success);
+        Assert.True(await dbContext.ManagementCompanyUsers.AnyAsync(x => x.AppUserId == requester.Id && x.ManagementCompanyId == company.Id));
+        var storedRequest = await dbContext.ManagementCompanyJoinRequests.SingleAsync(x => x.Id == request.Id);
+        Assert.Equal(ManagementCompanyJoinRequestStatus.Approved, storedRequest.Status);
+    }
+
+    [Fact]
+    public async Task RejectPendingAccessRequestAsync_ResolvesRequestWithoutMembershipCreation()
+    {
+        await using var dbContext = CreateDbContext();
+        var actor = CreateUser("owner@test.com", "Owner", "User");
+        var requester = CreateUser("requester@test.com", "Requester", "User");
+        var ownerRole = CreateRole("OWNER", "Owner");
+        var managerRole = CreateRole("MANAGER", "Manager");
+        var company = CreateCompany("north-estate", "North Estate");
+
+        dbContext.Users.AddRange(actor, requester);
+        dbContext.ManagementCompanyRoles.AddRange(ownerRole, managerRole);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, actor.Id, ownerRole.Id, true, "Owner"));
+        var request = new ManagementCompanyJoinRequest
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = requester.Id,
+            ManagementCompanyId = company.Id,
+            RequestedManagementCompanyRoleId = managerRole.Id,
+            Status = ManagementCompanyJoinRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        };
+        dbContext.ManagementCompanyJoinRequests.Add(request);
+        await dbContext.SaveChangesAsync();
+
+        var sut = CreateSut(dbContext);
+        var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
+
+        var result = await sut.RejectPendingAccessRequestAsync(auth.Context!, request.Id);
+
+        Assert.True(result.Success);
+        Assert.False(await dbContext.ManagementCompanyUsers.AnyAsync(x => x.AppUserId == requester.Id && x.ManagementCompanyId == company.Id));
+        var storedRequest = await dbContext.ManagementCompanyJoinRequests.SingleAsync(x => x.Id == request.Id);
+        Assert.Equal(ManagementCompanyJoinRequestStatus.Rejected, storedRequest.Status);
+    }
+
+    private static ManagementUserAdminService CreateSut(AppDbContext dbContext)
+    {
+        var joinRequestService = new ManagementCompanyJoinRequestService(dbContext);
+        return new ManagementUserAdminService(dbContext, joinRequestService, NullLogger<ManagementUserAdminService>.Instance);
     }
 
     private static AppDbContext CreateDbContext()

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using App.BLL.ManagementUsers;
 using App.BLL.Onboarding;
 using App.BLL.Routing;
 using App.DAL.EF;
@@ -21,6 +22,234 @@ namespace Onboarding.Tests;
 
 public class ContinuedOnboardingServiceTests
 {
+    [Fact]
+    public async Task ManagementCompanyJoinRequestService_CreateJoinRequest_Succeeds_ForValidInput()
+    {
+        await using var dbContext = CreateDbContext();
+        var requester = CreateUser("requester@test.com", "Requester", "User");
+        var company = CreateCompany("north-estate", "North Estate");
+        var managerRole = new ManagementCompanyRole { Id = Guid.NewGuid(), Code = "MANAGER", Label = "Manager" };
+
+        dbContext.Users.Add(requester);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyRoles.Add(managerRole);
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var result = await sut.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
+        {
+            AppUserId = requester.Id,
+            RegistryCode = company.RegistryCode,
+            RequestedRoleId = managerRole.Id,
+            Message = "I can help with operations"
+        });
+
+        Assert.True(result.Success);
+        Assert.NotNull(result.RequestId);
+        Assert.True(await dbContext.ManagementCompanyJoinRequests.AnyAsync(x => x.Id == result.RequestId));
+    }
+
+    [Fact]
+    public async Task ManagementCompanyJoinRequestService_CreateJoinRequest_BlocksDuplicatePending()
+    {
+        await using var dbContext = CreateDbContext();
+        var requester = CreateUser("requester@test.com", "Requester", "User");
+        var company = CreateCompany("north-estate", "North Estate");
+        var managerRole = new ManagementCompanyRole { Id = Guid.NewGuid(), Code = "MANAGER", Label = "Manager" };
+
+        dbContext.Users.Add(requester);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyRoles.Add(managerRole);
+        dbContext.ManagementCompanyJoinRequests.Add(new ManagementCompanyJoinRequest
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = requester.Id,
+            ManagementCompanyId = company.Id,
+            RequestedManagementCompanyRoleId = managerRole.Id,
+            Status = ManagementCompanyJoinRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        });
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var result = await sut.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
+        {
+            AppUserId = requester.Id,
+            RegistryCode = company.RegistryCode,
+            RequestedRoleId = managerRole.Id
+        });
+
+        Assert.True(result.DuplicatePendingRequest);
+        Assert.False(result.Success);
+    }
+
+    [Fact]
+    public async Task ManagementCompanyJoinRequestService_CreateJoinRequest_BlocksAlreadyMember()
+    {
+        await using var dbContext = CreateDbContext();
+        var requester = CreateUser("requester@test.com", "Requester", "User");
+        var company = CreateCompany("north-estate", "North Estate");
+        var managerRole = new ManagementCompanyRole { Id = Guid.NewGuid(), Code = "MANAGER", Label = "Manager" };
+
+        dbContext.Users.Add(requester);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyRoles.Add(managerRole);
+        dbContext.ManagementCompanyUsers.Add(new ManagementCompanyUser
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = requester.Id,
+            ManagementCompanyId = company.Id,
+            ManagementCompanyRoleId = managerRole.Id,
+            JobTitle = "Manager",
+            IsActive = true,
+            ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow),
+            CreatedAt = DateTime.UtcNow
+        });
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var result = await sut.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
+        {
+            AppUserId = requester.Id,
+            RegistryCode = company.RegistryCode,
+            RequestedRoleId = managerRole.Id
+        });
+
+        Assert.True(result.AlreadyMember);
+        Assert.False(result.Success);
+    }
+
+    [Fact]
+    public async Task ManagementCompanyJoinRequestService_RejectsApproval_ForUnauthorizedActor()
+    {
+        await using var dbContext = CreateDbContext();
+        var actor = CreateUser("support@test.com", "Support", "User");
+        var requester = CreateUser("requester@test.com", "Requester", "User");
+        var company = CreateCompany("north-estate", "North Estate");
+        var supportRole = new ManagementCompanyRole { Id = Guid.NewGuid(), Code = "SUPPORT", Label = "Support" };
+        var managerRole = new ManagementCompanyRole { Id = Guid.NewGuid(), Code = "MANAGER", Label = "Manager" };
+
+        dbContext.Users.AddRange(actor, requester);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyRoles.AddRange(supportRole, managerRole);
+        dbContext.ManagementCompanyUsers.Add(new ManagementCompanyUser
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = actor.Id,
+            ManagementCompanyId = company.Id,
+            ManagementCompanyRoleId = supportRole.Id,
+            JobTitle = "Support",
+            IsActive = true,
+            ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow),
+            CreatedAt = DateTime.UtcNow
+        });
+        var request = new ManagementCompanyJoinRequest
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = requester.Id,
+            ManagementCompanyId = company.Id,
+            RequestedManagementCompanyRoleId = managerRole.Id,
+            Status = ManagementCompanyJoinRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        };
+        dbContext.ManagementCompanyJoinRequests.Add(request);
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var result = await sut.ApproveRequestAsync(actor.Id, company.Id, request.Id);
+
+        Assert.True(result.Forbidden);
+        Assert.False(result.Success);
+    }
+
+    [Fact]
+    public async Task ManagementCompanyJoinRequestService_CannotResolveRequestTwice()
+    {
+        await using var dbContext = CreateDbContext();
+        var actor = CreateUser("owner@test.com", "Owner", "User");
+        var requester = CreateUser("requester@test.com", "Requester", "User");
+        var company = CreateCompany("north-estate", "North Estate");
+        var ownerRole = new ManagementCompanyRole { Id = Guid.NewGuid(), Code = "OWNER", Label = "Owner" };
+        var managerRole = new ManagementCompanyRole { Id = Guid.NewGuid(), Code = "MANAGER", Label = "Manager" };
+
+        dbContext.Users.AddRange(actor, requester);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyRoles.AddRange(ownerRole, managerRole);
+        dbContext.ManagementCompanyUsers.Add(new ManagementCompanyUser
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = actor.Id,
+            ManagementCompanyId = company.Id,
+            ManagementCompanyRoleId = ownerRole.Id,
+            JobTitle = "Owner",
+            IsActive = true,
+            ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow),
+            CreatedAt = DateTime.UtcNow
+        });
+        var request = new ManagementCompanyJoinRequest
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = requester.Id,
+            ManagementCompanyId = company.Id,
+            RequestedManagementCompanyRoleId = managerRole.Id,
+            Status = ManagementCompanyJoinRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        };
+        dbContext.ManagementCompanyJoinRequests.Add(request);
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var first = await sut.RejectRequestAsync(actor.Id, company.Id, request.Id);
+        var second = await sut.RejectRequestAsync(actor.Id, company.Id, request.Id);
+
+        Assert.True(first.Success);
+        Assert.True(second.AlreadyResolved);
+    }
+
+    [Fact]
+    public async Task ManagementCompanyJoinRequestService_BlocksCrossTenantApproval_ByNotFound()
+    {
+        await using var dbContext = CreateDbContext();
+        var actor = CreateUser("owner@test.com", "Owner", "User");
+        var requester = CreateUser("requester@test.com", "Requester", "User");
+        var companyA = CreateCompany("north-estate", "North Estate");
+        var companyB = CreateCompany("south-estate", "South Estate");
+        var ownerRole = new ManagementCompanyRole { Id = Guid.NewGuid(), Code = "OWNER", Label = "Owner" };
+        var managerRole = new ManagementCompanyRole { Id = Guid.NewGuid(), Code = "MANAGER", Label = "Manager" };
+
+        dbContext.Users.AddRange(actor, requester);
+        dbContext.ManagementCompanies.AddRange(companyA, companyB);
+        dbContext.ManagementCompanyRoles.AddRange(ownerRole, managerRole);
+        dbContext.ManagementCompanyUsers.Add(new ManagementCompanyUser
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = actor.Id,
+            ManagementCompanyId = companyA.Id,
+            ManagementCompanyRoleId = ownerRole.Id,
+            JobTitle = "Owner",
+            IsActive = true,
+            ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow),
+            CreatedAt = DateTime.UtcNow
+        });
+        var requestInB = new ManagementCompanyJoinRequest
+        {
+            Id = Guid.NewGuid(),
+            AppUserId = requester.Id,
+            ManagementCompanyId = companyB.Id,
+            RequestedManagementCompanyRoleId = managerRole.Id,
+            Status = ManagementCompanyJoinRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
+        };
+        dbContext.ManagementCompanyJoinRequests.Add(requestInB);
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var result = await sut.ApproveRequestAsync(actor.Id, companyA.Id, requestInB.Id);
+
+        Assert.True(result.NotFound);
+        Assert.False(result.Success);
+    }
+
     [Fact]
     public async Task HasAnyContextAsync_ReturnsTrue_WhenActiveManagementContextExists()
     {
@@ -274,6 +503,8 @@ public class ContinuedOnboardingServiceTests
         var controller = new OnboardingController(
             onboardingService,
             onboardingContextService,
+            CreateJoinRequestServiceMock().Object,
+            CreateManagementUserAdminServiceMock().Object,
             userManager.Object)
         {
             ControllerContext = new ControllerContext
@@ -323,6 +554,8 @@ public class ContinuedOnboardingServiceTests
         var controller = new OnboardingController(
             onboardingService,
             onboardingContextService,
+            CreateJoinRequestServiceMock().Object,
+            CreateManagementUserAdminServiceMock().Object,
             userManager.Object)
         {
             ControllerContext = new ControllerContext
@@ -398,6 +631,8 @@ public class ContinuedOnboardingServiceTests
         var controller = new OnboardingController(
             onboardingService,
             onboardingContextService,
+            CreateJoinRequestServiceMock().Object,
+            CreateManagementUserAdminServiceMock().Object,
             userManager.Object)
         {
             ControllerContext = new ControllerContext
@@ -568,6 +803,51 @@ public class ContinuedOnboardingServiceTests
             new Mock<ILogger<SignInManager<AppUser>>>().Object,
             new Mock<Microsoft.AspNetCore.Authentication.IAuthenticationSchemeProvider>().Object,
             new DefaultUserConfirmation<AppUser>());
+    }
+
+    private static Mock<IManagementCompanyJoinRequestService> CreateJoinRequestServiceMock()
+    {
+        return new Mock<IManagementCompanyJoinRequestService>();
+    }
+
+    private static Mock<IManagementUserAdminService> CreateManagementUserAdminServiceMock()
+    {
+        var mock = new Mock<IManagementUserAdminService>();
+        mock.Setup(x => x.GetAvailableRolesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<ManagementCompanyRole>());
+        return mock;
+    }
+
+    private static AppUser CreateUser(string email, string firstName, string lastName)
+    {
+        return new AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = email,
+            UserName = email,
+            FirstName = firstName,
+            LastName = lastName,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            EmailConfirmed = true
+        };
+    }
+
+    private static ManagementCompany CreateCompany(string slug, string name)
+    {
+        return new ManagementCompany
+        {
+            Id = Guid.NewGuid(),
+            Slug = slug,
+            Name = name,
+            RegistryCode = $"REG-{Guid.NewGuid():N}"[..16],
+            VatNumber = $"VAT-{Guid.NewGuid():N}"[..16],
+            Email = $"{slug}@test.com",
+            Phone = "+3720000000",
+            Address = "Test address 1",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
     }
 
     private static string FindRepoRoot()

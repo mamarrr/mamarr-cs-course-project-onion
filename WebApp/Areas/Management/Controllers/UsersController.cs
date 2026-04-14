@@ -251,14 +251,60 @@ public class UsersController : Controller
             PendingRequests = pendingRequests.Requests.Select(x => new PendingAccessRequestViewModel
             {
                 RequestId = x.RequestId,
+                AppUserId = x.AppUserId,
                 RequesterName = x.RequesterName,
                 RequesterEmail = x.RequesterEmail,
                 RequestedRoleCode = x.RequestedRoleCode,
                 RequestedRoleLabel = x.RequestedRoleLabel,
+                Message = x.Message,
                 RequestedAt = x.RequestedAt
             }).ToList(),
             AvailableRoles = availableRoles
         };
+    }
+
+    [HttpPost("requests/{requestId:guid}/approve")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ApproveRequest(string companySlug, Guid requestId, CancellationToken cancellationToken)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId == null) return Challenge();
+
+        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var authResponse = ToAuthorizationActionResult(auth);
+        if (authResponse is not null) return authResponse;
+
+        var result = await _managementUserAdminService.ApprovePendingAccessRequestAsync(auth.Context!, requestId, cancellationToken);
+        if (!result.Success)
+        {
+            TempData["ManagementUsersError"] = result.ErrorMessage ?? "Unable to approve access request.";
+            return RedirectToAction(nameof(Index), new { companySlug });
+        }
+
+        TempData["ManagementUsersSuccess"] = "Access request approved and membership created.";
+        return RedirectToAction(nameof(Index), new { companySlug });
+    }
+
+    [HttpPost("requests/{requestId:guid}/reject")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RejectRequest(string companySlug, Guid requestId, CancellationToken cancellationToken)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId == null) return Challenge();
+
+        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var authResponse = ToAuthorizationActionResult(auth);
+        if (authResponse is not null) return authResponse;
+
+        var result = await _managementUserAdminService.RejectPendingAccessRequestAsync(auth.Context!, requestId, cancellationToken);
+        if (!result.Success)
+        {
+            TempData["ManagementUsersError"] = result.ErrorMessage ?? "Unable to reject access request.";
+            return RedirectToAction(nameof(Index), new { companySlug });
+        }
+
+        TempData["ManagementUsersSuccess"] = "Access request rejected.";
+        return RedirectToAction(nameof(Index), new { companySlug });
     }
 
     private async Task<IReadOnlyList<SelectListItem>> BuildRoleSelectListAsync(CancellationToken cancellationToken, Guid? selectedRoleId = null)

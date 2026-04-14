@@ -76,7 +76,7 @@
 
     <section class="management-card">
         <h2>Pending access requests</h2>
-        <p class="management-muted">This section is ready for the future onboarding approval workflow.</p>
+        <p class="management-muted">Review and decide pending employee onboarding access requests for this company.</p>
 
         @if (Model.PendingRequests.Count == 0)
         {
@@ -90,23 +90,38 @@
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Requested role</th>
-                        <th>Requested at</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var request in Model.PendingRequests)
-                    {
+                     <tr>
+                         <th>Name</th>
+                         <th>Email</th>
+                         <th>Requested role</th>
+                         <th>Message</th>
+                         <th>Requested at</th>
+                         <th class="text-end">Actions</th>
+                     </tr>
+                     </thead>
+                     <tbody>
+                     @foreach (var request in Model.PendingRequests)
+                     {
                         <tr>
-                            <td>@request.RequesterName</td>
-                            <td>@request.RequesterEmail</td>
-                            <td>@request.RequestedRoleLabel</td>
-                            <td>@request.RequestedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        </tr>
-                    }
+                             <td>@request.RequesterName</td>
+                             <td>@request.RequesterEmail</td>
+                             <td>@request.RequestedRoleLabel</td>
+                             <td>@(string.IsNullOrWhiteSpace(request.Message) ? "—" : request.Message)</td>
+                             <td>@request.RequestedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                             <td class="text-end">
+                                 <div class="d-inline-flex gap-2">
+                                     <form method="post" asp-action="ApproveRequest" asp-route-companySlug="@Model.CompanySlug" asp-route-requestId="@request.RequestId" onsubmit="return confirm('Approve this access request?');">
+                                         @Html.AntiForgeryToken()
+                                         <button type="submit" class="management-btn">Approve</button>
+                                     </form>
+                                     <form method="post" asp-action="RejectRequest" asp-route-companySlug="@Model.CompanySlug" asp-route-requestId="@request.RequestId" onsubmit="return confirm('Reject this access request?');">
+                                         @Html.AntiForgeryToken()
+                                         <button type="submit" class="management-btn ghost">Reject</button>
+                                     </form>
+                                 </div>
+                             </td>
+                         </tr>
+                     }
                     </tbody>
                 </table>
             </div>

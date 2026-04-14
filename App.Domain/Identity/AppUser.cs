@@ -21,6 +21,8 @@ public class AppUser : IdentityUser<Guid>, IBaseEntity
 
     public ICollection<AppRefreshToken>? RefreshTokens { get; set; }
     public ICollection<ManagementCompanyUser>? ManagementCompanyUsers { get; set; }
+    public ICollection<ManagementCompanyJoinRequest>? ManagementCompanyJoinRequests { get; set; }
+    public ICollection<ManagementCompanyJoinRequest>? ResolvedManagementCompanyJoinRequests { get; set; }
     public ICollection<ResidentUser>? ResidentUsers { get; set; }
     public ICollection<WorkLog>? WorkLogs { get; set; }
 }

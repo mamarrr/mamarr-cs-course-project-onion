@@ -1,4 +1,5 @@
 using App.BLL.Onboarding;
+using App.BLL.ManagementUsers;
 using App.Domain.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -11,15 +12,21 @@ public class OnboardingController : Controller
 {
     private readonly IOnboardingService _onboardingService;
     private readonly IOnboardingContextService _onboardingContextService;
+    private readonly IManagementCompanyJoinRequestService _joinRequestService;
+    private readonly IManagementUserAdminService _managementUserAdminService;
     private readonly UserManager<AppUser> _userManager;
 
     public OnboardingController(
         IOnboardingService onboardingService,
         IOnboardingContextService onboardingContextService,
+        IManagementCompanyJoinRequestService joinRequestService,
+        IManagementUserAdminService managementUserAdminService,
         UserManager<AppUser> userManager)
     {
         _onboardingService = onboardingService;
         _onboardingContextService = onboardingContextService;
+        _joinRequestService = joinRequestService;
+        _managementUserAdminService = managementUserAdminService;
         _userManager = userManager;
     }
 
@@ -299,11 +306,58 @@ public class OnboardingController : Controller
 
     [Authorize]
     [HttpGet]
-    public IActionResult JoinManagementCompany()
+    public async Task<IActionResult> JoinManagementCompany(CancellationToken cancellationToken)
     {
-        var viewModel = new JoinManagementCompanyViewModel();
+        var availableRoles = await BuildRoleSelectListAsync(cancellationToken, null);
+        var viewModel = new JoinManagementCompanyViewModel
+        {
+            AvailableRoles = availableRoles
+        };
         ViewData["Title"] = viewModel.Title;
         return View(viewModel);
+    }
+
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> JoinManagementCompany(JoinManagementCompanyViewModel vm, CancellationToken cancellationToken)
+    {
+        var appUser = await _userManager.GetUserAsync(User);
+        if (appUser == null)
+        {
+            return RedirectToAction(nameof(Login));
+        }
+
+        if (!ModelState.IsValid || vm.RequestedRoleId == null)
+        {
+            if (vm.RequestedRoleId == null)
+            {
+                ModelState.AddModelError(nameof(vm.RequestedRoleId), "Requested role is required.");
+            }
+
+            vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RequestedRoleId);
+            ViewData["Title"] = vm.Title;
+            return View(vm);
+        }
+
+        var result = await _joinRequestService.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
+        {
+            AppUserId = appUser.Id,
+            RegistryCode = vm.RegistryCode,
+            RequestedRoleId = vm.RequestedRoleId.Value,
+            Message = vm.Message
+        }, cancellationToken);
+
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Unable to submit join request.");
+            vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RequestedRoleId);
+            ViewData["Title"] = vm.Title;
+            return View(vm);
+        }
+
+        TempData["OnboardingSuccess"] = "Join request submitted. Please wait for management company approval.";
+        return RedirectToAction(nameof(JoinManagementCompany));
     }
 
     [Authorize]
@@ -365,6 +419,21 @@ public class OnboardingController : Controller
             Secure = Request.IsHttps,
             SameSite = SameSiteMode.Lax
         };
+    }
+
+    private async Task<IReadOnlyList<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>> BuildRoleSelectListAsync(
+        CancellationToken cancellationToken,
+        Guid? selectedRoleId)
+    {
+        var roles = await _managementUserAdminService.GetAvailableRolesAsync(cancellationToken);
+        return roles
+            .Select(r => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+            {
+                Value = r.Id.ToString(),
+                Text = r.Label.ToString(),
+                Selected = selectedRoleId.HasValue && selectedRoleId.Value == r.Id
+            })
+            .ToList();
     }
 }
 

@@ -511,7 +511,7 @@ Minimum expected coverage areas:
 - Keep controllers thin; centralize business rules in services.
 - Keep API contracts versioned and stable.
 - Keep migrations and seed updates synchronized with schema intent.
-- Avoid using ViewBag and ViewData
+- Avoid using ViewBag, ViewData. TempData used to pass confirmation messages, error info, or small data across a redirect is fine.
 - Use Strongly typed ViewModels as much as possible
 
 ## 15. Definition of done

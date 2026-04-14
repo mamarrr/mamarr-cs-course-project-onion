@@ -8,8 +8,45 @@
         <div class="card shadow-sm border-0">
             <div class="card-body p-4 p-md-5">
                 <h1 class="h3 mb-3">@Model.Heading</h1>
-                <p class="text-muted mb-0">@Model.Description</p>
+
+                @if (TempData["OnboardingSuccess"] is string success)
+                {
+                    <div class="alert alert-success" role="alert">@success</div>
+                }
+
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                <form method="post" asp-action="JoinManagementCompany" class="row g-3">
+                    @Html.AntiForgeryToken()
+                    <div class="col-12">
+                        <label asp-for="RegistryCode" class="form-label"></label>
+                        <input asp-for="RegistryCode" class="form-control" />
+                        <span asp-validation-for="RegistryCode" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="RequestedRoleId" class="form-label"></label>
+                        <select asp-for="RequestedRoleId" asp-items="Model.AvailableRoles" class="form-select">
+                            <option value="">Select role</option>
+                        </select>
+                        <span asp-validation-for="RequestedRoleId" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <label asp-for="Message" class="form-label"></label>
+                        <textarea asp-for="Message" class="form-control" rows="4"></textarea>
+                        <span asp-validation-for="Message" class="text-danger"></span>
+                    </div>
+
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Submit join request</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

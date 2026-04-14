@@ -37,6 +37,7 @@ public class ManagementCompany : BaseEntity
     public bool IsActive { get; set; }
 
     public ICollection<ManagementCompanyUser>? ManagementCompanyUsers { get; set; }
+    public ICollection<ManagementCompanyJoinRequest>? JoinRequests { get; set; }
     public ICollection<Customer>? Customers { get; set; }
     public ICollection<Resident>? Residents { get; set; }
     public ICollection<Vendor>? Vendors { get; set; }
