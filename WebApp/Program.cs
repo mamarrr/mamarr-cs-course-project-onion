@@ -192,6 +192,12 @@ app.UseSwaggerUI(options =>
 app.MapStaticAssets();
 
 app.MapControllerRoute(
+        name: "management_dashboard",
+        pattern: "m/{companySlug}",
+        defaults: new { area = "Management", controller = "Dashboard", action = "Index" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
         name: "areas",
         pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}")
     .WithStaticAssets();

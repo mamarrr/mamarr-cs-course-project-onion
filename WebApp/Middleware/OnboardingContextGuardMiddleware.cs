@@ -51,6 +51,26 @@ public class OnboardingContextGuardMiddleware
             return;
         }
 
+        if (path.StartsWithSegments("/m", out var remainingManagementPath))
+        {
+            var companySlug = remainingManagementPath.Value?
+                .Trim('/')
+                .Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault();
+
+            var hasManagementAccess = !string.IsNullOrWhiteSpace(companySlug) &&
+                                      await onboardingService.UserHasManagementCompanyAccessAsync(appUser.Id, companySlug);
+
+            if (!hasManagementAccess)
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                return;
+            }
+
+            await _next(context);
+            return;
+        }
+
         var hasContext = await onboardingService.HasAnyContextAsync(appUser.Id);
         if (hasContext)
         {

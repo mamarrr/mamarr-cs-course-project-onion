@@ -1,6 +1,7 @@
 using App.Domain.Identity;
 using App.DAL.EF;
 using App.DAL.EF.Seeding;
+using App.BLL.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
@@ -90,6 +91,41 @@ public class OnboardingService : IOnboardingService
         return hasResidentContext;
     }
 
+    public async Task<string?> GetDefaultManagementCompanySlugAsync(Guid appUserId)
+    {
+        if (_dbContext == null)
+        {
+            return null;
+        }
+
+        return await _dbContext.ManagementCompanyUsers
+            .Where(x => x.AppUserId == appUserId && x.IsActive && x.ManagementCompany != null && x.ManagementCompany.IsActive)
+            .OrderBy(x => x.ManagementCompany!.Name)
+            .Select(x => x.ManagementCompany!.Slug)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<bool> UserHasManagementCompanyAccessAsync(Guid appUserId, string companySlug)
+    {
+        if (_dbContext == null)
+        {
+            return false;
+        }
+
+        var normalizedSlug = companySlug.Trim();
+        if (normalizedSlug.Length == 0)
+        {
+            return false;
+        }
+
+        return await _dbContext.ManagementCompanyUsers
+            .AnyAsync(x => x.AppUserId == appUserId
+                           && x.IsActive
+                           && x.ManagementCompany != null
+                           && x.ManagementCompany.IsActive
+                           && x.ManagementCompany.Slug == normalizedSlug);
+    }
+
     public async Task<OnboardingCreateManagementCompanyResult> CreateManagementCompanyAsync(
         OnboardingCreateManagementCompanyRequest request)
     {
@@ -145,9 +181,16 @@ public class OnboardingService : IOnboardingService
         try
         {
             var now = DateTime.UtcNow;
+            var companyName = request.Name.Trim();
+            var existingCompanySlugs = await _dbContext.ManagementCompanies
+                .Select(x => x.Slug)
+                .ToListAsync();
+            var companySlug = SlugGenerator.EnsureUniqueSlug(companyName, existingCompanySlugs);
+
             var company = new App.Domain.ManagementCompany
             {
-                Name = request.Name.Trim(),
+                Name = companyName,
+                Slug = companySlug,
                 RegistryCode = registryCode,
                 VatNumber = request.VatNumber.Trim(),
                 Email = request.Email.Trim(),
@@ -176,7 +219,12 @@ public class OnboardingService : IOnboardingService
 
             await transaction.CommitAsync();
 
-            return new OnboardingCreateManagementCompanyResult { Succeeded = true };
+            return new OnboardingCreateManagementCompanyResult
+            {
+                Succeeded = true,
+                ManagementCompanyId = company.Id,
+                ManagementCompanySlug = company.Slug
+            };
         }
         catch (DbUpdateException)
         {

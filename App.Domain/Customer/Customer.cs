@@ -10,6 +10,10 @@ public class Customer : BaseEntity
     public string Name { get; set; } = default!;
 
     [Required]
+    [StringLength(128, MinimumLength = 1)]
+    public string Slug { get; set; } = default!;
+
+    [Required]
     [StringLength(50, MinimumLength = 1)]
     public string RegistryCode { get; set; } = default!;
 

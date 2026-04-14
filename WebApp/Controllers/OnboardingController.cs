@@ -15,7 +15,10 @@ public class OnboardingController : Controller
     private readonly AppDbContext _dbContext;
     private readonly UserManager<AppUser> _userManager;
 
-    public OnboardingController(IOnboardingService onboardingService, AppDbContext dbContext, UserManager<AppUser> userManager)
+    public OnboardingController(
+        IOnboardingService onboardingService,
+        AppDbContext dbContext,
+        UserManager<AppUser> userManager)
     {
         _onboardingService = onboardingService;
         _dbContext = dbContext;
@@ -56,7 +59,7 @@ public class OnboardingController : Controller
             return redirectTarget;
         }
 
-        return RedirectToAction("Index", "Home");
+        return View(new FlowChooserViewModel());
     }
 
     [AllowAnonymous]
@@ -160,7 +163,12 @@ public class OnboardingController : Controller
         }
 
         var redirectTarget = await ResolveContextRedirectAsync(appUser.Id);
-        return redirectTarget ?? RedirectToAction(nameof(Index));
+        if (redirectTarget != null)
+        {
+            return redirectTarget;
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
@@ -200,13 +208,16 @@ public class OnboardingController : Controller
             case "management":
                 if (!id.HasValue) break;
 
-                var hasManagementContext = await _dbContext.ManagementCompanyUsers
-                    .AnyAsync(x => x.AppUserId == appUser.Id && x.IsActive && x.ManagementCompanyId == id.Value);
-                if (!hasManagementContext) break;
+                var managementCompany = await _dbContext.ManagementCompanyUsers
+                    .Where(x => x.AppUserId == appUser.Id && x.IsActive && x.ManagementCompanyId == id.Value)
+                    .Select(x => new { x.ManagementCompanyId, x.ManagementCompany!.Slug })
+                    .FirstOrDefaultAsync();
+                if (managementCompany == null) break;
 
                 Response.Cookies.Append("ctx.type", "management", cookieOptions);
-                Response.Cookies.Append("ctx.management.company", id.Value.ToString(), cookieOptions);
-                return RedirectToAction("Index", "Dashboard", new { area = "Management" });
+                Response.Cookies.Append("ctx.management.company", managementCompany.ManagementCompanyId.ToString(), cookieOptions);
+                Response.Cookies.Append("ctx.management.slug", managementCompany.Slug, cookieOptions);
+                return RedirectToManagementDashboard(managementCompany.Slug);
 
             case "customer":
                 if (!id.HasValue) break;
@@ -256,7 +267,7 @@ public class OnboardingController : Controller
 
         if (User.IsInRole("SystemAdmin"))
         {
-            return RedirectToAction("Index", "Dashboard", new { area = "Management" });
+            return RedirectToAction("Index", "Home");
         }
 
         return View(new CreateManagementCompanyViewModel());
@@ -299,7 +310,11 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        return RedirectToAction("Index", "Dashboard", new { area = "Management" });
+        Response.Cookies.Append("ctx.type", "management", CreateContextCookieOptions());
+        Response.Cookies.Append("ctx.management.company", result.ManagementCompanyId!.Value.ToString(), CreateContextCookieOptions());
+        Response.Cookies.Append("ctx.management.slug", result.ManagementCompanySlug!, CreateContextCookieOptions());
+
+        return RedirectToManagementDashboard(result.ManagementCompanySlug!);
     }
 
     [Authorize]
@@ -318,21 +333,21 @@ public class OnboardingController : Controller
 
     private async Task<IActionResult?> ResolveContextRedirectAsync(Guid appUserId)
     {
+        var selectedContextType = Request.Cookies["ctx.type"]?.Trim().ToLowerInvariant();
+        var selectedManagementSlug = Request.Cookies["ctx.management.slug"];
+        var selectedCustomerCookie = Request.Cookies["ctx.customer.id"];
+
         if (User.IsInRole("SystemAdmin"))
         {
             return RedirectToAction("Index", "Home");
         }
 
-        var selectedContextType = Request.Cookies["ctx.type"]?.Trim().ToLowerInvariant();
-
-        if (selectedContextType == "management" &&
-            Guid.TryParse(Request.Cookies["ctx.management.company"], out var selectedManagementCompanyId))
+        if (selectedContextType == "management" && !string.IsNullOrWhiteSpace(selectedManagementSlug))
         {
-            var hasSelectedManagementContext = await _dbContext.ManagementCompanyUsers
-                .AnyAsync(x => x.AppUserId == appUserId && x.IsActive && x.ManagementCompanyId == selectedManagementCompanyId);
-            if (hasSelectedManagementContext)
+            var hasSelectedManagementAccess = await _onboardingService.UserHasManagementCompanyAccessAsync(appUserId, selectedManagementSlug);
+            if (hasSelectedManagementAccess)
             {
-                return RedirectToAction("Index", "Dashboard", new { area = "Management" });
+                return RedirectToManagementDashboard(selectedManagementSlug);
             }
         }
 
@@ -346,7 +361,7 @@ public class OnboardingController : Controller
             }
         }
 
-        if (selectedContextType == "customer" && Guid.TryParse(Request.Cookies["ctx.customer.id"], out var selectedCustomerId))
+        if (selectedContextType == "customer" && Guid.TryParse(selectedCustomerCookie, out var selectedCustomerId))
         {
             var hasSelectedCustomerContext = await (
                     from residentUser in _dbContext.ResidentUsers
@@ -364,11 +379,11 @@ public class OnboardingController : Controller
             }
         }
 
-        var hasManagementContext = await _dbContext.ManagementCompanyUsers
-            .AnyAsync(x => x.AppUserId == appUserId && x.IsActive);
-        if (hasManagementContext)
+        var defaultManagementCompanySlug = await _onboardingService.GetDefaultManagementCompanySlugAsync(appUserId);
+        var defaultManagementSlugFound = !string.IsNullOrWhiteSpace(defaultManagementCompanySlug);
+        if (defaultManagementSlugFound)
         {
-            return RedirectToAction("Index", "Dashboard", new { area = "Management" });
+            return RedirectToManagementDashboard(defaultManagementCompanySlug!);
         }
 
         var hasResidentContext = await _dbContext.ResidentUsers
@@ -393,6 +408,23 @@ public class OnboardingController : Controller
         }
 
         return null;
+    }
+
+    private RedirectToRouteResult RedirectToManagementDashboard(string companySlug)
+    {
+        return RedirectToRoute("management_dashboard", new { companySlug });
+    }
+
+    private CookieOptions CreateContextCookieOptions()
+    {
+        return new CookieOptions
+        {
+            Expires = DateTimeOffset.UtcNow.AddYears(1),
+            IsEssential = true,
+            HttpOnly = true,
+            Secure = Request.IsHttps,
+            SameSite = SameSiteMode.Lax
+        };
     }
 }
 

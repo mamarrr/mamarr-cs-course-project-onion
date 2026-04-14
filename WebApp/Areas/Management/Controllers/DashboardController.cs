@@ -5,11 +5,14 @@ namespace WebApp.Areas.Management.Controllers;
 
 [Area("Management")]
 [Authorize]
+[Route("m/{companySlug}")]
 public class DashboardController : Controller
 {
-    [HttpGet]
-    public IActionResult Index()
+    [HttpGet("")]
+    [HttpGet("dashboard")]
+    public IActionResult Index(string companySlug)
     {
+        ViewData["CompanySlug"] = companySlug;
         return View();
     }
 }

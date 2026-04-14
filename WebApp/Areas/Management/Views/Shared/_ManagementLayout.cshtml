@@ -1,5 +1,6 @@
-@{ 
+@{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var companySlug = ViewContext.RouteData.Values["companySlug"]?.ToString() ?? string.Empty;
 }
 @using App.Domain.Identity
 @using Microsoft.AspNetCore.Builder
@@ -21,20 +22,13 @@
         ? new List<dynamic>()
         : await DbContext.ManagementCompanyUsers
             .Where(x => x.AppUserId == appUser.Id && x.IsActive)
-            .Select(x => new { x.ManagementCompanyId, CompanyName = x.ManagementCompany!.Name })
+            .Select(x => new { x.ManagementCompanyId, x.ManagementCompany!.Slug, CompanyName = x.ManagementCompany.Name })
             .ToListAsync<dynamic>();
 
-    Guid? selectedManagementCompanyId = null;
-    if (Guid.TryParse(Context.Request.Cookies["ctx.management.company"], out var parsedCompanyId) &&
-        managementContexts.Any(x => x.ManagementCompanyId == parsedCompanyId))
-    {
-        selectedManagementCompanyId = parsedCompanyId;
-    }
+    var selectedManagementContext = managementContexts
+        .FirstOrDefault(x => string.Equals((string)x.Slug, companySlug, StringComparison.OrdinalIgnoreCase));
 
-    var managementCompanyName = managementContexts
-        .Where(x => x.ManagementCompanyId == selectedManagementCompanyId)
-        .Select(x => x.CompanyName)
-        .FirstOrDefault()
+    var managementCompanyName = selectedManagementContext?.CompanyName
         ?? managementContexts.Select(x => x.CompanyName).FirstOrDefault()
         ?? "Management Workspace";
 
@@ -139,12 +133,12 @@
         <aside class="management-sidebar">
             <div class="management-company-name">@managementCompanyName</div>
             <nav>
-                <a class="management-sidebar-link @(currentController == "Dashboard" ? "active" : "")" asp-area="Management" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
-                <a class="management-sidebar-link @(currentController == "Tickets" ? "active" : "")" asp-area="Management" asp-controller="Tickets" asp-action="Index">Tickets</a>
-                <a class="management-sidebar-link @(currentController == "Properties" ? "active" : "")" asp-area="Management" asp-controller="Properties" asp-action="Index">Properties</a>
-                <a class="management-sidebar-link @(currentController == "Customers" ? "active" : "")" asp-area="Management" asp-controller="Customers" asp-action="Index">Customers</a>
-                <a class="management-sidebar-link @(currentController == "Users" ? "active" : "")" asp-area="Management" asp-controller="Users" asp-action="Index">Users</a>
-                <a class="management-sidebar-link @(currentController == "Vendors" ? "active" : "")" asp-area="Management" asp-controller="Vendors" asp-action="Index">Vendors</a>
+                <a class="management-sidebar-link @(currentController == "Dashboard" ? "active" : "")" asp-route="management_dashboard" asp-route-companySlug="@companySlug">Dashboard</a>
+                <span class="management-sidebar-link disabled">Tickets</span>
+                <span class="management-sidebar-link disabled">Properties</span>
+                <span class="management-sidebar-link disabled">Customers</span>
+                <span class="management-sidebar-link disabled">Users</span>
+                <span class="management-sidebar-link disabled">Vendors</span>
             </nav>
 
             <div class="management-sidebar-footer">

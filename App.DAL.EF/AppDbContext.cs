@@ -55,6 +55,7 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
         ConfigureDateTimeAsUtc(builder);
         ConfigureConstraintNames(builder);
         ConfigureIndexesAndUniqueConstraints(builder);
+        ConfigureSlugProperties(builder);
 
         builder.Entity<ManagementCompanyRole>().Property(e => e.Label)
             .HasConversion(
@@ -125,6 +126,19 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
         {
             relationship.DeleteBehavior = DeleteBehavior.Restrict;
         }
+    }
+
+    private static void ConfigureSlugProperties(ModelBuilder builder)
+    {
+        builder.Entity<ManagementCompany>()
+            .Property(e => e.Slug)
+            .HasMaxLength(128)
+            .IsRequired();
+
+        builder.Entity<Customer>()
+            .Property(e => e.Slug)
+            .HasMaxLength(128)
+            .IsRequired();
     }
 
     private static void ConfigureConstraintNames(ModelBuilder builder)
@@ -399,9 +413,17 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasAlternateKey(e => e.RegistryCode)
             .HasName("uq_MANAGMENT_COMPANY_REGISTRY_CODE");
 
+        builder.Entity<ManagementCompany>()
+            .HasAlternateKey(e => e.Slug)
+            .HasName("uq_management_company_slug");
+
         builder.Entity<Customer>()
             .HasAlternateKey(e => new { e.ManagementCompanyId, e.RegistryCode })
             .HasName("uq_customer_mcompany_registry");
+
+        builder.Entity<Customer>()
+            .HasAlternateKey(e => new { e.ManagementCompanyId, e.Slug })
+            .HasName("uq_customer_mcompany_slug");
 
         builder.Entity<Vendor>()
             .HasAlternateKey(e => new { e.ManagementCompanyId, e.RegistryCode })
@@ -447,6 +469,16 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
         builder.Entity<Customer>()
             .HasIndex(e => e.ManagementCompanyId)
             .HasDatabaseName("ix_customer_mcompany_id_fk");
+
+        builder.Entity<ManagementCompany>()
+            .HasIndex(e => e.Slug)
+            .IsUnique()
+            .HasDatabaseName("ux_management_company_slug");
+
+        builder.Entity<Customer>()
+            .HasIndex(e => new { e.ManagementCompanyId, e.Slug })
+            .IsUnique()
+            .HasDatabaseName("ux_customer_company_slug");
 
         builder.Entity<Resident>()
             .HasIndex(e => e.ManagementCompanyId)

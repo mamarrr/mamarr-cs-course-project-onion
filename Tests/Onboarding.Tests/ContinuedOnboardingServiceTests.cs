@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using App.BLL.Onboarding;
+using App.BLL.Routing;
 using App.DAL.EF;
 using App.Domain;
 using App.Domain.Identity;
@@ -8,7 +9,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using WebApp.Controllers;
@@ -84,16 +84,59 @@ public class ContinuedOnboardingServiceTests
     }
 
     [Fact]
+    public void SlugGenerator_GeneratesAsciiSlug_AndEnsuresUniqueness()
+    {
+        var baseSlug = SlugGenerator.GenerateSlug("Äri Haldus & Partnerid");
+        var uniqueSlug = SlugGenerator.EnsureUniqueSlug(baseSlug, [baseSlug, "other-company"]);
+
+        Assert.Equal("ari-haldus-partnerid", baseSlug);
+        Assert.Equal("ari-haldus-partnerid-2", uniqueSlug);
+    }
+
+    [Fact]
+    public async Task GetDefaultManagementCompanySlugAsync_ReturnsAlphabeticallyFirstAccessibleSlug()
+    {
+        await using var dbContext = CreateDbContext();
+        var appUserId = Guid.NewGuid();
+
+        AddManagementContext(dbContext, appUserId, true, "beta-company", "Beta Company");
+        AddManagementContext(dbContext, appUserId, true, "alpha-company", "Alpha Company");
+        await dbContext.SaveChangesAsync();
+
+        var service = CreateService(dbContext);
+
+        var slug = await service.GetDefaultManagementCompanySlugAsync(appUserId);
+
+        Assert.Equal("alpha-company", slug);
+    }
+
+    [Fact]
+    public async Task UserHasManagementCompanyAccessAsync_ReturnsTrue_OnlyForAuthorizedSlug()
+    {
+        await using var dbContext = CreateDbContext();
+        var appUserId = Guid.NewGuid();
+
+        AddManagementContext(dbContext, appUserId, true, "north-estate", "North Estate");
+        await dbContext.SaveChangesAsync();
+
+        var service = CreateService(dbContext);
+
+        Assert.True(await service.UserHasManagementCompanyAccessAsync(appUserId, "north-estate"));
+        Assert.False(await service.UserHasManagementCompanyAccessAsync(appUserId, "south-estate"));
+    }
+
+    [Fact]
     public async Task OnboardingContextGuard_AllowsSystemAdminWithoutRedirect()
     {
         var userManager = CreateUserManagerMock();
         var service = CreateService(CreateDbContext());
         var principal = BuildAuthenticatedPrincipal("SystemAdmin");
 
-        var (nextCalled, location) = await InvokeMiddlewareAsync(principal, service, userManager.Object);
+        var result = await InvokeMiddlewareAsync(principal, service, userManager.Object, "/dashboard");
 
-        Assert.True(nextCalled);
-        Assert.Null(location);
+        Assert.True(result.nextCalled);
+        Assert.Null(result.location);
+        Assert.Equal(StatusCodes.Status200OK, result.statusCode);
     }
 
     [Fact]
@@ -110,10 +153,10 @@ public class ContinuedOnboardingServiceTests
         var principal = BuildAuthenticatedPrincipal();
         var service = CreateService(dbContext);
 
-        var (nextCalled, location) = await InvokeMiddlewareAsync(principal, service, userManager.Object);
+        var result = await InvokeMiddlewareAsync(principal, service, userManager.Object, "/dashboard");
 
-        Assert.True(nextCalled);
-        Assert.Null(location);
+        Assert.True(result.nextCalled);
+        Assert.Null(result.location);
     }
 
     [Fact]
@@ -137,10 +180,10 @@ public class ContinuedOnboardingServiceTests
         var principal = BuildAuthenticatedPrincipal();
         var service = CreateService(dbContext);
 
-        var (nextCalled, location) = await InvokeMiddlewareAsync(principal, service, userManager.Object);
+        var result = await InvokeMiddlewareAsync(principal, service, userManager.Object, "/dashboard");
 
-        Assert.True(nextCalled);
-        Assert.Null(location);
+        Assert.True(result.nextCalled);
+        Assert.Null(result.location);
     }
 
     [Fact]
@@ -154,14 +197,123 @@ public class ContinuedOnboardingServiceTests
         var principal = BuildAuthenticatedPrincipal();
         var service = CreateService(dbContext);
 
-        var (nextCalled, location) = await InvokeMiddlewareAsync(principal, service, userManager.Object);
+        var result = await InvokeMiddlewareAsync(principal, service, userManager.Object, "/dashboard");
 
-        Assert.False(nextCalled);
-        Assert.Equal("/Onboarding", location);
+        Assert.False(result.nextCalled);
+        Assert.Equal("/Onboarding", result.location);
     }
 
     [Fact]
-    public async Task NewManagementCompanyPost_Success_CreatesCompanyAndLink_AndRedirectsToManagementDashboard()
+    public async Task OnboardingIndex_ReturnsChooserView_ForAuthenticatedUserWithoutContext()
+    {
+        await using var dbContext = CreateDbContext();
+        var userManager = CreateUserManagerMock();
+        var signInManager = CreateSignInManagerMock(userManager.Object);
+        var appUser = new AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "chooser@test",
+            UserName = "chooser@test",
+            FirstName = "Chooser",
+            LastName = "User"
+        };
+
+        dbContext.Users.Add(appUser);
+        await dbContext.SaveChangesAsync();
+
+        userManager.SetupGet(x => x.Users).Returns(dbContext.Users);
+        userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(appUser);
+
+        var onboardingService = new OnboardingService(userManager.Object, signInManager.Object, dbContext);
+        var controller = new OnboardingController(
+            onboardingService,
+            dbContext,
+            userManager.Object)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = BuildAuthenticatedPrincipal()
+                }
+            }
+        };
+
+        var result = await controller.Index();
+
+        var view = Assert.IsType<ViewResult>(result);
+        Assert.Null(view.ViewName);
+        Assert.IsType<FlowChooserViewModel>(view.Model);
+    }
+
+    [Fact]
+    public async Task OnboardingIndex_RedirectsAuthenticatedUserWithManagementContext_ToManagementSlugRoute()
+    {
+        await using var dbContext = CreateDbContext();
+        var userManager = CreateUserManagerMock();
+        var signInManager = CreateSignInManagerMock(userManager.Object);
+        var appUser = new AppUser
+        {
+            Id = Guid.NewGuid(),
+            Email = "manager@test",
+            UserName = "manager@test",
+            FirstName = "Manager",
+            LastName = "User"
+        };
+
+        dbContext.Users.Add(appUser);
+        AddManagementContext(dbContext, appUser.Id, true, "north-estate", "North Estate");
+        await dbContext.SaveChangesAsync();
+
+        userManager.SetupGet(x => x.Users).Returns(dbContext.Users);
+        userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(appUser);
+
+        var onboardingService = new OnboardingService(userManager.Object, signInManager.Object, dbContext);
+        var httpContext = new DefaultHttpContext
+        {
+            User = BuildAuthenticatedPrincipal()
+        };
+        var controller = new OnboardingController(
+            onboardingService,
+            dbContext,
+            userManager.Object)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            }
+        };
+
+        var result = await controller.Index();
+
+        var redirect = Assert.IsType<RedirectToRouteResult>(result);
+        Assert.Equal("management_dashboard", redirect.RouteName);
+        Assert.Equal("north-estate", redirect.RouteValues?["companySlug"]);
+    }
+
+    [Fact]
+    public async Task OnboardingContextGuard_ReturnsNotFound_ForUnauthorizedManagementSlug()
+    {
+        await using var dbContext = CreateDbContext();
+        var userManager = CreateUserManagerMock();
+        var appUser = new AppUser { Id = Guid.NewGuid(), Email = "mctx@test", UserName = "mctx@test" };
+
+        AddManagementContext(dbContext, appUser.Id, true, "allowed-company", "Allowed Company");
+        await dbContext.SaveChangesAsync();
+
+        userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(appUser);
+        var principal = BuildAuthenticatedPrincipal();
+        var service = CreateService(dbContext);
+
+        var result = await InvokeMiddlewareAsync(principal, service, userManager.Object, "/m/forbidden-company");
+
+        Assert.False(result.nextCalled);
+        Assert.Null(result.location);
+        Assert.Equal(StatusCodes.Status404NotFound, result.statusCode);
+    }
+
+    [Fact]
+    public async Task NewManagementCompanyPost_Success_CreatesCompanyAndLink_AndRedirectsToManagementSlugRoute()
     {
         await using var dbContext = CreateDbContext();
         var userManager = CreateUserManagerMock();
@@ -190,14 +342,19 @@ public class ContinuedOnboardingServiceTests
         userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(appUser);
 
         var onboardingService = new OnboardingService(userManager.Object, signInManager.Object, dbContext);
-        var controller = new OnboardingController(onboardingService, userManager.Object)
+        var httpContext = new DefaultHttpContext
+        {
+            User = BuildAuthenticatedPrincipal()
+        };
+
+        var controller = new OnboardingController(
+            onboardingService,
+            dbContext,
+            userManager.Object)
         {
             ControllerContext = new ControllerContext
             {
-                HttpContext = new DefaultHttpContext
-                {
-                    User = BuildAuthenticatedPrincipal()
-                }
+                HttpContext = httpContext
             }
         };
 
@@ -213,19 +370,20 @@ public class ContinuedOnboardingServiceTests
 
         var result = await controller.NewManagementCompany(vm);
 
-        var redirect = Assert.IsType<RedirectToActionResult>(result);
-        Assert.Equal("Index", redirect.ActionName);
-        Assert.Equal("Dashboard", redirect.ControllerName);
-        Assert.Equal("Management", redirect.RouteValues?["area"]);
+        var redirect = Assert.IsType<RedirectToRouteResult>(result);
+        Assert.Equal("management_dashboard", redirect.RouteName);
+        Assert.Equal("test-management-company", redirect.RouteValues?["companySlug"]);
 
         var company = await dbContext.ManagementCompanies.SingleAsync();
         var companyUser = await dbContext.ManagementCompanyUsers.SingleAsync();
 
         Assert.Equal("Test Management Company", company.Name);
+        Assert.Equal("test-management-company", company.Slug);
         Assert.Equal("REG-100", company.RegistryCode);
         Assert.Equal(company.Id, companyUser.ManagementCompanyId);
         Assert.Equal(appUser.Id, companyUser.AppUserId);
         Assert.Equal(ownerRole.Id, companyUser.ManagementCompanyRoleId);
+        Assert.Contains("ctx.type=management", httpContext.Response.Headers["Set-Cookie"].ToString(), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -243,10 +401,11 @@ public class ContinuedOnboardingServiceTests
         Assert.Equal(1, CountOccurrences(content, "btn btn-primary\">Start setup</a>"));
     }
 
-    private static async Task<(bool nextCalled, string? location)> InvokeMiddlewareAsync(
+    private static async Task<(bool nextCalled, string? location, int statusCode)> InvokeMiddlewareAsync(
         ClaimsPrincipal user,
         IOnboardingService onboardingService,
-        UserManager<AppUser> userManager)
+        UserManager<AppUser> userManager,
+        string path)
     {
         var nextCalled = false;
         RequestDelegate next = _ =>
@@ -257,12 +416,15 @@ public class ContinuedOnboardingServiceTests
 
         var middleware = new OnboardingContextGuardMiddleware(next);
         var httpContext = new DefaultHttpContext();
-        httpContext.Request.Path = "/dashboard";
+        httpContext.Request.Path = path;
         httpContext.User = user;
 
         await middleware.InvokeAsync(httpContext, onboardingService, userManager);
 
-        return (nextCalled, httpContext.Response.Headers.Location.ToString() is { Length: > 0 } location ? location : null);
+        return (
+            nextCalled,
+            httpContext.Response.Headers.Location.ToString() is { Length: > 0 } location ? location : null,
+            httpContext.Response.StatusCode);
     }
 
     private static ClaimsPrincipal BuildAuthenticatedPrincipal(params string[] roles)
@@ -284,15 +446,18 @@ public class ContinuedOnboardingServiceTests
         return new AppDbContext(options);
     }
 
-    private static void AddManagementContext(AppDbContext dbContext, Guid appUserId, bool isActive)
+    private static void AddManagementContext(AppDbContext dbContext, Guid appUserId, bool isActive, string? slug = null, string? companyName = null)
     {
         var companyId = Guid.NewGuid();
         var roleId = Guid.NewGuid();
+        var resolvedCompanyName = companyName ?? $"Management Company {companyId}";
+        var resolvedSlug = slug ?? SlugGenerator.GenerateSlug(resolvedCompanyName);
 
         dbContext.ManagementCompanies.Add(new ManagementCompany
         {
             Id = companyId,
-            Name = $"Management Company {companyId}",
+            Name = resolvedCompanyName,
+            Slug = resolvedSlug,
             RegistryCode = $"REG-{companyId:N}"[..16],
             VatNumber = $"VAT-{companyId:N}"[..16],
             Email = $"{companyId:N}@test.com",
