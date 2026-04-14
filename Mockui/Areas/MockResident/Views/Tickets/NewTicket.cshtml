@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "New Ticket";
+}
+
+<section class="mock-card">
+    <h2>Create new ticket (static mock)</h2>
+    <p class="mock-muted">Form fields are placeholders for selecting a resident-linked unit, category, priority, description, and attachments.</p>
+
+    <div class="mock-grid mock-grid-2">
+        <div class="mock-field">
+            <label>Unit</label>
+            <div class="mock-input">Unit 18 (Riverside 12)</div>
+        </div>
+        <div class="mock-field">
+            <label>Category</label>
+            <div class="mock-input">Plumbing</div>
+        </div>
+        <div class="mock-field">
+            <label>Priority</label>
+            <div class="mock-input">Medium</div>
+        </div>
+    </div>
+
+    <div class="mock-field">
+        <label>Description</label>
+        <div class="mock-input multiline">Water is leaking slowly under the kitchen sink since last night...</div>
+    </div>
+
+    <div class="mock-actions">
+        <a class="mock-btn ghost" asp-area="Resident" asp-controller="Units" asp-action="Index">Review my units</a>
+        <span class="mock-btn ghost">Attach files</span>
+        <span class="mock-btn">Submit ticket (mock)</span>
+    </div>
+</section>
+

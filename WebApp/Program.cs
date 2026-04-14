@@ -135,7 +135,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddControllersWithViews();
+builder.Services
+    .AddControllersWithViews();
 
 // ==============================================
 var app = builder.Build();

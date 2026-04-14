@@ -1,0 +1,33 @@
+@{
+    var ticketId = (int?)ViewData["TicketId"] ?? 1001;
+    ViewData["Title"] = $"Ticket Scheduling #{ticketId}";
+}
+
+<div class="mock-alert success">Mock assignment and scheduling panel for management coordination.</div>
+
+<div class="mock-grid mock-grid-2">
+    <section class="mock-card">
+        <h2>Assignment snapshot</h2>
+        <ul class="mock-link-list">
+            <li>Assigned vendor: <a asp-area="Management" asp-controller="Vendors" asp-action="Details" asp-route-id="401">Northfix OÜ</a></li>
+            <li>Assigned specialist: Markus K.</li>
+            <li>Current status: <span class="mock-badge">Scheduled</span></li>
+            <li>Target SLA window: 48h</li>
+        </ul>
+    </section>
+    <section class="mock-card">
+        <h2>Visit plan</h2>
+        <ul class="mock-link-list">
+            <li>Planned visit: 2026-04-01 13:30</li>
+            <li>Access contact: Resident in <a asp-area="Management" asp-controller="Units" asp-action="Details" asp-route-id="501">Unit 5B</a></li>
+            <li>Parent property: <a asp-area="Management" asp-controller="Properties" asp-action="Details" asp-route-id="201">Riverside 12</a></li>
+        </ul>
+    </section>
+</div>
+
+<div class="mock-actions">
+    <a class="mock-btn ghost" asp-area="Management" asp-controller="Tickets" asp-action="Details" asp-route-id="@ticketId">Back to ticket details</a>
+    <a class="mock-btn ghost" asp-area="Management" asp-controller="Tickets" asp-action="Activity" asp-route-id="@ticketId">Open activity/work log</a>
+    <a class="mock-btn ghost" asp-area="Management" asp-controller="Tickets" asp-action="Index">Back to tickets list</a>
+</div>
+

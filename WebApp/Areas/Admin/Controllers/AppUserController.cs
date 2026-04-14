@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using App.DAL.EF;
 using App.Domain.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebApp.Areas_Admin_Controllers
 {
     [Area("Admin")]
+    [Authorize (Roles = "SystemAdmin")]
     public class AppUserController : Controller
     {
         private readonly AppDbContext _context;

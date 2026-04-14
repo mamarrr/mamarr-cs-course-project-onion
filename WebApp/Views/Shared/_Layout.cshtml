@@ -31,82 +31,55 @@
                          <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                      </li>
 
-                     <li class="nav-item dropdown">
-                         <a class="nav-link dropdown-toggle text-dark" href="#" id="mockUiDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                             Mock UI
-                         </a>
-                         <ul class="dropdown-menu" aria-labelledby="mockUiDropdown">
-                             <li><a class="dropdown-item" asp-area="" asp-controller="MockUi" asp-action="Index">Mock UI Landing</a></li>
-                             <li><hr class="dropdown-divider" /></li>
-                             <li><h6 class="dropdown-header">Management</h6></li>
-                             <li><a class="dropdown-item" asp-area="Management" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
-                             <li><a class="dropdown-item" asp-area="Management" asp-controller="Tickets" asp-action="Index">Tickets</a></li>
-                             <li><a class="dropdown-item" asp-area="Management" asp-controller="Properties" asp-action="Index">Properties</a></li>
-                             <li><a class="dropdown-item" asp-area="Management" asp-controller="Customers" asp-action="Index">Customers</a></li>
-                             <li><a class="dropdown-item" asp-area="Management" asp-controller="Vendors" asp-action="Index">Vendors</a></li>
-                             <li><hr class="dropdown-divider" /></li>
-                             <li><h6 class="dropdown-header">Customer</h6></li>
-                             <li><a class="dropdown-item" asp-area="Customer" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
-                             <li><a class="dropdown-item" asp-area="Customer" asp-controller="Tickets" asp-action="Index">Tickets</a></li>
-                             <li><a class="dropdown-item" asp-area="Customer" asp-controller="Properties" asp-action="Index">Properties</a></li>
-                             <li><a class="dropdown-item" asp-area="Customer" asp-controller="Updates" asp-action="Index">Updates</a></li>
-                             <li><a class="dropdown-item" asp-area="Customer" asp-controller="Profile" asp-action="Index">Profile</a></li>
-                             <li><hr class="dropdown-divider" /></li>
-                             <li><h6 class="dropdown-header">Resident</h6></li>
-                             <li><a class="dropdown-item" asp-area="Resident" asp-controller="Dashboard" asp-action="Index">Dashboard</a></li>
-                             <li><a class="dropdown-item" asp-area="Resident" asp-controller="Tickets" asp-action="MyTickets">My Tickets</a></li>
-                             <li><a class="dropdown-item" asp-area="Resident" asp-controller="Tickets" asp-action="NewTicket">New Ticket</a></li>
-                             <li><a class="dropdown-item" asp-area="Resident" asp-controller="Support" asp-action="Index">Support</a></li>
-                             <li><a class="dropdown-item" asp-area="Resident" asp-controller="Profile" asp-action="Index">Profile</a></li>
-                         </ul>
-                     </li>
-
-                     <li class="nav-item dropdown">
-                         <a class="nav-link dropdown-toggle text-dark" href="#" id="adminAreaDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                             @App.Resources.Views.Home.Admin
-                         </a>
-                         <ul class="dropdown-menu" aria-labelledby="adminAreaDropdown">
-                             <li><h6 class="dropdown-header">Company</h6></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="ManagementCompany" asp-action="Index">Management Companies</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="ManagementCompanyRole" asp-action="Index">Management Roles</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="ManagementCompanyUser" asp-action="Index">Management Users</a></li>
-                             <li><hr class="dropdown-divider" /></li>
-                             <li><h6 class="dropdown-header">Property</h6></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="Property" asp-action="Index">Properties</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="PropertyType" asp-action="Index">Property Types</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="Unit" asp-action="Index">Units</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="Lease" asp-action="Index">Leases</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="LeaseRole" asp-action="Index">Lease Roles</a></li>
-                             <li><hr class="dropdown-divider" /></li>
-                             <li><h6 class="dropdown-header">People</h6></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="Customer" asp-action="Index">Customers</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="CustomerRepresentative" asp-action="Index">Customer Representatives</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="CustomerRepresentativeRole" asp-action="Index">Customer Roles</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="Resident" asp-action="Index">Residents</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="ResidentUser" asp-action="Index">Resident Users</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="ResidentContact" asp-action="Index">Resident Contacts</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="Vendor" asp-action="Index">Vendors</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="VendorContact" asp-action="Index">Vendor Contacts</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="Contact" asp-action="Index">Contacts</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="ContactType" asp-action="Index">@App.Resources.Domain.ContactType.contactType</a></li>
-                             <li><hr class="dropdown-divider" /></li>
-                             <li><h6 class="dropdown-header">Tickets</h6></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="Ticket" asp-action="Index">Tickets</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="TicketCategory" asp-action="Index">Ticket Categories</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="TicketStatus" asp-action="Index">Ticket Statuses</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="TicketPriority" asp-action="Index">Ticket Priorities</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="VendorTicketCategory" asp-action="Index">Vendor Ticket Categories</a></li>
-                             <li><hr class="dropdown-divider" /></li>
-                             <li><h6 class="dropdown-header">Work</h6></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="ScheduledWork" asp-action="Index">Scheduled Work</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="WorkStatus" asp-action="Index">Work Statuses</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="WorkLog" asp-action="Index">Work Logs</a></li>
-                             <li><hr class="dropdown-divider" /></li>
-                             <li><h6 class="dropdown-header">Identity</h6></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="AppUser" asp-action="Index">App Users</a></li>
-                             <li><a class="dropdown-item" asp-area="Admin" asp-controller="AppRole" asp-action="Index">App Roles</a></li>
-                         </ul>
-                     </li>
+                     @if (_signInManager.IsSignedIn(User) && User.IsInRole("SystemAdmin"))
+                     {
+                         <li class="nav-item dropdown">
+                             <a class="nav-link dropdown-toggle text-dark" href="#" id="adminAreaDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                 @App.Resources.Views.Home.Admin
+                             </a>
+                             <ul class="dropdown-menu" aria-labelledby="adminAreaDropdown">
+                                 <li><h6 class="dropdown-header">Company</h6></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="ManagementCompany" asp-action="Index">Management Companies</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="ManagementCompanyRole" asp-action="Index">Management Roles</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="ManagementCompanyUser" asp-action="Index">Management Users</a></li>
+                                 <li><hr class="dropdown-divider" /></li>
+                                 <li><h6 class="dropdown-header">Property</h6></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="Property" asp-action="Index">Properties</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="PropertyType" asp-action="Index">Property Types</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="Unit" asp-action="Index">Units</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="Lease" asp-action="Index">Leases</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="LeaseRole" asp-action="Index">Lease Roles</a></li>
+                                 <li><hr class="dropdown-divider" /></li>
+                                 <li><h6 class="dropdown-header">People</h6></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="Customer" asp-action="Index">Customers</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="CustomerRepresentative" asp-action="Index">Customer Representatives</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="CustomerRepresentativeRole" asp-action="Index">Customer Roles</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="Resident" asp-action="Index">Residents</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="ResidentUser" asp-action="Index">Resident Users</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="ResidentContact" asp-action="Index">Resident Contacts</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="Vendor" asp-action="Index">Vendors</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="VendorContact" asp-action="Index">Vendor Contacts</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="Contact" asp-action="Index">Contacts</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="ContactType" asp-action="Index">@App.Resources.Domain.ContactType.contactType</a></li>
+                                 <li><hr class="dropdown-divider" /></li>
+                                 <li><h6 class="dropdown-header">Tickets</h6></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="Ticket" asp-action="Index">Tickets</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="TicketCategory" asp-action="Index">Ticket Categories</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="TicketStatus" asp-action="Index">Ticket Statuses</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="TicketPriority" asp-action="Index">Ticket Priorities</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="VendorTicketCategory" asp-action="Index">Vendor Ticket Categories</a></li>
+                                 <li><hr class="dropdown-divider" /></li>
+                                 <li><h6 class="dropdown-header">Work</h6></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="ScheduledWork" asp-action="Index">Scheduled Work</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="WorkStatus" asp-action="Index">Work Statuses</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="WorkLog" asp-action="Index">Work Logs</a></li>
+                                 <li><hr class="dropdown-divider" /></li>
+                                 <li><h6 class="dropdown-header">Identity</h6></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="AppUser" asp-action="Index">App Users</a></li>
+                                 <li><a class="dropdown-item" asp-area="Admin" asp-controller="AppRole" asp-action="Index">App Roles</a></li>
+                             </ul>
+                         </li>
+                     }
                      
                      <partial name="_LanguageSelection"/>
                  </ul>

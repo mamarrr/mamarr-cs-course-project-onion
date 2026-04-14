@@ -5,9 +5,7 @@ public static class InitialData
 
     public static readonly string[] Roles = [
         "SystemAdmin",
-        "ManagementUser",
-        "CustomerUser",
-        "Resident"
+        "User"
     ];
     public static readonly (string email, string password, string FirstName, string LastName, string[] roles)[] Users = [
         ("admin@admin.ee", "Asd123!", "admin", "admin", ["SystemAdmin"]),

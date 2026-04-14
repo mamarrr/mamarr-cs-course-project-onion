@@ -1,0 +1,35 @@
+@{
+    var unitId = (int?)ViewData["UnitId"] ?? 501;
+    ViewData["Title"] = $"Unit Details #{unitId}";
+}
+
+<div class="mock-grid mock-grid-2">
+    <section class="mock-card">
+        <h2>Unit profile</h2>
+        <ul class="mock-link-list">
+            <li>Unit: 5B</li>
+            <li>Floor: 5</li>
+            <li>Area: 62 m²</li>
+            <li>Occupancy: Occupied</li>
+        </ul>
+    </section>
+    <section class="mock-card">
+        <h2>Parent property and links</h2>
+        <ul class="mock-link-list">
+            <li>Property: <a asp-area="Management" asp-controller="Properties" asp-action="Details" asp-route-id="201">Riverside 12</a></li>
+            <li>Property units: <a asp-area="Management" asp-controller="Properties" asp-action="Units" asp-route-id="201">View full unit list</a></li>
+            <li>Latest ticket: <a asp-area="Management" asp-controller="Tickets" asp-action="Details" asp-route-id="1001">#MT-1001 Kitchen sink leak</a></li>
+        </ul>
+    </section>
+</div>
+
+<section class="mock-card">
+    <h2>Unit-level ticket context</h2>
+    <p class="mock-muted">Unit details remain unit-scoped in this mock. Use linked ticket pages to inspect workflow, activity, and scheduling.</p>
+    <div class="mock-actions">
+        <a class="mock-btn ghost" asp-area="Management" asp-controller="Tickets" asp-action="Activity" asp-route-id="1001">Open work log</a>
+        <a class="mock-btn ghost" asp-area="Management" asp-controller="Tickets" asp-action="Scheduling" asp-route-id="1001">Open scheduling</a>
+        <a class="mock-btn ghost" asp-area="Management" asp-controller="Properties" asp-action="Units" asp-route-id="201">Back to property units</a>
+    </div>
+</section>
+

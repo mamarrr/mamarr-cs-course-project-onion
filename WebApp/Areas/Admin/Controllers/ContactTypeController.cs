@@ -7,11 +7,13 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using App.DAL.EF;
 using App.Domain;
+using Microsoft.AspNetCore.Authorization;
 using WebApp.ViewModels.ContactType;
 
 namespace WebApp.Areas_Admin_Controllers
 {
     [Area("Admin")]
+    [Authorize (Roles = "SystemAdmin")]
     public class ContactTypeController : Controller
     {
         private readonly AppDbContext _context;

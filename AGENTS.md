@@ -50,6 +50,7 @@ Service-layer and business logic placement is always in the dedicated BLL layer/
 - MVC controllers return views and use view models.
 - API controllers return versioned DTOs.
 - Do not return domain entities from public API endpoints.
+- MVC and future API controllers must map transport-specific request models to shared BLL contracts independently.
 
 ## 4. Multi-tenancy and IDOR prevention policy
 
