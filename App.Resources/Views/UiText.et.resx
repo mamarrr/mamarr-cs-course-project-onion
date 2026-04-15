@@ -113,6 +113,20 @@
   <data name="OwnershipTransferRequiresCurrentOwner" xml:space="preserve"><value>Ainult praegune omanik saab omandit üle anda.</value></data>
   <data name="UnableToTransferOwnership" xml:space="preserve"><value>Omandi üleandmine ebaõnnestus.</value></data>
   <data name="OwnershipTransferredSuccessfully" xml:space="preserve"><value>Omand anti edukalt üle.</value></data>
+  <data name="CustomerRegistry" xml:space="preserve"><value>Kliendiregister</value></data>
+  <data name="CustomersPageIntro" xml:space="preserve"><value>Halda ettevõttega {0} seotud kliente.</value></data>
+  <data name="AddCustomer" xml:space="preserve"><value>Lisa klient</value></data>
+  <data name="AddCustomerDescription" xml:space="preserve"><value>Lisa klient praeguse ettevõtte ulatuses.</value></data>
+  <data name="CurrentCustomers" xml:space="preserve"><value>Praegused kliendid</value></data>
+  <data name="CurrentCustomersDescription" xml:space="preserve"><value>Siin kuvatakse ainult praeguse ettevõtte ulatuse kliendid.</value></data>
+  <data name="NoCustomersFound" xml:space="preserve"><value>Kliente ei leitud</value></data>
+  <data name="NoCustomersFoundDescription" xml:space="preserve"><value>Lisa esimene klient, et alustada kliendiportfelli haldamist.</value></data>
+  <data name="BillingEmail" xml:space="preserve"><value>Arvelduse e-post</value></data>
+  <data name="BillingAddress" xml:space="preserve"><value>Arveldusaadress</value></data>
+  <data name="ActionsPlanned" xml:space="preserve"><value>Plaanis</value></data>
+  <data name="UnableToAddCustomer" xml:space="preserve"><value>Kliendi lisamine ebaõnnestus.</value></data>
+  <data name="CustomerAddedSuccessfully" xml:space="preserve"><value>Klient lisati edukalt.</value></data>
+  <data name="CustomerRegistryCodeAlreadyExists" xml:space="preserve"><value>Sama registrikoodiga klient on selles ettevõttes juba olemas.</value></data>
   <data name="FlowInfoCreateAccountOrLogin" xml:space="preserve"><value>Konto loomiseks või jätkamiseks logi sisse.</value></data>
   <data name="RegistrationSuccessfulPleaseLogin" xml:space="preserve"><value>Registreerimine õnnestus. Palun logi sisse.</value></data>
   <data name="InvalidEmailOrPassword" xml:space="preserve"><value>Vale e-post või parool.</value></data>

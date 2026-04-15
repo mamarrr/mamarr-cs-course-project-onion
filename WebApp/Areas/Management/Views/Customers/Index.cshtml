@@ -1,0 +1,124 @@
+@model WebApp.ViewModels.ManagementCustomers.ManagementCustomersPageViewModel
+@using App.Resources.Views
+@{
+    ViewData["Title"] = UiText.Customers;
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@T("CustomerRegistry", "Customer registry")</p>
+                <h2 class="mb-2">@UiText.Customers</h2>
+                <p class="management-muted mb-0">@string.Format(T("CustomersPageIntro", "Manage customers linked to {0}."), Model.CompanyName)</p>
+            </div>
+            <div class="d-flex flex-column align-items-lg-end gap-2">
+                <span class="management-badge @(Model.Customers.Count > 0 ? "success" : "warning")">
+                    @string.Format(UiText.ActiveRecords, Model.Customers.Count)
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <section class="management-card">
+        <h2>@T("AddCustomer", "Add customer")</h2>
+        <p class="management-muted">@T("AddCustomerDescription", "Add a customer in the current company scope.")</p>
+
+        @if (TempData["ManagementCustomersSuccess"] is string successMessage)
+        {
+            <div class="alert alert-success" role="alert">@successMessage</div>
+        }
+
+        @if (TempData["ManagementCustomersError"] is string errorMessage)
+        {
+            <div class="alert alert-danger" role="alert">@errorMessage</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <form method="post" asp-action="Add" asp-route-companySlug="@Model.CompanySlug" class="row g-3">
+            @Html.AntiForgeryToken()
+
+            <div class="col-md-6">
+                <label asp-for="AddCustomer.Name" class="form-label"></label>
+                <input asp-for="AddCustomer.Name" class="form-control" />
+                <span asp-validation-for="AddCustomer.Name" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddCustomer.RegistryCode" class="form-label"></label>
+                <input asp-for="AddCustomer.RegistryCode" class="form-control" />
+                <span asp-validation-for="AddCustomer.RegistryCode" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddCustomer.BillingEmail" class="form-label"></label>
+                <input asp-for="AddCustomer.BillingEmail" class="form-control" />
+                <span asp-validation-for="AddCustomer.BillingEmail" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddCustomer.Phone" class="form-label"></label>
+                <input asp-for="AddCustomer.Phone" class="form-control" />
+                <span asp-validation-for="AddCustomer.Phone" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <label asp-for="AddCustomer.BillingAddress" class="form-label"></label>
+                <input asp-for="AddCustomer.BillingAddress" class="form-control" />
+                <span asp-validation-for="AddCustomer.BillingAddress" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="management-btn">@T("AddCustomer", "Add customer")</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="management-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="mb-1">@T("CurrentCustomers", "Current customers")</h2>
+                <p class="management-muted mb-0">@T("CurrentCustomersDescription", "Only customers in the current company scope are shown here.")</p>
+            </div>
+        </div>
+
+        @if (Model.Customers.Count == 0)
+        {
+            <div class="border rounded p-3 bg-light-subtle">
+                <strong>@T("NoCustomersFound", "No customers found")</strong>
+                <p class="management-muted mb-0">@T("NoCustomersFoundDescription", "Add your first customer to start managing customer portfolio.")</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>@UiText.Name</th>
+                        <th>@UiText.RegistryCode</th>
+                        <th>@T("BillingEmail", "Billing email")</th>
+                        <th>@T("BillingAddress", "Billing address")</th>
+                        <th>@UiText.Phone</th>
+                        <th class="text-end">@UiText.Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var customer in Model.Customers)
+                    {
+                        <tr>
+                            <td>@customer.Name</td>
+                            <td>@customer.RegistryCode</td>
+                            <td>@(string.IsNullOrWhiteSpace(customer.BillingEmail) ? "—" : customer.BillingEmail)</td>
+                            <td>@(string.IsNullOrWhiteSpace(customer.BillingAddress) ? "—" : customer.BillingAddress)</td>
+                            <td>@(string.IsNullOrWhiteSpace(customer.Phone) ? "—" : customer.Phone)</td>
+                            <td class="text-end text-muted">@T("ActionsPlanned", "Planned")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

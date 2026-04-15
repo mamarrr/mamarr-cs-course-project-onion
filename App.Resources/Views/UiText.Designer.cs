@@ -105,6 +105,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Planned.
+        /// </summary>
+        public static string ActionsPlanned {
+            get {
+                return ResourceManager.GetString("ActionsPlanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Active.
         /// </summary>
         public static string Active {
@@ -137,6 +146,24 @@ namespace App.Resources.Views {
         public static string AddCompanyUserDescription {
             get {
                 return ResourceManager.GetString("AddCompanyUserDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add customer.
+        /// </summary>
+        public static string AddCustomer {
+            get {
+                return ResourceManager.GetString("AddCustomer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add a customer in the current company scope..
+        /// </summary>
+        public static string AddCustomerDescription {
+            get {
+                return ResourceManager.GetString("AddCustomerDescription", resourceCulture);
             }
         }
         
@@ -200,6 +227,24 @@ namespace App.Resources.Views {
         public static string BackToUsers {
             get {
                 return ResourceManager.GetString("BackToUsers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Billing address.
+        /// </summary>
+        public static string BillingAddress {
+            get {
+                return ResourceManager.GetString("BillingAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Billing email.
+        /// </summary>
+        public static string BillingEmail {
+            get {
+                return ResourceManager.GetString("BillingEmail", resourceCulture);
             }
         }
         
@@ -339,6 +384,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current customers.
+        /// </summary>
+        public static string CurrentCustomers {
+            get {
+                return ResourceManager.GetString("CurrentCustomers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only customers in the current company scope are shown here..
+        /// </summary>
+        public static string CurrentCustomersDescription {
+            get {
+                return ResourceManager.GetString("CurrentCustomersDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Current owner.
         /// </summary>
         public static string CurrentOwner {
@@ -366,11 +429,47 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Customer added successfully..
+        /// </summary>
+        public static string CustomerAddedSuccessfully {
+            get {
+                return ResourceManager.GetString("CustomerAddedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Customer registry.
+        /// </summary>
+        public static string CustomerRegistry {
+            get {
+                return ResourceManager.GetString("CustomerRegistry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Customer with this registry code already exists in this company..
+        /// </summary>
+        public static string CustomerRegistryCodeAlreadyExists {
+            get {
+                return ResourceManager.GetString("CustomerRegistryCodeAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Customers.
         /// </summary>
         public static string Customers {
             get {
                 return ResourceManager.GetString("Customers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manage customers linked to {0}..
+        /// </summary>
+        public static string CustomersPageIntro {
+            get {
+                return ResourceManager.GetString("CustomersPageIntro", resourceCulture);
             }
         }
         
@@ -812,6 +911,24 @@ namespace App.Resources.Views {
         public static string NoCustomerContexts {
             get {
                 return ResourceManager.GetString("NoCustomerContexts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No customers found.
+        /// </summary>
+        public static string NoCustomersFound {
+            get {
+                return ResourceManager.GetString("NoCustomersFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add your first customer to start managing customer portfolio..
+        /// </summary>
+        public static string NoCustomersFoundDescription {
+            get {
+                return ResourceManager.GetString("NoCustomersFoundDescription", resourceCulture);
             }
         }
         
@@ -1325,6 +1442,15 @@ namespace App.Resources.Views {
         public static string TransferOwnershipHelpText {
             get {
                 return ResourceManager.GetString("TransferOwnershipHelpText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to add customer..
+        /// </summary>
+        public static string UnableToAddCustomer {
+            get {
+                return ResourceManager.GetString("UnableToAddCustomer", resourceCulture);
             }
         }
         

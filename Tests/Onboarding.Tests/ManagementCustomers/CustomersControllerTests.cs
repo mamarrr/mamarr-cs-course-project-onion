@@ -1,0 +1,189 @@
+using System.Security.Claims;
+using App.BLL.ManagementCustomers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Moq;
+using WebApp.Areas.Management.Controllers;
+using WebApp.ViewModels.ManagementCustomers;
+using Xunit;
+
+namespace Onboarding.Tests.ManagementCustomers;
+
+public class CustomersControllerTests
+{
+    [Fact]
+    public async Task Index_ReturnsChallenge_WhenUserIdClaimMissing()
+    {
+        var serviceMock = new Mock<IManagementCustomersService>();
+        var controller = CreateController(serviceMock.Object, BuildPrincipal(withNameIdentifier: false));
+
+        var result = await controller.Index("north-estate", CancellationToken.None);
+
+        Assert.IsType<ChallengeResult>(result);
+    }
+
+    [Fact]
+    public async Task Index_ReturnsNotFound_WhenCompanySlugInvalid()
+    {
+        var serviceMock = new Mock<IManagementCustomersService>();
+        serviceMock
+            .Setup(x => x.AuthorizeAsync(It.IsAny<Guid>(), "missing-company", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomersAuthorizationResult { CompanyNotFound = true });
+
+        var controller = CreateController(serviceMock.Object, BuildPrincipal());
+
+        var result = await controller.Index("missing-company", CancellationToken.None);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task Index_ReturnsForbid_WhenUnauthorized()
+    {
+        var serviceMock = new Mock<IManagementCustomersService>();
+        serviceMock
+            .Setup(x => x.AuthorizeAsync(It.IsAny<Guid>(), "north-estate", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomersAuthorizationResult { IsForbidden = true });
+
+        var controller = CreateController(serviceMock.Object, BuildPrincipal());
+
+        var result = await controller.Index("north-estate", CancellationToken.None);
+
+        Assert.IsType<ForbidResult>(result);
+    }
+
+    [Fact]
+    public async Task Add_SuccessfulCreate_RedirectsToIndex_AndSetsTempDataSuccess()
+    {
+        var context = new ManagementCustomersAuthorizedContext
+        {
+            AppUserId = Guid.NewGuid(),
+            ManagementCompanyId = Guid.NewGuid(),
+            CompanySlug = "north-estate",
+            CompanyName = "North Estate"
+        };
+
+        var serviceMock = new Mock<IManagementCustomersService>();
+        serviceMock
+            .Setup(x => x.AuthorizeAsync(It.IsAny<Guid>(), "north-estate", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomersAuthorizationResult
+            {
+                IsAuthorized = true,
+                Context = context
+            });
+
+        serviceMock
+            .Setup(x => x.CreateAsync(
+                context,
+                It.IsAny<ManagementCustomerCreateRequest>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomerCreateResult { Success = true });
+
+        var controller = CreateController(serviceMock.Object, BuildPrincipal());
+        var vm = new ManagementCustomersPageViewModel
+        {
+            AddCustomer = new AddManagementCustomerViewModel
+            {
+                Name = "Acme Customer",
+                RegistryCode = "ACME-001",
+                BillingEmail = "billing@acme.test"
+            }
+        };
+
+        var result = await controller.Add("north-estate", vm, CancellationToken.None);
+
+        var redirect = Assert.IsType<RedirectToActionResult>(result);
+        Assert.Equal(nameof(CustomersController.Index), redirect.ActionName);
+        Assert.Equal("north-estate", redirect.RouteValues?["companySlug"]);
+        Assert.False(string.IsNullOrWhiteSpace(controller.TempData["ManagementCustomersSuccess"]?.ToString()));
+    }
+
+    [Fact]
+    public async Task Add_InvalidModel_ReturnsIndexView_WithValidationErrors()
+    {
+        var context = new ManagementCustomersAuthorizedContext
+        {
+            AppUserId = Guid.NewGuid(),
+            ManagementCompanyId = Guid.NewGuid(),
+            CompanySlug = "north-estate",
+            CompanyName = "North Estate"
+        };
+
+        var serviceMock = new Mock<IManagementCustomersService>();
+        serviceMock
+            .Setup(x => x.AuthorizeAsync(It.IsAny<Guid>(), "north-estate", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomersAuthorizationResult
+            {
+                IsAuthorized = true,
+                Context = context
+            });
+
+        serviceMock
+            .Setup(x => x.ListAsync(context, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomerListResult
+            {
+                Customers =
+                [
+                    new ManagementCustomerListItem
+                    {
+                        CustomerId = Guid.NewGuid(),
+                        Name = "Existing",
+                        RegistryCode = "EX-1"
+                    }
+                ]
+            });
+
+        var controller = CreateController(serviceMock.Object, BuildPrincipal());
+        controller.ModelState.AddModelError("AddCustomer.Name", "Name is required");
+
+        var vm = new ManagementCustomersPageViewModel
+        {
+            AddCustomer = new AddManagementCustomerViewModel
+            {
+                Name = string.Empty,
+                RegistryCode = ""
+            }
+        };
+
+        var result = await controller.Add("north-estate", vm, CancellationToken.None);
+
+        var view = Assert.IsType<ViewResult>(result);
+        Assert.Equal("Index", view.ViewName);
+        Assert.False(controller.ModelState.IsValid);
+        Assert.True(controller.ModelState.ContainsKey("AddCustomer.Name"));
+        Assert.IsType<ManagementCustomersPageViewModel>(view.Model);
+    }
+
+    private static CustomersController CreateController(IManagementCustomersService service, ClaimsPrincipal user)
+    {
+        var controller = new CustomersController(service)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = user
+                }
+            }
+        };
+
+        controller.TempData = new TempDataDictionary(
+            controller.HttpContext,
+            Mock.Of<ITempDataProvider>());
+
+        return controller;
+    }
+
+    private static ClaimsPrincipal BuildPrincipal(bool withNameIdentifier = true)
+    {
+        var claims = new List<Claim>();
+        if (withNameIdentifier)
+        {
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()));
+        }
+
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        return new ClaimsPrincipal(identity);
+    }
+}

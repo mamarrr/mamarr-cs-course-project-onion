@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using App.BLL.ManagementCustomers;
 using App.BLL.ManagementUsers;
 using App.BLL.Onboarding;
 using App.DAL.EF;
@@ -69,6 +70,7 @@ builder.Services.AddScoped<IOnboardingContextService, OnboardingContextService>(
 builder.Services.AddScoped<IUserContextCatalogService, UserContextCatalogService>();
 builder.Services.AddScoped<IManagementCompanyJoinRequestService, ManagementCompanyJoinRequestService>();
 builder.Services.AddScoped<IManagementUserAdminService, ManagementUserAdminService>();
+builder.Services.AddScoped<IManagementCustomersService, ManagementCustomersService>();
 builder.Services.AddScoped<IManagementLayoutViewModelProvider, ManagementLayoutViewModelProvider>();
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims

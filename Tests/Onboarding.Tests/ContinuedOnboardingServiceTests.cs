@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using WebApp.Controllers;
@@ -35,7 +36,7 @@ public class ContinuedOnboardingServiceTests
         dbContext.ManagementCompanyRoles.Add(managerRole);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
         var result = await sut.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
         {
             AppUserId = requester.Id,
@@ -71,7 +72,7 @@ public class ContinuedOnboardingServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
         var result = await sut.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
         {
             AppUserId = requester.Id,
@@ -107,7 +108,7 @@ public class ContinuedOnboardingServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
         var result = await sut.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
         {
             AppUserId = requester.Id,
@@ -155,7 +156,7 @@ public class ContinuedOnboardingServiceTests
         dbContext.ManagementCompanyJoinRequests.Add(request);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
         var result = await sut.ApproveRequestAsync(actor.Id, company.Id, request.Id);
 
         Assert.True(result.Forbidden);
@@ -198,7 +199,7 @@ public class ContinuedOnboardingServiceTests
         dbContext.ManagementCompanyJoinRequests.Add(request);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
         var first = await sut.RejectRequestAsync(actor.Id, company.Id, request.Id);
         var second = await sut.RejectRequestAsync(actor.Id, company.Id, request.Id);
 
@@ -243,7 +244,7 @@ public class ContinuedOnboardingServiceTests
         dbContext.ManagementCompanyJoinRequests.Add(requestInB);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext);
+        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
         var result = await sut.ApproveRequestAsync(actor.Id, companyA.Id, requestInB.Id);
 
         Assert.True(result.NotFound);
@@ -505,7 +506,8 @@ public class ContinuedOnboardingServiceTests
             onboardingContextService,
             CreateJoinRequestServiceMock().Object,
             CreateManagementUserAdminServiceMock().Object,
-            userManager.Object)
+            userManager.Object,
+            NullLogger<OnboardingController>.Instance)
         {
             ControllerContext = new ControllerContext
             {
@@ -556,7 +558,8 @@ public class ContinuedOnboardingServiceTests
             onboardingContextService,
             CreateJoinRequestServiceMock().Object,
             CreateManagementUserAdminServiceMock().Object,
-            userManager.Object)
+            userManager.Object,
+            NullLogger<OnboardingController>.Instance)
         {
             ControllerContext = new ControllerContext
             {
@@ -633,7 +636,8 @@ public class ContinuedOnboardingServiceTests
             onboardingContextService,
             CreateJoinRequestServiceMock().Object,
             CreateManagementUserAdminServiceMock().Object,
-            userManager.Object)
+            userManager.Object,
+            NullLogger<OnboardingController>.Instance)
         {
             ControllerContext = new ControllerContext
             {

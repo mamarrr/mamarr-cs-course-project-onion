@@ -120,6 +120,20 @@
   <data name="OwnershipTransferRequiresCurrentOwner" xml:space="preserve"><value>Only the current owner can transfer ownership.</value></data>
   <data name="UnableToTransferOwnership" xml:space="preserve"><value>Unable to transfer ownership.</value></data>
   <data name="OwnershipTransferredSuccessfully" xml:space="preserve"><value>Ownership transferred successfully.</value></data>
+  <data name="CustomerRegistry" xml:space="preserve"><value>Customer registry</value></data>
+  <data name="CustomersPageIntro" xml:space="preserve"><value>Manage customers linked to {0}.</value></data>
+  <data name="AddCustomer" xml:space="preserve"><value>Add customer</value></data>
+  <data name="AddCustomerDescription" xml:space="preserve"><value>Add a customer in the current company scope.</value></data>
+  <data name="CurrentCustomers" xml:space="preserve"><value>Current customers</value></data>
+  <data name="CurrentCustomersDescription" xml:space="preserve"><value>Only customers in the current company scope are shown here.</value></data>
+  <data name="NoCustomersFound" xml:space="preserve"><value>No customers found</value></data>
+  <data name="NoCustomersFoundDescription" xml:space="preserve"><value>Add your first customer to start managing customer portfolio.</value></data>
+  <data name="BillingEmail" xml:space="preserve"><value>Billing email</value></data>
+  <data name="BillingAddress" xml:space="preserve"><value>Billing address</value></data>
+  <data name="ActionsPlanned" xml:space="preserve"><value>Planned</value></data>
+  <data name="UnableToAddCustomer" xml:space="preserve"><value>Unable to add customer.</value></data>
+  <data name="CustomerAddedSuccessfully" xml:space="preserve"><value>Customer added successfully.</value></data>
+  <data name="CustomerRegistryCodeAlreadyExists" xml:space="preserve"><value>Customer with this registry code already exists in this company.</value></data>
 
   <data name="FlowInfoCreateAccountOrLogin" xml:space="preserve"><value>Create your account or log in to continue.</value></data>
   <data name="RegistrationSuccessfulPleaseLogin" xml:space="preserve"><value>Registration successful. Please log in.</value></data>

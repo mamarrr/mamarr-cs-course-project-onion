@@ -1,4 +1,4 @@
-using App.BLL.ManagementUsers;
+ using App.BLL.ManagementUsers;
 using App.BLL.Onboarding;
 using App.DAL.EF;
 using App.Domain;
@@ -344,7 +344,7 @@ public class ManagementUserAdminServiceTests
 
     private static ManagementUserAdminService CreateSut(AppDbContext dbContext)
     {
-        var joinRequestService = new ManagementCompanyJoinRequestService(dbContext);
+        var joinRequestService = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
         return new ManagementUserAdminService(dbContext, joinRequestService, NullLogger<ManagementUserAdminService>.Instance);
     }
 

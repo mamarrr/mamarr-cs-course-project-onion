@@ -99,7 +99,7 @@
                 <a class="management-sidebar-link @(layoutVm.CurrentController == "Dashboard" ? "active" : "")" asp-route="management_dashboard" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Dashboard</a>
                 <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Tickets</span>
                 <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Properties</span>
-                <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Customers</span>
+                <a class="management-sidebar-link @(layoutVm.CurrentController == "Customers" ? "active" : "")" asp-area="Management" asp-controller="Customers" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Customers</a>
                 @if (layoutVm.CanManageCompanyUsers)
                 {
                     <a class="management-sidebar-link @(layoutVm.CurrentController == "Users" ? "active" : "")" asp-area="Management" asp-controller="Users" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Users</a>
