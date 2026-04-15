@@ -44,6 +44,11 @@ Business rules, workflow, tenant checks, lifecycle transitions, permission check
 
 Service-layer and business logic placement is always in the dedicated BLL layer/project, never inline in controllers and never as interim `WebApp` services.
 
+Service size guideline:
+- Keep services small and focused on a single bounded responsibility.
+- Avoid large monolithic services that aggregate unrelated domains.
+- Prefer creating new dedicated services and contracts when introducing new feature areas.
+
 ### 3.4 Web layer
 
 `WebApp` hosts both MVC and REST API:
