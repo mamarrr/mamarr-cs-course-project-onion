@@ -86,6 +86,70 @@ public class ManagementCustomersService : IManagementCustomersService
         };
     }
 
+    public async Task<ManagementCustomerDashboardAccessResult> ResolveDashboardAccessAsync(
+        Guid appUserId,
+        string companySlug,
+        string customerSlug,
+        CancellationToken cancellationToken = default)
+    {
+        var authResult = await AuthorizeAsync(appUserId, companySlug, cancellationToken);
+        if (authResult.CompanyNotFound)
+        {
+            return new ManagementCustomerDashboardAccessResult
+            {
+                CompanyNotFound = true,
+                ErrorMessage = authResult.ErrorMessage
+            };
+        }
+
+        if (authResult.IsForbidden || authResult.Context == null)
+        {
+            return new ManagementCustomerDashboardAccessResult
+            {
+                IsForbidden = true,
+                ErrorMessage = authResult.ErrorMessage
+            };
+        }
+
+        var normalizedCustomerSlug = customerSlug.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedCustomerSlug))
+        {
+            return new ManagementCustomerDashboardAccessResult
+            {
+                CustomerNotFound = true
+            };
+        }
+
+        var customer = await _dbContext.Customers
+            .AsNoTracking()
+            .Where(c => c.ManagementCompanyId == authResult.Context.ManagementCompanyId && c.Slug == normalizedCustomerSlug)
+            .Select(c => new { c.Id, c.Slug, c.Name })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (customer == null)
+        {
+            return new ManagementCustomerDashboardAccessResult
+            {
+                CustomerNotFound = true
+            };
+        }
+
+        return new ManagementCustomerDashboardAccessResult
+        {
+            IsAuthorized = true,
+            Context = new ManagementCustomerDashboardContext
+            {
+                AppUserId = authResult.Context.AppUserId,
+                ManagementCompanyId = authResult.Context.ManagementCompanyId,
+                CompanySlug = authResult.Context.CompanySlug,
+                CompanyName = authResult.Context.CompanyName,
+                CustomerId = customer.Id,
+                CustomerSlug = customer.Slug,
+                CustomerName = customer.Name
+            }
+        };
+    }
+
     public async Task<ManagementCustomerListResult> ListAsync(
         ManagementCustomersAuthorizedContext context,
         CancellationToken cancellationToken = default)
@@ -97,6 +161,7 @@ public class ManagementCustomersService : IManagementCustomersService
             .Select(c => new ManagementCustomerListItem
             {
                 CustomerId = c.Id,
+                CustomerSlug = c.Slug,
                 Name = c.Name,
                 RegistryCode = c.RegistryCode,
                 BillingEmail = c.BillingEmail,

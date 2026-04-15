@@ -162,6 +162,7 @@ public class CustomersController : Controller
             Customers = listResult.Customers.Select(x => new ManagementCustomerListItemViewModel
             {
                 CustomerId = x.CustomerId,
+                CustomerSlug = x.CustomerSlug,
                 Name = x.Name,
                 RegistryCode = x.RegistryCode,
                 BillingEmail = x.BillingEmail,

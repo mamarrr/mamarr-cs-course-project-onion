@@ -104,7 +104,13 @@
                     @foreach (var customer in Model.Customers)
                     {
                         <tr>
-                            <td>@customer.Name</td>
+                            <td>
+                                <a asp-area="Customer"
+                                   asp-controller="CustomerDashboard"
+                                   asp-action="Index"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-customerSlug="@customer.CustomerSlug">@customer.Name</a>
+                            </td>
                             <td>@customer.RegistryCode</td>
                             <td>@(string.IsNullOrWhiteSpace(customer.BillingEmail) ? "—" : customer.BillingEmail)</td>
                             <td>@(string.IsNullOrWhiteSpace(customer.BillingAddress) ? "—" : customer.BillingAddress)</td>

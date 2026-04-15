@@ -438,6 +438,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Customer dashboard.
+        /// </summary>
+        public static string CustomerDashboard {
+            get {
+                return ResourceManager.GetString("CustomerDashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Customer workspace for {0} in company {1}..
+        /// </summary>
+        public static string CustomerDashboardIntro {
+            get {
+                return ResourceManager.GetString("CustomerDashboardIntro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Customer registry.
         /// </summary>
         public static string CustomerRegistry {
@@ -465,11 +483,29 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} content is planned and will be added in a later increment..
+        /// </summary>
+        public static string CustomerSectionPlaceholder {
+            get {
+                return ResourceManager.GetString("CustomerSectionPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Manage customers linked to {0}..
         /// </summary>
         public static string CustomersPageIntro {
             get {
                 return ResourceManager.GetString("CustomersPageIntro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Customer workspace.
+        /// </summary>
+        public static string CustomerWorkspace {
+            get {
+                return ResourceManager.GetString("CustomerWorkspace", resourceCulture);
             }
         }
         
@@ -1104,6 +1140,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Profile.
+        /// </summary>
+        public static string Profile {
+            get {
+                return ResourceManager.GetString("Profile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         public static string Properties {
@@ -1271,6 +1316,15 @@ namespace App.Resources.Views {
         public static string ResidentRequestAccess {
             get {
                 return ResourceManager.GetString("ResidentRequestAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Residents.
+        /// </summary>
+        public static string Residents {
+            get {
+                return ResourceManager.GetString("Residents", resourceCulture);
             }
         }
         

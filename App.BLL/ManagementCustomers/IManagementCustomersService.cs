@@ -7,6 +7,12 @@ public interface IManagementCustomersService
         string companySlug,
         CancellationToken cancellationToken = default);
 
+    Task<ManagementCustomerDashboardAccessResult> ResolveDashboardAccessAsync(
+        Guid appUserId,
+        string companySlug,
+        string customerSlug,
+        CancellationToken cancellationToken = default);
+
     Task<ManagementCustomerListResult> ListAsync(
         ManagementCustomersAuthorizedContext context,
         CancellationToken cancellationToken = default);

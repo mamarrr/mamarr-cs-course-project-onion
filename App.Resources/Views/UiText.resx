@@ -134,6 +134,12 @@
   <data name="UnableToAddCustomer" xml:space="preserve"><value>Unable to add customer.</value></data>
   <data name="CustomerAddedSuccessfully" xml:space="preserve"><value>Customer added successfully.</value></data>
   <data name="CustomerRegistryCodeAlreadyExists" xml:space="preserve"><value>Customer with this registry code already exists in this company.</value></data>
+  <data name="CustomerWorkspace" xml:space="preserve"><value>Customer workspace</value></data>
+  <data name="CustomerDashboard" xml:space="preserve"><value>Customer dashboard</value></data>
+  <data name="Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="Residents" xml:space="preserve"><value>Residents</value></data>
+  <data name="CustomerDashboardIntro" xml:space="preserve"><value>Customer workspace for {0} in company {1}.</value></data>
+  <data name="CustomerSectionPlaceholder" xml:space="preserve"><value>{0} content is planned and will be added in a later increment.</value></data>
 
   <data name="FlowInfoCreateAccountOrLogin" xml:space="preserve"><value>Create your account or log in to continue.</value></data>
   <data name="RegistrationSuccessfulPleaseLogin" xml:space="preserve"><value>Registration successful. Please log in.</value></data>

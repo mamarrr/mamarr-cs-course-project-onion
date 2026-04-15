@@ -21,6 +21,7 @@ public class ManagementCustomersPageViewModel
 public class ManagementCustomerListItemViewModel
 {
     public Guid CustomerId { get; set; }
+    public string CustomerSlug { get; set; } = default!;
     public string Name { get; set; } = default!;
     public string RegistryCode { get; set; } = default!;
     public string? BillingEmail { get; set; }

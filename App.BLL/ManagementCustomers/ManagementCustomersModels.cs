@@ -25,11 +25,33 @@ public class ManagementCustomerListResult
 public class ManagementCustomerListItem
 {
     public Guid CustomerId { get; set; }
+    public string CustomerSlug { get; set; } = default!;
     public string Name { get; set; } = default!;
     public string RegistryCode { get; set; } = default!;
     public string? BillingEmail { get; set; }
     public string? BillingAddress { get; set; }
     public string? Phone { get; set; }
+}
+
+public class ManagementCustomerDashboardAccessResult
+{
+    public bool IsAuthorized { get; set; }
+    public bool IsForbidden { get; set; }
+    public bool CompanyNotFound { get; set; }
+    public bool CustomerNotFound { get; set; }
+    public string? ErrorMessage { get; set; }
+    public ManagementCustomerDashboardContext? Context { get; set; }
+}
+
+public class ManagementCustomerDashboardContext
+{
+    public Guid AppUserId { get; set; }
+    public Guid ManagementCompanyId { get; set; }
+    public string CompanySlug { get; set; } = default!;
+    public string CompanyName { get; set; } = default!;
+    public Guid CustomerId { get; set; }
+    public string CustomerSlug { get; set; } = default!;
+    public string CustomerName { get; set; } = default!;
 }
 
 public class ManagementCustomerCreateRequest

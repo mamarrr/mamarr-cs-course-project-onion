@@ -1,0 +1,30 @@
+@model WebApp.ViewModels.Management.CustomerDashboard.ManagementCustomerDashboardPageViewModel
+@{
+    Layout = "~/Areas/Customer/Views/Shared/_CustomerLayout.cshtml";
+    var currentSectionLabel = (ViewData["CurrentSectionLabel"] as string) ?? App.Resources.Views.UiText.Dashboard;
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <p class="management-eyebrow mb-2">@T("CustomerDashboard", "Customer dashboard")</p>
+        <h2 class="mb-2">@Model.CustomerName</h2>
+        <p class="management-muted mb-0">@string.Format(T("CustomerDashboardIntro", "Customer workspace for {0} in company {1}."), Model.CustomerName, Model.CompanyName)</p>
+    </section>
+
+    <section class="management-card">
+        <h2>@currentSectionLabel</h2>
+        <p class="management-muted mb-0">@string.Format(T("CustomerSectionPlaceholder", "{0} content is planned and will be added in a later increment."), currentSectionLabel)</p>
+    </section>
+
+    <section class="management-card">
+        <h2>@App.Resources.Views.UiText.Status</h2>
+        <span class="management-badge warning">@App.Resources.Views.UiText.InProgress</span>
+    </section>
+</div>
+
+@functions {
+    private static string T(string key, string fallback)
+    {
+        return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
+    }
+}
