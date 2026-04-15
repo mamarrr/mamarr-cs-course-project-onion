@@ -93,21 +93,13 @@ public class UsersController : Controller
             return NotFound();
         }
 
-        var availableRoles = await BuildRoleSelectListAsync(cancellationToken, editResult.Data?.RoleId);
-        var vm = new EditManagementUserViewModel
+        if (editResult.Forbidden)
         {
-            MembershipId = editResult.Data!.MembershipId,
-            CompanySlug = auth.Context!.CompanySlug,
-            CompanyName = auth.Context.CompanyName,
-            FullName = editResult.Data.FullName,
-            Email = editResult.Data.Email,
-            RoleId = editResult.Data.RoleId,
-            JobTitle = editResult.Data.JobTitle,
-            IsActive = editResult.Data.IsActive,
-            ValidFrom = editResult.Data.ValidFrom,
-            ValidTo = editResult.Data.ValidTo,
-            AvailableRoles = availableRoles
-        };
+            TempData["ManagementUsersError"] = editResult.ErrorMessage ?? App.Resources.Views.UiText.UnableToUpdateUser;
+            return RedirectToAction(nameof(Index), new { companySlug });
+        }
+
+        var vm = MapEditViewModel(auth.Context!, editResult.Data!);
 
         ViewData["Title"] = App.Resources.Views.UiText.EditUser;
         return View(vm);
@@ -129,6 +121,18 @@ public class UsersController : Controller
             return NotFound();
         }
 
+        var editResult = await _managementUserAdminService.GetMembershipForEditAsync(auth.Context!, id, cancellationToken);
+        if (editResult.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (editResult.Forbidden)
+        {
+            TempData["ManagementUsersError"] = editResult.ErrorMessage ?? App.Resources.Views.UiText.UnableToUpdateUser;
+            return RedirectToAction(nameof(Index), new { companySlug });
+        }
+
         if (!ModelState.IsValid || vm.RoleId == null)
         {
             if (vm.RoleId == null)
@@ -136,9 +140,7 @@ public class UsersController : Controller
                 ModelState.AddModelError(nameof(vm.RoleId), App.Resources.Views.UiText.RoleRequired);
             }
 
-            vm.CompanySlug = auth.Context!.CompanySlug;
-            vm.CompanyName = auth.Context.CompanyName;
-            vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RoleId);
+            HydrateEditViewModel(vm, auth.Context!, editResult.Data!);
             ViewData["Title"] = App.Resources.Views.UiText.EditUser;
             return View(vm);
         }
@@ -155,9 +157,7 @@ public class UsersController : Controller
         if (!updateResult.Success)
         {
             ModelState.AddModelError(string.Empty, updateResult.ErrorMessage ?? App.Resources.Views.UiText.UnableToUpdateUser);
-            vm.CompanySlug = auth.Context!.CompanySlug;
-            vm.CompanyName = auth.Context.CompanyName;
-            vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RoleId);
+            HydrateEditViewModel(vm, auth.Context!, editResult.Data!);
             ViewData["Title"] = App.Resources.Views.UiText.EditUser;
             return View(vm);
         }
@@ -188,79 +188,69 @@ public class UsersController : Controller
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 
-    private async Task<IActionResult?> AuthorizeAsync(string companySlug, CancellationToken cancellationToken)
+    [HttpGet("transfer-ownership")]
+    public async Task<IActionResult> TransferOwnership(string companySlug, CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return Challenge();
-        }
+        if (appUserId == null) return Challenge();
 
         var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
-        return ToAuthorizationActionResult(auth);
-    }
+        var authResponse = ToAuthorizationActionResult(auth);
+        if (authResponse is not null) return authResponse;
 
-    private IActionResult? ToAuthorizationActionResult(ManagementUserAdminAuthorizationResult auth)
-    {
-        if (auth.CompanyNotFound)
+        var candidateResult = await _managementUserAdminService.GetOwnershipTransferCandidatesAsync(auth.Context!, cancellationToken);
+        if (candidateResult.Forbidden)
         {
-            return NotFound();
+            TempData["ManagementUsersError"] = candidateResult.ErrorMessage ?? App.Resources.Views.UiText.OwnershipTransferRequiresCurrentOwner;
+            return RedirectToAction(nameof(Index), new { companySlug });
         }
 
-        if (auth.IsForbidden)
-        {
-            return Forbid();
-        }
-
-        return null;
+        var pageVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, cancellationToken);
+        ViewData["Title"] = App.Resources.Views.UiText.TransferOwnership;
+        return View(pageVm);
     }
 
-    private async Task<ManagementUsersPageViewModel> BuildPageViewModelAsync(
+    [HttpPost("transfer-ownership")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> TransferOwnership(
         string companySlug,
-        CancellationToken cancellationToken,
-        AddManagementUserViewModel? addUserOverride = null)
+        [Bind(Prefix = "Transfer")] TransferOwnershipInputViewModel vm,
+        CancellationToken cancellationToken)
     {
-        var appUserId = GetAppUserId()!.Value;
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId, companySlug, cancellationToken);
-        var context = auth.Context!;
+        var appUserId = GetAppUserId();
+        if (appUserId == null) return Challenge();
 
-        var members = await _managementUserAdminService.ListCompanyMembersAsync(context, cancellationToken);
-        var pendingRequests = await _managementUserAdminService.GetPendingAccessRequestsAsync(context, cancellationToken);
-        var availableRoles = await BuildRoleSelectListAsync(cancellationToken, addUserOverride?.RoleId);
+        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var authResponse = ToAuthorizationActionResult(auth);
+        if (authResponse is not null) return authResponse;
 
-        ViewData["Title"] = App.Resources.Views.UiText.Users;
-
-        return new ManagementUsersPageViewModel
+        if (!ModelState.IsValid || vm.TargetMembershipId == null)
         {
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            Members = members.Members.Select(x => new ManagementUserListItemViewModel
+            if (vm.TargetMembershipId == null)
             {
-                MembershipId = x.MembershipId,
-                FullName = x.FullName,
-                Email = x.Email,
-                RoleLabel = x.RoleLabel,
-                RoleCode = x.RoleCode,
-                JobTitle = x.JobTitle,
-                IsActive = x.IsActive,
-                ValidFrom = x.ValidFrom,
-                ValidTo = x.ValidTo,
-                IsActor = x.IsActor
-            }).ToList(),
-            AddUser = addUserOverride ?? new AddManagementUserViewModel(),
-            PendingRequests = pendingRequests.Requests.Select(x => new PendingAccessRequestViewModel
-            {
-                RequestId = x.RequestId,
-                AppUserId = x.AppUserId,
-                RequesterName = x.RequesterName,
-                RequesterEmail = x.RequesterEmail,
-                RequestedRoleCode = x.RequestedRoleCode,
-                RequestedRoleLabel = x.RequestedRoleLabel,
-                Message = x.Message,
-                RequestedAt = x.RequestedAt
-            }).ToList(),
-            AvailableRoles = availableRoles
-        };
+                ModelState.AddModelError(nameof(vm.TargetMembershipId), App.Resources.Views.UiText.NewOwnerRequired);
+            }
+
+            var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, cancellationToken, vm);
+            ViewData["Title"] = App.Resources.Views.UiText.TransferOwnership;
+            return View(invalidVm);
+        }
+
+        var result = await _managementUserAdminService.TransferOwnershipAsync(auth.Context!, new TransferOwnershipRequest
+        {
+            TargetMembershipId = vm.TargetMembershipId.Value
+        }, cancellationToken);
+
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? App.Resources.Views.UiText.UnableToTransferOwnership);
+            var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, cancellationToken, vm);
+            ViewData["Title"] = App.Resources.Views.UiText.TransferOwnership;
+            return View(invalidVm);
+        }
+
+        TempData["ManagementUsersSuccess"] = App.Resources.Views.UiText.OwnershipTransferredSuccessfully;
+        return RedirectToAction(nameof(Index), new { companySlug });
     }
 
     [HttpPost("requests/{requestId:guid}/approve")]
@@ -307,17 +297,187 @@ public class UsersController : Controller
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 
-    private async Task<IReadOnlyList<SelectListItem>> BuildRoleSelectListAsync(CancellationToken cancellationToken, Guid? selectedRoleId = null)
+    private async Task<IActionResult?> AuthorizeAsync(string companySlug, CancellationToken cancellationToken)
     {
-        var roles = await _managementUserAdminService.GetAvailableRolesAsync(cancellationToken);
-        return roles
+        var appUserId = GetAppUserId();
+        if (appUserId == null)
+        {
+            return Challenge();
+        }
+
+        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        return ToAuthorizationActionResult(auth);
+    }
+
+    private IActionResult? ToAuthorizationActionResult(ManagementUserAdminAuthorizationResult auth)
+    {
+        if (auth.CompanyNotFound)
+        {
+            return NotFound();
+        }
+
+        if (auth.IsForbidden)
+        {
+            return Forbid();
+        }
+
+        return null;
+    }
+
+    private async Task<ManagementUsersPageViewModel> BuildPageViewModelAsync(
+        string companySlug,
+        CancellationToken cancellationToken,
+        AddManagementUserViewModel? addUserOverride = null)
+    {
+        var appUserId = GetAppUserId()!.Value;
+        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId, companySlug, cancellationToken);
+        var context = auth.Context!;
+
+        var members = await _managementUserAdminService.ListCompanyMembersAsync(context, cancellationToken);
+        var pendingRequests = await _managementUserAdminService.GetPendingAccessRequestsAsync(context, cancellationToken);
+        var availableRoles = await BuildRoleSelectListAsync(await _managementUserAdminService.GetAddRoleOptionsAsync(context, cancellationToken), addUserOverride?.RoleId);
+
+        ViewData["Title"] = App.Resources.Views.UiText.Users;
+
+        return new ManagementUsersPageViewModel
+        {
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CurrentActorIsOwner = context.IsOwner,
+            Members = members.Members.Select(x => new ManagementUserListItemViewModel
+            {
+                MembershipId = x.MembershipId,
+                FullName = x.FullName,
+                Email = x.Email,
+                RoleLabel = x.RoleLabel,
+                RoleCode = x.RoleCode,
+                JobTitle = x.JobTitle,
+                IsActive = x.IsActive,
+                ValidFrom = x.ValidFrom,
+                ValidTo = x.ValidTo,
+                IsActor = x.IsActor,
+                IsOwner = x.IsOwner,
+                IsEffective = x.IsEffective,
+                CanEdit = x.CanEdit,
+                CanDelete = x.CanDelete,
+                CanTransferOwnership = x.CanTransferOwnership,
+                CanChangeRole = x.CanChangeRole,
+                CanDeactivate = x.CanDeactivate,
+                ProtectedReason = x.ProtectedReason
+            }).ToList(),
+            AddUser = addUserOverride ?? new AddManagementUserViewModel(),
+            PendingRequests = pendingRequests.Requests.Select(x => new PendingAccessRequestViewModel
+            {
+                RequestId = x.RequestId,
+                AppUserId = x.AppUserId,
+                RequesterName = x.RequesterName,
+                RequesterEmail = x.RequesterEmail,
+                RequestedRoleCode = x.RequestedRoleCode,
+                RequestedRoleLabel = x.RequestedRoleLabel,
+                Message = x.Message,
+                RequestedAt = x.RequestedAt
+            }).ToList(),
+            AvailableRoles = availableRoles
+        };
+    }
+
+    private async Task<TransferOwnershipPageViewModel> BuildTransferOwnershipPageViewModelAsync(
+        ManagementUserAdminAuthorizedContext context,
+        CancellationToken cancellationToken,
+        TransferOwnershipInputViewModel? transferOverride = null)
+    {
+        var members = await _managementUserAdminService.ListCompanyMembersAsync(context, cancellationToken);
+        var currentOwner = members.Members.Single(x => x.MembershipId == context.ActorMembershipId);
+        var candidateResult = await _managementUserAdminService.GetOwnershipTransferCandidatesAsync(context, cancellationToken);
+
+        return new TransferOwnershipPageViewModel
+        {
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CurrentOwnerName = currentOwner.FullName,
+            CurrentOwnerEmail = currentOwner.Email,
+            Transfer = transferOverride ?? new TransferOwnershipInputViewModel(),
+            Candidates = candidateResult.Candidates
+                .Select(x => new SelectListItem
+                {
+                    Value = x.MembershipId.ToString(),
+                    Text = $"{x.FullName} ({x.RoleLabel})",
+                    Selected = transferOverride?.TargetMembershipId == x.MembershipId
+                })
+                .ToList()
+        };
+    }
+
+    private static EditManagementUserViewModel MapEditViewModel(
+        ManagementUserAdminAuthorizedContext context,
+        ManagementUserEditModel data)
+    {
+        return new EditManagementUserViewModel
+        {
+            MembershipId = data.MembershipId,
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            FullName = data.FullName,
+            Email = data.Email,
+            CurrentRoleLabel = data.RoleLabel,
+            CurrentRoleCode = data.RoleCode,
+            IsOwner = data.IsOwner,
+            IsActor = data.IsActor,
+            IsEffective = data.IsEffective,
+            CanEdit = data.CanEdit,
+            CanDelete = data.CanDelete,
+            CanTransferOwnership = data.CanTransferOwnership,
+            CanChangeRole = data.CanChangeRole,
+            CanDeactivate = data.CanDeactivate,
+            OwnershipTransferRequired = data.OwnershipTransferRequired,
+            ProtectedReason = data.ProtectedReason,
+            RoleId = data.RoleId,
+            JobTitle = data.JobTitle,
+            IsActive = data.IsActive,
+            ValidFrom = data.ValidFrom,
+            ValidTo = data.ValidTo,
+            AvailableRoles = BuildRoleSelectListAsync(data.AvailableRoleOptions, data.RoleId).GetAwaiter().GetResult()
+        };
+    }
+
+    private static void HydrateEditViewModel(
+        EditManagementUserViewModel vm,
+        ManagementUserAdminAuthorizedContext context,
+        ManagementUserEditModel data)
+    {
+        vm.CompanySlug = context.CompanySlug;
+        vm.CompanyName = context.CompanyName;
+        vm.FullName = data.FullName;
+        vm.Email = data.Email;
+        vm.CurrentRoleLabel = data.RoleLabel;
+        vm.CurrentRoleCode = data.RoleCode;
+        vm.IsOwner = data.IsOwner;
+        vm.IsActor = data.IsActor;
+        vm.IsEffective = data.IsEffective;
+        vm.CanEdit = data.CanEdit;
+        vm.CanDelete = data.CanDelete;
+        vm.CanTransferOwnership = data.CanTransferOwnership;
+        vm.CanChangeRole = data.CanChangeRole;
+        vm.CanDeactivate = data.CanDeactivate;
+        vm.OwnershipTransferRequired = data.OwnershipTransferRequired;
+        vm.ProtectedReason = data.ProtectedReason;
+        vm.AvailableRoles = BuildRoleSelectListAsync(data.AvailableRoleOptions, vm.RoleId).GetAwaiter().GetResult();
+    }
+
+    private static Task<IReadOnlyList<SelectListItem>> BuildRoleSelectListAsync(
+        IReadOnlyList<ManagementRoleOption> roles,
+        Guid? selectedRoleId = null)
+    {
+        IReadOnlyList<SelectListItem> items = roles
             .Select(r => new SelectListItem
             {
-                Value = r.Id.ToString(),
-                Text = r.Label.ToString(),
-                Selected = selectedRoleId.HasValue && selectedRoleId.Value == r.Id
+                Value = r.RoleId.ToString(),
+                Text = r.RoleLabel,
+                Selected = selectedRoleId.HasValue && selectedRoleId.Value == r.RoleId
             })
             .ToList();
+
+        return Task.FromResult(items);
     }
 
     private Guid? GetAppUserId()

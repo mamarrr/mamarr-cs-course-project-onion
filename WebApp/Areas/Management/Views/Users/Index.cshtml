@@ -12,10 +12,14 @@
                 <h2 class="mb-2">@UiText.Users</h2>
                 <p class="management-muted mb-0">@string.Format(UiText.UsersPageIntro, Model.CompanyName)</p>
             </div>
-            <div>
+            <div class="d-flex flex-column align-items-lg-end gap-2">
                 <span class="management-badge @(Model.Members.Count > 0 ? "success" : "warning")">
                     @string.Format(UiText.ActiveRecords, Model.Members.Count)
                 </span>
+                @if (Model.CurrentActorIsOwner)
+                {
+                    <a class="management-btn ghost" asp-action="TransferOwnership" asp-route-companySlug="@Model.CompanySlug">@UiText.TransferOwnership</a>
+                }
             </div>
         </div>
     </section>
@@ -23,6 +27,7 @@
     <section class="management-card">
         <h2>@UiText.AddCompanyUser</h2>
         <p class="management-muted">@UiText.AddCompanyUserDescription</p>
+        <p class="management-muted small mb-3">@UiText.OwnerRoleManagedThroughTransfer</p>
 
         @if (TempData["ManagementUsersSuccess"] is string successMessage)
         {
@@ -166,10 +171,16 @@
                         <tr>
                             <td>
                                 <div class="fw-semibold">@member.FullName</div>
-                                @if (member.IsActor)
-                                {
-                                    <span class="management-badge info">@UiText.You</span>
-                                }
+                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                    @if (member.IsActor)
+                                    {
+                                        <span class="management-badge info">@UiText.You</span>
+                                    }
+                                    @if (member.IsOwner)
+                                    {
+                                        <span class="management-badge warning">@UiText.Owner</span>
+                                    }
+                                </div>
                             </td>
                             <td>@member.Email</td>
                             <td>
@@ -178,19 +189,41 @@
                             </td>
                             <td>@member.JobTitle</td>
                             <td>
-                                <span class="management-badge @(member.IsActive ? "success" : "warning")">
-                                    @(member.IsActive ? UiText.Active : UiText.Inactive)
-                                </span>
+                                <div class="d-flex flex-column gap-1 align-items-start">
+                                    <span class="management-badge @(member.IsActive ? "success" : "warning")">
+                                        @(member.IsActive ? UiText.Active : UiText.Inactive)
+                                    </span>
+                                    @if (!member.IsEffective)
+                                    {
+                                        <span class="management-badge warning">@UiText.NotCurrentlyEffective</span>
+                                    }
+                                </div>
                             </td>
                             <td>@member.ValidFrom.ToString("yyyy-MM-dd")</td>
                             <td>@(member.ValidTo?.ToString("yyyy-MM-dd") ?? "—")</td>
                             <td class="text-end">
-                                <div class="d-inline-flex gap-2">
-                                    <a class="management-btn ghost" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@member.MembershipId">@UiText.EditUser</a>
-                                    <form method="post" asp-action="Delete" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@member.MembershipId" onsubmit="return confirm('@UiText.RemoveUserFromCompanyConfirm');">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="management-btn ghost" @(member.IsActor ? "disabled" : null)>@UiText.Delete</button>
-                                    </form>
+                                <div class="d-inline-flex flex-column align-items-end gap-2">
+                                    <div class="d-inline-flex gap-2 flex-wrap justify-content-end">
+                                        @if (member.CanEdit)
+                                        {
+                                            <a class="management-btn ghost" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@member.MembershipId">@UiText.EditUser</a>
+                                        }
+                                        @if (member.CanTransferOwnership)
+                                        {
+                                            <a class="management-btn ghost" asp-action="TransferOwnership" asp-route-companySlug="@Model.CompanySlug">@UiText.TransferOwnership</a>
+                                        }
+                                        @if (member.CanDelete)
+                                        {
+                                            <form method="post" asp-action="Delete" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@member.MembershipId" onsubmit="return confirm('@UiText.RemoveUserFromCompanyConfirm');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="management-btn ghost">@UiText.Delete</button>
+                                            </form>
+                                        }
+                                    </div>
+                                    @if ((!member.CanEdit || !member.CanDelete || member.CanTransferOwnership) && !string.IsNullOrWhiteSpace(member.ProtectedReason))
+                                    {
+                                        <div class="management-muted small text-end">@member.ProtectedReason</div>
+                                    }
                                 </div>
                             </td>
                         </tr>

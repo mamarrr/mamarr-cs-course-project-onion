@@ -106,6 +106,20 @@
   <data name="EditUserDescription" xml:space="preserve"><value>Update company membership details for {0}.</value></data>
   <data name="BackToUsers" xml:space="preserve"><value>Back to users</value></data>
   <data name="SaveChanges" xml:space="preserve"><value>Save changes</value></data>
+  <data name="Owner" xml:space="preserve"><value>Owner</value></data>
+  <data name="CurrentOwner" xml:space="preserve"><value>Current owner</value></data>
+  <data name="NewOwner" xml:space="preserve"><value>New owner</value></data>
+  <data name="NewOwnerRequired" xml:space="preserve"><value>New owner is required.</value></data>
+  <data name="SelectNewOwner" xml:space="preserve"><value>Select new owner</value></data>
+  <data name="TransferOwnership" xml:space="preserve"><value>Transfer ownership</value></data>
+  <data name="TransferOwnershipDescription" xml:space="preserve"><value>Transfer company ownership for {0} to another active effective company member.</value></data>
+  <data name="TransferOwnershipHelpText" xml:space="preserve"><value>The selected member will become the new owner. The current owner will be changed to manager automatically.</value></data>
+  <data name="TransferOwnershipConfirm" xml:space="preserve"><value>Transfer company ownership to the selected member?</value></data>
+  <data name="OwnerRoleManagedThroughTransfer" xml:space="preserve"><value>The owner role cannot be assigned, edited, or removed in generic user flows. Use the dedicated ownership transfer workflow instead.</value></data>
+  <data name="NotCurrentlyEffective" xml:space="preserve"><value>Not currently effective</value></data>
+  <data name="OwnershipTransferRequiresCurrentOwner" xml:space="preserve"><value>Only the current owner can transfer ownership.</value></data>
+  <data name="UnableToTransferOwnership" xml:space="preserve"><value>Unable to transfer ownership.</value></data>
+  <data name="OwnershipTransferredSuccessfully" xml:space="preserve"><value>Ownership transferred successfully.</value></data>
 
   <data name="FlowInfoCreateAccountOrLogin" xml:space="preserve"><value>Create your account or log in to continue.</value></data>
   <data name="RegistrationSuccessfulPleaseLogin" xml:space="preserve"><value>Registration successful. Please log in.</value></data>

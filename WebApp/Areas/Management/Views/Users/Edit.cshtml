@@ -16,6 +16,31 @@
 
     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
+    @if (!string.IsNullOrWhiteSpace(Model.ProtectedReason))
+    {
+        <div class="alert alert-info" role="alert">@Model.ProtectedReason</div>
+    }
+
+    @if (Model.IsOwner)
+    {
+        <div class="border rounded p-3 bg-light-subtle mb-4">
+            <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                <span class="management-badge warning">@UiText.Owner</span>
+                @if (Model.IsActor)
+                {
+                    <span class="management-badge info">@UiText.You</span>
+                }
+            </div>
+            <p class="management-muted mb-0">@UiText.OwnerRoleManagedThroughTransfer</p>
+            @if (Model.CanTransferOwnership)
+            {
+                <div class="mt-3">
+                    <a class="management-btn" asp-action="TransferOwnership" asp-route-companySlug="@Model.CompanySlug">@UiText.TransferOwnership</a>
+                </div>
+            }
+        </div>
+    }
+
     <form method="post" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@Model.MembershipId" class="row g-3">
         @Html.AntiForgeryToken()
         <input asp-for="MembershipId" type="hidden" />
@@ -30,10 +55,22 @@
         </div>
         <div class="col-md-6">
             <label asp-for="RoleId" class="form-label"></label>
-            <select asp-for="RoleId" asp-items="Model.AvailableRoles" class="form-select">
-                <option value="">@UiText.SelectRole</option>
-            </select>
+            @if (Model.CanChangeRole)
+            {
+                <select asp-for="RoleId" asp-items="Model.AvailableRoles" class="form-select">
+                    <option value="">@UiText.SelectRole</option>
+                </select>
+            }
+            else
+            {
+                <input class="form-control" value="@Model.CurrentRoleLabel" disabled />
+                <input asp-for="RoleId" type="hidden" />
+            }
             <span asp-validation-for="RoleId" class="text-danger"></span>
+            @if (!Model.CanChangeRole && !string.IsNullOrWhiteSpace(Model.CurrentRoleCode))
+            {
+                <div class="management-muted small mt-1">@Model.CurrentRoleCode</div>
+            }
         </div>
         <div class="col-md-6">
             <label asp-for="JobTitle" class="form-label"></label>
@@ -51,8 +88,12 @@
             <span asp-validation-for="ValidTo" class="text-danger"></span>
         </div>
         <div class="col-12 form-check ms-2">
-            <input asp-for="IsActive" class="form-check-input" />
+            <input asp-for="IsActive" class="form-check-input" disabled="@(!Model.CanDeactivate)" />
             <label asp-for="IsActive" class="form-check-label"></label>
+            @if (!Model.CanDeactivate)
+            {
+                <input asp-for="IsActive" type="hidden" />
+            }
         </div>
         <div class="col-12 d-flex gap-2">
             <button type="submit" class="management-btn">@UiText.SaveChanges</button>

@@ -10,8 +10,17 @@ namespace App.BLL.ManagementUsers;
 public interface IManagementUserAdminService
 {
     /// <summary>
-    /// Resolves actor authorization for the given company slug.
-    /// Returns authorized actor context if the user has OWNER or MANAGER role.
+    /// Resolves management-area access for the given company slug.
+    /// Returns actor context if the user is an effective company member.
+    /// </summary>
+    Task<ManagementAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
+        Guid appUserId,
+        string companySlug,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Resolves actor authorization for management user administration in the given company slug.
+    /// Returns authorized actor context if the user has effective OWNER or MANAGER role.
     /// </summary>
     Task<ManagementUserAdminAuthorizationResult> AuthorizeAsync(
         Guid appUserId,
@@ -34,6 +43,21 @@ public interface IManagementUserAdminService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets role options for the generic add-user flow, filtered by actor capabilities.
+    /// </summary>
+    Task<IReadOnlyList<ManagementRoleOption>> GetAddRoleOptionsAsync(
+        ManagementUserAdminAuthorizedContext context,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets role options for the generic edit-user flow, filtered by actor capabilities and target membership.
+    /// </summary>
+    Task<ManagementRoleOptionsResult> GetEditRoleOptionsAsync(
+        ManagementUserAdminAuthorizedContext context,
+        Guid membershipId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Adds a new company user by email for the authorized company context.
     /// </summary>
     Task<ManagementUserAddResult> AddUserByEmailAsync(
@@ -51,11 +75,33 @@ public interface IManagementUserAdminService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes (or deactivates) a company membership within the authorized company scope.
+    /// Deletes a company membership within the authorized company scope.
     /// </summary>
     Task<ManagementUserDeleteResult> DeleteMembershipAsync(
         ManagementUserAdminAuthorizedContext context,
         Guid membershipId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists ownership transfer candidates for the current owner.
+    /// </summary>
+    Task<OwnershipTransferCandidateListResult> GetOwnershipTransferCandidatesAsync(
+        ManagementUserAdminAuthorizedContext context,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Transfers ownership from the current owner to another existing company member.
+    /// </summary>
+    Task<OwnershipTransferResult> TransferOwnershipAsync(
+        ManagementUserAdminAuthorizedContext context,
+        TransferOwnershipRequest request,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all management company roles.
+    /// Kept temporarily for existing web-layer callers until they are migrated to actor-aware role option APIs.
+    /// </summary>
+    Task<IReadOnlyList<ManagementCompanyRole>> GetAvailableRolesAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -80,11 +126,5 @@ public interface IManagementUserAdminService
     Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
         ManagementUserAdminAuthorizedContext context,
         Guid requestId,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets available management company roles for dropdown selection.
-    /// </summary>
-    Task<IReadOnlyList<ManagementCompanyRole>> GetAvailableRolesAsync(
         CancellationToken cancellationToken = default);
 }

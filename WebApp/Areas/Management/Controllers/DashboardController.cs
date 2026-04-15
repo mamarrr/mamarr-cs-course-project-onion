@@ -28,7 +28,7 @@ public class DashboardController : Controller
             return Challenge();
         }
 
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _managementUserAdminService.AuthorizeManagementAreaAccessAsync(appUserId.Value, companySlug, cancellationToken);
         if (auth.CompanyNotFound)
         {
             return NotFound();

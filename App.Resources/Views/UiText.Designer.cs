@@ -339,6 +339,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current owner.
+        /// </summary>
+        public static string CurrentOwner {
+            get {
+                return ResourceManager.GetString("CurrentOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Current users.
         /// </summary>
         public static string CurrentUsers {
@@ -753,6 +762,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to New owner.
+        /// </summary>
+        public static string NewOwner {
+            get {
+                return ResourceManager.GetString("NewOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to New owner is required..
+        /// </summary>
+        public static string NewOwnerRequired {
+            get {
+                return ResourceManager.GetString("NewOwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No company contexts.
         /// </summary>
         public static string NoCompanyContexts {
@@ -825,6 +852,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Not currently effective.
+        /// </summary>
+        public static string NotCurrentlyEffective {
+            get {
+                return ResourceManager.GetString("NotCurrentlyEffective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Onboarding.
         /// </summary>
         public static string Onboarding {
@@ -839,6 +875,42 @@ namespace App.Resources.Views {
         public static string Open {
             get {
                 return ResourceManager.GetString("Open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Owner.
+        /// </summary>
+        public static string Owner {
+            get {
+                return ResourceManager.GetString("Owner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The owner role cannot be assigned, edited, or removed in generic user flows. Use the dedicated ownership transfer workflow instead..
+        /// </summary>
+        public static string OwnerRoleManagedThroughTransfer {
+            get {
+                return ResourceManager.GetString("OwnerRoleManagedThroughTransfer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ownership transferred successfully..
+        /// </summary>
+        public static string OwnershipTransferredSuccessfully {
+            get {
+                return ResourceManager.GetString("OwnershipTransferredSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only the current owner can transfer ownership..
+        /// </summary>
+        public static string OwnershipTransferRequiresCurrentOwner {
+            get {
+                return ResourceManager.GetString("OwnershipTransferRequiresCurrentOwner", resourceCulture);
             }
         }
         
@@ -1122,6 +1194,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select new owner.
+        /// </summary>
+        public static string SelectNewOwner {
+            get {
+                return ResourceManager.GetString("SelectNewOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select role.
         /// </summary>
         public static string SelectRole {
@@ -1212,6 +1293,42 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Transfer ownership.
+        /// </summary>
+        public static string TransferOwnership {
+            get {
+                return ResourceManager.GetString("TransferOwnership", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Transfer company ownership to the selected member?.
+        /// </summary>
+        public static string TransferOwnershipConfirm {
+            get {
+                return ResourceManager.GetString("TransferOwnershipConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Transfer company ownership for {0} to another active effective company member..
+        /// </summary>
+        public static string TransferOwnershipDescription {
+            get {
+                return ResourceManager.GetString("TransferOwnershipDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The selected member will become the new owner. The current owner will be changed to manager automatically..
+        /// </summary>
+        public static string TransferOwnershipHelpText {
+            get {
+                return ResourceManager.GetString("TransferOwnershipHelpText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to add user..
         /// </summary>
         public static string UnableToAddUser {
@@ -1253,6 +1370,15 @@ namespace App.Resources.Views {
         public static string UnableToSubmitJoinRequest {
             get {
                 return ResourceManager.GetString("UnableToSubmitJoinRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to transfer ownership..
+        /// </summary>
+        public static string UnableToTransferOwnership {
+            get {
+                return ResourceManager.GetString("UnableToTransferOwnership", resourceCulture);
             }
         }
         

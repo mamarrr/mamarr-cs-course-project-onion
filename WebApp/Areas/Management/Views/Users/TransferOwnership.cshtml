@@ -1,0 +1,46 @@
+@model WebApp.ViewModels.ManagementUsers.TransferOwnershipPageViewModel
+@using App.Resources.Views
+@{
+    ViewData["Title"] = UiText.TransferOwnership;
+}
+
+<section class="management-card" style="max-width: 860px;">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <p class="management-eyebrow mb-2">@UiText.CompanyMembership</p>
+            <h2 class="mb-1">@UiText.TransferOwnership</h2>
+            <p class="management-muted mb-0">@string.Format(UiText.TransferOwnershipDescription, Model.CompanyName)</p>
+        </div>
+        <a class="management-btn ghost" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">@UiText.BackToUsers</a>
+    </div>
+
+    <div class="border rounded p-3 bg-light-subtle mb-4">
+        <div class="fw-semibold">@UiText.CurrentOwner</div>
+        <div>@Model.CurrentOwnerName</div>
+        <div class="management-muted small">@Model.CurrentOwnerEmail</div>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <form method="post" asp-action="TransferOwnership" asp-route-companySlug="@Model.CompanySlug" class="row g-3">
+        @Html.AntiForgeryToken()
+
+        <div class="col-12">
+            <label asp-for="Transfer.TargetMembershipId" class="form-label"></label>
+            <select asp-for="Transfer.TargetMembershipId" asp-items="Model.Candidates" class="form-select">
+                <option value="">@UiText.SelectNewOwner</option>
+            </select>
+            <span asp-validation-for="Transfer.TargetMembershipId" class="text-danger"></span>
+            <div class="management-muted small mt-2">@UiText.TransferOwnershipHelpText</div>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="management-btn" onclick="return confirm('@UiText.TransferOwnershipConfirm');">@UiText.TransferOwnership</button>
+            <a class="management-btn ghost" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">@UiText.Cancel</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
