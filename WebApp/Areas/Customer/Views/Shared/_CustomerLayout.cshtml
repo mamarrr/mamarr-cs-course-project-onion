@@ -106,35 +106,35 @@
             <div class="management-company-name">@customerLayoutVm.CustomerName</div>
             <nav>
                 <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Dashboard" ? "active" : "")"
-                   asp-area="Management"
+                   asp-area="Customer"
                    asp-controller="CustomerDashboard"
                    asp-action="Index"
                    asp-route-companySlug="@customerLayoutVm.CompanySlug"
                    asp-route-customerSlug="@customerLayoutVm.CustomerSlug">@App.Resources.Views.UiText.Dashboard</a>
 
                 <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Profile" ? "active" : "")"
-                   asp-area="Management"
+                   asp-area="Customer"
                    asp-controller="CustomerDashboard"
                    asp-action="Profile"
                    asp-route-companySlug="@customerLayoutVm.CompanySlug"
                    asp-route-customerSlug="@customerLayoutVm.CustomerSlug">@T("Profile", "Profile")</a>
 
                 <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Tickets" ? "active" : "")"
-                   asp-area="Management"
+                   asp-area="Customer"
                    asp-controller="CustomerDashboard"
                    asp-action="Tickets"
                    asp-route-companySlug="@customerLayoutVm.CompanySlug"
                    asp-route-customerSlug="@customerLayoutVm.CustomerSlug">@App.Resources.Views.UiText.Tickets</a>
 
                 <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Properties" ? "active" : "")"
-                   asp-area="Management"
+                   asp-area="Customer"
                    asp-controller="CustomerDashboard"
                    asp-action="Properties"
                    asp-route-companySlug="@customerLayoutVm.CompanySlug"
                    asp-route-customerSlug="@customerLayoutVm.CustomerSlug">@App.Resources.Views.UiText.Properties</a>
 
                 <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Residents" ? "active" : "")"
-                   asp-area="Management"
+                   asp-area="Customer"
                    asp-controller="CustomerDashboard"
                    asp-action="Residents"
                    asp-route-companySlug="@customerLayoutVm.CompanySlug"
