@@ -252,6 +252,16 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .Property(e => e.Slug)
             .HasMaxLength(128)
             .IsRequired();
+
+        builder.Entity<Property>()
+            .Property(e => e.Slug)
+            .HasMaxLength(128)
+            .IsRequired();
+
+        builder.Entity<Unit>()
+            .Property(e => e.Slug)
+            .HasMaxLength(128)
+            .IsRequired();
     }
 
     private static void ConfigureConstraintNames(ModelBuilder builder)
@@ -562,6 +572,14 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasAlternateKey(e => new { e.ManagementCompanyId, e.Slug })
             .HasName("uq_customer_mcompany_slug");
 
+        builder.Entity<Property>()
+            .HasAlternateKey(e => new { e.CustomerId, e.Slug })
+            .HasName("uq_property_customer_slug");
+
+        builder.Entity<Unit>()
+            .HasAlternateKey(e => new { e.PropertyId, e.Slug })
+            .HasName("uq_unit_property_slug");
+
         builder.Entity<Vendor>()
             .HasAlternateKey(e => new { e.ManagementCompanyId, e.RegistryCode })
             .HasName("uq_vendor_mcompany_registry");
@@ -643,6 +661,16 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasIndex(e => new { e.ManagementCompanyId, e.Slug })
             .IsUnique()
             .HasDatabaseName("ux_customer_company_slug");
+
+        builder.Entity<Property>()
+            .HasIndex(e => new { e.CustomerId, e.Slug })
+            .IsUnique()
+            .HasDatabaseName("ux_property_customer_slug");
+
+        builder.Entity<Unit>()
+            .HasIndex(e => new { e.PropertyId, e.Slug })
+            .IsUnique()
+            .HasDatabaseName("ux_unit_property_slug");
 
         builder.Entity<Resident>()
             .HasIndex(e => e.ManagementCompanyId)
