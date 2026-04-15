@@ -10,6 +10,10 @@ public class Property : BaseEntity
     [Display(ResourceType = typeof(App.Resources.Domain.Property), Name = nameof(App.Resources.Domain.Property.Label))]
     [Column(TypeName = "jsonb")]
     public LangStr Label { get; set; } = default!;
+    
+    [Required]
+    [StringLength(128, MinimumLength = 1)]
+    public string Slug { get; set; } = default!;
 
     [Required]
     [StringLength(255, MinimumLength = 1)]

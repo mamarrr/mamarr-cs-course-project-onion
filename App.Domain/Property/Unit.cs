@@ -9,6 +9,10 @@ public class Unit : BaseEntity
     [Required]
     [StringLength(50, MinimumLength = 1)]
     public string UnitNr { get; set; } = default!;
+    
+    [Required]
+    [StringLength(128, MinimumLength = 1)]
+    public string Slug { get; set; } = default!;
 
     public int? FloorNr { get; set; }
 
