@@ -1,4 +1,4 @@
-using App.BLL.ManagementUsers;
+using App.BLL.Management;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -55,3 +55,4 @@ public class DashboardController : Controller
         return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
     }
 }
+

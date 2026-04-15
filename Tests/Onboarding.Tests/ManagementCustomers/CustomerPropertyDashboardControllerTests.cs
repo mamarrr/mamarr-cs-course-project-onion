@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using App.BLL.ManagementCustomers;
+using App.BLL.Management;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -175,3 +175,4 @@ public class CustomerPropertyDashboardControllerTests
         return new ClaimsPrincipal(identity);
     }
 }
+

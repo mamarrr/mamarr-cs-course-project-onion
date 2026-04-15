@@ -1,7 +1,7 @@
 using App.Domain;
 using App.Domain.Identity;
 
-namespace App.BLL.ManagementUsers;
+namespace App.BLL.Management;
 
 /// <summary>
 /// Service for managing company users within a management company scope.

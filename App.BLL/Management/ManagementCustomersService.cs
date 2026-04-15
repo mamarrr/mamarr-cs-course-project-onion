@@ -4,9 +4,13 @@ using App.DAL.EF;
 using App.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.ManagementCustomers;
+namespace App.BLL.Management;
 
-public class ManagementCustomersService : IManagementCustomersService
+public class ManagementCustomersService :
+    IManagementCustomersService,
+    IManagementCustomerAccessService,
+    IManagementCustomerService,
+    IManagementCustomerPropertyService
 {
     private static readonly HashSet<string> AllowedRoleCodes =
     [

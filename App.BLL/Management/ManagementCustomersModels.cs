@@ -1,4 +1,4 @@
-namespace App.BLL.ManagementCustomers;
+namespace App.BLL.Management;
 
 public class ManagementCustomersAuthorizationResult
 {

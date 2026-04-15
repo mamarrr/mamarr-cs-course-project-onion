@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using App.BLL.ManagementCustomers;
+using App.BLL.Management;
 using App.DAL.EF;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
@@ -15,16 +15,19 @@ namespace WebApp.Areas.Customer.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/properties")]
 public class CustomerPropertiesController : Controller
 {
-    private readonly IManagementCustomersService _managementCustomersService;
+    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
+    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
     private readonly AppDbContext _dbContext;
     private readonly ILogger<CustomerPropertiesController> _logger;
 
     public CustomerPropertiesController(
-        IManagementCustomersService managementCustomersService,
+        IManagementCustomerAccessService managementCustomerAccessService,
+        IManagementCustomerPropertyService managementCustomerPropertyService,
         AppDbContext dbContext,
         ILogger<CustomerPropertiesController> logger)
     {
-        _managementCustomersService = managementCustomersService;
+        _managementCustomerAccessService = managementCustomerAccessService;
+        _managementCustomerPropertyService = managementCustomerPropertyService;
         _dbContext = dbContext;
         _logger = logger;
     }
@@ -62,7 +65,7 @@ public class CustomerPropertiesController : Controller
             return View(nameof(Index), invalidVm);
         }
 
-        var createResult = await _managementCustomersService.CreatePropertyAsync(
+        var createResult = await _managementCustomerPropertyService.CreatePropertyAsync(
             access.context!,
             new ManagementCustomerPropertyCreateRequest
             {
@@ -117,7 +120,7 @@ public class CustomerPropertiesController : Controller
             return (Challenge(), null);
         }
 
-        var access = await _managementCustomersService.ResolveDashboardAccessAsync(
+        var access = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -141,7 +144,7 @@ public class CustomerPropertiesController : Controller
         CancellationToken cancellationToken,
         AddPropertyViewModel? addPropertyOverride = null)
     {
-        var listResult = await _managementCustomersService.ListPropertiesAsync(context, cancellationToken);
+        var listResult = await _managementCustomerPropertyService.ListPropertiesAsync(context, cancellationToken);
 
         ViewData["Title"] = UiText.Properties;
         ViewData["CustomerLayout"] = new CustomerLayoutViewModel
@@ -194,3 +197,4 @@ public class CustomerPropertiesController : Controller
         return UiText.ResourceManager.GetString(key) ?? fallback;
     }
 }
+

@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using App.BLL.ManagementCustomers;
+using App.BLL.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -12,16 +12,16 @@ namespace WebApp.Areas.Customer.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}")]
 public class CustomerDashboardController : Controller
 {
-    private readonly IManagementCustomersService _managementCustomersService;
+    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
     private readonly ILogger<CustomerDashboardController> _logger;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
     public CustomerDashboardController(
-        IManagementCustomersService managementCustomersService,
+        IManagementCustomerAccessService managementCustomerAccessService,
         ILogger<CustomerDashboardController> logger,
         IWebHostEnvironment webHostEnvironment)
     {
-        _managementCustomersService = managementCustomersService;
+        _managementCustomerAccessService = managementCustomerAccessService;
         _logger = logger;
         _webHostEnvironment = webHostEnvironment;
     }
@@ -71,7 +71,7 @@ public class CustomerDashboardController : Controller
             return Challenge();
         }
 
-        var access = await _managementCustomersService.ResolveDashboardAccessAsync(
+        var access = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -163,3 +163,4 @@ public class CustomerDashboardController : Controller
         return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
     }
 }
+

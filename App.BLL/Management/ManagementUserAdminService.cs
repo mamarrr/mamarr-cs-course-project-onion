@@ -8,12 +8,20 @@ using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Text.Json;
 
-namespace App.BLL.ManagementUsers;
+namespace App.BLL.Management;
 
 /// <summary>
 /// Implementation of management user administration service with tenant isolation and role checks.
 /// </summary>
-public class ManagementUserAdminService : IManagementUserAdminService
+public class ManagementUserAdminService :
+    IManagementUserAdminService,
+    IManagementAccessService,
+    IManagementUserAuthorizationService,
+    IManagementUserQueryService,
+    IManagementUserCommandService,
+    IManagementUserRoleService,
+    IManagementOwnershipTransferService,
+    IManagementAccessRequestService
 {
     private const string OwnerRoleCode = "OWNER";
     private const string ManagerRoleCode = "MANAGER";

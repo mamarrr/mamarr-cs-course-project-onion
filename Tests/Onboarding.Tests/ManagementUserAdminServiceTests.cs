@@ -1,4 +1,4 @@
- using App.BLL.ManagementUsers;
+ using App.BLL.Management;
 using App.BLL.Onboarding;
 using App.DAL.EF;
 using App.Domain;
@@ -415,3 +415,4 @@ public class ManagementUserAdminServiceTests
         };
     }
 }
+

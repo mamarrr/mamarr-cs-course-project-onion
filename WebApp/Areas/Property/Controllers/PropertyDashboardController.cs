@@ -1,5 +1,5 @@
-﻿using System.Security.Claims;
-using App.BLL.ManagementCustomers;
+using System.Security.Claims;
+using App.BLL.Management;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +12,15 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}")]
 public class PropertyDashboardController : Controller
 {
-    private readonly IManagementCustomersService _managementCustomersService;
+    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
+    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
 
-    public PropertyDashboardController(IManagementCustomersService managementCustomersService)
+    public PropertyDashboardController(
+        IManagementCustomerAccessService managementCustomerAccessService,
+        IManagementCustomerPropertyService managementCustomerPropertyService)
     {
-        _managementCustomersService = managementCustomersService;
+        _managementCustomerAccessService = managementCustomerAccessService;
+        _managementCustomerPropertyService = managementCustomerPropertyService;
     }
 
     [HttpGet("")]
@@ -82,7 +86,7 @@ public class PropertyDashboardController : Controller
             return Challenge();
         }
 
-        var customerAccess = await _managementCustomersService.ResolveDashboardAccessAsync(
+        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -98,7 +102,7 @@ public class PropertyDashboardController : Controller
             return Forbid();
         }
 
-        var propertyAccess = await _managementCustomersService.ResolvePropertyDashboardContextAsync(
+        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
             customerAccess.Context,
             propertySlug,
             cancellationToken);
@@ -159,3 +163,4 @@ public class PropertyDashboardController : Controller
         return UiText.ResourceManager.GetString(key) ?? fallback;
     }
 }
+

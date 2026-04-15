@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using App.BLL.ManagementCustomers;
+using App.BLL.Management;
 using App.DAL.EF;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
@@ -14,16 +14,19 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}/customers")]
 public class CustomersController : Controller
 {
-    private readonly IManagementCustomersService _managementCustomersService;
+    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
+    private readonly IManagementCustomerService _managementCustomerService;
     private readonly AppDbContext _dbContext;
     private readonly ILogger<CustomersController> _logger;
 
     public CustomersController(
-        IManagementCustomersService managementCustomersService,
+        IManagementCustomerAccessService managementCustomerAccessService,
+        IManagementCustomerService managementCustomerService,
         AppDbContext dbContext,
         ILogger<CustomersController> logger)
     {
-        _managementCustomersService = managementCustomersService;
+        _managementCustomerAccessService = managementCustomerAccessService;
+        _managementCustomerService = managementCustomerService;
         _dbContext = dbContext;
         _logger = logger;
     }
@@ -81,7 +84,7 @@ public class CustomersController : Controller
             return View(nameof(Index), invalidVm);
         }
 
-        var createResult = await _managementCustomersService.CreateAsync(
+        var createResult = await _managementCustomerService.CreateAsync(
             authResult.context!,
             new ManagementCustomerCreateRequest
             {
@@ -137,7 +140,7 @@ public class CustomersController : Controller
             return (Challenge(), null);
         }
 
-        var auth = await _managementCustomersService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _managementCustomerAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         if (auth.CompanyNotFound)
         {
             return (NotFound(), null);
@@ -156,7 +159,7 @@ public class CustomersController : Controller
         CancellationToken cancellationToken,
         AddManagementCustomerViewModel? addCustomerOverride = null)
     {
-        var listResult = await _managementCustomersService.ListAsync(context, cancellationToken);
+        var listResult = await _managementCustomerService.ListAsync(context, cancellationToken);
         var customerIds = listResult.Customers.Select(c => c.CustomerId).ToArray();
 
         var propertiesByCustomerId = await _dbContext.Properties
@@ -215,3 +218,4 @@ public class CustomersController : Controller
         return UiText.ResourceManager.GetString(key) ?? fallback;
     }
 }
+

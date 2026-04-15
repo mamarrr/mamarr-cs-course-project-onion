@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using App.BLL.ManagementCustomers;
+using App.BLL.Management;
 using App.DAL.EF;
 using App.Domain;
 using Base.Domain;
@@ -205,3 +205,4 @@ public class CustomerPropertiesControllerTests
         return new ClaimsPrincipal(identity);
     }
 }
+
