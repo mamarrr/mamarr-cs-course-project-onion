@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using App.Contracts;
 using Base.Domain;
 
@@ -11,6 +12,8 @@ public class TicketPriority : BaseEntity, ILookUpEntity
     public string Code { get; set; } = default!;
 
     [Required]
+    [Display(ResourceType = typeof(App.Resources.Domain.TicketPriority), Name = nameof(App.Resources.Domain.TicketPriority.Label))]
+    [Column(TypeName = "jsonb")]
     public LangStr Label { get; set; } = default!;
 
     public ICollection<Ticket>? Tickets { get; set; }

@@ -8,7 +8,7 @@
 }
 
 <li class="nav-item dropdown">
-    <a class="nav-link text-dark dropdown-toggle" href="javascript:{}" id="navbarLangDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Language (@Thread.CurrentThread.CurrentUICulture.Name)</a>
+    <a class="nav-link text-dark dropdown-toggle" href="javascript:{}" id="navbarLangDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">@App.Resources.Views.UiText.Language (@Thread.CurrentThread.CurrentUICulture.Name)</a>
     <div class="dropdown-menu" aria-labelledby="navbarLangDropdown">
         @foreach (var item in cultureItems)
         {

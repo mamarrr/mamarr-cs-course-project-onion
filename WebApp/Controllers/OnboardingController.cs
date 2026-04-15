@@ -1,6 +1,8 @@
 using App.BLL.Onboarding;
 using App.BLL.ManagementUsers;
 using App.Domain.Identity;
+using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,19 +17,22 @@ public class OnboardingController : Controller
     private readonly IManagementCompanyJoinRequestService _joinRequestService;
     private readonly IManagementUserAdminService _managementUserAdminService;
     private readonly UserManager<AppUser> _userManager;
+    private readonly ILogger<OnboardingController> _logger;
 
     public OnboardingController(
         IOnboardingService onboardingService,
         IOnboardingContextService onboardingContextService,
         IManagementCompanyJoinRequestService joinRequestService,
         IManagementUserAdminService managementUserAdminService,
-        UserManager<AppUser> userManager)
+        UserManager<AppUser> userManager,
+        ILogger<OnboardingController> logger)
     {
         _onboardingService = onboardingService;
         _onboardingContextService = onboardingContextService;
         _joinRequestService = joinRequestService;
         _managementUserAdminService = managementUserAdminService;
         _userManager = userManager;
+        _logger = logger;
     }
 
     [AllowAnonymous]
@@ -38,7 +43,7 @@ public class OnboardingController : Controller
         {
             return View(new FlowChooserViewModel
             {
-                InfoMessage = "Create your account or log in to continue."
+                InfoMessage = App.Resources.Views.UiText.FlowInfoCreateAccountOrLogin
             });
         }
 
@@ -71,6 +76,8 @@ public class OnboardingController : Controller
     [HttpGet]
     public IActionResult Register()
     {
+        LogOnboardingFormLocalizationDiagnostics();
+
         if (User.Identity?.IsAuthenticated == true)
         {
             return RedirectToAction("Index", "Home");
@@ -112,7 +119,7 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        TempData["OnboardingSuccess"] = "Registration successful. Please log in.";
+        TempData["OnboardingSuccess"] = App.Resources.Views.UiText.RegistrationSuccessfulPleaseLogin;
         return RedirectToAction(nameof(Login));
     }
 
@@ -120,6 +127,8 @@ public class OnboardingController : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
+        LogOnboardingFormLocalizationDiagnostics();
+
         if (User.Identity?.IsAuthenticated == true)
         {
             return RedirectToAction("Index", "Home");
@@ -152,7 +161,7 @@ public class OnboardingController : Controller
 
         if (!result.Succeeded)
         {
-            ModelState.AddModelError(string.Empty, "Invalid email or password.");
+            ModelState.AddModelError(string.Empty, App.Resources.Views.UiText.InvalidEmailOrPassword);
             return View(vm);
         }
 
@@ -332,7 +341,7 @@ public class OnboardingController : Controller
         {
             if (vm.RequestedRoleId == null)
             {
-                ModelState.AddModelError(nameof(vm.RequestedRoleId), "Requested role is required.");
+                ModelState.AddModelError(nameof(vm.RequestedRoleId), App.Resources.Views.UiText.RequestedRoleRequired);
             }
 
             vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RequestedRoleId);
@@ -350,13 +359,13 @@ public class OnboardingController : Controller
 
         if (!result.Success)
         {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Unable to submit join request.");
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? App.Resources.Views.UiText.UnableToSubmitJoinRequest);
             vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RequestedRoleId);
             ViewData["Title"] = vm.Title;
             return View(vm);
         }
 
-        TempData["OnboardingSuccess"] = "Join request submitted. Please wait for management company approval.";
+        TempData["OnboardingSuccess"] = App.Resources.Views.UiText.JoinRequestSubmitted;
         return RedirectToAction(nameof(JoinManagementCompany));
     }
 
@@ -434,6 +443,49 @@ public class OnboardingController : Controller
                 Selected = selectedRoleId.HasValue && selectedRoleId.Value == r.Id
             })
             .ToList();
+    }
+
+    private void LogOnboardingFormLocalizationDiagnostics()
+    {
+        var loginEmailHasDisplay = HasDisplayAttribute<LoginViewModel>(nameof(LoginViewModel.Email));
+        var loginPasswordHasDisplay = HasDisplayAttribute<LoginViewModel>(nameof(LoginViewModel.Password));
+        var loginRememberMeHasDisplay = HasDisplayAttribute<LoginViewModel>(nameof(LoginViewModel.RememberMe));
+
+        var registerEmailHasDisplay = HasDisplayAttribute<RegisterViewModel>(nameof(RegisterViewModel.Email));
+        var registerPasswordHasDisplay = HasDisplayAttribute<RegisterViewModel>(nameof(RegisterViewModel.Password));
+        var registerFirstNameHasDisplay = HasDisplayAttribute<RegisterViewModel>(nameof(RegisterViewModel.FirstName));
+        var registerLastNameHasDisplay = HasDisplayAttribute<RegisterViewModel>(nameof(RegisterViewModel.LastName));
+
+        var uiCulture = CultureInfo.CurrentUICulture;
+
+        var hasEmailResource = !string.IsNullOrWhiteSpace(App.Resources.Views.UiText.ResourceManager.GetString("Email", uiCulture));
+        var hasPasswordResource = !string.IsNullOrWhiteSpace(App.Resources.Views.UiText.ResourceManager.GetString("Password", uiCulture));
+        var hasRememberMeResource = !string.IsNullOrWhiteSpace(App.Resources.Views.UiText.ResourceManager.GetString("RememberMe", uiCulture));
+        var hasFirstNameResource = !string.IsNullOrWhiteSpace(App.Resources.Views.UiText.ResourceManager.GetString("FirstName", uiCulture));
+        var hasLastNameResource = !string.IsNullOrWhiteSpace(App.Resources.Views.UiText.ResourceManager.GetString("LastName", uiCulture));
+
+        _logger.LogInformation(
+            "Onboarding localization diagnostics. UICulture={UICulture}; Culture={Culture}; Login DisplayAttrs: Email={LoginEmailDisplay}, Password={LoginPasswordDisplay}, RememberMe={LoginRememberMeDisplay}; Register DisplayAttrs: Email={RegisterEmailDisplay}, Password={RegisterPasswordDisplay}, FirstName={RegisterFirstNameDisplay}, LastName={RegisterLastNameDisplay}; UiText keys present: Email={HasEmailResource}, Password={HasPasswordResource}, RememberMe={HasRememberMeResource}, FirstName={HasFirstNameResource}, LastName={HasLastNameResource}",
+            uiCulture.Name,
+            CultureInfo.CurrentCulture.Name,
+            loginEmailHasDisplay,
+            loginPasswordHasDisplay,
+            loginRememberMeHasDisplay,
+            registerEmailHasDisplay,
+            registerPasswordHasDisplay,
+            registerFirstNameHasDisplay,
+            registerLastNameHasDisplay,
+            hasEmailResource,
+            hasPasswordResource,
+            hasRememberMeResource,
+            hasFirstNameResource,
+            hasLastNameResource);
+    }
+
+    private static bool HasDisplayAttribute<TModel>(string propertyName)
+    {
+        var property = typeof(TModel).GetProperty(propertyName);
+        return property?.GetCustomAttributes(typeof(DisplayAttribute), inherit: true).Length > 0;
     }
 }
 

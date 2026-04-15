@@ -1,13 +1,13 @@
 @model WebApp.ViewModels.Onboarding.LoginViewModel
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = App.Resources.Views.UiText.Login;
 }
 
 <div class="row justify-content-center">
     <div class="col-12 col-md-8 col-lg-6">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
-                <h1 class="h3 mb-3">Sign in</h1>
+                <h1 class="h3 mb-3">@App.Resources.Views.UiText.SignIn</h1>
 
                 @if (TempData["OnboardingSuccess"] is string successMessage)
                 {
@@ -39,8 +39,8 @@
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Login</button>
-                        <a class="btn btn-link" asp-controller="Onboarding" asp-action="Register">Need an account? Register</a>
+                        <button type="submit" class="btn btn-primary">@App.Resources.Views.UiText.Login</button>
+                        <a class="btn btn-link" asp-controller="Onboarding" asp-action="Register">@App.Resources.Views.UiText.NeedAccountRegister</a>
                     </div>
                 </form>
             </div>
@@ -58,7 +58,7 @@
                 const button = form.querySelector('button[type="submit"]');
                 if (!button) return;
                 button.disabled = true;
-                button.textContent = 'Please wait...';
+                button.textContent = '@App.Resources.Views.UiText.PleaseWait';
             });
         })();
     </script>

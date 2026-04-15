@@ -52,7 +52,7 @@ namespace WebApp.Areas_Admin_Controllers
         // GET: Property/Create
         public IActionResult Create()
         {
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name");
+            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "RegistryCode");
             ViewData["PropertyTypeId"] = new SelectList(_context.PropertyTypes, "Id", "Code");
             return View();
         }
@@ -62,16 +62,28 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Label,AddressLine,City,PostalCode,Notes,IsActive,CreatedAt,PropertyTypeId,CustomerId,Id")] Property property)
+        public async Task<IActionResult> Create([Bind("AddressLine,City,PostalCode,IsActive,CreatedAt,PropertyTypeId,CustomerId,Id")] Property property)
         {
             if (ModelState.IsValid)
             {
+                var label = Request.Form[nameof(Property.Label)].ToString();
+                var notes = Request.Form[nameof(Property.Notes)].ToString();
+
                 property.Id = Guid.NewGuid();
+                property.Label = label;
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    property.Notes = null;
+                }
+                else
+                {
+                    property.Notes = notes;
+                }
                 _context.Add(property);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", property.CustomerId);
+            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "RegistryCode", property.CustomerId);
             ViewData["PropertyTypeId"] = new SelectList(_context.PropertyTypes, "Id", "Code", property.PropertyTypeId);
             return View(property);
         }
@@ -89,7 +101,7 @@ namespace WebApp.Areas_Admin_Controllers
             {
                 return NotFound();
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", property.CustomerId);
+            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "RegistryCode", property.CustomerId);
             ViewData["PropertyTypeId"] = new SelectList(_context.PropertyTypes, "Id", "Code", property.PropertyTypeId);
             return View(property);
         }
@@ -99,7 +111,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Label,AddressLine,City,PostalCode,Notes,IsActive,CreatedAt,PropertyTypeId,CustomerId,Id")] Property property)
+        public async Task<IActionResult> Edit(Guid id, [Bind("AddressLine,City,PostalCode,IsActive,CreatedAt,PropertyTypeId,CustomerId,Id")] Property property)
         {
             if (id != property.Id)
             {
@@ -108,14 +120,42 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.Properties.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var label = Request.Form[nameof(Property.Label)].ToString();
+                var notes = Request.Form[nameof(Property.Notes)].ToString();
+
+                entity.AddressLine = property.AddressLine;
+                entity.City = property.City;
+                entity.PostalCode = property.PostalCode;
+                entity.IsActive = property.IsActive;
+                entity.CreatedAt = property.CreatedAt;
+                entity.PropertyTypeId = property.PropertyTypeId;
+                entity.CustomerId = property.CustomerId;
+
+                entity.Label.SetTranslation(label);
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    entity.Notes = null;
+                }
+                else if (entity.Notes == null)
+                {
+                    entity.Notes = notes;
+                }
+                else
+                {
+                    entity.Notes.SetTranslation(notes);
+                }
+
                 try
                 {
-                    _context.Update(property);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!PropertyExists(property.Id))
+                    if (!PropertyExists(id))
                     {
                         return NotFound();
                     }
@@ -126,7 +166,7 @@ namespace WebApp.Areas_Admin_Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", property.CustomerId);
+            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "RegistryCode", property.CustomerId);
             ViewData["PropertyTypeId"] = new SelectList(_context.PropertyTypes, "Id", "Code", property.PropertyTypeId);
             return View(property);
         }

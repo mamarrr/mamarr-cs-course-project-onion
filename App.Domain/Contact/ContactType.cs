@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using App.Contracts;
 using Base.Domain;
 
@@ -11,6 +12,8 @@ public class ContactType : BaseEntity, ILookUpEntity
     public string Code { get; set; } = default!;
 
     [Required]
+    [Display(ResourceType = typeof(App.Resources.Domain.ContactType), Name = nameof(App.Resources.Domain.ContactType.Label))]
+    [Column(TypeName = "jsonb")]
     public LangStr Label { get; set; } = default!;
 
     public ICollection<Contact>? Contacts { get; set; }

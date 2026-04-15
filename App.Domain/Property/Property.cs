@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Base.Domain;
 
 namespace App.Domain;
@@ -6,8 +7,9 @@ namespace App.Domain;
 public class Property : BaseEntity
 {
     [Required]
-    [StringLength(200, MinimumLength = 1)]
-    public string Label { get; set; } = default!;
+    [Display(ResourceType = typeof(App.Resources.Domain.Property), Name = nameof(App.Resources.Domain.Property.Label))]
+    [Column(TypeName = "jsonb")]
+    public LangStr Label { get; set; } = default!;
 
     [Required]
     [StringLength(255, MinimumLength = 1)]
@@ -21,8 +23,9 @@ public class Property : BaseEntity
     [StringLength(20, MinimumLength = 1)]
     public string PostalCode { get; set; } = default!;
 
-    [MinLength(1)]
-    public string? Notes { get; set; }
+    [Display(ResourceType = typeof(App.Resources.Domain.Property), Name = nameof(App.Resources.Domain.Property.Notes))]
+    [Column(TypeName = "jsonb")]
+    public LangStr? Notes { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 

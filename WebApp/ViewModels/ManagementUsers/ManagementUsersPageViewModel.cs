@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using App.Resources.Views;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace WebApp.ViewModels.ManagementUsers;
@@ -31,28 +32,28 @@ public class AddManagementUserViewModel
 {
     [Required]
     [EmailAddress]
-    [Display(Name = "Email")]
+    [Display(Name = nameof(UiText.Email), ResourceType = typeof(UiText))]
     public string Email { get; set; } = default!;
 
     [Required]
-    [Display(Name = "Role")]
+    [Display(Name = nameof(UiText.Role), ResourceType = typeof(UiText))]
     public Guid? RoleId { get; set; }
 
     [Required]
     [StringLength(255, MinimumLength = 1)]
-    [Display(Name = "Job title")]
+    [Display(Name = nameof(UiText.JobTitle), ResourceType = typeof(UiText))]
     public string JobTitle { get; set; } = default!;
 
     [Required]
-    [Display(Name = "Valid from")]
+    [Display(Name = nameof(UiText.ValidFrom), ResourceType = typeof(UiText))]
     [DataType(DataType.Date)]
     public DateOnly ValidFrom { get; set; } = DateOnly.FromDateTime(DateTime.Today);
 
-    [Display(Name = "Valid to")]
+    [Display(Name = nameof(UiText.ValidTo), ResourceType = typeof(UiText))]
     [DataType(DataType.Date)]
     public DateOnly? ValidTo { get; set; }
 
-    [Display(Name = "Active")]
+    [Display(Name = nameof(UiText.Active), ResourceType = typeof(UiText))]
     public bool IsActive { get; set; } = true;
 }
 
@@ -65,24 +66,24 @@ public class EditManagementUserViewModel
     public string? Email { get; set; }
 
     [Required]
-    [Display(Name = "Role")]
+    [Display(Name = nameof(UiText.Role), ResourceType = typeof(UiText))]
     public Guid? RoleId { get; set; }
 
     [Required]
     [StringLength(255, MinimumLength = 1)]
-    [Display(Name = "Job title")]
+    [Display(Name = nameof(UiText.JobTitle), ResourceType = typeof(UiText))]
     public string JobTitle { get; set; } = default!;
 
     [Required]
-    [Display(Name = "Valid from")]
+    [Display(Name = nameof(UiText.ValidFrom), ResourceType = typeof(UiText))]
     [DataType(DataType.Date)]
     public DateOnly ValidFrom { get; set; }
 
-    [Display(Name = "Valid to")]
+    [Display(Name = nameof(UiText.ValidTo), ResourceType = typeof(UiText))]
     [DataType(DataType.Date)]
     public DateOnly? ValidTo { get; set; }
 
-    [Display(Name = "Active")]
+    [Display(Name = nameof(UiText.Active), ResourceType = typeof(UiText))]
     public bool IsActive { get; set; }
 
     public IReadOnlyList<SelectListItem> AvailableRoles { get; set; } = Array.Empty<SelectListItem>();

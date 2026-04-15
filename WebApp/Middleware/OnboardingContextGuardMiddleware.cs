@@ -86,6 +86,7 @@ public class OnboardingContextGuardMiddleware
         if (!path.HasValue) return true;
 
         if (path.StartsWithSegments("/Onboarding", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/Home/SetLanguage", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/Admin", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/Identity", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/swagger", StringComparison.OrdinalIgnoreCase)) return true;

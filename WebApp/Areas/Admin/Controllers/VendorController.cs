@@ -60,11 +60,14 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,RegistryCode,Notes,IsActive,CreatedAt,ManagementCompanyId,Id")] Vendor vendor)
+        public async Task<IActionResult> Create([Bind("Name,RegistryCode,IsActive,CreatedAt,ManagementCompanyId,Id")] Vendor vendor)
         {
             if (ModelState.IsValid)
             {
+                var notes = Request.Form[nameof(Vendor.Notes)].ToString();
+
                 vendor.Id = Guid.NewGuid();
+                vendor.Notes = notes;
                 _context.Add(vendor);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -95,7 +98,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Name,RegistryCode,Notes,IsActive,CreatedAt,ManagementCompanyId,Id")] Vendor vendor)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Name,RegistryCode,IsActive,CreatedAt,ManagementCompanyId,Id")] Vendor vendor)
         {
             if (id != vendor.Id)
             {
@@ -104,14 +107,26 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.Vendors.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var notes = Request.Form[nameof(Vendor.Notes)].ToString();
+
+                entity.Name = vendor.Name;
+                entity.RegistryCode = vendor.RegistryCode;
+                entity.IsActive = vendor.IsActive;
+                entity.CreatedAt = vendor.CreatedAt;
+                entity.ManagementCompanyId = vendor.ManagementCompanyId;
+                entity.Notes.SetTranslation(notes);
+
                 try
                 {
-                    _context.Update(vendor);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!VendorExists(vendor.Id))
+                    if (!VendorExists(id))
                     {
                         return NotFound();
                     }

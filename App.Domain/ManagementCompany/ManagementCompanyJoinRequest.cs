@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using App.Domain.Identity;
 using Base.Domain;
 
@@ -20,7 +21,9 @@ public class ManagementCompanyJoinRequest : BaseEntity
     public string Status { get; set; } = ManagementCompanyJoinRequestStatus.Pending;
 
     [StringLength(2000)]
-    public string? Message { get; set; }
+    [Display(ResourceType = typeof(App.Resources.Domain.ManagementCompanyJoinRequest), Name = nameof(App.Resources.Domain.ManagementCompanyJoinRequest.Message))]
+    [Column(TypeName = "jsonb")]
+    public LangStr? Message { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }

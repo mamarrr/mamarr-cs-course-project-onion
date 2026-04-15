@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Base.Domain;
 
 namespace App.Domain;
@@ -9,8 +10,9 @@ public class ScheduledWork : BaseEntity
     public DateTime? ScheduledEnd { get; set; }
     public DateTime? RealStart { get; set; }
     public DateTime? RealEnd { get; set; }
-    [MinLength(1)]
-    public string? Notes { get; set; }
+    [Display(ResourceType = typeof(App.Resources.Domain.ScheduledWork), Name = nameof(App.Resources.Domain.ScheduledWork.Notes))]
+    [Column(TypeName = "jsonb")]
+    public LangStr? Notes { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public Guid VendorId { get; set; }

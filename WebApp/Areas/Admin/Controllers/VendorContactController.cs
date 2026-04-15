@@ -62,11 +62,21 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ValidFrom,ValidTo,Confirmed,IsPrimary,FullName,RoleTitle,ContactId,VendorId,Id")] VendorContact vendorContact)
+        public async Task<IActionResult> Create([Bind("ValidFrom,ValidTo,Confirmed,IsPrimary,FullName,ContactId,VendorId,Id")] VendorContact vendorContact)
         {
             if (ModelState.IsValid)
             {
+                var roleTitle = Request.Form[nameof(VendorContact.RoleTitle)].ToString();
+
                 vendorContact.Id = Guid.NewGuid();
+                if (string.IsNullOrWhiteSpace(roleTitle))
+                {
+                    vendorContact.RoleTitle = null;
+                }
+                else
+                {
+                    vendorContact.RoleTitle = roleTitle;
+                }
                 _context.Add(vendorContact);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -99,7 +109,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("ValidFrom,ValidTo,Confirmed,IsPrimary,FullName,RoleTitle,ContactId,VendorId,Id")] VendorContact vendorContact)
+        public async Task<IActionResult> Edit(Guid id, [Bind("ValidFrom,ValidTo,Confirmed,IsPrimary,FullName,ContactId,VendorId,Id")] VendorContact vendorContact)
         {
             if (id != vendorContact.Id)
             {
@@ -108,14 +118,40 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.VendorContacts.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var roleTitle = Request.Form[nameof(VendorContact.RoleTitle)].ToString();
+
+                entity.ValidFrom = vendorContact.ValidFrom;
+                entity.ValidTo = vendorContact.ValidTo;
+                entity.Confirmed = vendorContact.Confirmed;
+                entity.IsPrimary = vendorContact.IsPrimary;
+                entity.FullName = vendorContact.FullName;
+                entity.ContactId = vendorContact.ContactId;
+                entity.VendorId = vendorContact.VendorId;
+
+                if (string.IsNullOrWhiteSpace(roleTitle))
+                {
+                    entity.RoleTitle = null;
+                }
+                else if (entity.RoleTitle == null)
+                {
+                    entity.RoleTitle = roleTitle;
+                }
+                else
+                {
+                    entity.RoleTitle.SetTranslation(roleTitle);
+                }
+
                 try
                 {
-                    _context.Update(vendorContact);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!VendorContactExists(vendorContact.Id))
+                    if (!VendorContactExists(id))
                     {
                         return NotFound();
                     }

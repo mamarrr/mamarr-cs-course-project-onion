@@ -12,17 +12,17 @@
         <li class="nav-item">
             <form class="form-inline" asp-controller="Onboarding" asp-action="Logout" method="post">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+                <button type="submit" class="nav-link btn btn-link text-dark">@App.Resources.Views.UiText.Logout</button>
             </form>
         </li>
     }
     else
     {
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Onboarding" asp-action="Register">Register</a>
+            <a class="nav-link text-dark" asp-controller="Onboarding" asp-action="Register">@App.Resources.Views.UiText.Register</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Onboarding" asp-action="Login">Login</a>
+            <a class="nav-link text-dark" asp-controller="Onboarding" asp-action="Login">@App.Resources.Views.UiText.Login</a>
         </li>
     }
 </ul>

@@ -4,7 +4,7 @@
     ViewData["Title"] = "Details";
 }
 
-<h1>Details</h1>
+<h1>@App.Resources.Views.AdminScaffoldText.Details</h1>
 
 <div>
     <h4>Unit</h4>
@@ -32,7 +32,7 @@
             @Html.DisplayNameFor(model => model.Notes)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Notes)
+            @(Model.Notes?.ToString())
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.IsActive)
@@ -55,6 +55,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Edit" asp-route-id="@Model?.Id">@App.Resources.Views.AdminScaffoldText.Edit</a> |
+    <a asp-action="Index">@App.Resources.Views.AdminScaffoldText.BackToList</a>
 </div>

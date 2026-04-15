@@ -43,7 +43,7 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.HasKey("Id");
 
@@ -111,7 +111,7 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("character varying(200)");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(50)
@@ -165,7 +165,7 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("ResidentId")
                         .HasColumnType("uuid");
@@ -374,7 +374,7 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("ResidentId")
                         .HasColumnType("uuid");
@@ -498,7 +498,7 @@ namespace App.DAL.EF.Migrations
 
                     b.Property<string>("Message")
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("RequestedManagementCompanyRoleId")
                         .HasColumnType("uuid");
@@ -583,8 +583,7 @@ namespace App.DAL.EF.Migrations
 
                     b.Property<string>("JobTitle")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("ManagementCompanyId")
                         .HasColumnType("uuid");
@@ -642,11 +641,10 @@ namespace App.DAL.EF.Migrations
 
                     b.Property<string>("Label")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("PostalCode")
                         .IsRequired()
@@ -817,7 +815,7 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<DateTime?>("RealEnd")
                         .HasColumnType("timestamp with time zone");
@@ -874,7 +872,7 @@ namespace App.DAL.EF.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<DateTime?>("DueAt")
                         .HasColumnType("timestamp with time zone");
@@ -904,8 +902,7 @@ namespace App.DAL.EF.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid?>("UnitId")
                         .HasColumnType("uuid");
@@ -1039,7 +1036,7 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("PropertyId")
                         .HasColumnType("uuid");
@@ -1089,7 +1086,7 @@ namespace App.DAL.EF.Migrations
 
                     b.Property<string>("Notes")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<string>("RegistryCode")
                         .IsRequired()
@@ -1129,7 +1126,7 @@ namespace App.DAL.EF.Migrations
 
                     b.Property<string>("RoleTitle")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("jsonb");
 
                     b.Property<DateOnly>("ValidFrom")
                         .HasColumnType("date");
@@ -1163,7 +1160,7 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<string>("Notes")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<Guid>("TicketCategoryId")
                         .HasColumnType("uuid");
@@ -1198,7 +1195,7 @@ namespace App.DAL.EF.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
                     b.Property<decimal?>("Hours")
                         .HasColumnType("numeric");

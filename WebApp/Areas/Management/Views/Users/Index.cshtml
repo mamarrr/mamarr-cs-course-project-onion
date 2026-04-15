@@ -1,27 +1,28 @@
 @model WebApp.ViewModels.ManagementUsers.ManagementUsersPageViewModel
+@using App.Resources.Views
 @{
-    ViewData["Title"] = "Users";
+    ViewData["Title"] = UiText.Users;
 }
 
 <div class="management-grid management-grid-2">
     <section class="management-card" style="grid-column: 1 / -1;">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
-                <p class="management-eyebrow mb-2">Company access management</p>
-                <h2 class="mb-2">Users</h2>
-                <p class="management-muted mb-0">Manage members who belong to <strong>@Model.CompanyName</strong>, update company-level access, and prepare for future pending access requests.</p>
+                <p class="management-eyebrow mb-2">@UiText.CompanyAccessManagement</p>
+                <h2 class="mb-2">@UiText.Users</h2>
+                <p class="management-muted mb-0">@string.Format(UiText.UsersPageIntro, Model.CompanyName)</p>
             </div>
             <div>
                 <span class="management-badge @(Model.Members.Count > 0 ? "success" : "warning")">
-                    @Model.Members.Count active records
+                    @string.Format(UiText.ActiveRecords, Model.Members.Count)
                 </span>
             </div>
         </div>
     </section>
 
     <section class="management-card">
-        <h2>Add company user</h2>
-        <p class="management-muted">Add an existing application user by email. This only creates company membership access and does not create a global account.</p>
+        <h2>@UiText.AddCompanyUser</h2>
+        <p class="management-muted">@UiText.AddCompanyUserDescription</p>
 
         @if (TempData["ManagementUsersSuccess"] is string successMessage)
         {
@@ -45,7 +46,7 @@
             <div class="col-md-6">
                 <label asp-for="AddUser.RoleId" class="form-label"></label>
                 <select asp-for="AddUser.RoleId" asp-items="Model.AvailableRoles" class="form-select">
-                    <option value="">Select role</option>
+                    <option value="">@UiText.SelectRole</option>
                 </select>
                 <span asp-validation-for="AddUser.RoleId" class="text-danger"></span>
             </div>
@@ -69,34 +70,34 @@
                 <label asp-for="AddUser.IsActive" class="form-check-label"></label>
             </div>
             <div class="col-12">
-                <button type="submit" class="management-btn">Add user</button>
+                <button type="submit" class="management-btn">@UiText.AddCompanyUser</button>
             </div>
         </form>
     </section>
 
     <section class="management-card">
-        <h2>Pending access requests</h2>
-        <p class="management-muted">Review and decide pending employee onboarding access requests for this company.</p>
+        <h2>@UiText.PendingAccessRequests</h2>
+        <p class="management-muted">@UiText.PendingAccessRequestsDescription</p>
 
         @if (Model.PendingRequests.Count == 0)
         {
             <div class="border rounded p-3 bg-light-subtle">
-                <strong>No pending requests</strong>
-                <p class="management-muted mb-0">There are currently no pending access requests for this company.</p>
+                <strong>@UiText.NoPendingRequests</strong>
+                <p class="management-muted mb-0">@UiText.NoPendingRequestsDescription</p>
             </div>
         }
         else
         {
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
-                    <thead>
+                     <thead>
                      <tr>
-                         <th>Name</th>
-                         <th>Email</th>
-                         <th>Requested role</th>
-                         <th>Message</th>
-                         <th>Requested at</th>
-                         <th class="text-end">Actions</th>
+                         <th>@UiText.Name</th>
+                         <th>@UiText.Email</th>
+                         <th>@UiText.RequestedRole</th>
+                         <th>@UiText.Message</th>
+                         <th>@UiText.RequestedAt</th>
+                         <th class="text-end">@UiText.Actions</th>
                      </tr>
                      </thead>
                      <tbody>
@@ -106,20 +107,20 @@
                              <td>@request.RequesterName</td>
                              <td>@request.RequesterEmail</td>
                              <td>@request.RequestedRoleLabel</td>
-                             <td>@(string.IsNullOrWhiteSpace(request.Message) ? "—" : request.Message)</td>
-                             <td>@request.RequestedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                             <td class="text-end">
-                                 <div class="d-inline-flex gap-2">
-                                     <form method="post" asp-action="ApproveRequest" asp-route-companySlug="@Model.CompanySlug" asp-route-requestId="@request.RequestId" onsubmit="return confirm('Approve this access request?');">
-                                         @Html.AntiForgeryToken()
-                                         <button type="submit" class="management-btn">Approve</button>
-                                     </form>
-                                     <form method="post" asp-action="RejectRequest" asp-route-companySlug="@Model.CompanySlug" asp-route-requestId="@request.RequestId" onsubmit="return confirm('Reject this access request?');">
-                                         @Html.AntiForgeryToken()
-                                         <button type="submit" class="management-btn ghost">Reject</button>
-                                     </form>
-                                 </div>
-                             </td>
+                              <td>@(string.IsNullOrWhiteSpace(request.Message) ? "—" : request.Message)</td>
+                              <td>@request.RequestedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                              <td class="text-end">
+                                  <div class="d-inline-flex gap-2">
+                                      <form method="post" asp-action="ApproveRequest" asp-route-companySlug="@Model.CompanySlug" asp-route-requestId="@request.RequestId" onsubmit="return confirm('@UiText.ApproveAccessRequestConfirm');">
+                                          @Html.AntiForgeryToken()
+                                          <button type="submit" class="management-btn">@UiText.Approve</button>
+                                      </form>
+                                      <form method="post" asp-action="RejectRequest" asp-route-companySlug="@Model.CompanySlug" asp-route-requestId="@request.RequestId" onsubmit="return confirm('@UiText.RejectAccessRequestConfirm');">
+                                          @Html.AntiForgeryToken()
+                                          <button type="submit" class="management-btn ghost">@UiText.Reject</button>
+                                      </form>
+                                  </div>
+                              </td>
                          </tr>
                      }
                     </tbody>
@@ -131,16 +132,16 @@
     <section class="management-card" style="grid-column: 1 / -1;">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h2 class="mb-1">Current users</h2>
-                <p class="management-muted mb-0">Only users in the current company scope are shown here.</p>
+                <h2 class="mb-1">@UiText.CurrentUsers</h2>
+                <p class="management-muted mb-0">@UiText.CurrentUsersDescription</p>
             </div>
         </div>
 
         @if (Model.Members.Count == 0)
         {
             <div class="border rounded p-3 bg-light-subtle">
-                <strong>No company users found</strong>
-                <p class="management-muted mb-0">Add the first company member by email to grant access.</p>
+                <strong>@UiText.NoCompanyUsersFound</strong>
+                <p class="management-muted mb-0">@UiText.NoCompanyUsersFoundDescription</p>
             </div>
         }
         else
@@ -149,14 +150,14 @@
                 <table class="table align-middle mb-0">
                     <thead>
                     <tr>
-                        <th>Full name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Job title</th>
-                        <th>Status</th>
-                        <th>Valid from</th>
-                        <th>Valid to</th>
-                        <th class="text-end">Actions</th>
+                        <th>@UiText.FullName</th>
+                        <th>@UiText.Email</th>
+                        <th>@UiText.Role</th>
+                        <th>@UiText.JobTitle</th>
+                        <th>@UiText.Status</th>
+                        <th>@UiText.ValidFrom</th>
+                        <th>@UiText.ValidTo</th>
+                        <th class="text-end">@UiText.Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -167,7 +168,7 @@
                                 <div class="fw-semibold">@member.FullName</div>
                                 @if (member.IsActor)
                                 {
-                                    <span class="management-badge info">You</span>
+                                    <span class="management-badge info">@UiText.You</span>
                                 }
                             </td>
                             <td>@member.Email</td>
@@ -178,17 +179,17 @@
                             <td>@member.JobTitle</td>
                             <td>
                                 <span class="management-badge @(member.IsActive ? "success" : "warning")">
-                                    @(member.IsActive ? "Active" : "Inactive")
+                                    @(member.IsActive ? UiText.Active : UiText.Inactive)
                                 </span>
                             </td>
                             <td>@member.ValidFrom.ToString("yyyy-MM-dd")</td>
                             <td>@(member.ValidTo?.ToString("yyyy-MM-dd") ?? "—")</td>
                             <td class="text-end">
                                 <div class="d-inline-flex gap-2">
-                                    <a class="management-btn ghost" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@member.MembershipId">Edit</a>
-                                    <form method="post" asp-action="Delete" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@member.MembershipId" onsubmit="return confirm('Remove this user from the company?');">
+                                    <a class="management-btn ghost" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@member.MembershipId">@UiText.EditUser</a>
+                                    <form method="post" asp-action="Delete" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@member.MembershipId" onsubmit="return confirm('@UiText.RemoveUserFromCompanyConfirm');">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="management-btn ghost" @(member.IsActor ? "disabled" : null)>Delete</button>
+                                        <button type="submit" class="management-btn ghost" @(member.IsActor ? "disabled" : null)>@UiText.Delete</button>
                                     </form>
                                 </div>
                             </td>

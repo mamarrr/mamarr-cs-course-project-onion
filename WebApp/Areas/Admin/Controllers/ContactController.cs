@@ -62,11 +62,21 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ContactValue,CreatedAt,Notes,ContactTypeId,ManagementCompanyId,Id")] Contact contact)
+        public async Task<IActionResult> Create([Bind("ContactValue,CreatedAt,ContactTypeId,ManagementCompanyId,Id")] Contact contact)
         {
             if (ModelState.IsValid)
             {
+                var notes = Request.Form[nameof(Contact.Notes)].ToString();
+
                 contact.Id = Guid.NewGuid();
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    contact.Notes = null;
+                }
+                else
+                {
+                    contact.Notes = notes;
+                }
                 _context.Add(contact);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -99,7 +109,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("ContactValue,CreatedAt,Notes,ContactTypeId,ManagementCompanyId,Id")] Contact contact)
+        public async Task<IActionResult> Edit(Guid id, [Bind("ContactValue,CreatedAt,ContactTypeId,ManagementCompanyId,Id")] Contact contact)
         {
             if (id != contact.Id)
             {
@@ -108,14 +118,37 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.Contacts.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var notes = Request.Form[nameof(Contact.Notes)].ToString();
+
+                entity.ContactValue = contact.ContactValue;
+                entity.CreatedAt = contact.CreatedAt;
+                entity.ContactTypeId = contact.ContactTypeId;
+                entity.ManagementCompanyId = contact.ManagementCompanyId;
+
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    entity.Notes = null;
+                }
+                else if (entity.Notes == null)
+                {
+                    entity.Notes = notes!;
+                }
+                else
+                {
+                    entity.Notes.SetTranslation(notes);
+                }
+
                 try
                 {
-                    _context.Update(contact);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ContactExists(contact.Id))
+                    if (!ContactExists(id))
                     {
                         return NotFound();
                     }

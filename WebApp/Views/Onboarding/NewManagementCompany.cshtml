@@ -1,14 +1,14 @@
 @model WebApp.ViewModels.Onboarding.CreateManagementCompanyViewModel
 @{
-    ViewData["Title"] = "Create management company";
+    ViewData["Title"] = App.Resources.Views.UiText.CreateManagementCompany;
 }
 
 <div class="row justify-content-center">
     <div class="col-12 col-lg-8 col-xl-7">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4 p-md-5">
-                <h1 class="h3 mb-3">Create your management company</h1>
-                <p class="text-muted mb-4">This creates a company profile and links your user as the initial management member.</p>
+                <h1 class="h3 mb-3">@App.Resources.Views.UiText.CreateYourManagementCompany</h1>
+                <p class="text-muted mb-4">@App.Resources.Views.UiText.CreateCompanyDescription</p>
 
                 <form asp-controller="Onboarding" asp-action="NewManagementCompany" method="post" novalidate>
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
@@ -50,8 +50,8 @@
                     </div>
 
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">Create and continue</button>
-                        <a asp-controller="Onboarding" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">@App.Resources.Views.UiText.CreateAndContinue</button>
+                        <a asp-controller="Onboarding" asp-action="Index" class="btn btn-outline-secondary">@App.Resources.Views.UiText.Cancel</a>
                     </div>
                 </form>
             </div>

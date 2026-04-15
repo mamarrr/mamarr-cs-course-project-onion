@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Base.Domain;
 using App.Domain.Identity;
 
@@ -18,8 +19,9 @@ public class WorkLog : BaseEntity
     [Range(typeof(decimal), "0", "99999999.99")]
     public decimal? LaborCost { get; set; }
 
-    [MinLength(1)]
-    public string? Description { get; set; }
+    [Display(ResourceType = typeof(App.Resources.Domain.WorkLog), Name = nameof(App.Resources.Domain.WorkLog.Description))]
+    [Column(TypeName = "jsonb")]
+    public LangStr? Description { get; set; }
 
     public Guid AppUserId { get; set; }
     public AppUser? AppUser { get; set; }

@@ -60,11 +60,21 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,RegistryCode,BillingEmail,BillingAddress,Phone,Notes,IsActive,CreatedAt,ManagementCompanyId,Id")] Customer customer)
+        public async Task<IActionResult> Create([Bind("Name,RegistryCode,BillingEmail,BillingAddress,Phone,IsActive,CreatedAt,ManagementCompanyId,Id")] Customer customer)
         {
             if (ModelState.IsValid)
             {
+                var notes = Request.Form[nameof(Customer.Notes)].ToString();
+
                 customer.Id = Guid.NewGuid();
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    customer.Notes = null;
+                }
+                else
+                {
+                    customer.Notes = notes;
+                }
                 _context.Add(customer);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -95,7 +105,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Name,RegistryCode,BillingEmail,BillingAddress,Phone,Notes,IsActive,CreatedAt,ManagementCompanyId,Id")] Customer customer)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Name,RegistryCode,BillingEmail,BillingAddress,Phone,IsActive,CreatedAt,ManagementCompanyId,Id")] Customer customer)
         {
             if (id != customer.Id)
             {
@@ -104,14 +114,41 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.Customers.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var notes = Request.Form[nameof(Customer.Notes)].ToString();
+
+                entity.Name = customer.Name;
+                entity.RegistryCode = customer.RegistryCode;
+                entity.BillingEmail = customer.BillingEmail;
+                entity.BillingAddress = customer.BillingAddress;
+                entity.Phone = customer.Phone;
+                entity.IsActive = customer.IsActive;
+                entity.CreatedAt = customer.CreatedAt;
+                entity.ManagementCompanyId = customer.ManagementCompanyId;
+
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    entity.Notes = null;
+                }
+                else if (entity.Notes == null)
+                {
+                    entity.Notes = notes;
+                }
+                else
+                {
+                    entity.Notes.SetTranslation(notes);
+                }
+
                 try
                 {
-                    _context.Update(customer);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CustomerExists(customer.Id))
+                    if (!CustomerExists(id))
                     {
                         return NotFound();
                     }

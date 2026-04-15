@@ -64,11 +64,14 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ValidFrom,ValidTo,JobTitle,IsActive,CreatedAt,ManagementCompanyId,AppUserId,ManagementCompanyRoleId,Id")] ManagementCompanyUser managementCompanyUser)
+        public async Task<IActionResult> Create([Bind("ValidFrom,ValidTo,IsActive,CreatedAt,ManagementCompanyId,AppUserId,ManagementCompanyRoleId,Id")] ManagementCompanyUser managementCompanyUser)
         {
             if (ModelState.IsValid)
             {
+                var jobTitle = Request.Form[nameof(ManagementCompanyUser.JobTitle)].ToString();
+
                 managementCompanyUser.Id = Guid.NewGuid();
+                managementCompanyUser.JobTitle = jobTitle;
                 _context.Add(managementCompanyUser);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -103,7 +106,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("ValidFrom,ValidTo,JobTitle,IsActive,CreatedAt,ManagementCompanyId,AppUserId,ManagementCompanyRoleId,Id")] ManagementCompanyUser managementCompanyUser)
+        public async Task<IActionResult> Edit(Guid id, [Bind("ValidFrom,ValidTo,IsActive,CreatedAt,ManagementCompanyId,AppUserId,ManagementCompanyRoleId,Id")] ManagementCompanyUser managementCompanyUser)
         {
             if (id != managementCompanyUser.Id)
             {
@@ -112,14 +115,28 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.ManagementCompanyUsers.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var jobTitle = Request.Form[nameof(ManagementCompanyUser.JobTitle)].ToString();
+
+                entity.ValidFrom = managementCompanyUser.ValidFrom;
+                entity.ValidTo = managementCompanyUser.ValidTo;
+                entity.IsActive = managementCompanyUser.IsActive;
+                entity.CreatedAt = managementCompanyUser.CreatedAt;
+                entity.ManagementCompanyId = managementCompanyUser.ManagementCompanyId;
+                entity.AppUserId = managementCompanyUser.AppUserId;
+                entity.ManagementCompanyRoleId = managementCompanyUser.ManagementCompanyRoleId;
+                entity.JobTitle.SetTranslation(jobTitle);
+
                 try
                 {
-                    _context.Update(managementCompanyUser);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ManagementCompanyUserExists(managementCompanyUser.Id))
+                    if (!ManagementCompanyUserExists(id))
                     {
                         return NotFound();
                     }

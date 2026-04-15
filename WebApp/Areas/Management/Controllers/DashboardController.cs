@@ -45,7 +45,7 @@ public class DashboardController : Controller
             CompanyName = auth.Context.CompanyName
         };
 
-        ViewData["Title"] = "Dashboard";
+        ViewData["Title"] = App.Resources.Views.UiText.Dashboard;
         return View(vm);
     }
 

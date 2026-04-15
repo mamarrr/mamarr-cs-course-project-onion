@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>1.3</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Privacy" xml:space="preserve"><value>Privaatsus</value></data>
+  <data name="Language" xml:space="preserve"><value>Keel</value></data>
+  <data name="Logout" xml:space="preserve"><value>Logi välja</value></data>
+  <data name="Register" xml:space="preserve"><value>Registreeru</value></data>
+  <data name="Login" xml:space="preserve"><value>Logi sisse</value></data>
+  <data name="Home" xml:space="preserve"><value>Avaleht</value></data>
+  <data name="Error" xml:space="preserve"><value>Viga</value></data>
+  <data name="ErrorOccurred" xml:space="preserve"><value>Teie päringu töötlemisel tekkis viga.</value></data>
+  <data name="RequestId" xml:space="preserve"><value>Päringu ID</value></data>
+  <data name="DevelopmentMode" xml:space="preserve"><value>Arendusrežiim</value></data>
+  <data name="AccessDenied" xml:space="preserve"><value>Ligipääs keelatud</value></data>
+  <data name="Authorization" xml:space="preserve"><value>Autoriseerimine</value></data>
+  <data name="GoToContextChooser" xml:space="preserve"><value>Vali kontekst</value></data>
+  <data name="GoToHome" xml:space="preserve"><value>Mine avalehele</value></data>
+  <data name="AccessDeniedDescription" xml:space="preserve"><value>Teil puudub õigus sellele lehele ligi pääseda praeguses ettevõtte kontekstis.</value></data>
+  <data name="HomePlaceholder" xml:space="preserve"><value>Avalehe kohatäitja</value></data>
+  <data name="PrivacyPolicy" xml:space="preserve"><value>Privaatsuspoliitika</value></data>
+  <data name="Onboarding" xml:space="preserve"><value>Sissejuhatus</value></data>
+  <data name="ChooseHowToContinue" xml:space="preserve"><value>Vali, kuidas soovid jätkata</value></data>
+  <data name="SetupAccessPrompt" xml:space="preserve"><value>Sea platvormile sisenemiseks oma ligipääs.</value></data>
+  <data name="NeedAccountRegister" xml:space="preserve"><value>Kas vajad kontot? Registreeru</value></data>
+  <data name="AlreadyHaveAccountLogin" xml:space="preserve"><value>Kas sul on juba konto? Logi sisse</value></data>
+  <data name="PleaseWait" xml:space="preserve"><value>Palun oota...</value></data>
+  <data name="SignIn" xml:space="preserve"><value>Logi sisse</value></data>
+  <data name="CreateAccount" xml:space="preserve"><value>Loo konto</value></data>
+  <data name="NewManagementCompany" xml:space="preserve"><value>Uus haldusettevõte</value></data>
+  <data name="RegisterYourCompany" xml:space="preserve"><value>Registreeri oma ettevõte.</value></data>
+  <data name="StartSetup" xml:space="preserve"><value>Alusta seadistamist</value></data>
+  <data name="ManagementEmployeeOnboarding" xml:space="preserve"><value>Haldusettevõtte töötaja</value></data>
+  <data name="JoinExistingManagement" xml:space="preserve"><value>Liitu olemasoleva haldusettevõtte kontoga.</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Tühista</value></data>
+  <data name="Open" xml:space="preserve"><value>Ava</value></data>
+  <data name="ResidentRequestAccess" xml:space="preserve"><value>Taotle ligipääsu oma elaniku töölauale.</value></data>
+  <data name="CreateManagementCompany" xml:space="preserve"><value>Loo haldusettevõte</value></data>
+  <data name="CreateYourManagementCompany" xml:space="preserve"><value>Loo oma haldusettevõte</value></data>
+  <data name="CreateCompanyDescription" xml:space="preserve"><value>See loob ettevõtte profiili ja seob sinu kasutaja esialgse haldusliikmena.</value></data>
+  <data name="CreateAndContinue" xml:space="preserve"><value>Loo ja jätka</value></data>
+  <data name="SelectRole" xml:space="preserve"><value>Vali roll</value></data>
+  <data name="SubmitJoinRequest" xml:space="preserve"><value>Esita liitumistaotlus</value></data>
+  <data name="Management" xml:space="preserve"><value>Haldus</value></data>
+  <data name="ManagementArea" xml:space="preserve"><value>Haldusala</value></data>
+  <data name="Context" xml:space="preserve"><value>Kontekst</value></data>
+  <data name="Companies" xml:space="preserve"><value>Ettevõtted</value></data>
+  <data name="NoCompanyContexts" xml:space="preserve"><value>Ettevõtte kontekste pole</value></data>
+  <data name="Customers" xml:space="preserve"><value>Kliendid</value></data>
+  <data name="NoCustomerContexts" xml:space="preserve"><value>Kliendi kontekste pole</value></data>
+  <data name="ResidentDashboard" xml:space="preserve"><value>Elaniku töölaud</value></data>
+  <data name="NoResidentContext" xml:space="preserve"><value>Elaniku kontekst puudub</value></data>
+  <data name="Resident" xml:space="preserve"><value>Elanik</value></data>
+  <data name="Dashboard" xml:space="preserve"><value>Töölaud</value></data>
+  <data name="Tickets" xml:space="preserve"><value>Piletid</value></data>
+  <data name="Properties" xml:space="preserve"><value>Kinnistud</value></data>
+  <data name="Users" xml:space="preserve"><value>Kasutajad</value></data>
+  <data name="Vendors" xml:space="preserve"><value>Teenusepakkujad</value></data>
+  <data name="NewContext" xml:space="preserve"><value>Uus kontekst</value></data>
+  <data name="ManagementDashboard" xml:space="preserve"><value>Haldustöölaud</value></data>
+  <data name="DashboardInProgress" xml:space="preserve"><value>Selle ala paigutus on valmis. Töölaua sisu on praegu arendamisel.</value></data>
+  <data name="Status" xml:space="preserve"><value>Staatus</value></data>
+  <data name="InProgress" xml:space="preserve"><value>Töös</value></data>
+  <data name="CompanyAccessManagement" xml:space="preserve"><value>Ettevõtte ligipääsu haldus</value></data>
+  <data name="UsersPageIntro" xml:space="preserve"><value>Halda liikmeid, kes kuuluvad ettevõttesse {0}, uuenda ettevõtte taseme ligipääsu ja valmista ette tulevasi ootel ligipääsutaotlusi.</value></data>
+  <data name="ActiveRecords" xml:space="preserve"><value>{0} aktiivset kirjet</value></data>
+  <data name="AddCompanyUser" xml:space="preserve"><value>Lisa ettevõtte kasutaja</value></data>
+  <data name="AddCompanyUserDescription" xml:space="preserve"><value>Lisa olemasolev rakenduse kasutaja e-posti aadressi järgi. See loob ainult ettevõtte liikmesuse ligipääsu ega loo globaalset kontot.</value></data>
+  <data name="PendingAccessRequests" xml:space="preserve"><value>Ootel ligipääsutaotlused</value></data>
+  <data name="PendingAccessRequestsDescription" xml:space="preserve"><value>Vaata läbi ja otsusta selle ettevõtte töötajate ootel liitumise ligipääsutaotlused.</value></data>
+  <data name="NoPendingRequests" xml:space="preserve"><value>Ootel taotlusi pole</value></data>
+  <data name="NoPendingRequestsDescription" xml:space="preserve"><value>Selle ettevõtte jaoks pole hetkel ootel ligipääsutaotlusi.</value></data>
+  <data name="Name" xml:space="preserve"><value>Nimi</value></data>
+  <data name="Email" xml:space="preserve"><value>E-post</value></data>
+  <data name="Password" xml:space="preserve"><value>Parool</value></data>
+  <data name="RememberMe" xml:space="preserve"><value>Jäta mind meelde</value></data>
+  <data name="FirstName" xml:space="preserve"><value>Eesnimi</value></data>
+  <data name="LastName" xml:space="preserve"><value>Perekonnanimi</value></data>
+  <data name="RequestedRole" xml:space="preserve"><value>Soovitud roll</value></data>
+  <data name="Message" xml:space="preserve"><value>Sõnum</value></data>
+  <data name="RequestedAt" xml:space="preserve"><value>Taotletud</value></data>
+  <data name="Actions" xml:space="preserve"><value>Tegevused</value></data>
+  <data name="Approve" xml:space="preserve"><value>Kinnita</value></data>
+  <data name="Reject" xml:space="preserve"><value>Lükka tagasi</value></data>
+  <data name="CurrentUsers" xml:space="preserve"><value>Praegused kasutajad</value></data>
+  <data name="CurrentUsersDescription" xml:space="preserve"><value>Siin kuvatakse ainult praeguse ettevõtte ulatuse kasutajad.</value></data>
+  <data name="NoCompanyUsersFound" xml:space="preserve"><value>Ettevõtte kasutajaid ei leitud</value></data>
+  <data name="NoCompanyUsersFoundDescription" xml:space="preserve"><value>Ligipääsu andmiseks lisa e-posti teel esimene ettevõtte liige.</value></data>
+  <data name="FullName" xml:space="preserve"><value>Täisnimi</value></data>
+  <data name="EditUser" xml:space="preserve"><value>Muuda kasutajat</value></data>
+  <data name="CompanyMembership" xml:space="preserve"><value>Ettevõtte liikmesus</value></data>
+  <data name="EditUserDescription" xml:space="preserve"><value>Uuenda kasutaja {0} ettevõtte liikmesuse andmeid.</value></data>
+  <data name="BackToUsers" xml:space="preserve"><value>Tagasi kasutajate juurde</value></data>
+  <data name="Edit" xml:space="preserve"><value>Muuda</value></data>
+  <data name="Delete" xml:space="preserve"><value>Kustuta</value></data>
+  <data name="Active" xml:space="preserve"><value>Aktiivne</value></data>
+  <data name="Inactive" xml:space="preserve"><value>Mitteaktiivne</value></data>
+  <data name="You" xml:space="preserve"><value>Sina</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Salvesta muudatused</value></data>
+  <data name="FlowInfoCreateAccountOrLogin" xml:space="preserve"><value>Konto loomiseks või jätkamiseks logi sisse.</value></data>
+  <data name="RegistrationSuccessfulPleaseLogin" xml:space="preserve"><value>Registreerimine õnnestus. Palun logi sisse.</value></data>
+  <data name="InvalidEmailOrPassword" xml:space="preserve"><value>Vale e-post või parool.</value></data>
+  <data name="RequestedRoleRequired" xml:space="preserve"><value>Soovitud roll on kohustuslik.</value></data>
+  <data name="UnableToSubmitJoinRequest" xml:space="preserve"><value>Liitumistaotluse esitamine ebaõnnestus.</value></data>
+  <data name="JoinRequestSubmitted" xml:space="preserve"><value>Liitumistaotlus on esitatud. Oodake ettevõtte kinnitust.</value></data>
+  <data name="RoleRequired" xml:space="preserve"><value>Roll on kohustuslik.</value></data>
+  <data name="UnableToAddUser" xml:space="preserve"><value>Kasutaja lisamine ebaõnnestus.</value></data>
+  <data name="CompanyUserAddedSuccessfully" xml:space="preserve"><value>Ettevõtte kasutaja lisati edukalt.</value></data>
+  <data name="UnableToUpdateUser" xml:space="preserve"><value>Kasutaja uuendamine ebaõnnestus.</value></data>
+  <data name="CompanyUserUpdatedSuccessfully" xml:space="preserve"><value>Ettevõtte kasutaja uuendati edukalt.</value></data>
+  <data name="UnableToRemoveCompanyUser" xml:space="preserve"><value>Ettevõtte kasutaja eemaldamine ebaõnnestus.</value></data>
+  <data name="CompanyUserRemovedSuccessfully" xml:space="preserve"><value>Ettevõtte kasutaja eemaldati edukalt.</value></data>
+  <data name="UnableToApproveAccessRequest" xml:space="preserve"><value>Ligipääsutaotluse kinnitamine ebaõnnestus.</value></data>
+  <data name="AccessRequestApproved" xml:space="preserve"><value>Ligipääsutaotlus kinnitati ja liikmesus loodi.</value></data>
+  <data name="UnableToRejectAccessRequest" xml:space="preserve"><value>Ligipääsutaotluse tagasilükkamine ebaõnnestus.</value></data>
+  <data name="AccessRequestRejected" xml:space="preserve"><value>Ligipääsutaotlus lükati tagasi.</value></data>
+  <data name="ApproveAccessRequestConfirm" xml:space="preserve"><value>Kinnitada ligipääsutaotlus?</value></data>
+  <data name="RejectAccessRequestConfirm" xml:space="preserve"><value>Lükata ligipääsutaotlus tagasi?</value></data>
+  <data name="RemoveUserFromCompanyConfirm" xml:space="preserve"><value>Eemaldada kasutaja ettevõttest?</value></data>
+  <data name="TitleJoinManagementCompany" xml:space="preserve"><value>Liitu haldusettevõttega</value></data>
+  <data name="HeadingJoinManagementCompany" xml:space="preserve"><value>Haldusettevõtte töötaja liitumine</value></data>
+  <data name="TitleResidentAccess" xml:space="preserve"><value>Elaniku ligipääs</value></data>
+  <data name="HeadingResidentOnboarding" xml:space="preserve"><value>Elaniku liitumine</value></data>
+  <data name="ResidentOnboardingDescription" xml:space="preserve"><value>See voog ei kuulu praegusesse töölõiku ja on teadlikult ajutine.</value></data>
+  <data name="ManagementWorkspace" xml:space="preserve"><value>Haldustöölaud</value></data>
+  <data name="CompanyRegistryCode" xml:space="preserve"><value>Ettevõtte registrikood</value></data>
+  <data name="MessageOptional" xml:space="preserve"><value>Sõnum (valikuline)</value></data>
+  <data name="Role" xml:space="preserve"><value>Roll</value></data>
+  <data name="JobTitle" xml:space="preserve"><value>Ametinimetus</value></data>
+  <data name="ValidFrom" xml:space="preserve"><value>Kehtib alates</value></data>
+  <data name="ValidTo" xml:space="preserve"><value>Kehtib kuni</value></data>
+  <data name="RegistryCode" xml:space="preserve"><value>Registrikood</value></data>
+  <data name="VatNumber" xml:space="preserve"><value>Käibemaksunumber</value></data>
+  <data name="Phone" xml:space="preserve"><value>Telefon</value></data>
+  <data name="Address" xml:space="preserve"><value>Aadress</value></data>
+  <data name="RequiredField" xml:space="preserve"><value>Väli {0} on kohustuslik.</value></data>
+  <data name="StringLengthBetween" xml:space="preserve"><value>Välja {0} pikkus peab olema vahemikus {2} kuni {1} märki.</value></data>
+  <data name="InvalidEmailAddress" xml:space="preserve"><value>Väli {0} ei ole korrektne e-posti aadress.</value></data>
+  <data name="ManagementCompanyWasNotFound" xml:space="preserve"><value>Haldusettevõtet ei leitud.</value></data>
+  <data name="PendingRequestForThisCompanyAlreadyExists" xml:space="preserve"><value>Selle ettevõtte jaoks on ootel taotlus juba olemas.</value></data>
+  <data name="SelectedRoleIsInvalid" xml:space="preserve"><value>Valitud roll on vigane.</value></data>
+  <data name="AlreadyMemberOfThisManagementCompany" xml:space="preserve"><value>Olete juba selle haldusettevõtte liige.</value></data>
+  <data name="NoPermissionToResolveAccessRequests" xml:space="preserve"><value>Teil puudub õigus ligipääsutaotlusi lahendada.</value></data>
+  <data name="JoinRequestNotFound" xml:space="preserve"><value>Liitumistaotlust ei leitud.</value></data>
+  <data name="JoinRequestAlreadyResolved" xml:space="preserve"><value>Liitumistaotlus on juba lahendatud.</value></data>
+  <data name="RequesterAlreadyMemberOfThisCompany" xml:space="preserve"><value>Taotleja on juba selle ettevõtte liige.</value></data>
+</root>

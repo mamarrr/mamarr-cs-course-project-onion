@@ -4,10 +4,10 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>@App.Resources.Views.AdminScaffoldText.Index</h1>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">@App.Resources.Views.AdminScaffoldText.CreateNew</a>
 </p>
 <table class="table">
     <thead>
@@ -61,7 +61,7 @@
                 @Html.DisplayFor(modelItem => item.Phone)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Notes)
+                @(item.Notes?.ToString())
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.IsActive)
@@ -73,9 +73,9 @@
                 @Html.DisplayFor(modelItem => item.ManagementCompany!.Address)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.Id">@App.Resources.Views.AdminScaffoldText.Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">@App.Resources.Views.AdminScaffoldText.Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">@App.Resources.Views.AdminScaffoldText.Delete</a>
             </td>
         </tr>
 }

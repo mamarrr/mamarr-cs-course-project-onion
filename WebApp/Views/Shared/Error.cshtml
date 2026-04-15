@@ -1,19 +1,19 @@
 ﻿@model WebApp.ViewModels.ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = App.Resources.Views.UiText.Error;
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<h1 class="text-danger">@App.Resources.Views.UiText.Error.</h1>
+<h2 class="text-danger">@App.Resources.Views.UiText.ErrorOccurred</h2>
 
 @if (Model.ShowRequestId)
 {
     <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
+        <strong>@App.Resources.Views.UiText.RequestId:</strong> <code>@Model.RequestId</code>
     </p>
 }
 
-<h3>Development Mode</h3>
+<h3>@App.Resources.Views.UiText.DevelopmentMode</h3>
 <p>
     Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
 </p>

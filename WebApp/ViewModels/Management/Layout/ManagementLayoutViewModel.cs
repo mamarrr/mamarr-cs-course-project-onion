@@ -1,10 +1,12 @@
+using App.Resources.Views;
+
 namespace WebApp.ViewModels.Management.Layout;
 
 public class ManagementLayoutViewModel
 {
     public string CurrentController { get; init; } = string.Empty;
     public string CompanySlug { get; init; } = string.Empty;
-    public string ManagementCompanyName { get; init; } = "Management Workspace";
+    public string ManagementCompanyName { get; init; } = UiText.ManagementWorkspace;
     public bool CanManageCompanyUsers { get; init; }
     public bool HasResidentContext { get; init; }
     public string CurrentPathAndQuery { get; init; } = string.Empty;

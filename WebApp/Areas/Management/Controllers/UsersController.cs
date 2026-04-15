@@ -49,7 +49,7 @@ public class UsersController : Controller
         {
             if (vm.RoleId == null)
             {
-                ModelState.AddModelError(nameof(vm.RoleId), "Role is required.");
+                ModelState.AddModelError(nameof(vm.RoleId), App.Resources.Views.UiText.RoleRequired);
             }
 
             var invalidVm = await BuildPageViewModelAsync(companySlug, cancellationToken, vm);
@@ -68,12 +68,12 @@ public class UsersController : Controller
 
         if (!result.Success)
         {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Unable to add user.");
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? App.Resources.Views.UiText.UnableToAddUser);
             var invalidVm = await BuildPageViewModelAsync(companySlug, cancellationToken, vm);
             return View(nameof(Index), invalidVm);
         }
 
-        TempData["ManagementUsersSuccess"] = "Company user added successfully.";
+        TempData["ManagementUsersSuccess"] = App.Resources.Views.UiText.CompanyUserAddedSuccessfully;
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 
@@ -109,7 +109,7 @@ public class UsersController : Controller
             AvailableRoles = availableRoles
         };
 
-        ViewData["Title"] = "Edit user";
+        ViewData["Title"] = App.Resources.Views.UiText.EditUser;
         return View(vm);
     }
 
@@ -133,13 +133,13 @@ public class UsersController : Controller
         {
             if (vm.RoleId == null)
             {
-                ModelState.AddModelError(nameof(vm.RoleId), "Role is required.");
+                ModelState.AddModelError(nameof(vm.RoleId), App.Resources.Views.UiText.RoleRequired);
             }
 
             vm.CompanySlug = auth.Context!.CompanySlug;
             vm.CompanyName = auth.Context.CompanyName;
             vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RoleId);
-            ViewData["Title"] = "Edit user";
+            ViewData["Title"] = App.Resources.Views.UiText.EditUser;
             return View(vm);
         }
 
@@ -154,15 +154,15 @@ public class UsersController : Controller
 
         if (!updateResult.Success)
         {
-            ModelState.AddModelError(string.Empty, updateResult.ErrorMessage ?? "Unable to update user.");
+            ModelState.AddModelError(string.Empty, updateResult.ErrorMessage ?? App.Resources.Views.UiText.UnableToUpdateUser);
             vm.CompanySlug = auth.Context!.CompanySlug;
             vm.CompanyName = auth.Context.CompanyName;
             vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RoleId);
-            ViewData["Title"] = "Edit user";
+            ViewData["Title"] = App.Resources.Views.UiText.EditUser;
             return View(vm);
         }
 
-        TempData["ManagementUsersSuccess"] = "Company user updated successfully.";
+        TempData["ManagementUsersSuccess"] = App.Resources.Views.UiText.CompanyUserUpdatedSuccessfully;
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 
@@ -180,11 +180,11 @@ public class UsersController : Controller
         var result = await _managementUserAdminService.DeleteMembershipAsync(auth.Context!, id, cancellationToken);
         if (!result.Success)
         {
-            TempData["ManagementUsersError"] = result.ErrorMessage ?? "Unable to remove company user.";
+            TempData["ManagementUsersError"] = result.ErrorMessage ?? App.Resources.Views.UiText.UnableToRemoveCompanyUser;
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
-        TempData["ManagementUsersSuccess"] = "Company user removed successfully.";
+        TempData["ManagementUsersSuccess"] = App.Resources.Views.UiText.CompanyUserRemovedSuccessfully;
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 
@@ -228,7 +228,7 @@ public class UsersController : Controller
         var pendingRequests = await _managementUserAdminService.GetPendingAccessRequestsAsync(context, cancellationToken);
         var availableRoles = await BuildRoleSelectListAsync(cancellationToken, addUserOverride?.RoleId);
 
-        ViewData["Title"] = "Users";
+        ViewData["Title"] = App.Resources.Views.UiText.Users;
 
         return new ManagementUsersPageViewModel
         {
@@ -277,11 +277,11 @@ public class UsersController : Controller
         var result = await _managementUserAdminService.ApprovePendingAccessRequestAsync(auth.Context!, requestId, cancellationToken);
         if (!result.Success)
         {
-            TempData["ManagementUsersError"] = result.ErrorMessage ?? "Unable to approve access request.";
+            TempData["ManagementUsersError"] = result.ErrorMessage ?? App.Resources.Views.UiText.UnableToApproveAccessRequest;
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
-        TempData["ManagementUsersSuccess"] = "Access request approved and membership created.";
+        TempData["ManagementUsersSuccess"] = App.Resources.Views.UiText.AccessRequestApproved;
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 
@@ -299,11 +299,11 @@ public class UsersController : Controller
         var result = await _managementUserAdminService.RejectPendingAccessRequestAsync(auth.Context!, requestId, cancellationToken);
         if (!result.Success)
         {
-            TempData["ManagementUsersError"] = result.ErrorMessage ?? "Unable to reject access request.";
+            TempData["ManagementUsersError"] = result.ErrorMessage ?? App.Resources.Views.UiText.UnableToRejectAccessRequest;
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
-        TempData["ManagementUsersSuccess"] = "Access request rejected.";
+        TempData["ManagementUsersSuccess"] = App.Resources.Views.UiText.AccessRequestRejected;
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 

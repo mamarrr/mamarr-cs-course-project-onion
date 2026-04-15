@@ -76,11 +76,16 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TicketNr,Title,Description,CreatedAt,DueAt,ClosedAt,ManagementCompanyId,CustomerId,ResidentId,PropertyId,UnitId,TicketCategoryId,VendorId,TicketStatusId,TicketPriorityId,Id")] Ticket ticket)
+        public async Task<IActionResult> Create([Bind("TicketNr,CreatedAt,DueAt,ClosedAt,ManagementCompanyId,CustomerId,ResidentId,PropertyId,UnitId,TicketCategoryId,VendorId,TicketStatusId,TicketPriorityId,Id")] Ticket ticket)
         {
             if (ModelState.IsValid)
             {
+                var title = Request.Form[nameof(Ticket.Title)].ToString();
+                var description = Request.Form[nameof(Ticket.Description)].ToString();
+
                 ticket.Id = Guid.NewGuid();
+                ticket.Title = title;
+                ticket.Description = description;
                 _context.Add(ticket);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -127,7 +132,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("TicketNr,Title,Description,CreatedAt,DueAt,ClosedAt,ManagementCompanyId,CustomerId,ResidentId,PropertyId,UnitId,TicketCategoryId,VendorId,TicketStatusId,TicketPriorityId,Id")] Ticket ticket)
+        public async Task<IActionResult> Edit(Guid id, [Bind("TicketNr,CreatedAt,DueAt,ClosedAt,ManagementCompanyId,CustomerId,ResidentId,PropertyId,UnitId,TicketCategoryId,VendorId,TicketStatusId,TicketPriorityId,Id")] Ticket ticket)
         {
             if (id != ticket.Id)
             {
@@ -136,14 +141,37 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.Tickets.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var title = Request.Form[nameof(Ticket.Title)].ToString();
+                var description = Request.Form[nameof(Ticket.Description)].ToString();
+
+                entity.TicketNr = ticket.TicketNr;
+                entity.CreatedAt = ticket.CreatedAt;
+                entity.DueAt = ticket.DueAt;
+                entity.ClosedAt = ticket.ClosedAt;
+                entity.ManagementCompanyId = ticket.ManagementCompanyId;
+                entity.CustomerId = ticket.CustomerId;
+                entity.ResidentId = ticket.ResidentId;
+                entity.PropertyId = ticket.PropertyId;
+                entity.UnitId = ticket.UnitId;
+                entity.TicketCategoryId = ticket.TicketCategoryId;
+                entity.VendorId = ticket.VendorId;
+                entity.TicketStatusId = ticket.TicketStatusId;
+                entity.TicketPriorityId = ticket.TicketPriorityId;
+
+                entity.Title.SetTranslation(title);
+                entity.Description.SetTranslation(description);
+
                 try
                 {
-                    _context.Update(ticket);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TicketExists(ticket.Id))
+                    if (!TicketExists(id))
                     {
                         return NotFound();
                     }

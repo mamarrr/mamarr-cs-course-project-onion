@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Base.Domain;
 
 namespace App.Domain;
@@ -27,8 +28,9 @@ public class Customer : BaseEntity
     [StringLength(50, MinimumLength = 1)]
     public string? Phone { get; set; }
 
-    [MinLength(1)]
-    public string? Notes { get; set; }
+    [Display(ResourceType = typeof(App.Resources.Domain.Customer), Name = nameof(App.Resources.Domain.Customer.Notes))]
+    [Column(TypeName = "jsonb")]
+    public LangStr? Notes { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 

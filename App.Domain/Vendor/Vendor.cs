@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Base.Domain;
 
 namespace App.Domain;
@@ -14,8 +15,9 @@ public class Vendor : BaseEntity
     public string RegistryCode { get; set; } = default!;
 
     [Required]
-    [MinLength(1)]
-    public string Notes { get; set; } = default!;
+    [Display(ResourceType = typeof(App.Resources.Domain.Vendor), Name = nameof(App.Resources.Domain.Vendor.Notes))]
+    [Column(TypeName = "jsonb")]
+    public LangStr Notes { get; set; } = default!;
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 

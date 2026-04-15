@@ -53,7 +53,7 @@ namespace WebApp.Areas_Admin_Controllers
         // GET: CustomerRepresentative/Create
         public IActionResult Create()
         {
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name");
+            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "RegistryCode");
             ViewData["CustomerRepresentativeRoleId"] = new SelectList(_context.CustomerRepresentativeRoles, "Id", "Code");
             ViewData["ResidentId"] = new SelectList(_context.Residents, "Id", "FirstName");
             return View();
@@ -64,16 +64,26 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ValidFrom,ValidTo,IsActive,CreatedAt,Notes,CustomerRepresentativeRoleId,CustomerId,ResidentId,Id")] CustomerRepresentative customerRepresentative)
+        public async Task<IActionResult> Create([Bind("ValidFrom,ValidTo,IsActive,CreatedAt,CustomerRepresentativeRoleId,CustomerId,ResidentId,Id")] CustomerRepresentative customerRepresentative)
         {
             if (ModelState.IsValid)
             {
+                var notes = Request.Form[nameof(CustomerRepresentative.Notes)].ToString();
+
                 customerRepresentative.Id = Guid.NewGuid();
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    customerRepresentative.Notes = null;
+                }
+                else
+                {
+                    customerRepresentative.Notes = notes;
+                }
                 _context.Add(customerRepresentative);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", customerRepresentative.CustomerId);
+            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "RegistryCode", customerRepresentative.CustomerId);
             ViewData["CustomerRepresentativeRoleId"] = new SelectList(_context.CustomerRepresentativeRoles, "Id", "Code", customerRepresentative.CustomerRepresentativeRoleId);
             ViewData["ResidentId"] = new SelectList(_context.Residents, "Id", "FirstName", customerRepresentative.ResidentId);
             return View(customerRepresentative);
@@ -92,7 +102,7 @@ namespace WebApp.Areas_Admin_Controllers
             {
                 return NotFound();
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", customerRepresentative.CustomerId);
+            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "RegistryCode", customerRepresentative.CustomerId);
             ViewData["CustomerRepresentativeRoleId"] = new SelectList(_context.CustomerRepresentativeRoles, "Id", "Code", customerRepresentative.CustomerRepresentativeRoleId);
             ViewData["ResidentId"] = new SelectList(_context.Residents, "Id", "FirstName", customerRepresentative.ResidentId);
             return View(customerRepresentative);
@@ -103,7 +113,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("ValidFrom,ValidTo,IsActive,CreatedAt,Notes,CustomerRepresentativeRoleId,CustomerId,ResidentId,Id")] CustomerRepresentative customerRepresentative)
+        public async Task<IActionResult> Edit(Guid id, [Bind("ValidFrom,ValidTo,IsActive,CreatedAt,CustomerRepresentativeRoleId,CustomerId,ResidentId,Id")] CustomerRepresentative customerRepresentative)
         {
             if (id != customerRepresentative.Id)
             {
@@ -112,14 +122,40 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.CustomerRepresentatives.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var notes = Request.Form[nameof(CustomerRepresentative.Notes)].ToString();
+
+                entity.ValidFrom = customerRepresentative.ValidFrom;
+                entity.ValidTo = customerRepresentative.ValidTo;
+                entity.IsActive = customerRepresentative.IsActive;
+                entity.CreatedAt = customerRepresentative.CreatedAt;
+                entity.CustomerRepresentativeRoleId = customerRepresentative.CustomerRepresentativeRoleId;
+                entity.CustomerId = customerRepresentative.CustomerId;
+                entity.ResidentId = customerRepresentative.ResidentId;
+
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    entity.Notes = null;
+                }
+                else if (entity.Notes == null)
+                {
+                    entity.Notes = notes;
+                }
+                else
+                {
+                    entity.Notes.SetTranslation(notes);
+                }
+
                 try
                 {
-                    _context.Update(customerRepresentative);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!CustomerRepresentativeExists(customerRepresentative.Id))
+                    if (!CustomerRepresentativeExists(id))
                     {
                         return NotFound();
                     }
@@ -130,7 +166,7 @@ namespace WebApp.Areas_Admin_Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "Name", customerRepresentative.CustomerId);
+            ViewData["CustomerId"] = new SelectList(_context.Customers, "Id", "RegistryCode", customerRepresentative.CustomerId);
             ViewData["CustomerRepresentativeRoleId"] = new SelectList(_context.CustomerRepresentativeRoles, "Id", "Code", customerRepresentative.CustomerRepresentativeRoleId);
             ViewData["ResidentId"] = new SelectList(_context.Residents, "Id", "FirstName", customerRepresentative.ResidentId);
             return View(customerRepresentative);

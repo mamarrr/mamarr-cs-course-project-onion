@@ -60,11 +60,21 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UnitNr,FloorNr,SizeM2,Notes,IsActive,CreatedAt,PropertyId,Id")] Unit unit)
+        public async Task<IActionResult> Create([Bind("UnitNr,FloorNr,SizeM2,IsActive,CreatedAt,PropertyId,Id")] Unit unit)
         {
             if (ModelState.IsValid)
             {
+                var notes = Request.Form[nameof(Unit.Notes)].ToString();
+
                 unit.Id = Guid.NewGuid();
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    unit.Notes = null;
+                }
+                else
+                {
+                    unit.Notes = notes;
+                }
                 _context.Add(unit);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -95,7 +105,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("UnitNr,FloorNr,SizeM2,Notes,IsActive,CreatedAt,PropertyId,Id")] Unit unit)
+        public async Task<IActionResult> Edit(Guid id, [Bind("UnitNr,FloorNr,SizeM2,IsActive,CreatedAt,PropertyId,Id")] Unit unit)
         {
             if (id != unit.Id)
             {
@@ -104,14 +114,39 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.Units.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var notes = Request.Form[nameof(Unit.Notes)].ToString();
+
+                entity.UnitNr = unit.UnitNr;
+                entity.FloorNr = unit.FloorNr;
+                entity.SizeM2 = unit.SizeM2;
+                entity.IsActive = unit.IsActive;
+                entity.CreatedAt = unit.CreatedAt;
+                entity.PropertyId = unit.PropertyId;
+
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    entity.Notes = null;
+                }
+                else if (entity.Notes == null)
+                {
+                    entity.Notes = notes;
+                }
+                else
+                {
+                    entity.Notes.SetTranslation(notes);
+                }
+
                 try
                 {
-                    _context.Update(unit);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UnitExists(unit.Id))
+                    if (!UnitExists(id))
                     {
                         return NotFound();
                     }

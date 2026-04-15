@@ -1,13 +1,13 @@
 @model WebApp.ViewModels.Onboarding.RegisterViewModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = App.Resources.Views.UiText.Register;
 }
 
 <div class="row justify-content-center">
     <div class="col-12 col-md-8 col-lg-6">
         <div class="card shadow-sm border-0">
             <div class="card-body p-4">
-                <h1 class="h3 mb-3">Create account</h1>
+                <h1 class="h3 mb-3">@App.Resources.Views.UiText.CreateAccount</h1>
 
                 <form asp-action="Register" asp-controller="Onboarding" method="post" data-disable-submit>
                     @Html.AntiForgeryToken()
@@ -38,8 +38,8 @@
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">Register</button>
-                        <a class="btn btn-link" asp-controller="Onboarding" asp-action="Login">Already have an account? Login</a>
+                        <button type="submit" class="btn btn-primary">@App.Resources.Views.UiText.Register</button>
+                        <a class="btn btn-link" asp-controller="Onboarding" asp-action="Login">@App.Resources.Views.UiText.AlreadyHaveAccountLogin</a>
                     </div>
                 </form>
             </div>
@@ -57,7 +57,7 @@
                 const button = form.querySelector('button[type="submit"]');
                 if (!button) return;
                 button.disabled = true;
-                button.textContent = 'Please wait...';
+                button.textContent = '@App.Resources.Views.UiText.PleaseWait';
             });
         })();
     </script>

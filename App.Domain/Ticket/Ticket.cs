@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Base.Domain;
 
 namespace App.Domain;
@@ -10,12 +11,14 @@ public class Ticket : BaseEntity
     public string TicketNr { get; set; } = default!;
 
     [Required]
-    [StringLength(255, MinimumLength = 1)]
-    public string Title { get; set; } = default!;
+    [Display(ResourceType = typeof(App.Resources.Domain.Ticket), Name = nameof(App.Resources.Domain.Ticket.Title))]
+    [Column(TypeName = "jsonb")]
+    public LangStr Title { get; set; } = default!;
 
     [Required]
-    [MinLength(1)]
-    public string Description { get; set; } = default!;
+    [Display(ResourceType = typeof(App.Resources.Domain.Ticket), Name = nameof(App.Resources.Domain.Ticket.Description))]
+    [Column(TypeName = "jsonb")]
+    public LangStr Description { get; set; } = default!;
     public DateTime CreatedAt { get; set; }
     public DateTime? DueAt { get; set; }
     public DateTime? ClosedAt { get; set; }

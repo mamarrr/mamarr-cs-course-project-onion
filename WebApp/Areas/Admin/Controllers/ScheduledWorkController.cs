@@ -64,11 +64,21 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ScheduledStart,ScheduledEnd,RealStart,RealEnd,Notes,CreatedAt,VendorId,TicketId,WorkStatusId,Id")] ScheduledWork scheduledWork)
+        public async Task<IActionResult> Create([Bind("ScheduledStart,ScheduledEnd,RealStart,RealEnd,CreatedAt,VendorId,TicketId,WorkStatusId,Id")] ScheduledWork scheduledWork)
         {
             if (ModelState.IsValid)
             {
+                var notes = Request.Form[nameof(ScheduledWork.Notes)].ToString();
+
                 scheduledWork.Id = Guid.NewGuid();
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    scheduledWork.Notes = null;
+                }
+                else
+                {
+                    scheduledWork.Notes = notes;
+                }
                 _context.Add(scheduledWork);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -103,7 +113,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("ScheduledStart,ScheduledEnd,RealStart,RealEnd,Notes,CreatedAt,VendorId,TicketId,WorkStatusId,Id")] ScheduledWork scheduledWork)
+        public async Task<IActionResult> Edit(Guid id, [Bind("ScheduledStart,ScheduledEnd,RealStart,RealEnd,CreatedAt,VendorId,TicketId,WorkStatusId,Id")] ScheduledWork scheduledWork)
         {
             if (id != scheduledWork.Id)
             {
@@ -112,14 +122,41 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.ScheduledWorks.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var notes = Request.Form[nameof(ScheduledWork.Notes)].ToString();
+
+                entity.ScheduledStart = scheduledWork.ScheduledStart;
+                entity.ScheduledEnd = scheduledWork.ScheduledEnd;
+                entity.RealStart = scheduledWork.RealStart;
+                entity.RealEnd = scheduledWork.RealEnd;
+                entity.CreatedAt = scheduledWork.CreatedAt;
+                entity.VendorId = scheduledWork.VendorId;
+                entity.TicketId = scheduledWork.TicketId;
+                entity.WorkStatusId = scheduledWork.WorkStatusId;
+
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    entity.Notes = null;
+                }
+                else if (entity.Notes == null)
+                {
+                    entity.Notes = notes;
+                }
+                else
+                {
+                    entity.Notes.SetTranslation(notes);
+                }
+
                 try
                 {
-                    _context.Update(scheduledWork);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!ScheduledWorkExists(scheduledWork.Id))
+                    if (!ScheduledWorkExists(id))
                     {
                         return NotFound();
                     }

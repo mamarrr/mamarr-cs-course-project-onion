@@ -64,11 +64,21 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("StartDate,EndDate,IsActive,Notes,LeaseRoleId,UnitId,ResidentId,Id")] Lease lease)
+        public async Task<IActionResult> Create([Bind("StartDate,EndDate,IsActive,LeaseRoleId,UnitId,ResidentId,Id")] Lease lease)
         {
             if (ModelState.IsValid)
             {
+                var notes = Request.Form[nameof(Lease.Notes)].ToString();
+
                 lease.Id = Guid.NewGuid();
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    lease.Notes = null;
+                }
+                else
+                {
+                    lease.Notes = notes;
+                }
                 _context.Add(lease);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -103,7 +113,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("StartDate,EndDate,IsActive,Notes,LeaseRoleId,UnitId,ResidentId,Id")] Lease lease)
+        public async Task<IActionResult> Edit(Guid id, [Bind("StartDate,EndDate,IsActive,LeaseRoleId,UnitId,ResidentId,Id")] Lease lease)
         {
             if (id != lease.Id)
             {
@@ -112,14 +122,39 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.Leases.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var notes = Request.Form[nameof(Lease.Notes)].ToString();
+
+                entity.StartDate = lease.StartDate;
+                entity.EndDate = lease.EndDate;
+                entity.IsActive = lease.IsActive;
+                entity.LeaseRoleId = lease.LeaseRoleId;
+                entity.UnitId = lease.UnitId;
+                entity.ResidentId = lease.ResidentId;
+
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    entity.Notes = null;
+                }
+                else if (entity.Notes == null)
+                {
+                    entity.Notes = notes;
+                }
+                else
+                {
+                    entity.Notes.SetTranslation(notes);
+                }
+
                 try
                 {
-                    _context.Update(lease);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!LeaseExists(lease.Id))
+                    if (!LeaseExists(id))
                     {
                         return NotFound();
                     }

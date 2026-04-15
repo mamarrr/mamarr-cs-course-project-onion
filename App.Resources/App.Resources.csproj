@@ -11,6 +11,14 @@
         <Generator>PublicResXFileCodeGenerator</Generator>
         <LastGenOutput>Home.Designer.cs</LastGenOutput>
       </EmbeddedResource>
+      <EmbeddedResource Update="Views\AdminScaffoldText.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>AdminScaffoldText.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
+      <EmbeddedResource Update="Views\UiText.resx">
+        <Generator>PublicResXFileCodeGenerator</Generator>
+        <LastGenOutput>UiText.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
       <EmbeddedResource Update="Domain\ContactType.resx">
         <Generator>PublicResXFileCodeGenerator</Generator>
         <LastGenOutput>ContactType.Designer.cs</LastGenOutput>
@@ -22,6 +30,16 @@
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
         <DependentUpon>Home.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Views\AdminScaffoldText.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>AdminScaffoldText.resx</DependentUpon>
+      </Compile>
+      <Compile Update="Views\UiText.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>UiText.resx</DependentUpon>
       </Compile>
       <Compile Update="Domain\ContactType.Designer.cs">
         <DesignTime>True</DesignTime>

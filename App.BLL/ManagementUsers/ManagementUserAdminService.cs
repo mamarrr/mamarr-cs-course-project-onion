@@ -2,6 +2,7 @@ using App.DAL.EF;
 using App.Domain;
 using App.BLL.Onboarding;
 using App.Domain.Identity;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -14,6 +15,7 @@ public class ManagementUserAdminService : IManagementUserAdminService
 {
     private readonly AppDbContext _dbContext;
     private readonly IManagementCompanyJoinRequestService _joinRequestService;
+    private readonly ILogger<ManagementUserAdminService> _logger;
 
     // Role codes that are allowed to administer company users
     private static readonly HashSet<string> AdminRoleCodes = new(StringComparer.OrdinalIgnoreCase)
@@ -29,6 +31,7 @@ public class ManagementUserAdminService : IManagementUserAdminService
     {
         _dbContext = dbContext;
         _joinRequestService = joinRequestService;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -135,6 +138,31 @@ public class ManagementUserAdminService : IManagementUserAdminService
             })
             .ToListAsync(cancellationToken);
 
+        foreach (var member in members)
+        {
+            member.JobTitle = NormalizePossiblySerializedLangStr(member.JobTitle);
+        }
+
+        var suspiciousJobTitleCount = members.Count(m => m.JobTitle.TrimStart().StartsWith("{", StringComparison.Ordinal));
+        if (suspiciousJobTitleCount > 0)
+        {
+            _logger.LogWarning(
+                "Management users listing contains possible raw LangStr JSON values for JobTitle. CompanyId={CompanyId}; SuspiciousCount={SuspiciousCount}; Culture={Culture}; UICulture={UICulture}",
+                context.ManagementCompanyId,
+                suspiciousJobTitleCount,
+                System.Globalization.CultureInfo.CurrentCulture.Name,
+                System.Globalization.CultureInfo.CurrentUICulture.Name);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Management users listing JobTitle localization looks normalized. CompanyId={CompanyId}; MemberCount={MemberCount}; Culture={Culture}; UICulture={UICulture}",
+                context.ManagementCompanyId,
+                members.Count,
+                System.Globalization.CultureInfo.CurrentCulture.Name,
+                System.Globalization.CultureInfo.CurrentUICulture.Name);
+        }
+
         return new ManagementUserListResult
         {
             Members = members
@@ -166,6 +194,11 @@ public class ManagementUserAdminService : IManagementUserAdminService
             })
             .FirstOrDefaultAsync(cancellationToken);
 
+        if (membership != null)
+        {
+            membership.JobTitle = NormalizePossiblySerializedLangStr(membership.JobTitle);
+        }
+
         if (membership == null)
         {
             return new ManagementUserEditResult
@@ -180,6 +213,31 @@ public class ManagementUserAdminService : IManagementUserAdminService
             Success = true,
             Data = membership
         };
+    }
+
+    private static string NormalizePossiblySerializedLangStr(string value)
+    {
+        var trimmed = value.Trim();
+        if (!trimmed.StartsWith("{", StringComparison.Ordinal))
+        {
+            return value;
+        }
+
+        try
+        {
+            var nested = JsonSerializer.Deserialize<Base.Domain.LangStr>(trimmed, (JsonSerializerOptions?)null);
+            if (nested == null)
+            {
+                return value;
+            }
+
+            var localized = nested.ToString();
+            return string.IsNullOrWhiteSpace(localized) ? value : localized;
+        }
+        catch
+        {
+            return value;
+        }
     }
 
     /// <inheritdoc />
@@ -296,7 +354,27 @@ public class ManagementUserAdminService : IManagementUserAdminService
         // This is noted as a follow-up item per implementation plan
 
         membership.ManagementCompanyRoleId = request.RoleId;
-        membership.JobTitle = request.JobTitle.Trim();
+
+        var updatedJobTitle = membership.JobTitle == null
+            ? new Base.Domain.LangStr(request.JobTitle.Trim())
+            : new Base.Domain.LangStr();
+
+        if (membership.JobTitle != null)
+        {
+            foreach (var translation in membership.JobTitle)
+            {
+                updatedJobTitle[translation.Key] = translation.Value;
+            }
+
+            if (!updatedJobTitle.ContainsKey(Base.Domain.LangStr.DefaultCulture)
+                && membership.JobTitle.TryGetValue(Base.Domain.LangStr.DefaultCulture, out var defaultTranslation))
+            {
+                updatedJobTitle[Base.Domain.LangStr.DefaultCulture] = defaultTranslation;
+            }
+        }
+
+        updatedJobTitle.SetTranslation(request.JobTitle.Trim());
+        membership.JobTitle = updatedJobTitle;
         membership.IsActive = request.IsActive;
         membership.ValidFrom = request.ValidFrom;
         membership.ValidTo = request.ValidTo;
@@ -308,7 +386,7 @@ public class ManagementUserAdminService : IManagementUserAdminService
             return new ManagementUserUpdateResult
             {
                 Success = false,
-                ErrorMessage = "No changes were saved. Please retry."
+                ErrorMessage = App.Resources.Views.UiText.UnableToUpdateUser
             };
         }
 

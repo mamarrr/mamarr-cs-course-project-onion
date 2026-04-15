@@ -21,7 +21,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Management</title>
+    <title>@ViewData["Title"] - @App.Resources.Views.UiText.Management</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/management-ui.css" asp-append-version="true" />
@@ -30,19 +30,19 @@
 <div class="management-shell">
     <header class="management-header">
         <div>
-            <p class="management-eyebrow">Management Area</p>
+            <p class="management-eyebrow">@App.Resources.Views.UiText.ManagementArea</p>
             <strong>@layoutVm.ManagementCompanyName</strong>
         </div>
         <div class="management-header-actions">
             <div class="dropdown">
                 <button class="management-btn ghost dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Context
+                    @App.Resources.Views.UiText.Context
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><h6 class="dropdown-header">Companies</h6></li>
+                    <li><h6 class="dropdown-header">@App.Resources.Views.UiText.Companies</h6></li>
                     @if (layoutVm.ManagementContexts.Count == 0)
                     {
-                        <li><span class="dropdown-item-text text-muted">No company contexts</span></li>
+                        <li><span class="dropdown-item-text text-muted">@App.Resources.Views.UiText.NoCompanyContexts</span></li>
                     }
                     else
                     {
@@ -55,10 +55,10 @@
                     }
 
                     <li><hr class="dropdown-divider" /></li>
-                    <li><h6 class="dropdown-header">Customers</h6></li>
+                    <li><h6 class="dropdown-header">@App.Resources.Views.UiText.Customers</h6></li>
                     @if (layoutVm.CustomerContexts.Count == 0)
                     {
-                        <li><span class="dropdown-item-text text-muted">No customer contexts</span></li>
+                        <li><span class="dropdown-item-text text-muted">@App.Resources.Views.UiText.NoCustomerContexts</span></li>
                     }
                     else
                     {
@@ -71,23 +71,23 @@
                     }
 
                     <li><hr class="dropdown-divider" /></li>
-                    <li><h6 class="dropdown-header">Resident</h6></li>
+                    <li><h6 class="dropdown-header">@App.Resources.Views.UiText.Resident</h6></li>
                     @if (layoutVm.HasResidentContext)
                     {
                         <li>
-                            <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="resident" asp-route-returnUrl="@layoutVm.CurrentPathAndQuery">Resident Dashboard</a>
+                            <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="resident" asp-route-returnUrl="@layoutVm.CurrentPathAndQuery">@App.Resources.Views.UiText.ResidentDashboard</a>
                         </li>
                     }
                     else
                     {
-                        <li><span class="dropdown-item-text text-muted">No resident context</span></li>
+                        <li><span class="dropdown-item-text text-muted">@App.Resources.Views.UiText.NoResidentContext</span></li>
                     }
                 </ul>
             </div>
 
             <form method="post" asp-area="" asp-controller="Onboarding" asp-action="Logout">
                 @Html.AntiForgeryToken()
-                <button type="submit" class="management-btn ghost">Logout</button>
+                <button type="submit" class="management-btn ghost">@App.Resources.Views.UiText.Logout</button>
             </form>
         </div>
     </header>
@@ -96,20 +96,20 @@
         <aside class="management-sidebar">
             <div class="management-company-name">@layoutVm.ManagementCompanyName</div>
             <nav>
-                <a class="management-sidebar-link @(layoutVm.CurrentController == "Dashboard" ? "active" : "")" asp-route="management_dashboard" asp-route-companySlug="@layoutVm.CompanySlug">Dashboard</a>
-                <span class="management-sidebar-link disabled">Tickets</span>
-                <span class="management-sidebar-link disabled">Properties</span>
-                <span class="management-sidebar-link disabled">Customers</span>
+                <a class="management-sidebar-link @(layoutVm.CurrentController == "Dashboard" ? "active" : "")" asp-route="management_dashboard" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Dashboard</a>
+                <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Tickets</span>
+                <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Properties</span>
+                <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Customers</span>
                 @if (layoutVm.CanManageCompanyUsers)
                 {
-                    <a class="management-sidebar-link @(layoutVm.CurrentController == "Users" ? "active" : "")" asp-area="Management" asp-controller="Users" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">Users</a>
+                    <a class="management-sidebar-link @(layoutVm.CurrentController == "Users" ? "active" : "")" asp-area="Management" asp-controller="Users" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Users</a>
                 }
-                <span class="management-sidebar-link disabled">Vendors</span>
+                <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Vendors</span>
             </nav>
 
             <div class="management-sidebar-footer">
-                <a class="management-btn management-sidebar-cta" asp-area="" asp-controller="Onboarding" asp-action="Index" asp-route-showChooser="true">New context</a>
-                <div class="management-language-title">Language (@layoutVm.CurrentUiCultureName)</div>
+                <a class="management-btn management-sidebar-cta" asp-area="" asp-controller="Onboarding" asp-action="Index" asp-route-showChooser="true">@App.Resources.Views.UiText.NewContext</a>
+                <div class="management-language-title">@App.Resources.Views.UiText.Language (@layoutVm.CurrentUiCultureName)</div>
                 <div class="management-language-list">
                     @foreach (var item in layoutVm.CultureOptions)
                     {
@@ -123,7 +123,7 @@
                         </a>
                     }
                 </div>
-                <a class="management-sidebar-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                <a class="management-sidebar-link" asp-area="" asp-controller="Home" asp-action="Privacy">@App.Resources.Views.UiText.Privacy</a>
             </div>
         </aside>
 

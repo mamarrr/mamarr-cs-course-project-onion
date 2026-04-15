@@ -121,6 +121,118 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             )
             .HasColumnType("jsonb");
 
+        builder.Entity<Property>().Property(e => e.Label)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)!
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<Ticket>().Property(e => e.Title)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)!
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<Ticket>().Property(e => e.Description)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)!
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<ManagementCompanyUser>().Property(e => e.JobTitle)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)!
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<Vendor>().Property(e => e.Notes)
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)!
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<VendorContact>().Property(e => e.RoleTitle)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<Contact>().Property(e => e.Notes)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<Customer>().Property(e => e.Notes)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<CustomerRepresentative>().Property(e => e.Notes)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<Lease>().Property(e => e.Notes)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<Property>().Property(e => e.Notes)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<Unit>().Property(e => e.Notes)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<VendorTicketCategory>().Property(e => e.Notes)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<ScheduledWork>().Property(e => e.Notes)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<WorkLog>().Property(e => e.Description)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
+        builder.Entity<ManagementCompanyJoinRequest>().Property(e => e.Message)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                v => v == null ? null : JsonSerializer.Deserialize<LangStr>(v, (JsonSerializerOptions?)null)
+            )
+            .HasColumnType("jsonb");
+
         // disable cascade delete
         foreach (var relationship in builder.Model
                      .GetEntityTypes().SelectMany(e => e.GetForeignKeys()))

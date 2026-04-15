@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Base.Domain;
 using App.Domain.Identity;
 
@@ -9,8 +10,9 @@ public class ManagementCompanyUser : BaseEntity
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
     [Required]
-    [StringLength(255, MinimumLength = 1)]
-    public string JobTitle { get; set; } = default!;
+    [Display(ResourceType = typeof(App.Resources.Domain.ManagementCompanyUser), Name = nameof(App.Resources.Domain.ManagementCompanyUser.JobTitle))]
+    [Column(TypeName = "jsonb")]
+    public LangStr JobTitle { get; set; } = default!;
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 

@@ -62,11 +62,21 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Notes,IsActive,VendorId,TicketCategoryId,Id")] VendorTicketCategory vendorTicketCategory)
+        public async Task<IActionResult> Create([Bind("IsActive,VendorId,TicketCategoryId,Id")] VendorTicketCategory vendorTicketCategory)
         {
             if (ModelState.IsValid)
             {
+                var notes = Request.Form[nameof(VendorTicketCategory.Notes)].ToString();
+
                 vendorTicketCategory.Id = Guid.NewGuid();
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    vendorTicketCategory.Notes = null;
+                }
+                else
+                {
+                    vendorTicketCategory.Notes = notes;
+                }
                 _context.Add(vendorTicketCategory);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -99,7 +109,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Notes,IsActive,VendorId,TicketCategoryId,Id")] VendorTicketCategory vendorTicketCategory)
+        public async Task<IActionResult> Edit(Guid id, [Bind("IsActive,VendorId,TicketCategoryId,Id")] VendorTicketCategory vendorTicketCategory)
         {
             if (id != vendorTicketCategory.Id)
             {
@@ -108,14 +118,36 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.VendorTicketCategories.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var notes = Request.Form[nameof(VendorTicketCategory.Notes)].ToString();
+
+                entity.IsActive = vendorTicketCategory.IsActive;
+                entity.VendorId = vendorTicketCategory.VendorId;
+                entity.TicketCategoryId = vendorTicketCategory.TicketCategoryId;
+
+                if (string.IsNullOrWhiteSpace(notes))
+                {
+                    entity.Notes = null;
+                }
+                else if (entity.Notes == null)
+                {
+                    entity.Notes = notes;
+                }
+                else
+                {
+                    entity.Notes.SetTranslation(notes);
+                }
+
                 try
                 {
-                    _context.Update(vendorTicketCategory);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!VendorTicketCategoryExists(vendorTicketCategory.Id))
+                    if (!VendorTicketCategoryExists(id))
                     {
                         return NotFound();
                     }

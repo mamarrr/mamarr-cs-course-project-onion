@@ -4,9 +4,9 @@
     ViewData["Title"] = "Delete";
 }
 
-<h1>Delete</h1>
+<h1>@App.Resources.Views.AdminScaffoldText.Delete</h1>
 
-<h3>Are you sure you want to delete this?</h3>
+<h3>@App.Resources.Views.AdminScaffoldText.ConfirmDelete</h3>
 <div>
     <h4>Unit</h4>
     <hr />
@@ -33,7 +33,7 @@
             @Html.DisplayNameFor(model => model.Notes)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Notes)
+            @(Model.Notes?.ToString())
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.IsActive)
@@ -58,6 +58,6 @@
     <form asp-action="Delete">
         <input type="hidden" asp-for="Id" />
         <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
+        <a asp-action="Index">@App.Resources.Views.AdminScaffoldText.BackToList</a>
     </form>
 </div>

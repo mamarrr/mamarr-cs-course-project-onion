@@ -62,11 +62,21 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CreatedAt,WorkStart,WorkEnd,Hours,MaterialCost,LaborCost,Description,AppUserId,ScheduledWorkId,Id")] WorkLog workLog)
+        public async Task<IActionResult> Create([Bind("CreatedAt,WorkStart,WorkEnd,Hours,MaterialCost,LaborCost,AppUserId,ScheduledWorkId,Id")] WorkLog workLog)
         {
             if (ModelState.IsValid)
             {
+                var description = Request.Form[nameof(WorkLog.Description)].ToString();
+
                 workLog.Id = Guid.NewGuid();
+                if (string.IsNullOrWhiteSpace(description))
+                {
+                    workLog.Description = null;
+                }
+                else
+                {
+                    workLog.Description = description;
+                }
                 _context.Add(workLog);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -99,7 +109,7 @@ namespace WebApp.Areas_Admin_Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("CreatedAt,WorkStart,WorkEnd,Hours,MaterialCost,LaborCost,Description,AppUserId,ScheduledWorkId,Id")] WorkLog workLog)
+        public async Task<IActionResult> Edit(Guid id, [Bind("CreatedAt,WorkStart,WorkEnd,Hours,MaterialCost,LaborCost,AppUserId,ScheduledWorkId,Id")] WorkLog workLog)
         {
             if (id != workLog.Id)
             {
@@ -108,14 +118,41 @@ namespace WebApp.Areas_Admin_Controllers
 
             if (ModelState.IsValid)
             {
+                var entity = await _context.WorkLogs.FindAsync(id);
+                if (entity == null) return NotFound();
+
+                var description = Request.Form[nameof(WorkLog.Description)].ToString();
+
+                entity.CreatedAt = workLog.CreatedAt;
+                entity.WorkStart = workLog.WorkStart;
+                entity.WorkEnd = workLog.WorkEnd;
+                entity.Hours = workLog.Hours;
+                entity.MaterialCost = workLog.MaterialCost;
+                entity.LaborCost = workLog.LaborCost;
+                entity.AppUserId = workLog.AppUserId;
+                entity.ScheduledWorkId = workLog.ScheduledWorkId;
+
+                if (string.IsNullOrWhiteSpace(description))
+                {
+                    entity.Description = null;
+                }
+                else if (entity.Description == null)
+                {
+                    entity.Description = description;
+                }
+                else
+                {
+                    entity.Description.SetTranslation(description);
+                }
+
                 try
                 {
-                    _context.Update(workLog);
+                    _context.Update(entity);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!WorkLogExists(workLog.Id))
+                    if (!WorkLogExists(id))
                     {
                         return NotFound();
                     }

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using Base.Domain;
 
 namespace App.Domain;
@@ -14,8 +15,9 @@ public class Unit : BaseEntity
     [Range(typeof(decimal), "0", "99999999.99")]
     public decimal? SizeM2 { get; set; }
 
-    [MinLength(1)]
-    public string? Notes { get; set; }
+    [Display(ResourceType = typeof(App.Resources.Domain.Unit), Name = nameof(App.Resources.Domain.Unit.Notes))]
+    [Column(TypeName = "jsonb")]
+    public LangStr? Notes { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 
