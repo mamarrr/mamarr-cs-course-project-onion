@@ -1,0 +1,126 @@
+@model WebApp.ViewModels.ManagementResidents.ManagementResidentsPageViewModel
+@using App.Resources.Views
+@{
+    ViewData["Title"] = UiText.ResourceManager.GetString("Residents") ?? "Residents";
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@T("Residents", "Residents")</p>
+                <h2 class="mb-2">@T("Residents", "Residents")</h2>
+                <p class="management-muted mb-0">@string.Format(T("ResidentsPageIntro", "Manage residents linked to {0}."), Model.CompanyName)</p>
+            </div>
+            <div class="d-flex flex-column align-items-lg-end gap-2">
+                <span class="management-badge @(Model.Residents.Count > 0 ? "success" : "warning")">
+                    @string.Format(UiText.ActiveRecords, Model.Residents.Count)
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <section class="management-card">
+        <h2>@T("AddResident", "Add resident")</h2>
+        <p class="management-muted">@T("AddResidentDescription", "Add a resident in the current company scope.")</p>
+
+        @if (TempData["ManagementResidentsSuccess"] is string successMessage)
+        {
+            <div class="alert alert-success" role="alert">@successMessage</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <form method="post" asp-action="Add" asp-route-companySlug="@Model.CompanySlug" class="row g-3">
+            @Html.AntiForgeryToken()
+
+            <div class="col-md-6">
+                <label asp-for="AddResident.FirstName" class="form-label"></label>
+                <input asp-for="AddResident.FirstName" class="form-control" />
+                <span asp-validation-for="AddResident.FirstName" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddResident.LastName" class="form-label"></label>
+                <input asp-for="AddResident.LastName" class="form-control" />
+                <span asp-validation-for="AddResident.LastName" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddResident.IdCode" class="form-label"></label>
+                <input asp-for="AddResident.IdCode" class="form-control" />
+                <span asp-validation-for="AddResident.IdCode" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddResident.PreferredLanguage" class="form-label"></label>
+                <input asp-for="AddResident.PreferredLanguage" class="form-control" />
+                <span asp-validation-for="AddResident.PreferredLanguage" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="management-btn">@T("AddResident", "Add resident")</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="management-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="mb-1">@T("CurrentResidents", "Current residents")</h2>
+                <p class="management-muted mb-0">@T("CurrentResidentsDescription", "Only residents in the current company scope are shown here.")</p>
+            </div>
+        </div>
+
+        @if (Model.Residents.Count == 0)
+        {
+            <div class="border rounded p-3 bg-light-subtle">
+                <strong>@T("NoResidentsFound", "No residents found")</strong>
+                <p class="management-muted mb-0">@T("NoResidentsFoundDescription", "Add your first resident to start resident workspace access.")</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>@UiText.Name</th>
+                        <th>@T("IdCode", "ID code")</th>
+                        <th>@T("PreferredLanguage", "Preferred language")</th>
+                        <th>@T("Status", "Status")</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var resident in Model.Residents)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-area="Resident"
+                                   asp-controller="ResidentDashboard"
+                                   asp-action="Index"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-residentIdCode="@resident.IdCode">@resident.FullName</a>
+                            </td>
+                            <td>
+                                <a asp-area="Resident"
+                                   asp-controller="ResidentDashboard"
+                                   asp-action="Index"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-residentIdCode="@resident.IdCode">@resident.IdCode</a>
+                            </td>
+                            <td>@(string.IsNullOrWhiteSpace(resident.PreferredLanguage) ? UiText.NoValuePlaceholder : resident.PreferredLanguage)</td>
+                            <td>
+                                <span class="management-badge @(resident.IsActive ? "success" : "warning")">
+                                    @(resident.IsActive ? T("Active", "Active") : T("Inactive", "Inactive"))
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

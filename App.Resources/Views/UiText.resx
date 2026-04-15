@@ -138,6 +138,24 @@
   <data name="CustomerDashboard" xml:space="preserve"><value>Customer dashboard</value></data>
   <data name="Profile" xml:space="preserve"><value>Profile</value></data>
   <data name="Residents" xml:space="preserve"><value>Residents</value></data>
+  <data name="ResidentsPageIntro" xml:space="preserve"><value>Manage residents linked to {0}.</value></data>
+  <data name="AddResident" xml:space="preserve"><value>Add resident</value></data>
+  <data name="AddResidentDescription" xml:space="preserve"><value>Add a resident in the current company scope.</value></data>
+  <data name="CurrentResidents" xml:space="preserve"><value>Current residents</value></data>
+  <data name="CurrentResidentsDescription" xml:space="preserve"><value>Only residents in the current company scope are shown here.</value></data>
+  <data name="NoResidentsFound" xml:space="preserve"><value>No residents found</value></data>
+  <data name="NoResidentsFoundDescription" xml:space="preserve"><value>Add your first resident to start resident workspace access.</value></data>
+  <data name="IdCode" xml:space="preserve"><value>ID code</value></data>
+  <data name="PreferredLanguage" xml:space="preserve"><value>Preferred language</value></data>
+  <data name="ResidentAddedSuccessfully" xml:space="preserve"><value>Resident added successfully.</value></data>
+  <data name="ResidentIdCodeAlreadyExists" xml:space="preserve"><value>Resident with this ID code already exists in this company.</value></data>
+  <data name="UnableToAddResident" xml:space="preserve"><value>Unable to add resident.</value></data>
+  <data name="ResidentWorkspace" xml:space="preserve"><value>Resident workspace</value></data>
+  <data name="ResidentDashboardIntro" xml:space="preserve"><value>Resident workspace for {0} in {1}.</value></data>
+  <data name="ResidentSectionPlaceholder" xml:space="preserve"><value>{0} content is planned and will be added in a later increment.</value></data>
+  <data name="Representations" xml:space="preserve"><value>Representations</value></data>
+  <data name="Contacts" xml:space="preserve"><value>Contacts</value></data>
+  <data name="NoValuePlaceholder" xml:space="preserve"><value>—</value></data>
   <data name="CustomerDashboardIntro" xml:space="preserve"><value>Customer workspace for {0} in company {1}.</value></data>
   <data name="CustomerSectionPlaceholder" xml:space="preserve"><value>{0} content is planned and will be added in a later increment.</value></data>
   <data name="City" xml:space="preserve"><value>City</value></data>

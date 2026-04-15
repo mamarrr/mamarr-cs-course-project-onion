@@ -100,6 +100,7 @@
                 <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Tickets</span>
                 <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Properties</span>
                 <a class="management-sidebar-link @(layoutVm.CurrentController == "Customers" ? "active" : "")" asp-area="Management" asp-controller="Customers" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Customers</a>
+                <a class="management-sidebar-link @(layoutVm.CurrentController == "Residents" ? "active" : "")" asp-area="Management" asp-controller="Residents" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">@(App.Resources.Views.UiText.ResourceManager.GetString("Residents") ?? "Residents")</a>
                 @if (layoutVm.CanManageCompanyUsers)
                 {
                     <a class="management-sidebar-link @(layoutVm.CurrentController == "Users" ? "active" : "")" asp-area="Management" asp-controller="Users" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Users</a>

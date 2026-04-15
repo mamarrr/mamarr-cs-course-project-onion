@@ -131,6 +131,24 @@
   <data name="CustomerDashboard" xml:space="preserve"><value>Kliendi töölaud</value></data>
   <data name="Profile" xml:space="preserve"><value>Profiil</value></data>
   <data name="Residents" xml:space="preserve"><value>Elanikud</value></data>
+  <data name="ResidentsPageIntro" xml:space="preserve"><value>Halda ettevõttega {0} seotud elanikke.</value></data>
+  <data name="AddResident" xml:space="preserve"><value>Lisa elanik</value></data>
+  <data name="AddResidentDescription" xml:space="preserve"><value>Lisa elanik praeguse ettevõtte ulatuses.</value></data>
+  <data name="CurrentResidents" xml:space="preserve"><value>Praegused elanikud</value></data>
+  <data name="CurrentResidentsDescription" xml:space="preserve"><value>Siin kuvatakse ainult praeguse ettevõtte ulatuse elanikud.</value></data>
+  <data name="NoResidentsFound" xml:space="preserve"><value>Elanikke ei leitud</value></data>
+  <data name="NoResidentsFoundDescription" xml:space="preserve"><value>Lisa esimene elanik, et alustada elaniku tööruumi kasutamist.</value></data>
+  <data name="IdCode" xml:space="preserve"><value>Isikukood</value></data>
+  <data name="PreferredLanguage" xml:space="preserve"><value>Eelistatud keel</value></data>
+  <data name="ResidentAddedSuccessfully" xml:space="preserve"><value>Elanik lisati edukalt.</value></data>
+  <data name="ResidentIdCodeAlreadyExists" xml:space="preserve"><value>Sama isikukoodiga elanik on selles ettevõttes juba olemas.</value></data>
+  <data name="UnableToAddResident" xml:space="preserve"><value>Elaniku lisamine ebaõnnestus.</value></data>
+  <data name="ResidentWorkspace" xml:space="preserve"><value>Elaniku tööruum</value></data>
+  <data name="ResidentDashboardIntro" xml:space="preserve"><value>Elaniku {0} tööruum ettevõttes {1}.</value></data>
+  <data name="ResidentSectionPlaceholder" xml:space="preserve"><value>Sektsiooni „{0}“ sisu on planeeritud ja lisatakse järgmises etapis.</value></data>
+  <data name="Representations" xml:space="preserve"><value>Esindused</value></data>
+  <data name="Contacts" xml:space="preserve"><value>Kontaktid</value></data>
+  <data name="NoValuePlaceholder" xml:space="preserve"><value>—</value></data>
   <data name="CustomerDashboardIntro" xml:space="preserve"><value>Kliendi {0} töölaud ettevõttes {1}.</value></data>
   <data name="CustomerSectionPlaceholder" xml:space="preserve"><value>Sektsiooni „{0}“ sisu on planeeritud ja lisatakse järgmises etapis.</value></data>
   <data name="City" xml:space="preserve"><value>Linn</value></data>

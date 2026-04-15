@@ -13,8 +13,9 @@ public class Resident : BaseEntity
     [StringLength(100, MinimumLength = 1)]
     public string LastName { get; set; } = default!;
 
+    [Required]
     [StringLength(20, MinimumLength = 1)]
-    public string? IdCode { get; set; }
+    public string IdCode { get; set; } = default!;
 
     [StringLength(20, MinimumLength = 1)]
     public string? PreferredLanguage { get; set; }

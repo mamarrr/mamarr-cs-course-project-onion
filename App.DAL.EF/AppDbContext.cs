@@ -262,6 +262,10 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .Property(e => e.Slug)
             .HasMaxLength(128)
             .IsRequired();
+        builder.Entity<Resident>()
+            .Property(e => e.IdCode)
+            .HasMaxLength(20)
+            .IsRequired();
     }
 
     private static void ConfigureConstraintNames(ModelBuilder builder)
@@ -594,6 +598,10 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasDatabaseName("ux_mcompany_join_request_pending_user_company")
             .HasFilter($"\"Status\" = '{ManagementCompanyJoinRequestStatus.Pending}'");
 
+        builder.Entity<Resident>()
+            .HasAlternateKey(e => new { e.ManagementCompanyId, e.IdCode })
+            .HasName("uq_resident_mcompany_idcode");
+
         builder.Entity<ResidentUser>()
             .HasAlternateKey(e => new { e.ResidentId, e.AppUserId })
             .HasName("uq_resident_user_pair");
@@ -675,6 +683,11 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
         builder.Entity<Resident>()
             .HasIndex(e => e.ManagementCompanyId)
             .HasDatabaseName("ix_resident_mcompany_id_fk");
+
+        builder.Entity<Resident>()
+            .HasIndex(e => new { e.ManagementCompanyId, e.IdCode })
+            .IsUnique()
+            .HasDatabaseName("ux_resident_company_id_code");
 
         builder.Entity<ResidentUser>()
             .HasIndex(e => e.AppUserId)
