@@ -140,6 +140,19 @@
   <data name="Residents" xml:space="preserve"><value>Residents</value></data>
   <data name="CustomerDashboardIntro" xml:space="preserve"><value>Customer workspace for {0} in company {1}.</value></data>
   <data name="CustomerSectionPlaceholder" xml:space="preserve"><value>{0} content is planned and will be added in a later increment.</value></data>
+  <data name="City" xml:space="preserve"><value>City</value></data>
+  <data name="PostalCode" xml:space="preserve"><value>Postal code</value></data>
+  <data name="PropertyType" xml:space="preserve"><value>Property type</value></data>
+  <data name="AddProperty" xml:space="preserve"><value>Add property</value></data>
+  <data name="SelectPropertyType" xml:space="preserve"><value>Select property type</value></data>
+  <data name="NoPropertiesFound" xml:space="preserve"><value>No properties found.</value></data>
+  <data name="PropertyDashboard" xml:space="preserve"><value>Property dashboard</value></data>
+  <data name="PropertyDashboardIntro" xml:space="preserve"><value>Property workspace for {0} in customer {1} ({2}).</value></data>
+  <data name="PropertySectionPlaceholder" xml:space="preserve"><value>{0} content is planned and will be added in a later increment.</value></data>
+  <data name="Units" xml:space="preserve"><value>Units</value></data>
+  <data name="InvalidPropertyType" xml:space="preserve"><value>Selected property type is invalid.</value></data>
+  <data name="UnableToAddProperty" xml:space="preserve"><value>Unable to add property.</value></data>
+  <data name="PropertyAddedSuccessfully" xml:space="preserve"><value>Property added successfully.</value></data>
 
   <data name="FlowInfoCreateAccountOrLogin" xml:space="preserve"><value>Create your account or log in to continue.</value></data>
   <data name="RegistrationSuccessfulPleaseLogin" xml:space="preserve"><value>Registration successful. Please log in.</value></data>
@@ -174,6 +187,7 @@
   <data name="VatNumber" xml:space="preserve"><value>VAT number</value></data>
   <data name="Phone" xml:space="preserve"><value>Phone</value></data>
   <data name="Address" xml:space="preserve"><value>Address</value></data>
+  <data name="AddressLine" xml:space="preserve"><value>Address line</value></data>
   <data name="RequiredField" xml:space="preserve"><value>The {0} field is required.</value></data>
   <data name="StringLengthBetween" xml:space="preserve"><value>The field {0} must be a string with a minimum length of {2} and a maximum length of {1}.</value></data>
   <data name="InvalidEmailAddress" xml:space="preserve"><value>The {0} field is not a valid e-mail address.</value></data>
@@ -187,5 +201,14 @@
   <data name="RequesterAlreadyMemberOfThisCompany" xml:space="preserve"><value>Requester is already a member of this company.</value></data>
   <data name="Delete" xml:space="preserve">
     <value>Delete</value>
+  </data>
+  <data name="InvalidData" xml:space="preserve">
+    <value>Invalid Data</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notes</value>
   </data>
 </root>

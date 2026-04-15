@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using App.BLL.ManagementCustomers;
+using App.DAL.EF;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using WebApp.ViewModels.ManagementCustomers;
 
 namespace WebApp.Areas.Management.Controllers;
@@ -13,13 +15,16 @@ namespace WebApp.Areas.Management.Controllers;
 public class CustomersController : Controller
 {
     private readonly IManagementCustomersService _managementCustomersService;
+    private readonly AppDbContext _dbContext;
     private readonly ILogger<CustomersController> _logger;
 
     public CustomersController(
         IManagementCustomersService managementCustomersService,
+        AppDbContext dbContext,
         ILogger<CustomersController> logger)
     {
         _managementCustomersService = managementCustomersService;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -152,6 +157,31 @@ public class CustomersController : Controller
         AddManagementCustomerViewModel? addCustomerOverride = null)
     {
         var listResult = await _managementCustomersService.ListAsync(context, cancellationToken);
+        var customerIds = listResult.Customers.Select(c => c.CustomerId).ToArray();
+
+        var propertiesByCustomerId = await _dbContext.Properties
+            .AsNoTracking()
+            .Where(p => customerIds.Contains(p.CustomerId))
+            .OrderBy(p => p.Label)
+            .Select(p => new
+            {
+                p.CustomerId,
+                p.Slug,
+                Name = p.Label.ToString()
+            })
+            .ToListAsync(cancellationToken);
+
+        var propertyLookup = propertiesByCustomerId
+            .GroupBy(x => x.CustomerId)
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyList<ManagementCustomerPropertyLinkViewModel>)g
+                    .Select(x => new ManagementCustomerPropertyLinkViewModel
+                    {
+                        PropertySlug = x.Slug,
+                        PropertyName = x.Name
+                    })
+                    .ToList());
 
         ViewData["Title"] = UiText.Customers;
 
@@ -167,7 +197,8 @@ public class CustomersController : Controller
                 RegistryCode = x.RegistryCode,
                 BillingEmail = x.BillingEmail,
                 BillingAddress = x.BillingAddress,
-                Phone = x.Phone
+                Phone = x.Phone,
+                Properties = propertyLookup.GetValueOrDefault(x.CustomerId, Array.Empty<ManagementCustomerPropertyLinkViewModel>())
             }).ToList(),
             AddCustomer = addCustomerOverride ?? new AddManagementCustomerViewModel()
         };

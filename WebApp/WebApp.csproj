@@ -31,4 +31,13 @@
       <ProjectReference Include="..\Base.Helpers\Base.Helpers.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Areas\Property\Views\Shared\" />
+      <Folder Include="Areas\Resident\" />
+      <Folder Include="Areas\Unit\" />
+      <Folder Include="ViewModels\Customer\" />
+      <Folder Include="ViewModels\Resident\" />
+      <Folder Include="ViewModels\Unit\" />
+    </ItemGroup>
+
 </Project>

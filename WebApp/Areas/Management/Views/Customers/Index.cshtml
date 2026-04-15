@@ -97,7 +97,6 @@
                         <th>@T("BillingEmail", "Billing email")</th>
                         <th>@T("BillingAddress", "Billing address")</th>
                         <th>@UiText.Phone</th>
-                        <th class="text-end">@UiText.Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -115,7 +114,6 @@
                             <td>@(string.IsNullOrWhiteSpace(customer.BillingEmail) ? "—" : customer.BillingEmail)</td>
                             <td>@(string.IsNullOrWhiteSpace(customer.BillingAddress) ? "—" : customer.BillingAddress)</td>
                             <td>@(string.IsNullOrWhiteSpace(customer.Phone) ? "—" : customer.Phone)</td>
-                            <td class="text-end text-muted">@T("ActionsPlanned", "Planned")</td>
                         </tr>
                     }
                     </tbody>

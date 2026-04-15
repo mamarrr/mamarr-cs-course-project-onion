@@ -1,12 +1,12 @@
 @using System.Threading
 @using WebApp.Services.ManagementLayout
-@using WebApp.ViewModels.Customer.CustomerDashboard
+@using WebApp.ViewModels.Management.CustomerProperties
 @inject IManagementLayoutViewModelProvider LayoutModelProvider
 @{
-    var customerLayoutVm = ViewData["CustomerLayout"] as CustomerLayoutViewModel;
-    if (customerLayoutVm == null)
+    var propertyLayoutVm = ViewData["PropertyLayout"] as PropertyLayoutViewModel;
+    if (propertyLayoutVm == null)
     {
-        throw new InvalidOperationException("Customer layout context is missing.");
+        throw new InvalidOperationException("Property layout context is missing.");
     }
 
     var currentPathAndQuery = $"{Context.Request.Path}{Context.Request.QueryString}";
@@ -14,7 +14,7 @@
     var sharedLayoutVm = await LayoutModelProvider.BuildAsync(
         User,
         ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty,
-        customerLayoutVm.CompanySlug,
+        propertyLayoutVm.CompanySlug,
         currentPathAndQuery,
         currentUiCultureName,
         Context.RequestAborted);
@@ -25,7 +25,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - @App.Resources.Views.UiText.Management</title>
+    <title>@ViewData["Title"] - @T("Property", "Property")</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/management-ui.css" asp-append-version="true" />
@@ -34,10 +34,10 @@
 <div class="management-shell">
     <header class="management-header">
         <div>
-            <p class="management-eyebrow mb-1">@T("CustomerWorkspace", "Customer workspace")</p>
+            <p class="management-eyebrow mb-1">@T("PropertyWorkspace", "Property workspace")</p>
             <strong>
-                <a class="text-decoration-none" asp-route="management_dashboard" asp-route-companySlug="@customerLayoutVm.CompanySlug">
-                    @customerLayoutVm.CompanyName
+                <a class="text-decoration-none" asp-route="management_dashboard" asp-route-companySlug="@propertyLayoutVm.CompanySlug">
+                    @propertyLayoutVm.CompanyName
                 </a>
             </strong>
             <div class="text-muted">
@@ -45,9 +45,20 @@
                    asp-area="Customer"
                    asp-controller="CustomerDashboard"
                    asp-action="Index"
-                   asp-route-companySlug="@customerLayoutVm.CompanySlug"
-                   asp-route-customerSlug="@customerLayoutVm.CustomerSlug">
-                    @customerLayoutVm.CustomerName
+                   asp-route-companySlug="@propertyLayoutVm.CompanySlug"
+                   asp-route-customerSlug="@propertyLayoutVm.CustomerSlug">
+                    @propertyLayoutVm.CustomerName
+                </a>
+            </div>
+            <div class="text-muted">
+                <a class="text-decoration-none"
+                   asp-area="Property"
+                   asp-controller="PropertyDashboard"
+                   asp-action="Index"
+                   asp-route-companySlug="@propertyLayoutVm.CompanySlug"
+                   asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
+                   asp-route-propertySlug="@propertyLayoutVm.PropertySlug">
+                    @propertyLayoutVm.PropertyName
                 </a>
             </div>
         </div>
@@ -112,42 +123,47 @@
 
     <div class="management-body-grid">
         <aside class="management-sidebar">
-            <div class="management-company-name">@customerLayoutVm.CustomerName</div>
+            <div class="management-company-name">@propertyLayoutVm.PropertyName</div>
             <nav>
-                <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Dashboard" ? "active" : "")"
-                   asp-area="Customer"
-                   asp-controller="CustomerDashboard"
+                <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Dashboard" ? "active" : "")"
+                   asp-area="Property"
+                   asp-controller="PropertyDashboard"
                    asp-action="Index"
-                   asp-route-companySlug="@customerLayoutVm.CompanySlug"
-                   asp-route-customerSlug="@customerLayoutVm.CustomerSlug">@App.Resources.Views.UiText.Dashboard</a>
+                   asp-route-companySlug="@propertyLayoutVm.CompanySlug"
+                   asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
+                   asp-route-propertySlug="@propertyLayoutVm.PropertySlug">@App.Resources.Views.UiText.Dashboard</a>
 
-                <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Profile" ? "active" : "")"
-                   asp-area="Customer"
-                   asp-controller="CustomerDashboard"
+                <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Profile" ? "active" : "")"
+                   asp-area="Property"
+                   asp-controller="PropertyDashboard"
                    asp-action="Profile"
-                   asp-route-companySlug="@customerLayoutVm.CompanySlug"
-                   asp-route-customerSlug="@customerLayoutVm.CustomerSlug">@T("Profile", "Profile")</a>
+                   asp-route-companySlug="@propertyLayoutVm.CompanySlug"
+                   asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
+                   asp-route-propertySlug="@propertyLayoutVm.PropertySlug">@T("Profile", "Profile")</a>
 
-                <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Tickets" ? "active" : "")"
-                   asp-area="Customer"
-                   asp-controller="CustomerDashboard"
-                   asp-action="Tickets"
-                   asp-route-companySlug="@customerLayoutVm.CompanySlug"
-                   asp-route-customerSlug="@customerLayoutVm.CustomerSlug">@App.Resources.Views.UiText.Tickets</a>
+                <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Units" ? "active" : "")"
+                   asp-area="Property"
+                   asp-controller="PropertyDashboard"
+                   asp-action="Units"
+                   asp-route-companySlug="@propertyLayoutVm.CompanySlug"
+                   asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
+                   asp-route-propertySlug="@propertyLayoutVm.PropertySlug">@T("Units", "Units")</a>
 
-                <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Properties" ? "active" : "")"
-                   asp-area="Customer"
-                   asp-controller="CustomerProperties"
-                   asp-action="Index"
-                   asp-route-companySlug="@customerLayoutVm.CompanySlug"
-                   asp-route-customerSlug="@customerLayoutVm.CustomerSlug">@App.Resources.Views.UiText.Properties</a>
-
-                <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Residents" ? "active" : "")"
-                   asp-area="Customer"
-                   asp-controller="CustomerDashboard"
+                <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Residents" ? "active" : "")"
+                   asp-area="Property"
+                   asp-controller="PropertyDashboard"
                    asp-action="Residents"
-                   asp-route-companySlug="@customerLayoutVm.CompanySlug"
-                   asp-route-customerSlug="@customerLayoutVm.CustomerSlug">@T("Residents", "Residents")</a>
+                   asp-route-companySlug="@propertyLayoutVm.CompanySlug"
+                   asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
+                   asp-route-propertySlug="@propertyLayoutVm.PropertySlug">@App.Resources.Views.UiText.Residents</a>
+
+                <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Tickets" ? "active" : "")"
+                   asp-area="Property"
+                   asp-controller="PropertyDashboard"
+                   asp-action="Tickets"
+                   asp-route-companySlug="@propertyLayoutVm.CompanySlug"
+                   asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
+                   asp-route-propertySlug="@propertyLayoutVm.PropertySlug">@App.Resources.Views.UiText.Tickets</a>
             </nav>
 
             <div class="management-sidebar-footer">

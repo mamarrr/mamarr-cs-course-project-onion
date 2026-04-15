@@ -190,6 +190,199 @@ public class ManagementCustomersServiceTests
         Assert.Equal("ari-klient-2", created.Slug);
     }
 
+    [Fact]
+    public async Task AuthorizeCustomerContextAsync_ReturnsCustomerNotFound_WhenCustomerIsOutsideCompanyScope()
+    {
+        await using var dbContext = CreateDbContext();
+        var appUser = CreateUser("manager@test.local");
+        var role = CreateRole("MANAGER");
+        var companyA = CreateCompany("north-estate", "North Estate", "REG-NORTH");
+        var companyB = CreateCompany("south-estate", "South Estate", "REG-SOUTH");
+
+        dbContext.Users.Add(appUser);
+        dbContext.ManagementCompanyRoles.Add(role);
+        dbContext.ManagementCompanies.AddRange(companyA, companyB);
+        dbContext.ManagementCompanyUsers.Add(CreateMembership(companyA.Id, appUser.Id, role.Id));
+        dbContext.Customers.Add(CreateCustomer(companyB.Id, "South Customer", "S-1", "south-customer"));
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCustomersService(dbContext);
+
+        var result = await sut.AuthorizeCustomerContextAsync(appUser.Id, companyA.Slug, "south-customer");
+
+        Assert.True(result.CustomerNotFound);
+        Assert.False(result.IsAuthorized);
+        Assert.False(result.IsForbidden);
+    }
+
+    [Fact]
+    public async Task ListPropertiesAsync_ReturnsOnlyPropertiesFromAuthorizedCustomerScope()
+    {
+        await using var dbContext = CreateDbContext();
+        var appUser = CreateUser("manager@test.local");
+        var role = CreateRole("MANAGER");
+        var company = CreateCompany("north-estate", "North Estate", "REG-NORTH");
+        var customerA = CreateCustomer(company.Id, "Alpha", "A-1", "alpha");
+        var customerB = CreateCustomer(company.Id, "Beta", "B-1", "beta");
+        var propertyType = CreatePropertyType("APARTMENT_BUILDING", "Apartment building");
+
+        dbContext.Users.Add(appUser);
+        dbContext.ManagementCompanyRoles.Add(role);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, appUser.Id, role.Id));
+        dbContext.Customers.AddRange(customerA, customerB);
+        dbContext.PropertyTypes.Add(propertyType);
+        dbContext.Properties.AddRange(
+            CreateProperty(customerA.Id, propertyType.Id, "Alpha House", "alpha-house"),
+            CreateProperty(customerB.Id, propertyType.Id, "Beta House", "beta-house"));
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCustomersService(dbContext);
+        var access = await sut.AuthorizeCustomerContextAsync(appUser.Id, company.Slug, customerA.Slug);
+
+        var result = await sut.ListPropertiesAsync(access.Context!);
+
+        Assert.Single(result.Properties);
+        Assert.Equal("alpha-house", result.Properties[0].PropertySlug);
+    }
+
+    [Fact]
+    public async Task CreatePropertyAsync_CreatesPropertyOnlyInAuthorizedCustomerScope()
+    {
+        await using var dbContext = CreateDbContext();
+        var appUser = CreateUser("manager@test.local");
+        var role = CreateRole("MANAGER");
+        var company = CreateCompany("north-estate", "North Estate", "REG-NORTH");
+        var customerA = CreateCustomer(company.Id, "Alpha", "A-1", "alpha");
+        var customerB = CreateCustomer(company.Id, "Beta", "B-1", "beta");
+        var propertyType = CreatePropertyType("APARTMENT_BUILDING", "Apartment building");
+
+        dbContext.Users.Add(appUser);
+        dbContext.ManagementCompanyRoles.Add(role);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, appUser.Id, role.Id));
+        dbContext.Customers.AddRange(customerA, customerB);
+        dbContext.PropertyTypes.Add(propertyType);
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCustomersService(dbContext);
+        var access = await sut.AuthorizeCustomerContextAsync(appUser.Id, company.Slug, customerA.Slug);
+
+        var createResult = await sut.CreatePropertyAsync(access.Context!, new ManagementCustomerPropertyCreateRequest
+        {
+            Name = "Alpha House",
+            AddressLine = "Main 1",
+            City = "Tallinn",
+            PostalCode = "10111",
+            PropertyTypeId = propertyType.Id,
+            Notes = "Primary building",
+            IsActive = true
+        });
+
+        Assert.True(createResult.Success);
+        var created = await dbContext.Properties.SingleAsync(p => p.Slug == "alpha-house");
+        Assert.Equal(customerA.Id, created.CustomerId);
+        Assert.NotEqual(customerB.Id, created.CustomerId);
+    }
+
+    [Fact]
+    public async Task CreatePropertyAsync_GeneratesUniqueSlugWithinCustomerScope()
+    {
+        await using var dbContext = CreateDbContext();
+        var appUser = CreateUser("manager@test.local");
+        var role = CreateRole("MANAGER");
+        var company = CreateCompany("north-estate", "North Estate", "REG-NORTH");
+        var customerA = CreateCustomer(company.Id, "Alpha", "A-1", "alpha");
+        var customerB = CreateCustomer(company.Id, "Beta", "B-1", "beta");
+        var propertyType = CreatePropertyType("APARTMENT_BUILDING", "Apartment building");
+
+        dbContext.Users.Add(appUser);
+        dbContext.ManagementCompanyRoles.Add(role);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, appUser.Id, role.Id));
+        dbContext.Customers.AddRange(customerA, customerB);
+        dbContext.PropertyTypes.Add(propertyType);
+        dbContext.Properties.AddRange(
+            CreateProperty(customerA.Id, propertyType.Id, "Äri Hoone", "ari-hoone"),
+            CreateProperty(customerB.Id, propertyType.Id, "Äri Hoone", "ari-hoone"));
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCustomersService(dbContext);
+        var access = await sut.AuthorizeCustomerContextAsync(appUser.Id, company.Slug, customerA.Slug);
+
+        var createResult = await sut.CreatePropertyAsync(access.Context!, new ManagementCustomerPropertyCreateRequest
+        {
+            Name = "Ari Hoone",
+            AddressLine = "Main 2",
+            City = "Tallinn",
+            PostalCode = "10112",
+            PropertyTypeId = propertyType.Id
+        });
+
+        Assert.True(createResult.Success);
+        var created = await dbContext.Properties.SingleAsync(p => p.AddressLine == "Main 2");
+        Assert.Equal("ari-hoone-2", created.Slug);
+    }
+
+    [Fact]
+    public async Task ResolvePropertyDashboardContextAsync_ReturnsPropertyNotFound_WhenPropertyIsOutsideCustomerScope()
+    {
+        await using var dbContext = CreateDbContext();
+        var appUser = CreateUser("manager@test.local");
+        var role = CreateRole("MANAGER");
+        var company = CreateCompany("north-estate", "North Estate", "REG-NORTH");
+        var customerA = CreateCustomer(company.Id, "Alpha", "A-1", "alpha");
+        var customerB = CreateCustomer(company.Id, "Beta", "B-1", "beta");
+        var propertyType = CreatePropertyType("APARTMENT_BUILDING", "Apartment building");
+
+        dbContext.Users.Add(appUser);
+        dbContext.ManagementCompanyRoles.Add(role);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, appUser.Id, role.Id));
+        dbContext.Customers.AddRange(customerA, customerB);
+        dbContext.PropertyTypes.Add(propertyType);
+        dbContext.Properties.Add(CreateProperty(customerB.Id, propertyType.Id, "Beta House", "beta-house"));
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCustomersService(dbContext);
+        var access = await sut.AuthorizeCustomerContextAsync(appUser.Id, company.Slug, customerA.Slug);
+
+        var result = await sut.ResolvePropertyDashboardContextAsync(access.Context!, "beta-house");
+
+        Assert.True(result.PropertyNotFound);
+        Assert.False(result.IsAuthorized);
+    }
+
+    [Fact]
+    public async Task ResolvePropertyDashboardContextAsync_ReturnsAuthorizedContext_WhenPropertyInScope()
+    {
+        await using var dbContext = CreateDbContext();
+        var appUser = CreateUser("manager@test.local");
+        var role = CreateRole("MANAGER");
+        var company = CreateCompany("north-estate", "North Estate", "REG-NORTH");
+        var customer = CreateCustomer(company.Id, "Alpha", "A-1", "alpha");
+        var propertyType = CreatePropertyType("APARTMENT_BUILDING", "Apartment building");
+
+        dbContext.Users.Add(appUser);
+        dbContext.ManagementCompanyRoles.Add(role);
+        dbContext.ManagementCompanies.Add(company);
+        dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, appUser.Id, role.Id));
+        dbContext.Customers.Add(customer);
+        dbContext.PropertyTypes.Add(propertyType);
+        dbContext.Properties.Add(CreateProperty(customer.Id, propertyType.Id, "Alpha House", "alpha-house"));
+        await dbContext.SaveChangesAsync();
+
+        var sut = new ManagementCustomersService(dbContext);
+        var access = await sut.AuthorizeCustomerContextAsync(appUser.Id, company.Slug, customer.Slug);
+
+        var result = await sut.ResolvePropertyDashboardContextAsync(access.Context!, "alpha-house");
+
+        Assert.True(result.IsAuthorized);
+        Assert.NotNull(result.Context);
+        Assert.Equal("alpha-house", result.Context!.PropertySlug);
+        Assert.Equal(customer.Id, result.Context.CustomerId);
+    }
+
     private static AppDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -271,6 +464,33 @@ public class ManagementCustomersServiceTests
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             ManagementCompanyId = companyId
+        };
+    }
+
+    private static PropertyType CreatePropertyType(string code, string label)
+    {
+        return new PropertyType
+        {
+            Id = Guid.NewGuid(),
+            Code = code,
+            Label = new LangStr(label)
+        };
+    }
+
+    private static Property CreateProperty(Guid customerId, Guid propertyTypeId, string name, string slug)
+    {
+        return new Property
+        {
+            Id = Guid.NewGuid(),
+            Label = new LangStr(name),
+            Slug = slug,
+            AddressLine = "Street 1",
+            City = "Tallinn",
+            PostalCode = "10111",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            CustomerId = customerId,
+            PropertyTypeId = propertyTypeId
         };
     }
 }

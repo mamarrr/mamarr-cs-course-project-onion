@@ -92,6 +92,15 @@ public class ManagementCustomersService : IManagementCustomersService
         string customerSlug,
         CancellationToken cancellationToken = default)
     {
+        return await AuthorizeCustomerContextAsync(appUserId, companySlug, customerSlug, cancellationToken);
+    }
+
+    public async Task<ManagementCustomerDashboardAccessResult> AuthorizeCustomerContextAsync(
+        Guid appUserId,
+        string companySlug,
+        string customerSlug,
+        CancellationToken cancellationToken = default)
+    {
         var authResult = await AuthorizeAsync(appUserId, companySlug, cancellationToken);
         if (authResult.CompanyNotFound)
         {
@@ -146,6 +155,180 @@ public class ManagementCustomersService : IManagementCustomersService
                 CustomerId = customer.Id,
                 CustomerSlug = customer.Slug,
                 CustomerName = customer.Name
+            }
+        };
+    }
+
+    public async Task<ManagementCustomerPropertyListResult> ListPropertiesAsync(
+        ManagementCustomerDashboardContext context,
+        CancellationToken cancellationToken = default)
+    {
+        var properties = await _dbContext.Properties
+            .AsNoTracking()
+            .Where(p => p.CustomerId == context.CustomerId)
+            .OrderBy(p => p.Label)
+            .ThenBy(p => p.AddressLine)
+            .Select(p => new ManagementCustomerPropertyListItem
+            {
+                PropertyId = p.Id,
+                PropertySlug = p.Slug,
+                PropertyName = p.Label.ToString(),
+                AddressLine = p.AddressLine,
+                City = p.City,
+                PostalCode = p.PostalCode,
+                PropertyTypeId = p.PropertyTypeId,
+                PropertyTypeCode = p.PropertyType!.Code,
+                PropertyTypeLabel = p.PropertyType!.Label.ToString(),
+                IsActive = p.IsActive
+            })
+            .ToListAsync(cancellationToken);
+
+        return new ManagementCustomerPropertyListResult
+        {
+            Properties = properties
+        };
+    }
+
+    public async Task<ManagementCustomerPropertyCreateResult> CreatePropertyAsync(
+        ManagementCustomerDashboardContext context,
+        ManagementCustomerPropertyCreateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return new ManagementCustomerPropertyCreateResult
+            {
+                ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace("{0}", App.Resources.Views.UiText.Name)
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(request.AddressLine))
+        {
+            return new ManagementCustomerPropertyCreateResult
+            {
+                ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace("{0}", App.Resources.Views.UiText.Address)
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(request.City))
+        {
+            return new ManagementCustomerPropertyCreateResult
+            {
+                ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace(
+                    "{0}",
+                    App.Resources.Views.UiText.ResourceManager.GetString("City") ?? "City")
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(request.PostalCode))
+        {
+            return new ManagementCustomerPropertyCreateResult
+            {
+                ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace(
+                    "{0}",
+                    App.Resources.Views.UiText.ResourceManager.GetString("PostalCode") ?? "Postal code")
+            };
+        }
+
+        var normalizedName = request.Name.Trim();
+        var normalizedAddressLine = request.AddressLine.Trim();
+        var normalizedCity = request.City.Trim();
+        var normalizedPostalCode = request.PostalCode.Trim();
+        var normalizedNotes = string.IsNullOrWhiteSpace(request.Notes) ? null : request.Notes.Trim();
+
+        var propertyType = await _dbContext.PropertyTypes
+            .AsNoTracking()
+            .Where(pt => pt.Id == request.PropertyTypeId)
+            .Select(pt => new { pt.Id })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (propertyType == null)
+        {
+            return new ManagementCustomerPropertyCreateResult
+            {
+                InvalidPropertyType = true,
+                ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("InvalidData") ?? "Invalid data."
+            };
+        }
+
+        var baseSlug = SlugGenerator.GenerateSlug(normalizedName);
+        var existingSlugs = await _dbContext.Properties
+            .AsNoTracking()
+            .Where(p => p.CustomerId == context.CustomerId && p.Slug.StartsWith(baseSlug))
+            .Select(p => p.Slug)
+            .ToListAsync(cancellationToken);
+
+        var uniqueSlug = SlugGenerator.EnsureUniqueSlug(baseSlug, existingSlugs);
+
+        var property = new Property
+        {
+            Id = Guid.NewGuid(),
+            Label = normalizedName,
+            Slug = uniqueSlug,
+            AddressLine = normalizedAddressLine,
+            City = normalizedCity,
+            PostalCode = normalizedPostalCode,
+            Notes = normalizedNotes == null ? null : new Base.Domain.LangStr(normalizedNotes),
+            IsActive = request.IsActive,
+            CreatedAt = DateTime.UtcNow,
+            PropertyTypeId = propertyType.Id,
+            CustomerId = context.CustomerId
+        };
+
+        _dbContext.Properties.Add(property);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return new ManagementCustomerPropertyCreateResult
+        {
+            Success = true,
+            CreatedPropertyId = property.Id,
+            CreatedPropertySlug = property.Slug
+        };
+    }
+
+    public async Task<ManagementCustomerPropertyDashboardAccessResult> ResolvePropertyDashboardContextAsync(
+        ManagementCustomerDashboardContext context,
+        string propertySlug,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedPropertySlug = propertySlug.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedPropertySlug))
+        {
+            return new ManagementCustomerPropertyDashboardAccessResult
+            {
+                PropertyNotFound = true
+            };
+        }
+
+        var property = await _dbContext.Properties
+            .AsNoTracking()
+            .Where(p => p.CustomerId == context.CustomerId && p.Slug == normalizedPropertySlug)
+            .Select(p => new { p.Id, p.Slug, Name = p.Label.ToString() })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (property == null)
+        {
+            return new ManagementCustomerPropertyDashboardAccessResult
+            {
+                PropertyNotFound = true
+            };
+        }
+
+        return new ManagementCustomerPropertyDashboardAccessResult
+        {
+            IsAuthorized = true,
+            Context = new ManagementCustomerPropertyDashboardContext
+            {
+                AppUserId = context.AppUserId,
+                ManagementCompanyId = context.ManagementCompanyId,
+                CompanySlug = context.CompanySlug,
+                CompanyName = context.CompanyName,
+                CustomerId = context.CustomerId,
+                CustomerSlug = context.CustomerSlug,
+                CustomerName = context.CustomerName,
+                PropertyId = property.Id,
+                PropertySlug = property.Slug,
+                PropertyName = property.Name
             }
         };
     }

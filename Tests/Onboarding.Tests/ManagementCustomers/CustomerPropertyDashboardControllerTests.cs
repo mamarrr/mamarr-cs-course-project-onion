@@ -1,0 +1,177 @@
+using System.Security.Claims;
+using App.BLL.ManagementCustomers;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
+using WebApp.Areas.Customer.Controllers;
+using WebApp.ViewModels.Management.CustomerProperties;
+using Xunit;
+
+namespace Onboarding.Tests.ManagementCustomers;
+
+public class CustomerPropertyDashboardControllerTests
+{
+    [Fact]
+    public async Task Index_ReturnsChallenge_WhenUserIdClaimMissing()
+    {
+        var serviceMock = new Mock<IManagementCustomersService>();
+        var controller = CreateController(serviceMock.Object, BuildPrincipal(withNameIdentifier: false));
+
+        var result = await controller.Index("north-estate", "acme", "alpha-house", CancellationToken.None);
+
+        Assert.IsType<ChallengeResult>(result);
+    }
+
+    [Fact]
+    public async Task Index_ReturnsNotFound_WhenCustomerContextMissing()
+    {
+        var serviceMock = new Mock<IManagementCustomersService>();
+        serviceMock
+            .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomerDashboardAccessResult { CustomerNotFound = true });
+
+        var controller = CreateController(serviceMock.Object, BuildPrincipal());
+
+        var result = await controller.Index("north-estate", "acme", "alpha-house", CancellationToken.None);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task Index_ReturnsForbid_WhenCustomerContextForbidden()
+    {
+        var serviceMock = new Mock<IManagementCustomersService>();
+        serviceMock
+            .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomerDashboardAccessResult { IsForbidden = true });
+
+        var controller = CreateController(serviceMock.Object, BuildPrincipal());
+
+        var result = await controller.Index("north-estate", "acme", "alpha-house", CancellationToken.None);
+
+        Assert.IsType<ForbidResult>(result);
+    }
+
+    [Fact]
+    public async Task Index_ReturnsNotFound_WhenPropertyMissing()
+    {
+        var dashboardContext = BuildDashboardContext();
+        var serviceMock = BuildServiceWithCustomerContext(dashboardContext);
+        serviceMock
+            .Setup(x => x.ResolvePropertyDashboardContextAsync(dashboardContext, "alpha-house", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomerPropertyDashboardAccessResult { PropertyNotFound = true });
+
+        var controller = CreateController(serviceMock.Object, BuildPrincipal());
+
+        var result = await controller.Index("north-estate", "acme", "alpha-house", CancellationToken.None);
+
+        Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task Index_ReturnsForbid_WhenPropertyContextUnauthorized()
+    {
+        var dashboardContext = BuildDashboardContext();
+        var serviceMock = BuildServiceWithCustomerContext(dashboardContext);
+        serviceMock
+            .Setup(x => x.ResolvePropertyDashboardContextAsync(dashboardContext, "alpha-house", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomerPropertyDashboardAccessResult { IsAuthorized = false });
+
+        var controller = CreateController(serviceMock.Object, BuildPrincipal());
+
+        var result = await controller.Index("north-estate", "acme", "alpha-house", CancellationToken.None);
+
+        Assert.IsType<ForbidResult>(result);
+    }
+
+    [Fact]
+    public async Task Index_ReturnsView_WhenAuthorized()
+    {
+        var dashboardContext = BuildDashboardContext();
+        var propertyContext = new ManagementCustomerPropertyDashboardContext
+        {
+            AppUserId = dashboardContext.AppUserId,
+            ManagementCompanyId = dashboardContext.ManagementCompanyId,
+            CompanySlug = dashboardContext.CompanySlug,
+            CompanyName = dashboardContext.CompanyName,
+            CustomerId = dashboardContext.CustomerId,
+            CustomerSlug = dashboardContext.CustomerSlug,
+            CustomerName = dashboardContext.CustomerName,
+            PropertyId = Guid.NewGuid(),
+            PropertySlug = "alpha-house",
+            PropertyName = "Alpha House"
+        };
+
+        var serviceMock = BuildServiceWithCustomerContext(dashboardContext);
+        serviceMock
+            .Setup(x => x.ResolvePropertyDashboardContextAsync(dashboardContext, "alpha-house", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomerPropertyDashboardAccessResult
+            {
+                IsAuthorized = true,
+                Context = propertyContext
+            });
+
+        var controller = CreateController(serviceMock.Object, BuildPrincipal());
+
+        var result = await controller.Index("north-estate", "acme", "alpha-house", CancellationToken.None);
+
+        var view = Assert.IsType<ViewResult>(result);
+        Assert.Equal("Index", view.ViewName);
+        var vm = Assert.IsType<PropertyDashboardPageViewModel>(view.Model);
+        Assert.Equal("alpha-house", vm.PropertySlug);
+        Assert.Equal("Dashboard", vm.CurrentSection);
+    }
+
+    private static Mock<IManagementCustomersService> BuildServiceWithCustomerContext(ManagementCustomerDashboardContext context)
+    {
+        var serviceMock = new Mock<IManagementCustomersService>();
+        serviceMock
+            .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ManagementCustomerDashboardAccessResult
+            {
+                IsAuthorized = true,
+                Context = context
+            });
+        return serviceMock;
+    }
+
+    private static ManagementCustomerDashboardContext BuildDashboardContext()
+    {
+        return new ManagementCustomerDashboardContext
+        {
+            AppUserId = Guid.NewGuid(),
+            ManagementCompanyId = Guid.NewGuid(),
+            CompanySlug = "north-estate",
+            CompanyName = "North Estate",
+            CustomerId = Guid.NewGuid(),
+            CustomerSlug = "acme",
+            CustomerName = "Acme"
+        };
+    }
+
+    private static CustomerPropertyDashboardController CreateController(IManagementCustomersService service, ClaimsPrincipal user)
+    {
+        return new CustomerPropertyDashboardController(service)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext
+                {
+                    User = user
+                }
+            }
+        };
+    }
+
+    private static ClaimsPrincipal BuildPrincipal(bool withNameIdentifier = true)
+    {
+        var claims = new List<Claim>();
+        if (withNameIdentifier)
+        {
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()));
+        }
+
+        var identity = new ClaimsIdentity(claims, "TestAuthType");
+        return new ClaimsPrincipal(identity);
+    }
+}

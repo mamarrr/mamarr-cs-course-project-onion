@@ -1,8 +1,13 @@
 using System.Security.Claims;
 using App.BLL.ManagementCustomers;
+using App.DAL.EF;
+using App.Domain;
+using Base.Domain;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 using WebApp.Areas.Management.Controllers;
 using WebApp.ViewModels.ManagementCustomers;
@@ -157,7 +162,8 @@ public class CustomersControllerTests
 
     private static CustomersController CreateController(IManagementCustomersService service, ClaimsPrincipal user)
     {
-        var controller = new CustomersController(service)
+        var dbContext = CreateDbContext();
+        var controller = new CustomersController(service, dbContext, Mock.Of<ILogger<CustomersController>>())
         {
             ControllerContext = new ControllerContext
             {
@@ -185,5 +191,22 @@ public class CustomersControllerTests
 
         var identity = new ClaimsIdentity(claims, "TestAuthType");
         return new ClaimsPrincipal(identity);
+    }
+
+    private static AppDbContext CreateDbContext()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase($"customers-controller-tests-{Guid.NewGuid()}")
+            .Options;
+
+        var db = new AppDbContext(options);
+        db.PropertyTypes.Add(new PropertyType
+        {
+            Id = Guid.NewGuid(),
+            Code = "APARTMENT_BUILDING",
+            Label = new LangStr("Apartment building")
+        });
+        db.SaveChanges();
+        return db;
     }
 }

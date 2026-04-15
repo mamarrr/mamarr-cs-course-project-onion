@@ -3,7 +3,7 @@ using App.BLL.ManagementCustomers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using WebApp.ViewModels.Management.CustomerDashboard;
+using WebApp.ViewModels.Customer.CustomerDashboard;
 
 namespace WebApp.Areas.Customer.Controllers;
 
@@ -51,12 +51,6 @@ public class CustomerDashboardController : Controller
         return await RenderSectionAsync(companySlug, customerSlug, "Tickets", cancellationToken);
     }
 
-    [HttpGet("properties")]
-    public async Task<IActionResult> Properties(string companySlug, string customerSlug, CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, customerSlug, "Properties", cancellationToken);
-    }
-
     [HttpGet("residents")]
     public async Task<IActionResult> Residents(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
@@ -93,7 +87,7 @@ public class CustomerDashboardController : Controller
             return Forbid();
         }
 
-        var vm = new ManagementCustomerDashboardPageViewModel
+        var vm = new CustomerDashboardPageViewModel
         {
             CompanySlug = access.Context.CompanySlug,
             CompanyName = access.Context.CompanyName,
@@ -105,7 +99,6 @@ public class CustomerDashboardController : Controller
         {
             "Profile" => T("Profile", "Profile"),
             "Tickets" => App.Resources.Views.UiText.Tickets,
-            "Properties" => App.Resources.Views.UiText.Properties,
             "Residents" => T("Residents", "Residents"),
             _ => App.Resources.Views.UiText.Dashboard
         };
@@ -115,7 +108,7 @@ public class CustomerDashboardController : Controller
             : sectionTitle;
 
         ViewData["CurrentSectionLabel"] = sectionTitle;
-        ViewData["CustomerLayout"] = new ManagementCustomerLayoutViewModel
+        ViewData["CustomerLayout"] = new CustomerLayoutViewModel
         {
             CompanySlug = access.Context.CompanySlug,
             CompanyName = access.Context.CompanyName,

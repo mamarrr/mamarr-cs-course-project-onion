@@ -71,3 +71,64 @@ public class ManagementCustomerCreateResult
     public Guid? CreatedCustomerId { get; set; }
     public string? ErrorMessage { get; set; }
 }
+
+public class ManagementCustomerPropertyListResult
+{
+    public IReadOnlyList<ManagementCustomerPropertyListItem> Properties { get; set; } = Array.Empty<ManagementCustomerPropertyListItem>();
+}
+
+public class ManagementCustomerPropertyListItem
+{
+    public Guid PropertyId { get; set; }
+    public string PropertySlug { get; set; } = default!;
+    public string PropertyName { get; set; } = default!;
+    public string AddressLine { get; set; } = default!;
+    public string City { get; set; } = default!;
+    public string PostalCode { get; set; } = default!;
+    public Guid PropertyTypeId { get; set; }
+    public string PropertyTypeCode { get; set; } = default!;
+    public string PropertyTypeLabel { get; set; } = default!;
+    public bool IsActive { get; set; }
+}
+
+public class ManagementCustomerPropertyCreateRequest
+{
+    public string Name { get; set; } = default!;
+    public string AddressLine { get; set; } = default!;
+    public string City { get; set; } = default!;
+    public string PostalCode { get; set; } = default!;
+    public Guid PropertyTypeId { get; set; }
+    public string? Notes { get; set; }
+    public bool IsActive { get; set; } = true;
+}
+
+public class ManagementCustomerPropertyCreateResult
+{
+    public bool Success { get; set; }
+    public bool InvalidPropertyType { get; set; }
+    public Guid? CreatedPropertyId { get; set; }
+    public string? CreatedPropertySlug { get; set; }
+    public string? ErrorMessage { get; set; }
+}
+
+public class ManagementCustomerPropertyDashboardAccessResult
+{
+    public bool IsAuthorized { get; set; }
+    public bool PropertyNotFound { get; set; }
+    public string? ErrorMessage { get; set; }
+    public ManagementCustomerPropertyDashboardContext? Context { get; set; }
+}
+
+public class ManagementCustomerPropertyDashboardContext
+{
+    public Guid AppUserId { get; set; }
+    public Guid ManagementCompanyId { get; set; }
+    public string CompanySlug { get; set; } = default!;
+    public string CompanyName { get; set; } = default!;
+    public Guid CustomerId { get; set; }
+    public string CustomerSlug { get; set; } = default!;
+    public string CustomerName { get; set; } = default!;
+    public Guid PropertyId { get; set; }
+    public string PropertySlug { get; set; } = default!;
+    public string PropertyName { get; set; } = default!;
+}

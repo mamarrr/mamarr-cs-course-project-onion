@@ -168,11 +168,29 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add property.
+        /// </summary>
+        public static string AddProperty {
+            get {
+                return ResourceManager.GetString("AddProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Address.
         /// </summary>
         public static string Address {
             get {
                 return ResourceManager.GetString("Address", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Address line.
+        /// </summary>
+        public static string AddressLine {
+            get {
+                return ResourceManager.GetString("AddressLine", resourceCulture);
             }
         }
         
@@ -263,6 +281,15 @@ namespace App.Resources.Views {
         public static string ChooseHowToContinue {
             get {
                 return ResourceManager.GetString("ChooseHowToContinue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to City.
+        /// </summary>
+        public static string City {
+            get {
+                return ResourceManager.GetString("City", resourceCulture);
             }
         }
         
@@ -546,6 +573,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string Edit {
+            get {
+                return ResourceManager.GetString("Edit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit user.
         /// </summary>
         public static string EditUser {
@@ -690,6 +726,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid Data.
+        /// </summary>
+        public static string InvalidData {
+            get {
+                return ResourceManager.GetString("InvalidData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The {0} field is not a valid e-mail address..
         /// </summary>
         public static string InvalidEmailAddress {
@@ -704,6 +749,15 @@ namespace App.Resources.Views {
         public static string InvalidEmailOrPassword {
             get {
                 return ResourceManager.GetString("InvalidEmailOrPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selected property type is invalid..
+        /// </summary>
+        public static string InvalidPropertyType {
+            get {
+                return ResourceManager.GetString("InvalidPropertyType", resourceCulture);
             }
         }
         
@@ -996,6 +1050,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No properties found..
+        /// </summary>
+        public static string NoPropertiesFound {
+            get {
+                return ResourceManager.GetString("NoPropertiesFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No resident context.
         /// </summary>
         public static string NoResidentContext {
@@ -1010,6 +1073,15 @@ namespace App.Resources.Views {
         public static string NotCurrentlyEffective {
             get {
                 return ResourceManager.GetString("NotCurrentlyEffective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notes.
+        /// </summary>
+        public static string Notes {
+            get {
+                return ResourceManager.GetString("Notes", resourceCulture);
             }
         }
         
@@ -1122,6 +1194,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Postal code.
+        /// </summary>
+        public static string PostalCode {
+            get {
+                return ResourceManager.GetString("PostalCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Privacy.
         /// </summary>
         public static string Privacy {
@@ -1154,6 +1235,51 @@ namespace App.Resources.Views {
         public static string Properties {
             get {
                 return ResourceManager.GetString("Properties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property added successfully..
+        /// </summary>
+        public static string PropertyAddedSuccessfully {
+            get {
+                return ResourceManager.GetString("PropertyAddedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property dashboard.
+        /// </summary>
+        public static string PropertyDashboard {
+            get {
+                return ResourceManager.GetString("PropertyDashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property workspace for {0} in customer {1} ({2})..
+        /// </summary>
+        public static string PropertyDashboardIntro {
+            get {
+                return ResourceManager.GetString("PropertyDashboardIntro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} content is planned and will be added in a later increment..
+        /// </summary>
+        public static string PropertySectionPlaceholder {
+            get {
+                return ResourceManager.GetString("PropertySectionPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property type.
+        /// </summary>
+        public static string PropertyType {
+            get {
+                return ResourceManager.GetString("PropertyType", resourceCulture);
             }
         }
         
@@ -1374,6 +1500,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select property type.
+        /// </summary>
+        public static string SelectPropertyType {
+            get {
+                return ResourceManager.GetString("SelectPropertyType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select role.
         /// </summary>
         public static string SelectRole {
@@ -1509,6 +1644,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to add property..
+        /// </summary>
+        public static string UnableToAddProperty {
+            get {
+                return ResourceManager.GetString("UnableToAddProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to add user..
         /// </summary>
         public static string UnableToAddUser {
@@ -1568,6 +1712,15 @@ namespace App.Resources.Views {
         public static string UnableToUpdateUser {
             get {
                 return ResourceManager.GetString("UnableToUpdateUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Units.
+        /// </summary>
+        public static string Units {
+            get {
+                return ResourceManager.GetString("Units", resourceCulture);
             }
         }
         

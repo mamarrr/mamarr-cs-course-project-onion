@@ -133,6 +133,19 @@
   <data name="Residents" xml:space="preserve"><value>Elanikud</value></data>
   <data name="CustomerDashboardIntro" xml:space="preserve"><value>Kliendi {0} töölaud ettevõttes {1}.</value></data>
   <data name="CustomerSectionPlaceholder" xml:space="preserve"><value>Sektsiooni „{0}“ sisu on planeeritud ja lisatakse järgmises etapis.</value></data>
+  <data name="City" xml:space="preserve"><value>Linn</value></data>
+  <data name="PostalCode" xml:space="preserve"><value>Postiindeks</value></data>
+  <data name="PropertyType" xml:space="preserve"><value>Kinnistu tüüp</value></data>
+  <data name="AddProperty" xml:space="preserve"><value>Lisa kinnistu</value></data>
+  <data name="SelectPropertyType" xml:space="preserve"><value>Vali kinnistu tüüp</value></data>
+  <data name="NoPropertiesFound" xml:space="preserve"><value>Kinnistuid ei leitud.</value></data>
+  <data name="PropertyDashboard" xml:space="preserve"><value>Kinnistu töölaud</value></data>
+  <data name="PropertyDashboardIntro" xml:space="preserve"><value>Kinnistu {0} töölaud kliendi {1} ettevõttes ({2}).</value></data>
+  <data name="PropertySectionPlaceholder" xml:space="preserve"><value>Sektsiooni „{0}“ sisu on planeeritud ja lisatakse järgmises etapis.</value></data>
+  <data name="Units" xml:space="preserve"><value>Üksused</value></data>
+  <data name="InvalidPropertyType" xml:space="preserve"><value>Valitud kinnistu tüüp on vigane.</value></data>
+  <data name="UnableToAddProperty" xml:space="preserve"><value>Kinnistu lisamine ebaõnnestus.</value></data>
+  <data name="PropertyAddedSuccessfully" xml:space="preserve"><value>Kinnistu lisati edukalt.</value></data>
   <data name="FlowInfoCreateAccountOrLogin" xml:space="preserve"><value>Konto loomiseks või jätkamiseks logi sisse.</value></data>
   <data name="RegistrationSuccessfulPleaseLogin" xml:space="preserve"><value>Registreerimine õnnestus. Palun logi sisse.</value></data>
   <data name="InvalidEmailOrPassword" xml:space="preserve"><value>Vale e-post või parool.</value></data>
@@ -169,6 +182,7 @@
   <data name="VatNumber" xml:space="preserve"><value>Käibemaksunumber</value></data>
   <data name="Phone" xml:space="preserve"><value>Telefon</value></data>
   <data name="Address" xml:space="preserve"><value>Aadress</value></data>
+  <data name="AddressLine" xml:space="preserve"><value>Aadressirida</value></data>
   <data name="RequiredField" xml:space="preserve"><value>Väli {0} on kohustuslik.</value></data>
   <data name="StringLengthBetween" xml:space="preserve"><value>Välja {0} pikkus peab olema vahemikus {2} kuni {1} märki.</value></data>
   <data name="InvalidEmailAddress" xml:space="preserve"><value>Väli {0} ei ole korrektne e-posti aadress.</value></data>
@@ -180,4 +194,10 @@
   <data name="JoinRequestNotFound" xml:space="preserve"><value>Liitumistaotlust ei leitud.</value></data>
   <data name="JoinRequestAlreadyResolved" xml:space="preserve"><value>Liitumistaotlus on juba lahendatud.</value></data>
   <data name="RequesterAlreadyMemberOfThisCompany" xml:space="preserve"><value>Taotleja on juba selle ettevõtte liige.</value></data>
+  <data name="InvalidData" xml:space="preserve">
+    <value>Vigased andmed</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Märkused</value>
+  </data>
 </root>
