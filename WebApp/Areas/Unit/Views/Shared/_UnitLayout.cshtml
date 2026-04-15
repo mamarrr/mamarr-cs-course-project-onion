@@ -1,7 +1,7 @@
 @using System.Threading
-@using WebApp.Services.ManagementLayout
+@using WebApp.Services.SharedLayout
 @using WebApp.ViewModels.Unit
-@inject IManagementLayoutViewModelProvider LayoutModelProvider
+@inject IWorkspaceLayoutContextProvider LayoutModelProvider
 @{
     var unitLayoutVm = ViewData["UnitLayout"] as UnitLayoutViewModel;
     if (unitLayoutVm == null)

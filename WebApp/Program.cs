@@ -20,6 +20,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApp;
 using WebApp.Middleware;
 using WebApp.Services.ManagementLayout;
+using WebApp.Services.SharedLayout;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +78,7 @@ builder.Services.AddScoped<IManagementResidentAccessService, ManagementResidentA
 builder.Services.AddScoped<IManagementResidentService, ManagementResidentService>();
 builder.Services.AddScoped<IManagementPropertyUnitService, ManagementPropertyUnitService>();
 builder.Services.AddScoped<IManagementUnitDashboardService, ManagementPropertyUnitService>();
+builder.Services.AddScoped<IWorkspaceLayoutContextProvider, WorkspaceLayoutContextProvider>();
 builder.Services.AddScoped<IManagementLayoutViewModelProvider, ManagementLayoutViewModelProvider>();
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims

@@ -1,22 +1,21 @@
 using System.Security.Claims;
 using App.BLL.Onboarding;
-using Microsoft.AspNetCore.Localization;
-using Microsoft.Extensions.Options;
+using WebApp.Services.SharedLayout;
 using WebApp.ViewModels.Management.Layout;
 
 namespace WebApp.Services.ManagementLayout;
 
 public class ManagementLayoutViewModelProvider : IManagementLayoutViewModelProvider
 {
+    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
     private readonly IUserContextCatalogService _userContextCatalogService;
-    private readonly IOptions<RequestLocalizationOptions> _localizationOptions;
 
     public ManagementLayoutViewModelProvider(
-        IUserContextCatalogService userContextCatalogService,
-        IOptions<RequestLocalizationOptions> localizationOptions)
+        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider,
+        IUserContextCatalogService userContextCatalogService)
     {
+        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
         _userContextCatalogService = userContextCatalogService;
-        _localizationOptions = localizationOptions;
     }
 
     public async Task<ManagementLayoutViewModel> BuildAsync(
@@ -27,63 +26,55 @@ public class ManagementLayoutViewModelProvider : IManagementLayoutViewModelProvi
         string currentUiCultureName,
         CancellationToken cancellationToken = default)
     {
+        var sharedContext = await _workspaceLayoutContextProvider.BuildAsync(
+            user,
+            currentController,
+            companySlug,
+            currentPathAndQuery,
+            currentUiCultureName,
+            cancellationToken);
+
+        var canManageCompanyUsers = false;
         var appUserIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!Guid.TryParse(appUserIdValue, out var appUserId))
+        if (Guid.TryParse(appUserIdValue, out var appUserId))
         {
-            return BuildEmpty(currentController, companySlug, currentPathAndQuery, currentUiCultureName);
+            var contextCatalog = await _userContextCatalogService.GetUserContextCatalogAsync(appUserId, companySlug, cancellationToken);
+            canManageCompanyUsers = contextCatalog.CanManageCompanyUsers;
         }
-
-        var contextCatalog = await _userContextCatalogService.GetUserContextCatalogAsync(appUserId, companySlug, cancellationToken);
-
-        var cultureOptions = _localizationOptions.Value.SupportedUICultures!
-            .Select(c => new ManagementLayoutCultureOptionViewModel
-            {
-                Value = c.Name,
-                Text = c.NativeName,
-                IsCurrent = currentUiCultureName == c.Name
-            })
-            .ToList();
 
         return new ManagementLayoutViewModel
         {
-            CurrentController = currentController,
-            CompanySlug = companySlug,
-            ManagementCompanyName = contextCatalog.ManagementCompanyName,
-            CanManageCompanyUsers = contextCatalog.CanManageCompanyUsers,
-            HasResidentContext = contextCatalog.HasResidentContext,
-            CurrentPathAndQuery = currentPathAndQuery,
-            CurrentUiCultureName = currentUiCultureName,
-            ManagementContexts = contextCatalog.ManagementCompanies
+            CurrentController = sharedContext.CurrentController,
+            CompanySlug = sharedContext.CompanySlug,
+            ManagementCompanyName = sharedContext.WorkspaceName,
+            CanManageCompanyUsers = canManageCompanyUsers,
+            HasResidentContext = sharedContext.HasResidentContext,
+            CurrentPathAndQuery = sharedContext.CurrentPathAndQuery,
+            CurrentUiCultureName = sharedContext.CurrentUiCultureName,
+            ManagementContexts = sharedContext.ManagementContexts
                 .Select(x => new ManagementLayoutContextOptionViewModel
                 {
-                    Id = x.ManagementCompanyId,
+                    Id = x.Id,
                     Slug = x.Slug,
-                    Name = x.CompanyName
-                })
-                .ToList(),
-            CustomerContexts = contextCatalog.Customers
-                .Select(x => new ManagementLayoutContextOptionViewModel
-                {
-                    Id = x.CustomerId,
                     Name = x.Name
                 })
                 .ToList(),
-            CultureOptions = cultureOptions
-        };
-    }
-
-    private static ManagementLayoutViewModel BuildEmpty(
-        string currentController,
-        string companySlug,
-        string currentPathAndQuery,
-        string currentUiCultureName)
-    {
-        return new ManagementLayoutViewModel
-        {
-            CurrentController = currentController,
-            CompanySlug = companySlug,
-            CurrentPathAndQuery = currentPathAndQuery,
-            CurrentUiCultureName = currentUiCultureName
+            CustomerContexts = sharedContext.CustomerContexts
+                .Select(x => new ManagementLayoutContextOptionViewModel
+                {
+                    Id = x.Id,
+                    Slug = x.Slug,
+                    Name = x.Name
+                })
+                .ToList(),
+            CultureOptions = sharedContext.CultureOptions
+                .Select(x => new ManagementLayoutCultureOptionViewModel
+                {
+                    Value = x.Value,
+                    Text = x.Text,
+                    IsCurrent = x.IsCurrent
+                })
+                .ToList()
         };
     }
 }
