@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using WebApp.Services.ManagementLayout;
 using WebApp.ViewModels.ManagementUsers;
 
 namespace WebApp.Areas.Management.Controllers;
@@ -10,13 +11,15 @@ namespace WebApp.Areas.Management.Controllers;
 [Area("Management")]
 [Authorize]
 [Route("m/{companySlug}/users")]
-public class UsersController : Controller
+public class UsersController : ManagementPageShellController
 {
     private readonly IManagementUserAdminService _managementUserAdminService;
 
     public UsersController(
         IManagementUserAdminService managementUserAdminService,
-        ILogger<UsersController> logger)
+        ILogger<UsersController> logger,
+        IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
+        : base(managementLayoutViewModelProvider)
     {
         _managementUserAdminService = managementUserAdminService;
     }
@@ -99,9 +102,10 @@ public class UsersController : Controller
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
-        var vm = MapEditViewModel(auth.Context!, editResult.Data!);
+        var title = App.Resources.Views.UiText.EditUser;
+        var vm = await MapEditViewModelAsync(auth.Context!, editResult.Data!, title, cancellationToken);
 
-        ViewData["Title"] = App.Resources.Views.UiText.EditUser;
+        ViewData["Title"] = title;
         return View(vm);
     }
 
@@ -133,6 +137,8 @@ public class UsersController : Controller
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
+        var title = App.Resources.Views.UiText.EditUser;
+
         if (!ModelState.IsValid || vm.RoleId == null)
         {
             if (vm.RoleId == null)
@@ -140,8 +146,8 @@ public class UsersController : Controller
                 ModelState.AddModelError(nameof(vm.RoleId), App.Resources.Views.UiText.RoleRequired);
             }
 
-            HydrateEditViewModel(vm, auth.Context!, editResult.Data!);
-            ViewData["Title"] = App.Resources.Views.UiText.EditUser;
+            await HydrateEditViewModelAsync(vm, auth.Context!, editResult.Data!, title, cancellationToken);
+            ViewData["Title"] = title;
             return View(vm);
         }
 
@@ -157,8 +163,8 @@ public class UsersController : Controller
         if (!updateResult.Success)
         {
             ModelState.AddModelError(string.Empty, updateResult.ErrorMessage ?? App.Resources.Views.UiText.UnableToUpdateUser);
-            HydrateEditViewModel(vm, auth.Context!, editResult.Data!);
-            ViewData["Title"] = App.Resources.Views.UiText.EditUser;
+            await HydrateEditViewModelAsync(vm, auth.Context!, editResult.Data!, title, cancellationToken);
+            ViewData["Title"] = title;
             return View(vm);
         }
 
@@ -205,8 +211,9 @@ public class UsersController : Controller
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
-        var pageVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, cancellationToken);
-        ViewData["Title"] = App.Resources.Views.UiText.TransferOwnership;
+        var title = App.Resources.Views.UiText.TransferOwnership;
+        var pageVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, title, cancellationToken);
+        ViewData["Title"] = title;
         return View(pageVm);
     }
 
@@ -224,6 +231,8 @@ public class UsersController : Controller
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
+        var title = App.Resources.Views.UiText.TransferOwnership;
+
         if (!ModelState.IsValid || vm.TargetMembershipId == null)
         {
             if (vm.TargetMembershipId == null)
@@ -231,8 +240,8 @@ public class UsersController : Controller
                 ModelState.AddModelError(nameof(vm.TargetMembershipId), App.Resources.Views.UiText.NewOwnerRequired);
             }
 
-            var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, cancellationToken, vm);
-            ViewData["Title"] = App.Resources.Views.UiText.TransferOwnership;
+            var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, title, cancellationToken, vm);
+            ViewData["Title"] = title;
             return View(invalidVm);
         }
 
@@ -244,8 +253,8 @@ public class UsersController : Controller
         if (!result.Success)
         {
             ModelState.AddModelError(string.Empty, result.ErrorMessage ?? App.Resources.Views.UiText.UnableToTransferOwnership);
-            var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, cancellationToken, vm);
-            ViewData["Title"] = App.Resources.Views.UiText.TransferOwnership;
+            var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, title, cancellationToken, vm);
+            ViewData["Title"] = title;
             return View(invalidVm);
         }
 
@@ -336,11 +345,11 @@ public class UsersController : Controller
         var members = await _managementUserAdminService.ListCompanyMembersAsync(context, cancellationToken);
         var pendingRequests = await _managementUserAdminService.GetPendingAccessRequestsAsync(context, cancellationToken);
         var availableRoles = await BuildRoleSelectListAsync(await _managementUserAdminService.GetAddRoleOptionsAsync(context, cancellationToken), addUserOverride?.RoleId);
-
-        ViewData["Title"] = App.Resources.Views.UiText.Users;
+        var title = App.Resources.Views.UiText.Users;
 
         return new ManagementUsersPageViewModel
         {
+            PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CurrentActorIsOwner = context.IsOwner,
@@ -383,6 +392,7 @@ public class UsersController : Controller
 
     private async Task<TransferOwnershipPageViewModel> BuildTransferOwnershipPageViewModelAsync(
         ManagementUserAdminAuthorizedContext context,
+        string title,
         CancellationToken cancellationToken,
         TransferOwnershipInputViewModel? transferOverride = null)
     {
@@ -392,6 +402,7 @@ public class UsersController : Controller
 
         return new TransferOwnershipPageViewModel
         {
+            PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CurrentOwnerName = currentOwner.FullName,
@@ -408,12 +419,15 @@ public class UsersController : Controller
         };
     }
 
-    private static EditManagementUserViewModel MapEditViewModel(
+    private async Task<EditManagementUserViewModel> MapEditViewModelAsync(
         ManagementUserAdminAuthorizedContext context,
-        ManagementUserEditModel data)
+        ManagementUserEditModel data,
+        string title,
+        CancellationToken cancellationToken)
     {
         return new EditManagementUserViewModel
         {
+            PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
             MembershipId = data.MembershipId,
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
@@ -436,14 +450,16 @@ public class UsersController : Controller
             IsActive = data.IsActive,
             ValidFrom = data.ValidFrom,
             ValidTo = data.ValidTo,
-            AvailableRoles = BuildRoleSelectListAsync(data.AvailableRoleOptions, data.RoleId).GetAwaiter().GetResult()
+            AvailableRoles = await BuildRoleSelectListAsync(data.AvailableRoleOptions, data.RoleId)
         };
     }
 
-    private static void HydrateEditViewModel(
+    private async Task HydrateEditViewModelAsync(
         EditManagementUserViewModel vm,
         ManagementUserAdminAuthorizedContext context,
-        ManagementUserEditModel data)
+        ManagementUserEditModel data,
+        string title,
+        CancellationToken cancellationToken)
     {
         vm.CompanySlug = context.CompanySlug;
         vm.CompanyName = context.CompanyName;
@@ -461,7 +477,8 @@ public class UsersController : Controller
         vm.CanDeactivate = data.CanDeactivate;
         vm.OwnershipTransferRequired = data.OwnershipTransferRequired;
         vm.ProtectedReason = data.ProtectedReason;
-        vm.AvailableRoles = BuildRoleSelectListAsync(data.AvailableRoleOptions, vm.RoleId).GetAwaiter().GetResult();
+        vm.AvailableRoles = await BuildRoleSelectListAsync(data.AvailableRoleOptions, vm.RoleId);
+        vm.PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken);
     }
 
     private static Task<IReadOnlyList<SelectListItem>> BuildRoleSelectListAsync(
@@ -486,4 +503,3 @@ public class UsersController : Controller
         return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
     }
 }
-

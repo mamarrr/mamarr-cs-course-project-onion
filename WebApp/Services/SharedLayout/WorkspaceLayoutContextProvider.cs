@@ -21,37 +21,34 @@ public class WorkspaceLayoutContextProvider : IWorkspaceLayoutContextProvider
 
     public async Task<WorkspaceLayoutContextViewModel> BuildAsync(
         ClaimsPrincipal user,
-        string currentController,
-        string companySlug,
-        string currentPathAndQuery,
-        string currentUiCultureName,
+        WorkspaceLayoutRequestViewModel request,
         CancellationToken cancellationToken = default)
     {
         var appUserIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!Guid.TryParse(appUserIdValue, out var appUserId))
         {
-            return BuildEmpty(currentController, companySlug, currentPathAndQuery, currentUiCultureName);
+            return BuildEmpty(request);
         }
 
-        var contextCatalog = await _userContextCatalogService.GetUserContextCatalogAsync(appUserId, companySlug, cancellationToken);
+        var contextCatalog = await _userContextCatalogService.GetUserContextCatalogAsync(appUserId, request.CompanySlug, cancellationToken);
 
         var cultureOptions = _localizationOptions.Value.SupportedUICultures!
             .Select(c => new WorkspaceLayoutCultureOptionViewModel
             {
                 Value = c.Name,
                 Text = c.NativeName,
-                IsCurrent = currentUiCultureName == c.Name
+                IsCurrent = request.CurrentUiCultureName == c.Name
             })
             .ToList();
 
         return new WorkspaceLayoutContextViewModel
         {
-            CurrentController = currentController,
-            CompanySlug = companySlug,
+            CurrentController = request.CurrentController,
+            CompanySlug = request.CompanySlug,
             WorkspaceName = contextCatalog.ManagementCompanyName,
             HasResidentContext = contextCatalog.HasResidentContext,
-            CurrentPathAndQuery = currentPathAndQuery,
-            CurrentUiCultureName = currentUiCultureName,
+            CurrentPathAndQuery = request.CurrentPathAndQuery,
+            CurrentUiCultureName = request.CurrentUiCultureName,
             ManagementContexts = contextCatalog.ManagementCompanies
                 .Select(x => new WorkspaceLayoutContextOptionViewModel
                 {
@@ -71,18 +68,14 @@ public class WorkspaceLayoutContextProvider : IWorkspaceLayoutContextProvider
         };
     }
 
-    private static WorkspaceLayoutContextViewModel BuildEmpty(
-        string currentController,
-        string companySlug,
-        string currentPathAndQuery,
-        string currentUiCultureName)
+    private static WorkspaceLayoutContextViewModel BuildEmpty(WorkspaceLayoutRequestViewModel request)
     {
         return new WorkspaceLayoutContextViewModel
         {
-            CurrentController = currentController,
-            CompanySlug = companySlug,
-            CurrentPathAndQuery = currentPathAndQuery,
-            CurrentUiCultureName = currentUiCultureName
+            CurrentController = request.CurrentController,
+            CompanySlug = request.CompanySlug,
+            CurrentPathAndQuery = request.CurrentPathAndQuery,
+            CurrentUiCultureName = request.CurrentUiCultureName
         };
     }
 }

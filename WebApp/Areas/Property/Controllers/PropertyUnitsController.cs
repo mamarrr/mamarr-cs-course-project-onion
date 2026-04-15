@@ -3,8 +3,10 @@ using App.BLL.Management;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Services.SharedLayout;
 using WebApp.ViewModels.Management.CustomerProperties;
 using WebApp.ViewModels.Property.PropertyUnits;
+using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Property.Controllers;
 
@@ -16,15 +18,18 @@ public class PropertyUnitsController : Controller
     private readonly IManagementCustomerAccessService _managementCustomerAccessService;
     private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
     private readonly IManagementPropertyUnitService _managementPropertyUnitService;
+    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public PropertyUnitsController(
         IManagementCustomerAccessService managementCustomerAccessService,
         IManagementCustomerPropertyService managementCustomerPropertyService,
-        IManagementPropertyUnitService managementPropertyUnitService)
+        IManagementPropertyUnitService managementPropertyUnitService,
+        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _managementCustomerAccessService = managementCustomerAccessService;
         _managementCustomerPropertyService = managementCustomerPropertyService;
         _managementPropertyUnitService = managementPropertyUnitService;
+        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
     [HttpGet("")]
@@ -163,10 +168,7 @@ public class PropertyUnitsController : Controller
         AddUnitViewModel? addUnitOverride = null)
     {
         var listResult = await _managementPropertyUnitService.ListUnitsAsync(context, cancellationToken);
-
-        ViewData["Title"] = UiText.Units;
-        ViewData["CurrentSectionLabel"] = UiText.Units;
-        ViewData["PropertyLayout"] = new PropertyLayoutViewModel
+        var propertyLayout = new PropertyLayoutViewModel
         {
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
@@ -177,8 +179,16 @@ public class PropertyUnitsController : Controller
             CurrentSection = "Units"
         };
 
+        var pageShell = await BuildPageShellAsync(
+            UiText.Units,
+            UiText.Units,
+            propertyLayout.CompanySlug,
+            cancellationToken,
+            propertyLayout);
+
         return new PropertyUnitsPageViewModel
         {
+            PageShell = pageShell,
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CustomerSlug = context.CustomerSlug,
@@ -194,6 +204,38 @@ public class PropertyUnitsController : Controller
                 SizeM2 = x.SizeM2
             }).ToList(),
             AddUnit = addUnitOverride ?? new AddUnitViewModel()
+        };
+    }
+
+    private async Task<PropertyPageShellViewModel> BuildPageShellAsync(
+        string title,
+        string currentSectionLabel,
+        string companySlug,
+        CancellationToken cancellationToken,
+        PropertyLayoutViewModel propertyLayout)
+    {
+        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
+            User,
+            BuildWorkspaceRequest(companySlug),
+            cancellationToken);
+
+        return new PropertyPageShellViewModel
+        {
+            Title = title,
+            CurrentSectionLabel = currentSectionLabel,
+            LayoutContext = layoutContext,
+            Property = propertyLayout
+        };
+    }
+
+    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
+    {
+        return new WorkspaceLayoutRequestViewModel
+        {
+            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
+            CompanySlug = companySlug,
+            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
+            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
         };
     }
 

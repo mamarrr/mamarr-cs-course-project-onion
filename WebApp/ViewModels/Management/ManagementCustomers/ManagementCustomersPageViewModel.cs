@@ -1,11 +1,15 @@
 using System.ComponentModel.DataAnnotations;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.ViewModels.ManagementCustomers;
 
-public class ManagementCustomersPageViewModel
+public class ManagementCustomersPageViewModel : IHasPageShell<ManagementPageShellViewModel>
 {
+    [ValidateNever]
+    public ManagementPageShellViewModel PageShell { get; init; } = new();
+
     [ValidateNever]
     public string CompanySlug { get; set; } = default!;
 

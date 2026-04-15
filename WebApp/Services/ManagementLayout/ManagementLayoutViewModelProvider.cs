@@ -2,6 +2,7 @@ using System.Security.Claims;
 using App.BLL.Onboarding;
 using WebApp.Services.SharedLayout;
 using WebApp.ViewModels.Management.Layout;
+using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Services.ManagementLayout;
 
@@ -20,25 +21,19 @@ public class ManagementLayoutViewModelProvider : IManagementLayoutViewModelProvi
 
     public async Task<ManagementLayoutViewModel> BuildAsync(
         ClaimsPrincipal user,
-        string currentController,
-        string companySlug,
-        string currentPathAndQuery,
-        string currentUiCultureName,
+        ManagementLayoutRequestViewModel request,
         CancellationToken cancellationToken = default)
     {
         var sharedContext = await _workspaceLayoutContextProvider.BuildAsync(
             user,
-            currentController,
-            companySlug,
-            currentPathAndQuery,
-            currentUiCultureName,
+            request,
             cancellationToken);
 
         var canManageCompanyUsers = false;
         var appUserIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (Guid.TryParse(appUserIdValue, out var appUserId))
         {
-            var contextCatalog = await _userContextCatalogService.GetUserContextCatalogAsync(appUserId, companySlug, cancellationToken);
+            var contextCatalog = await _userContextCatalogService.GetUserContextCatalogAsync(appUserId, request.CompanySlug, cancellationToken);
             canManageCompanyUsers = contextCatalog.CanManageCompanyUsers;
         }
 

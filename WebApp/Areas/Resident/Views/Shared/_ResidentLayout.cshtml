@@ -1,23 +1,8 @@
-@using System.Threading
-@using WebApp.Services.SharedLayout
-@using WebApp.ViewModels.Resident
-@inject IWorkspaceLayoutContextProvider LayoutModelProvider
+@model WebApp.ViewModels.Shared.Layout.IHasPageShell<WebApp.ViewModels.Shared.Layout.ResidentPageShellViewModel>
 @{
-    var residentLayoutVm = ViewData["ResidentLayout"] as ResidentLayoutViewModel;
-    if (residentLayoutVm == null)
-    {
-        throw new InvalidOperationException("Resident layout context is missing.");
-    }
-
-    var currentPathAndQuery = $"{Context.Request.Path}{Context.Request.QueryString}";
-    var currentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name;
-    var sharedLayoutVm = await LayoutModelProvider.BuildAsync(
-        User,
-        ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty,
-        residentLayoutVm.CompanySlug,
-        currentPathAndQuery,
-        currentUiCultureName,
-        Context.RequestAborted);
+    var pageShell = Model.PageShell;
+    var residentLayoutVm = pageShell.Resident;
+    var sharedLayoutVm = pageShell.LayoutContext;
 }
 
 <!DOCTYPE html>

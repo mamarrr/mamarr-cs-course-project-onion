@@ -3,7 +3,9 @@ using App.BLL.Management;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using WebApp.Services.SharedLayout;
 using WebApp.ViewModels.Customer.CustomerDashboard;
+using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Customer.Controllers;
 
@@ -13,15 +15,18 @@ namespace WebApp.Areas.Customer.Controllers;
 public class CustomerDashboardController : Controller
 {
     private readonly IManagementCustomerAccessService _managementCustomerAccessService;
+    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
     private readonly ILogger<CustomerDashboardController> _logger;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
     public CustomerDashboardController(
         IManagementCustomerAccessService managementCustomerAccessService,
+        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider,
         ILogger<CustomerDashboardController> logger,
         IWebHostEnvironment webHostEnvironment)
     {
         _managementCustomerAccessService = managementCustomerAccessService;
+        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
         _logger = logger;
         _webHostEnvironment = webHostEnvironment;
     }
@@ -87,14 +92,6 @@ public class CustomerDashboardController : Controller
             return Forbid();
         }
 
-        var vm = new CustomerDashboardPageViewModel
-        {
-            CompanySlug = access.Context.CompanySlug,
-            CompanyName = access.Context.CompanyName,
-            CustomerSlug = access.Context.CustomerSlug,
-            CustomerName = access.Context.CustomerName
-        };
-
         var sectionTitle = currentSection switch
         {
             "Profile" => T("Profile", "Profile"),
@@ -103,18 +100,33 @@ public class CustomerDashboardController : Controller
             _ => App.Resources.Views.UiText.Dashboard
         };
 
-        ViewData["Title"] = currentSection == "Dashboard"
+        var title = currentSection == "Dashboard"
             ? T("CustomerDashboard", "Customer dashboard")
             : sectionTitle;
 
-        ViewData["CurrentSectionLabel"] = sectionTitle;
-        ViewData["CustomerLayout"] = new CustomerLayoutViewModel
+        var customerLayout = new CustomerLayoutViewModel
         {
             CompanySlug = access.Context.CompanySlug,
             CompanyName = access.Context.CompanyName,
             CustomerSlug = access.Context.CustomerSlug,
             CustomerName = access.Context.CustomerName,
             CurrentSection = currentSection
+        };
+
+        var pageShell = await BuildPageShellAsync(
+            title,
+            sectionTitle,
+            customerLayout.CompanySlug,
+            cancellationToken,
+            customerLayout);
+
+        var vm = new CustomerDashboardPageViewModel
+        {
+            PageShell = pageShell,
+            CompanySlug = access.Context.CompanySlug,
+            CompanyName = access.Context.CompanyName,
+            CustomerSlug = access.Context.CustomerSlug,
+            CustomerName = access.Context.CustomerName
         };
 
         _logger.LogInformation(
@@ -125,6 +137,38 @@ public class CustomerDashboardController : Controller
             "Index");
 
         return View("Index", vm);
+    }
+
+    private async Task<CustomerPageShellViewModel> BuildPageShellAsync(
+        string title,
+        string currentSectionLabel,
+        string companySlug,
+        CancellationToken cancellationToken,
+        CustomerLayoutViewModel customerLayout)
+    {
+        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
+            User,
+            BuildWorkspaceRequest(companySlug),
+            cancellationToken);
+
+        return new CustomerPageShellViewModel
+        {
+            Title = title,
+            CurrentSectionLabel = currentSectionLabel,
+            LayoutContext = layoutContext,
+            Customer = customerLayout
+        };
+    }
+
+    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
+    {
+        return new WorkspaceLayoutRequestViewModel
+        {
+            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
+            CompanySlug = companySlug,
+            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
+            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
+        };
     }
 
     private void LogViewCandidates(string currentSection)
@@ -163,4 +207,3 @@ public class CustomerDashboardController : Controller
         return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
     }
 }
-

@@ -1,23 +1,8 @@
-@using System.Threading
-@using WebApp.Services.SharedLayout
-@using WebApp.ViewModels.Management.CustomerProperties
-@inject IWorkspaceLayoutContextProvider LayoutModelProvider
+@model WebApp.ViewModels.Shared.Layout.IHasPageShell<WebApp.ViewModels.Shared.Layout.PropertyPageShellViewModel>
 @{
-    var propertyLayoutVm = ViewData["PropertyLayout"] as PropertyLayoutViewModel;
-    if (propertyLayoutVm == null)
-    {
-        throw new InvalidOperationException("Property layout context is missing.");
-    }
-
-    var currentPathAndQuery = $"{Context.Request.Path}{Context.Request.QueryString}";
-    var currentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name;
-    var sharedLayoutVm = await LayoutModelProvider.BuildAsync(
-        User,
-        ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty,
-        propertyLayoutVm.CompanySlug,
-        currentPathAndQuery,
-        currentUiCultureName,
-        Context.RequestAborted);
+    var pageShell = Model.PageShell;
+    var propertyLayoutVm = pageShell.Property;
+    var sharedLayoutVm = pageShell.LayoutContext;
 }
 
 <!DOCTYPE html>

@@ -3,6 +3,7 @@ using App.BLL.Management;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Services.ManagementLayout;
 using WebApp.ViewModels.ManagementResidents;
 
 namespace WebApp.Areas.Management.Controllers;
@@ -10,7 +11,7 @@ namespace WebApp.Areas.Management.Controllers;
 [Area("Management")]
 [Authorize]
 [Route("m/{companySlug}/residents")]
-public class ResidentsController : Controller
+public class ResidentsController : ManagementPageShellController
 {
     private readonly IManagementResidentAccessService _managementResidentAccessService;
     private readonly IManagementResidentService _managementResidentService;
@@ -19,7 +20,9 @@ public class ResidentsController : Controller
     public ResidentsController(
         IManagementResidentAccessService managementResidentAccessService,
         IManagementResidentService managementResidentService,
-        ILogger<ResidentsController> logger)
+        ILogger<ResidentsController> logger,
+        IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
+        : base(managementLayoutViewModelProvider)
     {
         _managementResidentAccessService = managementResidentAccessService;
         _managementResidentService = managementResidentService;
@@ -150,10 +153,11 @@ public class ResidentsController : Controller
         AddManagementResidentViewModel? addResidentOverride = null)
     {
         var listResult = await _managementResidentService.ListAsync(context, cancellationToken);
-        ViewData["Title"] = T("Residents", "Residents");
+        var title = T("Residents", "Residents");
 
         return new ManagementResidentsPageViewModel
         {
+            PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             Residents = listResult.Residents

@@ -750,6 +750,7 @@ Minimum expected coverage areas:
 - Keep migrations and seed updates synchronized with schema intent.
 - Avoid using ViewBag, ViewData. TempData used to pass confirmation messages, error info, or small data across a redirect is fine.
 - Use strongly typed ViewModels always for MVC views and controller actions unless a framework constraint makes that impossible.
+- When the UI needs shared layout or page-shell data, compose ViewModels from small reusable layout and page-shell types such as `PageShell`, rather than duplicating the same navigation and context fields across each page model.
 - Do not use `[Bind]` if at all possible. Prefer dedicated strongly typed ViewModels with explicit mapping instead.
 
 ## 15. Definition of done

@@ -7,9 +7,6 @@ public interface IWorkspaceLayoutContextProvider
 {
     Task<WorkspaceLayoutContextViewModel> BuildAsync(
         ClaimsPrincipal user,
-        string currentController,
-        string companySlug,
-        string currentPathAndQuery,
-        string currentUiCultureName,
+        WorkspaceLayoutRequestViewModel request,
         CancellationToken cancellationToken = default);
 }

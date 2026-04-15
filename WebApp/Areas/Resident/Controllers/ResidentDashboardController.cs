@@ -3,7 +3,9 @@ using App.BLL.Management;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Services.SharedLayout;
 using WebApp.ViewModels.Resident;
+using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Resident.Controllers;
 
@@ -13,10 +15,14 @@ namespace WebApp.Areas.Resident.Controllers;
 public class ResidentDashboardController : Controller
 {
     private readonly IManagementResidentAccessService _managementResidentAccessService;
+    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
-    public ResidentDashboardController(IManagementResidentAccessService managementResidentAccessService)
+    public ResidentDashboardController(
+        IManagementResidentAccessService managementResidentAccessService,
+        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _managementResidentAccessService = managementResidentAccessService;
+        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
     [HttpGet("")]
@@ -87,11 +93,11 @@ public class ResidentDashboardController : Controller
             _ => UiText.Dashboard
         };
 
-        ViewData["Title"] = currentSection == "Dashboard"
+        var title = currentSection == "Dashboard"
             ? T("ResidentDashboard", "Resident dashboard")
             : currentSectionLabel;
-        ViewData["CurrentSectionLabel"] = currentSectionLabel;
-        ViewData["ResidentLayout"] = new ResidentLayoutViewModel
+
+        var residentLayout = new ResidentLayoutViewModel
         {
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
@@ -105,21 +111,57 @@ public class ResidentDashboardController : Controller
             CurrentSection = currentSection
         };
 
+        var pageShell = await BuildPageShellAsync(
+            title,
+            currentSectionLabel,
+            residentLayout.CompanySlug,
+            cancellationToken,
+            residentLayout);
+
         var vm = new ResidentDashboardPageViewModel
         {
+            PageShell = pageShell,
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             ResidentIdCode = context.ResidentIdCode,
-            ResidentDisplayName = string.IsNullOrWhiteSpace(context.FullName)
-                ? context.ResidentIdCode
-                : context.FullName,
-            ResidentSupportingText = string.IsNullOrWhiteSpace(context.FullName)
-                ? null
-                : context.ResidentIdCode,
+            ResidentDisplayName = residentLayout.ResidentDisplayName,
+            ResidentSupportingText = residentLayout.ResidentSupportingText,
             CurrentSection = currentSection
         };
 
         return View("Index", vm);
+    }
+
+    private async Task<ResidentPageShellViewModel> BuildPageShellAsync(
+        string title,
+        string currentSectionLabel,
+        string companySlug,
+        CancellationToken cancellationToken,
+        ResidentLayoutViewModel residentLayout)
+    {
+        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
+            User,
+            BuildWorkspaceRequest(companySlug),
+            cancellationToken);
+
+        return new ResidentPageShellViewModel
+        {
+            Title = title,
+            CurrentSectionLabel = currentSectionLabel,
+            LayoutContext = layoutContext,
+            Resident = residentLayout
+        };
+    }
+
+    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
+    {
+        return new WorkspaceLayoutRequestViewModel
+        {
+            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
+            CompanySlug = companySlug,
+            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
+            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
+        };
     }
 
     private Guid? GetAppUserId()

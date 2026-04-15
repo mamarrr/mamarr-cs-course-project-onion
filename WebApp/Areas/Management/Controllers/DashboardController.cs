@@ -2,6 +2,7 @@ using App.BLL.Management;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Services.ManagementLayout;
 using WebApp.ViewModels.Management.Dashboard;
 
 namespace WebApp.Areas.Management.Controllers;
@@ -9,11 +10,14 @@ namespace WebApp.Areas.Management.Controllers;
 [Area("Management")]
 [Authorize]
 [Route("m/{companySlug}")]
-public class DashboardController : Controller
+public class DashboardController : ManagementPageShellController
 {
     private readonly IManagementUserAdminService _managementUserAdminService;
 
-    public DashboardController(IManagementUserAdminService managementUserAdminService)
+    public DashboardController(
+        IManagementUserAdminService managementUserAdminService,
+        IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
+        : base(managementLayoutViewModelProvider)
     {
         _managementUserAdminService = managementUserAdminService;
     }
@@ -39,13 +43,15 @@ public class DashboardController : Controller
             return Forbid();
         }
 
+        var title = App.Resources.Views.UiText.Dashboard;
         var vm = new ManagementDashboardPageViewModel
         {
-            CompanySlug = auth.Context!.CompanySlug,
+            PageShell = await BuildManagementPageShellAsync(title, title, auth.Context!.CompanySlug, cancellationToken),
+            CompanySlug = auth.Context.CompanySlug,
             CompanyName = auth.Context.CompanyName
         };
 
-        ViewData["Title"] = App.Resources.Views.UiText.Dashboard;
+        ViewData["Title"] = title;
         return View(vm);
     }
 
@@ -55,4 +61,3 @@ public class DashboardController : Controller
         return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
     }
 }
-

@@ -1,11 +1,16 @@
 using System.ComponentModel.DataAnnotations;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using WebApp.ViewModels.Management.CustomerProperties;
+using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.ViewModels.Property.PropertyUnits;
 
-public class PropertyUnitsPageViewModel
+public class PropertyUnitsPageViewModel : IHasPageShell<PropertyPageShellViewModel>
 {
+    [ValidateNever]
+    public PropertyPageShellViewModel PageShell { get; init; } = new();
+
     [ValidateNever]
     public string CompanySlug { get; set; } = string.Empty;
 

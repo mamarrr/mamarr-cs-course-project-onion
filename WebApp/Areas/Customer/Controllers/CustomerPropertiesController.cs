@@ -5,8 +5,10 @@ using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApp.Services.SharedLayout;
 using WebApp.ViewModels.Customer.CustomerDashboard;
-using WebApp.ViewModels.Management.CustomerProperties;
+using WebApp.ViewModels.Customer.CustomerProperties;
+using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Customer.Controllers;
 
@@ -17,17 +19,20 @@ public class CustomerPropertiesController : Controller
 {
     private readonly IManagementCustomerAccessService _managementCustomerAccessService;
     private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
     private readonly AppDbContext _dbContext;
     private readonly ILogger<CustomerPropertiesController> _logger;
 
     public CustomerPropertiesController(
         IManagementCustomerAccessService managementCustomerAccessService,
         IManagementCustomerPropertyService managementCustomerPropertyService,
+        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider,
         AppDbContext dbContext,
         ILogger<CustomerPropertiesController> logger)
     {
         _managementCustomerAccessService = managementCustomerAccessService;
         _managementCustomerPropertyService = managementCustomerPropertyService;
+        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
         _dbContext = dbContext;
         _logger = logger;
     }
@@ -145,9 +150,7 @@ public class CustomerPropertiesController : Controller
         AddPropertyViewModel? addPropertyOverride = null)
     {
         var listResult = await _managementCustomerPropertyService.ListPropertiesAsync(context, cancellationToken);
-
-        ViewData["Title"] = UiText.Properties;
-        ViewData["CustomerLayout"] = new CustomerLayoutViewModel
+        var customerLayout = new CustomerLayoutViewModel
         {
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
@@ -156,8 +159,16 @@ public class CustomerPropertiesController : Controller
             CurrentSection = "Properties"
         };
 
+        var pageShell = await BuildPageShellAsync(
+            UiText.Properties,
+            UiText.Properties,
+            customerLayout.CompanySlug,
+            cancellationToken,
+            customerLayout);
+
         return new CustomerPropertiesPageViewModel
         {
+            PageShell = pageShell,
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CustomerSlug = context.CustomerSlug,
@@ -183,6 +194,38 @@ public class CustomerPropertiesController : Controller
                     Label = x.Label.ToString()
                 })
                 .ToListAsync(cancellationToken)
+        };
+    }
+
+    private async Task<CustomerPageShellViewModel> BuildPageShellAsync(
+        string title,
+        string currentSectionLabel,
+        string companySlug,
+        CancellationToken cancellationToken,
+        CustomerLayoutViewModel customerLayout)
+    {
+        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
+            User,
+            BuildWorkspaceRequest(companySlug),
+            cancellationToken);
+
+        return new CustomerPageShellViewModel
+        {
+            Title = title,
+            CurrentSectionLabel = currentSectionLabel,
+            LayoutContext = layoutContext,
+            Customer = customerLayout
+        };
+    }
+
+    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
+    {
+        return new WorkspaceLayoutRequestViewModel
+        {
+            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
+            CompanySlug = companySlug,
+            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
+            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
         };
     }
 

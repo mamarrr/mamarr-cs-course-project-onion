@@ -1,11 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.ViewModels.ManagementUsers;
 
-public class ManagementUsersPageViewModel
+public class ManagementUsersPageViewModel : IHasPageShell<ManagementPageShellViewModel>
 {
+    public ManagementPageShellViewModel PageShell { get; init; } = new();
     public string CompanySlug { get; set; } = default!;
     public string CompanyName { get; set; } = default!;
     public bool CurrentActorIsOwner { get; set; }
@@ -66,8 +68,9 @@ public class AddManagementUserViewModel
     public bool IsActive { get; set; } = true;
 }
 
-public class EditManagementUserViewModel
+public class EditManagementUserViewModel : IHasPageShell<ManagementPageShellViewModel>
 {
+    public ManagementPageShellViewModel PageShell { get; set; } = new();
     public Guid MembershipId { get; set; }
     public string CompanySlug { get; set; } = default!;
     public string? CompanyName { get; set; }
@@ -110,8 +113,9 @@ public class EditManagementUserViewModel
     public IReadOnlyList<SelectListItem> AvailableRoles { get; set; } = Array.Empty<SelectListItem>();
 }
 
-public class TransferOwnershipPageViewModel
+public class TransferOwnershipPageViewModel : IHasPageShell<ManagementPageShellViewModel>
 {
+    public ManagementPageShellViewModel PageShell { get; init; } = new();
     public string CompanySlug { get; set; } = default!;
     public string CompanyName { get; set; } = default!;
     public string CurrentOwnerName { get; set; } = default!;

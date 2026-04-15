@@ -1,23 +1,8 @@
-@using System.Threading
-@using WebApp.Services.SharedLayout
-@using WebApp.ViewModels.Customer.CustomerDashboard
-@inject IWorkspaceLayoutContextProvider LayoutModelProvider
+@model WebApp.ViewModels.Shared.Layout.IHasPageShell<WebApp.ViewModels.Shared.Layout.CustomerPageShellViewModel>
 @{
-    var customerLayoutVm = ViewData["CustomerLayout"] as CustomerLayoutViewModel;
-    if (customerLayoutVm == null)
-    {
-        throw new InvalidOperationException("Customer layout context is missing.");
-    }
-
-    var currentPathAndQuery = $"{Context.Request.Path}{Context.Request.QueryString}";
-    var currentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name;
-    var sharedLayoutVm = await LayoutModelProvider.BuildAsync(
-        User,
-        ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty,
-        customerLayoutVm.CompanySlug,
-        currentPathAndQuery,
-        currentUiCultureName,
-        Context.RequestAborted);
+    var pageShell = Model.PageShell;
+    var customerLayoutVm = pageShell.Customer;
+    var sharedLayoutVm = pageShell.LayoutContext;
 }
 
 <!DOCTYPE html>
@@ -25,7 +10,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - @App.Resources.Views.UiText.Management</title>
+    <title>@pageShell.Title - @App.Resources.Views.UiText.Management</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/management-ui.css" asp-append-version="true" />
@@ -171,7 +156,7 @@
         </aside>
 
         <main class="management-main">
-            <h1 class="management-page-title">@ViewData["Title"]</h1>
+            <h1 class="management-page-title">@pageShell.Title</h1>
             @RenderBody()
         </main>
     </div>

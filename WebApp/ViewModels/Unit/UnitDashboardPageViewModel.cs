@@ -1,7 +1,10 @@
+using WebApp.ViewModels.Shared.Layout;
+
 namespace WebApp.ViewModels.Unit;
 
-public class UnitDashboardPageViewModel
+public class UnitDashboardPageViewModel : IHasPageShell<UnitPageShellViewModel>
 {
+    public UnitPageShellViewModel PageShell { get; init; } = new();
     public string CompanySlug { get; init; } = string.Empty;
     public string CompanyName { get; init; } = string.Empty;
     public string CustomerSlug { get; init; } = string.Empty;

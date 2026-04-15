@@ -3,7 +3,9 @@ using App.BLL.Management;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Services.SharedLayout;
 using WebApp.ViewModels.Management.CustomerProperties;
+using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Property.Controllers;
 
@@ -14,13 +16,16 @@ public class PropertyDashboardController : Controller
 {
     private readonly IManagementCustomerAccessService _managementCustomerAccessService;
     private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public PropertyDashboardController(
         IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService)
+        IManagementCustomerPropertyService managementCustomerPropertyService,
+        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _managementCustomerAccessService = managementCustomerAccessService;
         _managementCustomerPropertyService = managementCustomerPropertyService;
+        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
     [HttpGet("")]
@@ -107,8 +112,7 @@ public class PropertyDashboardController : Controller
             return Forbid();
         }
 
-        ViewData["Title"] = T("PropertyDashboard", "Property dashboard");
-        ViewData["CurrentSectionLabel"] = currentSection switch
+        var currentSectionLabel = currentSection switch
         {
             "Profile" => UiText.Profile,
             "Residents" => UiText.Residents,
@@ -116,7 +120,7 @@ public class PropertyDashboardController : Controller
             _ => UiText.Dashboard
         };
 
-        ViewData["PropertyLayout"] = new PropertyLayoutViewModel
+        var propertyLayout = new PropertyLayoutViewModel
         {
             CompanySlug = propertyAccess.Context.CompanySlug,
             CompanyName = propertyAccess.Context.CompanyName,
@@ -127,8 +131,16 @@ public class PropertyDashboardController : Controller
             CurrentSection = currentSection
         };
 
+        var pageShell = await BuildPageShellAsync(
+            T("PropertyDashboard", "Property dashboard"),
+            currentSectionLabel,
+            propertyLayout.CompanySlug,
+            cancellationToken,
+            propertyLayout);
+
         var vm = new PropertyDashboardPageViewModel
         {
+            PageShell = pageShell,
             CompanySlug = propertyAccess.Context.CompanySlug,
             CompanyName = propertyAccess.Context.CompanyName,
             CustomerSlug = propertyAccess.Context.CustomerSlug,
@@ -139,6 +151,38 @@ public class PropertyDashboardController : Controller
         };
 
         return View("Index", vm);
+    }
+
+    private async Task<PropertyPageShellViewModel> BuildPageShellAsync(
+        string title,
+        string currentSectionLabel,
+        string companySlug,
+        CancellationToken cancellationToken,
+        PropertyLayoutViewModel propertyLayout)
+    {
+        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
+            User,
+            BuildWorkspaceRequest(companySlug),
+            cancellationToken);
+
+        return new PropertyPageShellViewModel
+        {
+            Title = title,
+            CurrentSectionLabel = currentSectionLabel,
+            LayoutContext = layoutContext,
+            Property = propertyLayout
+        };
+    }
+
+    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
+    {
+        return new WorkspaceLayoutRequestViewModel
+        {
+            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
+            CompanySlug = companySlug,
+            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
+            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
+        };
     }
 
     private Guid? GetAppUserId()

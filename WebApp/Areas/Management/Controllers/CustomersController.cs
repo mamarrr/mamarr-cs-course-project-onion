@@ -5,6 +5,7 @@ using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApp.Services.ManagementLayout;
 using WebApp.ViewModels.ManagementCustomers;
 
 namespace WebApp.Areas.Management.Controllers;
@@ -12,7 +13,7 @@ namespace WebApp.Areas.Management.Controllers;
 [Area("Management")]
 [Authorize]
 [Route("m/{companySlug}/customers")]
-public class CustomersController : Controller
+public class CustomersController : ManagementPageShellController
 {
     private readonly IManagementCustomerAccessService _managementCustomerAccessService;
     private readonly IManagementCustomerService _managementCustomerService;
@@ -23,7 +24,9 @@ public class CustomersController : Controller
         IManagementCustomerAccessService managementCustomerAccessService,
         IManagementCustomerService managementCustomerService,
         AppDbContext dbContext,
-        ILogger<CustomersController> logger)
+        ILogger<CustomersController> logger,
+        IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
+        : base(managementLayoutViewModelProvider)
     {
         _managementCustomerAccessService = managementCustomerAccessService;
         _managementCustomerService = managementCustomerService;
@@ -79,7 +82,7 @@ public class CustomersController : Controller
                 companySlug,
                 modelErrorCount,
                 modelErrors);
-            
+
             var invalidVm = await BuildPageViewModelAsync(authResult.context!, cancellationToken, vm.AddCustomer);
             return View(nameof(Index), invalidVm);
         }
@@ -186,10 +189,11 @@ public class CustomersController : Controller
                     })
                     .ToList());
 
-        ViewData["Title"] = UiText.Customers;
+        var title = UiText.Customers;
 
         return new ManagementCustomersPageViewModel
         {
+            PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             Customers = listResult.Customers.Select(x => new ManagementCustomerListItemViewModel
@@ -218,4 +222,3 @@ public class CustomersController : Controller
         return UiText.ResourceManager.GetString(key) ?? fallback;
     }
 }
-
