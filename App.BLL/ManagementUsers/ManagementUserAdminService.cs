@@ -506,26 +506,6 @@ public class ManagementUserAdminService : IManagementUserAdminService
             };
         }
 
-        var originalJobTitle = membership.JobTitle;
-        var originalJobTitleJson = JsonSerializer.Serialize(originalJobTitle, (JsonSerializerOptions?)null);
-
-        membership.ManagementCompanyRoleId = request.RoleId;
-
-        var updatedJobTitle = new LangStr();
-        foreach (var translation in originalJobTitle)
-        {
-            updatedJobTitle[translation.Key] = translation.Value;
-        }
-
-        updatedJobTitle.SetTranslation(request.JobTitle.Trim());
-        membership.JobTitle = updatedJobTitle;
-
-        var updatedJobTitleJson = JsonSerializer.Serialize(updatedJobTitle, (JsonSerializerOptions?)null);
-
-        membership.IsActive = request.IsActive;
-        membership.ValidFrom = request.ValidFrom;
-        membership.ValidTo = request.ValidTo;
-
         var entry = _dbContext.Entry(membership);
         var jobTitleProperty = entry.Property(nameof(ManagementCompanyUser.JobTitle));
         var roleProperty = entry.Property(nameof(ManagementCompanyUser.ManagementCompanyRoleId));
@@ -533,10 +513,15 @@ public class ManagementUserAdminService : IManagementUserAdminService
         var validFromProperty = entry.Property(nameof(ManagementCompanyUser.ValidFrom));
         var validToProperty = entry.Property(nameof(ManagementCompanyUser.ValidTo));
 
-        if (!string.Equals(originalJobTitleJson, updatedJobTitleJson, StringComparison.Ordinal))
+        membership.ManagementCompanyRoleId = request.RoleId;
+        if (membership.JobTitle.ToString() != request.JobTitle.ToString())
         {
             jobTitleProperty.IsModified = true;
+            membership.JobTitle.SetTranslation(request.JobTitle);
         }
+        membership.IsActive = request.IsActive;
+        membership.ValidFrom = request.ValidFrom;
+        membership.ValidTo = request.ValidTo;
 
         var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
 

@@ -165,6 +165,7 @@ Primary implementation references:
 - `Base.Domain/LangStr.cs`
 - `WebApp/Program.cs`
 - `WebApp/Areas/Admin/Controllers/ContactTypeController.cs`
+- `App.BLL/ManagementUsers/ManagementUserAdminService.cs`
 - `WebApp/ViewModels/Onboarding/LoginViewModel.cs`
 - `WebApp/ViewModels/Onboarding/RegisterViewModel.cs`
 - `WebApp/ViewModels/Onboarding/CreateManagementCompanyViewModel.cs`
@@ -345,8 +346,9 @@ Reusable recipe for any localized entity:
 4. Create POST maps the string to `LangStr`.
 5. Edit view model uses plain `string` for current-culture input.
 6. Edit POST calls `SetTranslation(...)` on the existing entity field.
-7. Views render localized value with `ToString()`.
-8. Tests verify translation preservation and fallback.
+7. For tracked entities, ensure EF marks the `LangStr` property modified when required.
+8. Views render localized value with `ToString()`.
+9. Tests verify translation preservation and fallback.
 
 #### 9.2.11 Common LangStr mistakes to avoid
 
@@ -530,7 +532,11 @@ Correct pattern:
 
 ```csharp
 public LangStr JobTitle { get; set; } = new();
+
+// create
 entity.JobTitle = vm.JobTitle;
+
+// edit
 entity.JobTitle.SetTranslation(vm.JobTitle);
 @item.JobTitle.ToString()
 ```
@@ -563,65 +569,65 @@ Lookup tables from `Docs/schema.sql` are global shared static data and are not t
 
 General seeding rules:
 - `CODE` values are immutable after release.
-- Labels are localizable `LangStr` JSON with `en` and `et-ee` keys.
+- Labels are localizable `LangStr` JSON with `en` and `et` keys.
 - Seeding is idempotent by `CODE`.
 - Where `CODE` unique DB constraint is missing, enforce uniqueness in seed logic and add migration constraint when feasible.
 
 Required initial lookup records:
 
 - `MCOMPANY_ROLE`
-  - `MANAGER` => `{ "en": "Manager", "et-ee": "Haldur" }`
-  - `SUPPORT` => `{ "en": "Support specialist", "et-ee": "Tugispetsialist" }`
-  - `FINANCE` => `{ "en": "Finance", "et-ee": "Finants" }`
+  - `MANAGER` => `{ "en": "Manager", "et": "Haldur" }`
+  - `SUPPORT` => `{ "en": "Support specialist", "et": "Tugispetsialist" }`
+  - `FINANCE` => `{ "en": "Finance", "et": "Finants" }`
 
 - `CUSTOMER_REPRESENTATIVE_ROLE`
-  - `PRIMARY` => `{ "en": "Primary representative", "et-ee": "Peamine esindaja" }`
-  - `TECHNICAL` => `{ "en": "Technical representative", "et-ee": "Tehniline esindaja" }`
-  - `BILLING` => `{ "en": "Billing representative", "et-ee": "Arvelduse esindaja" }`
+  - `PRIMARY` => `{ "en": "Primary representative", "et": "Peamine esindaja" }`
+  - `TECHNICAL` => `{ "en": "Technical representative", "et": "Tehniline esindaja" }`
+  - `BILLING` => `{ "en": "Billing representative", "et": "Arvelduse esindaja" }`
 
 - `CONTACT_TYPE`
-  - `EMAIL` => `{ "en": "Email", "et-ee": "E-post" }`
-  - `PHONE` => `{ "en": "Phone", "et-ee": "Telefon" }`
-  - `ADDRESS` => `{ "en": "Address", "et-ee": "Aadress" }`
+  - `EMAIL` => `{ "en": "Email", "et": "E-post" }`
+  - `PHONE` => `{ "en": "Phone", "et": "Telefon" }`
+  - `ADDRESS` => `{ "en": "Address", "et": "Aadress" }`
 
 - `PROPERTY_TYPE`
-  - `APARTMENT_BUILDING` => `{ "en": "Apartment building", "et-ee": "Korterelamu" }`
-  - `PRIVATE_HOUSE` => `{ "en": "Private house", "et-ee": "Eramu" }`
-  - `COMMERCIAL` => `{ "en": "Commercial property", "et-ee": "Ärikinnisvara" }`
+  - `APARTMENT_BUILDING` => `{ "en": "Apartment building", "et": "Korterelamu" }`
+  - `PRIVATE_HOUSE` => `{ "en": "Private house", "et": "Eramu" }`
+  - `COMMERCIAL` => `{ "en": "Commercial property", "et": "Ärikinnisvara" }`
 
 - `LEASE_ROLE`
-  - `TENANT` => `{ "en": "Tenant", "et-ee": "Üürnik" }`
-  - `OWNER` => `{ "en": "Owner", "et-ee": "Omanik" }`
-  - `CO_TENANT` => `{ "en": "Co-tenant", "et-ee": "Kaasüürnik" }`
+  - `TENANT` => `{ "en": "Tenant", "et": "Üürnik" }`
+  - `OWNER` => `{ "en": "Owner", "et": "Omanik" }`
+  - `CO_TENANT` => `{ "en": "Co-tenant", "et": "Kaasüürnik" }`
   - Note: enforce `CODE` uniqueness in seeding logic.
 
 - `TICKET_CATEGORY`
-  - `PLUMBING` => `{ "en": "Plumbing", "et-ee": "Torutööd" }`
-  - `ELECTRICAL` => `{ "en": "Electrical", "et-ee": "Elektritööd" }`
-  - `HVAC` => `{ "en": "Heating and ventilation", "et-ee": "Küte ja ventilatsioon" }`
-  - `GENERAL` => `{ "en": "General maintenance", "et-ee": "Üldhooldus" }`
+  - `PLUMBING` => `{ "en": "Plumbing", "et": "Torutööd" }`
+  - `ELECTRICAL` => `{ "en": "Electrical", "et": "Elektritööd" }`
+  - `HVAC` => `{ "en": "Heating and ventilation", "et": "Küte ja ventilatsioon" }`
+  - `GENERAL` => `{ "en": "General maintenance", "et": "Üldhooldus" }`
 
 - `TICKET_STATUS`
-  - `CREATED` => `{ "en": "Created", "et-ee": "Loodud" }`
-  - `ASSIGNED` => `{ "en": "Assigned", "et-ee": "Määratud" }`
-  - `SCHEDULED` => `{ "en": "Scheduled", "et-ee": "Planeeritud" }`
-  - `IN_PROGRESS` => `{ "en": "In progress", "et-ee": "Töös" }`
-  - `COMPLETED` => `{ "en": "Completed", "et-ee": "Lõpetatud" }`
-  - `CLOSED` => `{ "en": "Closed", "et-ee": "Suletud" }`
+  - `CREATED` => `{ "en": "Created", "et": "Loodud" }`
+  - `ASSIGNED` => `{ "en": "Assigned", "et": "Määratud" }`
+  - `SCHEDULED` => `{ "en": "Scheduled", "et": "Planeeritud" }`
+  - `IN_PROGRESS` => `{ "en": "In progress", "et": "Töös" }`
+  - `COMPLETED` => `{ "en": "Completed", "et": "Lõpetatud" }`
+  - `CLOSED` => `{ "en": "Closed", "et": "Suletud" }`
   - Note: enforce `CODE` uniqueness in seeding logic.
 
 - `TICKET_PRIORITY`
-  - `LOW` => `{ "en": "Low", "et-ee": "Madal" }`
-  - `MEDIUM` => `{ "en": "Medium", "et-ee": "Keskmine" }`
-  - `HIGH` => `{ "en": "High", "et-ee": "Kõrge" }`
-  - `URGENT` => `{ "en": "Urgent", "et-ee": "Kiire" }`
+  - `LOW` => `{ "en": "Low", "et": "Madal" }`
+  - `MEDIUM` => `{ "en": "Medium", "et": "Keskmine" }`
+  - `HIGH` => `{ "en": "High", "et": "Kõrge" }`
+  - `URGENT` => `{ "en": "Urgent", "et": "Kiire" }`
   - Note: enforce `CODE` uniqueness in seeding logic.
 
 - `WORK_STATUS`
-  - `SCHEDULED` => `{ "en": "Scheduled", "et-ee": "Planeeritud" }`
-  - `IN_PROGRESS` => `{ "en": "In progress", "et-ee": "Töös" }`
-  - `DONE` => `{ "en": "Done", "et-ee": "Valmis" }`
-  - `CANCELLED` => `{ "en": "Cancelled", "et-ee": "Tühistatud" }`
+  - `SCHEDULED` => `{ "en": "Scheduled", "et": "Planeeritud" }`
+  - `IN_PROGRESS` => `{ "en": "In progress", "et": "Töös" }`
+  - `DONE` => `{ "en": "Done", "et": "Valmis" }`
+  - `CANCELLED` => `{ "en": "Cancelled", "et": "Tühistatud" }`
 
 ## 12. UI guidance
 
