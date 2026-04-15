@@ -195,6 +195,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add unit.
+        /// </summary>
+        public static string AddUnit {
+            get {
+                return ResourceManager.GetString("AddUnit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Already have an account? Login.
         /// </summary>
         public static string AlreadyHaveAccountLogin {
@@ -564,6 +573,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Details.
+        /// </summary>
+        public static string Details {
+            get {
+                return ResourceManager.GetString("Details", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Development Mode.
         /// </summary>
         public static string DevelopmentMode {
@@ -632,6 +650,15 @@ namespace App.Resources.Views {
         public static string FirstName {
             get {
                 return ResourceManager.GetString("FirstName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Floor.
+        /// </summary>
+        public static string FloorNr {
+            get {
+                return ResourceManager.GetString("FloorNr", resourceCulture);
             }
         }
         
@@ -1086,6 +1113,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No units found..
+        /// </summary>
+        public static string NoUnitsFound {
+            get {
+                return ResourceManager.GetString("NoUnitsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Onboarding.
         /// </summary>
         public static string Onboarding {
@@ -1280,6 +1316,15 @@ namespace App.Resources.Views {
         public static string PropertyType {
             get {
                 return ResourceManager.GetString("PropertyType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property units.
+        /// </summary>
+        public static string PropertyUnits {
+            get {
+                return ResourceManager.GetString("PropertyUnits", resourceCulture);
             }
         }
         
@@ -1536,6 +1581,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Size (m²).
+        /// </summary>
+        public static string SizeM2 {
+            get {
+                return ResourceManager.GetString("SizeM2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Start setup.
         /// </summary>
         public static string StartSetup {
@@ -1568,6 +1622,15 @@ namespace App.Resources.Views {
         public static string SubmitJoinRequest {
             get {
                 return ResourceManager.GetString("SubmitJoinRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tenants.
+        /// </summary>
+        public static string Tenants {
+            get {
+                return ResourceManager.GetString("Tenants", resourceCulture);
             }
         }
         
@@ -1653,6 +1716,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to add unit..
+        /// </summary>
+        public static string UnableToAddUnit {
+            get {
+                return ResourceManager.GetString("UnableToAddUnit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to add user..
         /// </summary>
         public static string UnableToAddUser {
@@ -1667,6 +1739,24 @@ namespace App.Resources.Views {
         public static string UnableToApproveAccessRequest {
             get {
                 return ResourceManager.GetString("UnableToApproveAccessRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load unit..
+        /// </summary>
+        public static string UnableToLoadUnit {
+            get {
+                return ResourceManager.GetString("UnableToLoadUnit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load units..
+        /// </summary>
+        public static string UnableToLoadUnits {
+            get {
+                return ResourceManager.GetString("UnableToLoadUnits", resourceCulture);
             }
         }
         
@@ -1716,11 +1806,74 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unit.
+        /// </summary>
+        public static string Unit {
+            get {
+                return ResourceManager.GetString("Unit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unit added successfully..
+        /// </summary>
+        public static string UnitAddedSuccessfully {
+            get {
+                return ResourceManager.GetString("UnitAddedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unit dashboard.
+        /// </summary>
+        public static string UnitDashboard {
+            get {
+                return ResourceManager.GetString("UnitDashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unit workspace for {0} in property {1}, customer {2} ({3})..
+        /// </summary>
+        public static string UnitDashboardIntro {
+            get {
+                return ResourceManager.GetString("UnitDashboardIntro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unit number.
+        /// </summary>
+        public static string UnitNr {
+            get {
+                return ResourceManager.GetString("UnitNr", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Units.
         /// </summary>
         public static string Units {
             get {
                 return ResourceManager.GetString("Units", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} content is planned and will be added in a later increment..
+        /// </summary>
+        public static string UnitSectionPlaceholder {
+            get {
+                return ResourceManager.GetString("UnitSectionPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unit workspace.
+        /// </summary>
+        public static string UnitWorkspace {
+            get {
+                return ResourceManager.GetString("UnitWorkspace", resourceCulture);
             }
         }
         

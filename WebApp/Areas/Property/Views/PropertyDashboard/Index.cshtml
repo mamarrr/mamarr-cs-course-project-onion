@@ -9,48 +9,6 @@
     <p class="management-muted mb-0">@string.Format(T("PropertyDashboardIntro", "Property workspace for {0} in customer {1} ({2})."), Model.PropertyName, Model.CustomerName, Model.CompanyName)</p>
 </section>
 
-<nav class="management-tabs mb-4" aria-label="Property navigation">
-    <a class="management-tab @(Model.CurrentSection == "Dashboard" ? "active" : string.Empty)"
-       asp-area="Property"
-       asp-controller="PropertyDashboard"
-       asp-action="Index"
-       asp-route-companySlug="@Model.CompanySlug"
-       asp-route-customerSlug="@Model.CustomerSlug"
-       asp-route-propertySlug="@Model.PropertySlug">@App.Resources.Views.UiText.Dashboard</a>
-
-    <a class="management-tab @(Model.CurrentSection == "Profile" ? "active" : string.Empty)"
-       asp-area="Property"
-       asp-controller="PropertyDashboard"
-       asp-action="Profile"
-       asp-route-companySlug="@Model.CompanySlug"
-       asp-route-customerSlug="@Model.CustomerSlug"
-       asp-route-propertySlug="@Model.PropertySlug">@T("Profile", "Profile")</a>
-
-    <a class="management-tab @(Model.CurrentSection == "Units" ? "active" : string.Empty)"
-       asp-area="Property"
-       asp-controller="PropertyDashboard"
-       asp-action="Units"
-       asp-route-companySlug="@Model.CompanySlug"
-       asp-route-customerSlug="@Model.CustomerSlug"
-       asp-route-propertySlug="@Model.PropertySlug">@T("Units", "Units")</a>
-
-    <a class="management-tab @(Model.CurrentSection == "Residents" ? "active" : string.Empty)"
-       asp-area="Property"
-       asp-controller="PropertyDashboard"
-       asp-action="Residents"
-       asp-route-companySlug="@Model.CompanySlug"
-       asp-route-customerSlug="@Model.CustomerSlug"
-       asp-route-propertySlug="@Model.PropertySlug">@App.Resources.Views.UiText.Residents</a>
-
-    <a class="management-tab @(Model.CurrentSection == "Tickets" ? "active" : string.Empty)"
-       asp-area="Property"
-       asp-controller="PropertyDashboard"
-       asp-action="Tickets"
-       asp-route-companySlug="@Model.CompanySlug"
-       asp-route-customerSlug="@Model.CustomerSlug"
-       asp-route-propertySlug="@Model.PropertySlug">@App.Resources.Views.UiText.Tickets</a>
-</nav>
-
 <section class="management-card">
     <h3>@currentSectionLabel</h3>
     <p class="management-muted mb-0">@string.Format(T("PropertySectionPlaceholder", "{0} content is planned and will be added in a later increment."), currentSectionLabel)</p>

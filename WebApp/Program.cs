@@ -73,6 +73,8 @@ builder.Services.AddScoped<IManagementCustomersService, ManagementCustomersServi
 builder.Services.AddScoped<IManagementCustomerAccessService, ManagementCustomersService>();
 builder.Services.AddScoped<IManagementCustomerService, ManagementCustomersService>();
 builder.Services.AddScoped<IManagementCustomerPropertyService, ManagementCustomersService>();
+builder.Services.AddScoped<IManagementPropertyUnitService, ManagementPropertyUnitService>();
+builder.Services.AddScoped<IManagementUnitDashboardService, ManagementPropertyUnitService>();
 builder.Services.AddScoped<IManagementLayoutViewModelProvider, ManagementLayoutViewModelProvider>();
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims

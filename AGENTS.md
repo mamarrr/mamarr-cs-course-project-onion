@@ -56,6 +56,7 @@ Service size guideline:
 - API controllers return versioned DTOs.
 - Do not return domain entities from public API endpoints.
 - MVC and future API controllers must map transport-specific request models to shared BLL contracts independently.
+- MVC controllers must be split by subpages or feature sections and kept focused. Do not accumulate unrelated section actions in one controller when the area uses separate subpage navigation, for example keeping dashboard actions separate from units actions.
 
 ## 4. Multi-tenancy and IDOR prevention policy
 

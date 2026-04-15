@@ -43,16 +43,6 @@ public class PropertyDashboardController : Controller
         return await RenderSectionAsync(companySlug, customerSlug, propertySlug, "Profile", cancellationToken);
     }
 
-    [HttpGet("units")]
-    public async Task<IActionResult> Units(
-        string companySlug,
-        string customerSlug,
-        string propertySlug,
-        CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, customerSlug, propertySlug, "Units", cancellationToken);
-    }
-
     [HttpGet("residents")]
     public async Task<IActionResult> Residents(
         string companySlug,
@@ -121,7 +111,6 @@ public class PropertyDashboardController : Controller
         ViewData["CurrentSectionLabel"] = currentSection switch
         {
             "Profile" => UiText.Profile,
-            "Units" => T("Units", "Units"),
             "Residents" => UiText.Residents,
             "Tickets" => UiText.Tickets,
             _ => UiText.Dashboard
@@ -163,4 +152,3 @@ public class PropertyDashboardController : Controller
         return UiText.ResourceManager.GetString(key) ?? fallback;
     }
 }
-
