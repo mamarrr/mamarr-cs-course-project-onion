@@ -80,6 +80,11 @@ builder.Services.AddScoped<IManagementPropertyUnitService, ManagementPropertyUni
 builder.Services.AddScoped<IManagementUnitDashboardService, ManagementPropertyUnitService>();
 builder.Services.AddScoped<IManagementLeaseService, ManagementLeaseService>();
 builder.Services.AddScoped<IManagementLeaseSearchService, ManagementLeaseSearchService>();
+builder.Services.AddScoped<IManagementCompanyProfileService, ManagementCompanyProfileService>();
+builder.Services.AddScoped<IManagementCustomerProfileService, ManagementCustomerProfileService>();
+builder.Services.AddScoped<IManagementPropertyProfileService, ManagementPropertyProfileService>();
+builder.Services.AddScoped<IManagementUnitProfileService, ManagementUnitProfileService>();
+builder.Services.AddScoped<IManagementResidentProfileService, ManagementResidentProfileService>();
 builder.Services.AddScoped<IWorkspaceLayoutContextProvider, WorkspaceLayoutContextProvider>();
 builder.Services.AddScoped<IManagementLayoutViewModelProvider, ManagementLayoutViewModelProvider>();
 

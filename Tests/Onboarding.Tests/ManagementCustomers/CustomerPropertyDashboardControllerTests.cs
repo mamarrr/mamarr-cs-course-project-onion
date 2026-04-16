@@ -4,7 +4,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using WebApp.Areas.Customer.Controllers;
+using WebApp.Areas.Property.Controllers;
+using WebApp.Services.SharedLayout;
 using WebApp.ViewModels.Management.CustomerProperties;
+using WebApp.ViewModels.Shared.Layout;
 using Xunit;
 
 namespace Onboarding.Tests.ManagementCustomers;
@@ -149,9 +152,24 @@ public class CustomerPropertyDashboardControllerTests
         };
     }
 
-    private static CustomerPropertyDashboardController CreateController(IManagementCustomersService service, ClaimsPrincipal user)
+    private static PropertyDashboardController CreateController(IManagementCustomersService service, ClaimsPrincipal user)
     {
-        return new CustomerPropertyDashboardController(service)
+        var accessService = new Mock<IManagementCustomerAccessService>();
+        accessService
+            .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid _, string companySlug, string customerSlug, CancellationToken _) =>
+                service.ResolveDashboardAccessAsync(Guid.Empty, companySlug, customerSlug, CancellationToken.None).GetAwaiter().GetResult());
+
+        var propertyService = new Mock<IManagementCustomerPropertyService>();
+        propertyService
+            .Setup(x => x.ResolvePropertyDashboardContextAsync(It.IsAny<ManagementCustomerDashboardContext>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ManagementCustomerDashboardContext context, string propertySlug, CancellationToken _) =>
+                service.ResolvePropertyDashboardContextAsync(context, propertySlug, CancellationToken.None).GetAwaiter().GetResult());
+
+        return new PropertyDashboardController(
+            accessService.Object,
+            propertyService.Object,
+            Mock.Of<IWorkspaceLayoutContextProvider>(x => x.BuildAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<WorkspaceLayoutRequestViewModel>(), It.IsAny<CancellationToken>()) == Task.FromResult(new WorkspaceLayoutContextViewModel())))
         {
             ControllerContext = new ControllerContext
             {

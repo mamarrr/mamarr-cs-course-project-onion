@@ -564,6 +564,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Review and update the current customer profile details..
+        /// </summary>
+        public static string CustomerProfileDescription {
+            get {
+                return ResourceManager.GetString("CustomerProfileDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Customer registry.
         /// </summary>
         public static string CustomerRegistry {
@@ -618,6 +627,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Danger zone.
+        /// </summary>
+        public static string DangerZone {
+            get {
+                return ResourceManager.GetString("DangerZone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Dashboard.
         /// </summary>
         public static string Dashboard {
@@ -641,6 +659,24 @@ namespace App.Resources.Views {
         public static string Delete {
             get {
                 return ResourceManager.GetString("Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete confirmation.
+        /// </summary>
+        public static string DeleteConfirmation {
+            get {
+                return ResourceManager.GetString("DeleteConfirmation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete confirmation does not match..
+        /// </summary>
+        public static string DeleteConfirmationDoesNotMatch {
+            get {
+                return ResourceManager.GetString("DeleteConfirmationDoesNotMatch", resourceCulture);
             }
         }
         
@@ -1064,6 +1100,15 @@ namespace App.Resources.Views {
         public static string ManagementArea {
             get {
                 return ResourceManager.GetString("ManagementArea", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review and update the current management company profile details..
+        /// </summary>
+        public static string ManagementCompanyProfileDescription {
+            get {
+                return ResourceManager.GetString("ManagementCompanyProfileDescription", resourceCulture);
             }
         }
         
@@ -1518,6 +1563,33 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Profile deleted successfully..
+        /// </summary>
+        public static string ProfileDeletedSuccessfully {
+            get {
+                return ResourceManager.GetString("ProfileDeletedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deleting this profile is permanent and cannot be undone..
+        /// </summary>
+        public static string ProfileDeleteWarning {
+            get {
+                return ResourceManager.GetString("ProfileDeleteWarning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Profile updated successfully..
+        /// </summary>
+        public static string ProfileUpdatedSuccessfully {
+            get {
+                return ResourceManager.GetString("ProfileUpdatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Properties.
         /// </summary>
         public static string Properties {
@@ -1559,6 +1631,15 @@ namespace App.Resources.Views {
         public static string PropertyDashboardIntro {
             get {
                 return ResourceManager.GetString("PropertyDashboardIntro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review and update the current property profile details..
+        /// </summary>
+        public static string PropertyProfileDescription {
+            get {
+                return ResourceManager.GetString("PropertyProfileDescription", resourceCulture);
             }
         }
         
@@ -1811,6 +1892,15 @@ namespace App.Resources.Views {
         public static string ResidentOnboardingDescription {
             get {
                 return ResourceManager.GetString("ResidentOnboardingDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review and update the current resident profile details..
+        /// </summary>
+        public static string ResidentProfileDescription {
+            get {
+                return ResourceManager.GetString("ResidentProfileDescription", resourceCulture);
             }
         }
         
@@ -2121,6 +2211,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type &quot;{0}&quot; to confirm deletion..
+        /// </summary>
+        public static string TypeValueToConfirmDelete {
+            get {
+                return ResourceManager.GetString("TypeValueToConfirmDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to add customer..
         /// </summary>
         public static string UnableToAddCustomer {
@@ -2189,6 +2288,15 @@ namespace App.Resources.Views {
         public static string UnableToDeleteLease {
             get {
                 return ResourceManager.GetString("UnableToDeleteLease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to delete profile..
+        /// </summary>
+        public static string UnableToDeleteProfile {
+            get {
+                return ResourceManager.GetString("UnableToDeleteProfile", resourceCulture);
             }
         }
         
@@ -2283,6 +2391,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to update profile..
+        /// </summary>
+        public static string UnableToUpdateProfile {
+            get {
+                return ResourceManager.GetString("UnableToUpdateProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to update user..
         /// </summary>
         public static string UnableToUpdateUser {
@@ -2351,6 +2468,15 @@ namespace App.Resources.Views {
         public static string UnitNr {
             get {
                 return ResourceManager.GetString("UnitNr", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Review and update the current unit profile details..
+        /// </summary>
+        public static string UnitProfileDescription {
+            get {
+                return ResourceManager.GetString("UnitProfileDescription", resourceCulture);
             }
         }
         

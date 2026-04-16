@@ -10,7 +10,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WebApp.Areas.Management.Controllers;
+using WebApp.Services.ManagementLayout;
+using WebApp.ViewModels.Management.Layout;
 using WebApp.ViewModels.ManagementCustomers;
+using WebApp.ViewModels.Shared.Layout;
 using Xunit;
 
 namespace Onboarding.Tests.ManagementCustomers;
@@ -163,7 +166,28 @@ public class CustomersControllerTests
     private static CustomersController CreateController(IManagementCustomersService service, ClaimsPrincipal user)
     {
         var dbContext = CreateDbContext();
-        var controller = new CustomersController(service, dbContext, Mock.Of<ILogger<CustomersController>>())
+        var accessService = new Mock<IManagementCustomerAccessService>();
+        accessService
+            .Setup(x => x.AuthorizeAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid _, string companySlug, CancellationToken _) =>
+                service.AuthorizeAsync(Guid.Empty, companySlug, CancellationToken.None).GetAwaiter().GetResult());
+
+        var customerService = new Mock<IManagementCustomerService>();
+        customerService
+            .Setup(x => x.ListAsync(It.IsAny<ManagementCustomersAuthorizedContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ManagementCustomersAuthorizedContext context, CancellationToken _) =>
+                service.ListAsync(context, CancellationToken.None).GetAwaiter().GetResult());
+        customerService
+            .Setup(x => x.CreateAsync(It.IsAny<ManagementCustomersAuthorizedContext>(), It.IsAny<ManagementCustomerCreateRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ManagementCustomersAuthorizedContext context, ManagementCustomerCreateRequest request, CancellationToken _) =>
+                service.CreateAsync(context, request, CancellationToken.None).GetAwaiter().GetResult());
+
+        var controller = new CustomersController(
+            accessService.Object,
+            customerService.Object,
+            dbContext,
+            Mock.Of<ILogger<CustomersController>>(),
+            Mock.Of<IManagementLayoutViewModelProvider>(x => x.BuildAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<ManagementLayoutRequestViewModel>(), It.IsAny<CancellationToken>()) == Task.FromResult(new ManagementLayoutViewModel())))
         {
             ControllerContext = new ControllerContext
             {

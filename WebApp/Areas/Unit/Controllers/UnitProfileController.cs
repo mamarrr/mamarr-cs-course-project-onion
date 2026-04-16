@@ -1,0 +1,310 @@
+using System.Security.Claims;
+using App.BLL.Management;
+using App.Resources.Views;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using WebApp.Services.SharedLayout;
+using WebApp.ViewModels.Shared.Layout;
+using WebApp.ViewModels.Unit;
+
+namespace WebApp.Areas.Unit.Controllers;
+
+[Area("Unit")]
+[Authorize]
+[Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}/profile")]
+public class UnitProfileController : Controller
+{
+    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
+    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly IManagementUnitDashboardService _managementUnitDashboardService;
+    private readonly IManagementUnitProfileService _managementUnitProfileService;
+    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
+
+    public UnitProfileController(
+        IManagementCustomerAccessService managementCustomerAccessService,
+        IManagementCustomerPropertyService managementCustomerPropertyService,
+        IManagementUnitDashboardService managementUnitDashboardService,
+        IManagementUnitProfileService managementUnitProfileService,
+        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
+    {
+        _managementCustomerAccessService = managementCustomerAccessService;
+        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _managementUnitDashboardService = managementUnitDashboardService;
+        _managementUnitProfileService = managementUnitProfileService;
+        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
+    }
+
+    [HttpGet("")]
+    public async Task<IActionResult> Index(
+        string companySlug,
+        string customerSlug,
+        string propertySlug,
+        string unitSlug,
+        CancellationToken cancellationToken)
+    {
+        var access = await ResolveAccessAsync(companySlug, customerSlug, propertySlug, unitSlug, cancellationToken);
+        if (access.response is not null)
+        {
+            return access.response;
+        }
+
+        var profile = await _managementUnitProfileService.GetProfileAsync(access.context!, cancellationToken);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        return View(await BuildViewModelAsync(access.context!, profile, null, cancellationToken));
+    }
+
+    [HttpPost("edit")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(
+        string companySlug,
+        string customerSlug,
+        string propertySlug,
+        string unitSlug,
+        UnitProfileEditViewModel edit,
+        CancellationToken cancellationToken)
+    {
+        var access = await ResolveAccessAsync(companySlug, customerSlug, propertySlug, unitSlug, cancellationToken);
+        if (access.response is not null)
+        {
+            return access.response;
+        }
+
+        var profile = await _managementUnitProfileService.GetProfileAsync(access.context!, cancellationToken);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+        }
+
+        var result = await _managementUnitProfileService.UpdateProfileAsync(
+            access.context!,
+            new UnitProfileUpdateRequest
+            {
+                UnitNr = edit.UnitNr,
+                FloorNr = edit.FloorNr,
+                SizeM2 = edit.SizeM2,
+                Notes = edit.Notes,
+                IsActive = edit.IsActive
+            },
+            cancellationToken);
+
+        if (result.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (result.Forbidden)
+        {
+            return Forbid();
+        }
+
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToUpdateProfile);
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+        }
+
+        TempData[nameof(UiText.ProfileUpdatedSuccessfully)] = UiText.ProfileUpdatedSuccessfully;
+        return RedirectToAction(nameof(Index), new { companySlug, customerSlug, propertySlug, unitSlug = access.context!.UnitSlug });
+    }
+
+    [HttpPost("delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(
+        string companySlug,
+        string customerSlug,
+        string propertySlug,
+        string unitSlug,
+        UnitProfileEditViewModel edit,
+        CancellationToken cancellationToken)
+    {
+        var access = await ResolveAccessAsync(companySlug, customerSlug, propertySlug, unitSlug, cancellationToken);
+        if (access.response is not null)
+        {
+            return access.response;
+        }
+
+        var profile = await _managementUnitProfileService.GetProfileAsync(access.context!, cancellationToken);
+        if (profile == null)
+        {
+            return NotFound();
+        }
+
+        if (!IsDeleteConfirmationValid(edit.DeleteConfirmation, profile.UnitNr))
+        {
+            ModelState.AddModelError(nameof(edit.DeleteConfirmation), UiText.DeleteConfirmationDoesNotMatch);
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+        }
+
+        var result = await _managementUnitProfileService.DeleteProfileAsync(access.context!, cancellationToken);
+        if (result.NotFound)
+        {
+            return NotFound();
+        }
+
+        if (result.Forbidden)
+        {
+            return Forbid();
+        }
+
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToDeleteProfile);
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+        }
+
+        TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
+        return RedirectToAction("Units", "PropertyUnits", new { area = "Property", companySlug, customerSlug, propertySlug });
+    }
+
+    private async Task<UnitProfilePageViewModel> BuildViewModelAsync(
+        ManagementUnitDashboardContext context,
+        UnitProfileModel profile,
+        UnitProfileEditViewModel? edit,
+        CancellationToken cancellationToken)
+    {
+        var pageShell = await BuildPageShellAsync(context, cancellationToken);
+
+        return new UnitProfilePageViewModel
+        {
+            PageShell = pageShell,
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
+            UnitSlug = context.UnitSlug,
+            UnitName = context.UnitNr,
+            SuccessMessage = TempData[nameof(UiText.ProfileUpdatedSuccessfully)] as string,
+            Edit = edit ?? new UnitProfileEditViewModel
+            {
+                UnitNr = profile.UnitNr,
+                FloorNr = profile.FloorNr,
+                SizeM2 = profile.SizeM2,
+                Notes = profile.Notes,
+                IsActive = profile.IsActive
+            }
+        };
+    }
+
+    private async Task<UnitPageShellViewModel> BuildPageShellAsync(
+        ManagementUnitDashboardContext context,
+        CancellationToken cancellationToken)
+    {
+        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
+            User,
+            new WorkspaceLayoutRequestViewModel
+            {
+                CurrentController = ControllerContext.ActionDescriptor.ControllerName,
+                CompanySlug = context.CompanySlug,
+                CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
+                CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
+            },
+            cancellationToken);
+
+        return new UnitPageShellViewModel
+        {
+            Title = UiText.Profile,
+            CurrentSectionLabel = UiText.Profile,
+            LayoutContext = layoutContext,
+            Unit = new UnitLayoutViewModel
+            {
+                CompanySlug = context.CompanySlug,
+                CompanyName = context.CompanyName,
+                CustomerSlug = context.CustomerSlug,
+                CustomerName = context.CustomerName,
+                PropertySlug = context.PropertySlug,
+                PropertyName = context.PropertyName,
+                UnitSlug = context.UnitSlug,
+                UnitName = context.UnitNr,
+                CurrentSection = "Profile"
+            }
+        };
+    }
+
+    private async Task<(IActionResult? response, ManagementUnitDashboardContext? context)> ResolveAccessAsync(
+        string companySlug,
+        string customerSlug,
+        string propertySlug,
+        string unitSlug,
+        CancellationToken cancellationToken)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId == null)
+        {
+            return (Challenge(), null);
+        }
+
+        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+            appUserId.Value,
+            companySlug,
+            customerSlug,
+            cancellationToken);
+
+        if (customerAccess.CompanyNotFound || customerAccess.CustomerNotFound)
+        {
+            return (NotFound(), null);
+        }
+
+        if (customerAccess.IsForbidden || customerAccess.Context == null)
+        {
+            return (Forbid(), null);
+        }
+
+        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
+            customerAccess.Context,
+            propertySlug,
+            cancellationToken);
+
+        if (propertyAccess.PropertyNotFound)
+        {
+            return (NotFound(), null);
+        }
+
+        if (!propertyAccess.IsAuthorized || propertyAccess.Context == null)
+        {
+            return (Forbid(), null);
+        }
+
+        var unitAccess = await _managementUnitDashboardService.ResolveUnitDashboardContextAsync(
+            propertyAccess.Context,
+            unitSlug,
+            cancellationToken);
+
+        if (unitAccess.UnitNotFound)
+        {
+            return (NotFound(), null);
+        }
+
+        if (!unitAccess.IsAuthorized || unitAccess.Context == null)
+        {
+            return (Forbid(), null);
+        }
+
+        return (null, unitAccess.Context);
+    }
+
+    private Guid? GetAppUserId()
+    {
+        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+    }
+
+    private static bool IsDeleteConfirmationValid(string? providedValue, string expectedValue)
+    {
+        return string.Equals(providedValue?.Trim(), expectedValue.Trim(), StringComparison.Ordinal);
+    }
+}

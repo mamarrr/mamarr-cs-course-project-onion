@@ -286,4 +286,18 @@
   <data name="ActiveLeaseAlreadyExists" xml:space="preserve">
     <value>Aktiivne leping juba kehtib</value>
   </data>
+  <data name="DangerZone" xml:space="preserve"><value>Ohutsoon</value></data>
+  <data name="DeleteConfirmation" xml:space="preserve"><value>Kustutamise kinnitus</value></data>
+  <data name="DeleteConfirmationDoesNotMatch" xml:space="preserve"><value>Kustutamise kinnitus ei vasta nõutule.</value></data>
+  <data name="ManagementCompanyProfileDescription" xml:space="preserve"><value>Vaata üle ja uuenda praeguse haldusettevõtte profiili andmeid.</value></data>
+  <data name="CustomerProfileDescription" xml:space="preserve"><value>Vaata üle ja uuenda praeguse kliendi profiili andmeid.</value></data>
+  <data name="PropertyProfileDescription" xml:space="preserve"><value>Vaata üle ja uuenda praeguse kinnistu profiili andmeid.</value></data>
+  <data name="UnitProfileDescription" xml:space="preserve"><value>Vaata üle ja uuenda praeguse üksuse profiili andmeid.</value></data>
+  <data name="ResidentProfileDescription" xml:space="preserve"><value>Vaata üle ja uuenda praeguse elaniku profiili andmeid.</value></data>
+  <data name="ProfileDeleteWarning" xml:space="preserve"><value>Selle profiili kustutamine on lõplik ja seda ei saa tagasi võtta.</value></data>
+  <data name="ProfileDeletedSuccessfully" xml:space="preserve"><value>Profiil kustutati edukalt.</value></data>
+  <data name="ProfileUpdatedSuccessfully" xml:space="preserve"><value>Profiili andmed uuendati edukalt.</value></data>
+  <data name="TypeValueToConfirmDelete" xml:space="preserve"><value>Kustutamise kinnitamiseks sisesta „{0}”.</value></data>
+  <data name="UnableToDeleteProfile" xml:space="preserve"><value>Profiili kustutamine ebaõnnestus.</value></data>
+  <data name="UnableToUpdateProfile" xml:space="preserve"><value>Profiili uuendamine ebaõnnestus.</value></data>
 </root>

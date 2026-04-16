@@ -1,0 +1,77 @@
+@model WebApp.ViewModels.Resident.ResidentProfilePageViewModel
+@{
+    Layout = "~/Areas/Resident/Views/Shared/_ResidentLayout.cshtml";
+    ViewData["Title"] = App.Resources.Views.UiText.Profile;
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+{
+    <div class="alert alert-success" role="alert">@Model.SuccessMessage</div>
+}
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <p class="management-eyebrow mb-2">@App.Resources.Views.UiText.Profile</p>
+        <h2 class="mb-1">@Model.ResidentDisplayName</h2>
+        <p class="management-muted mb-0">@App.Resources.Views.UiText.ResidentProfileDescription</p>
+        <p class="management-muted mb-0">@Model.ResidentIdCode</p>
+    </section>
+
+    <section class="management-card">
+        <h3>@App.Resources.Views.UiText.Edit</h3>
+        <form method="post" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-residentIdCode="@Model.ResidentIdCode">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label asp-for="Edit.FirstName" class="form-label"></label>
+                <input asp-for="Edit.FirstName" class="form-control" />
+                <span asp-validation-for="Edit.FirstName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Edit.LastName" class="form-label"></label>
+                <input asp-for="Edit.LastName" class="form-control" />
+                <span asp-validation-for="Edit.LastName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Edit.IdCode" class="form-label"></label>
+                <input asp-for="Edit.IdCode" class="form-control" />
+                <span asp-validation-for="Edit.IdCode" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Edit.PreferredLanguage" class="form-label"></label>
+                <input asp-for="Edit.PreferredLanguage" class="form-control" />
+                <span asp-validation-for="Edit.PreferredLanguage" class="text-danger"></span>
+            </div>
+            <div class="form-check mb-3">
+                <input asp-for="Edit.IsActive" class="form-check-input" />
+                <label asp-for="Edit.IsActive" class="form-check-label"></label>
+            </div>
+            <button type="submit" class="management-btn">@App.Resources.Views.UiText.SaveChanges</button>
+        </form>
+    </section>
+
+    <section class="management-card border border-danger-subtle">
+        <h3 class="text-danger">@App.Resources.Views.UiText.DangerZone</h3>
+        <p>@App.Resources.Views.UiText.ProfileDeleteWarning</p>
+        <p class="management-muted">@string.Format(App.Resources.Views.UiText.TypeValueToConfirmDelete, Model.ResidentIdCode)</p>
+        <form method="post" asp-action="Delete" asp-route-companySlug="@Model.CompanySlug" asp-route-residentIdCode="@Model.ResidentIdCode">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Edit.FirstName" />
+            <input type="hidden" asp-for="Edit.LastName" />
+            <input type="hidden" asp-for="Edit.IdCode" />
+            <input type="hidden" asp-for="Edit.PreferredLanguage" />
+            <input type="hidden" asp-for="Edit.IsActive" />
+            <div class="mb-3">
+                <label asp-for="Edit.DeleteConfirmation" class="form-label"></label>
+                <input asp-for="Edit.DeleteConfirmation" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Edit.DeleteConfirmation" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-danger">@App.Resources.Views.UiText.Delete</button>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

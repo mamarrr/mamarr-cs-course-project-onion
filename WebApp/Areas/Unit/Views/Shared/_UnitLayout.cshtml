@@ -131,14 +131,14 @@
                    asp-route-propertySlug="@unitLayoutVm.PropertySlug"
                    asp-route-unitSlug="@unitLayoutVm.UnitSlug">@App.Resources.Views.UiText.Dashboard</a>
 
-                <a class="management-sidebar-link @(unitLayoutVm.CurrentSection == "Details" ? "active" : "")"
+                <a class="management-sidebar-link @(unitLayoutVm.CurrentSection == "Profile" ? "active" : "")"
                    asp-area="Unit"
-                   asp-controller="UnitDashboard"
-                   asp-action="Details"
+                   asp-controller="UnitProfile"
+                   asp-action="Index"
                    asp-route-companySlug="@unitLayoutVm.CompanySlug"
                    asp-route-customerSlug="@unitLayoutVm.CustomerSlug"
                    asp-route-propertySlug="@unitLayoutVm.PropertySlug"
-                   asp-route-unitSlug="@unitLayoutVm.UnitSlug">@T("Details", "Details")</a>
+                   asp-route-unitSlug="@unitLayoutVm.UnitSlug">@App.Resources.Views.UiText.Profile</a>
 
                 <a class="management-sidebar-link @(unitLayoutVm.CurrentSection == "Tenants" ? "active" : "")"
                    asp-area="Unit"

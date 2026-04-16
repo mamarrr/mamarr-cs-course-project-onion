@@ -10,7 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WebApp.Areas.Customer.Controllers;
-using WebApp.ViewModels.Management.CustomerProperties;
+using WebApp.Services.SharedLayout;
+using WebApp.ViewModels.Customer.CustomerProperties;
+using WebApp.ViewModels.Shared.Layout;
 using Xunit;
 
 namespace Onboarding.Tests.ManagementCustomers;
@@ -158,7 +160,28 @@ public class CustomerPropertiesControllerTests
 
     private static CustomerPropertiesController CreateController(IManagementCustomersService service, ClaimsPrincipal user)
     {
-        var controller = new CustomerPropertiesController(service, CreateDbContext(), Mock.Of<ILogger<CustomerPropertiesController>>())
+        var accessService = new Mock<IManagementCustomerAccessService>();
+        accessService
+            .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Guid _, string companySlug, string customerSlug, CancellationToken _) =>
+                service.ResolveDashboardAccessAsync(Guid.Empty, companySlug, customerSlug, CancellationToken.None).GetAwaiter().GetResult());
+
+        var propertyService = new Mock<IManagementCustomerPropertyService>();
+        propertyService
+            .Setup(x => x.ListPropertiesAsync(It.IsAny<ManagementCustomerDashboardContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ManagementCustomerDashboardContext context, CancellationToken _) =>
+                service.ListPropertiesAsync(context, CancellationToken.None).GetAwaiter().GetResult());
+        propertyService
+            .Setup(x => x.CreatePropertyAsync(It.IsAny<ManagementCustomerDashboardContext>(), It.IsAny<ManagementCustomerPropertyCreateRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ManagementCustomerDashboardContext context, ManagementCustomerPropertyCreateRequest request, CancellationToken _) =>
+                service.CreatePropertyAsync(context, request, CancellationToken.None).GetAwaiter().GetResult());
+
+        var controller = new CustomerPropertiesController(
+            accessService.Object,
+            propertyService.Object,
+            Mock.Of<IWorkspaceLayoutContextProvider>(x => x.BuildAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<WorkspaceLayoutRequestViewModel>(), It.IsAny<CancellationToken>()) == Task.FromResult(new WorkspaceLayoutContextViewModel())),
+            CreateDbContext(),
+            Mock.Of<ILogger<CustomerPropertiesController>>())
         {
             ControllerContext = new ControllerContext
             {

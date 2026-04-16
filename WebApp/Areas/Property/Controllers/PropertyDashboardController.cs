@@ -38,16 +38,6 @@ public class PropertyDashboardController : Controller
         return await RenderSectionAsync(companySlug, customerSlug, propertySlug, "Dashboard", cancellationToken);
     }
 
-    [HttpGet("profile")]
-    public async Task<IActionResult> Profile(
-        string companySlug,
-        string customerSlug,
-        string propertySlug,
-        CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, customerSlug, propertySlug, "Profile", cancellationToken);
-    }
-
     [HttpGet("residents")]
     public async Task<IActionResult> Residents(
         string companySlug,

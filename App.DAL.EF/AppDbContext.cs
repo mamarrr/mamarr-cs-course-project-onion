@@ -561,16 +561,8 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasName("uq_WORK_STATUS_CODE");
 
         builder.Entity<ManagementCompany>()
-            .HasAlternateKey(e => e.RegistryCode)
-            .HasName("uq_MANAGMENT_COMPANY_REGISTRY_CODE");
-
-        builder.Entity<ManagementCompany>()
             .HasAlternateKey(e => e.Slug)
             .HasName("uq_management_company_slug");
-
-        builder.Entity<Customer>()
-            .HasAlternateKey(e => new { e.ManagementCompanyId, e.RegistryCode })
-            .HasName("uq_customer_mcompany_registry");
 
         builder.Entity<Customer>()
             .HasAlternateKey(e => new { e.ManagementCompanyId, e.Slug })
@@ -579,10 +571,6 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
         builder.Entity<Property>()
             .HasAlternateKey(e => new { e.CustomerId, e.Slug })
             .HasName("uq_property_customer_slug");
-
-        builder.Entity<Unit>()
-            .HasAlternateKey(e => new { e.PropertyId, e.Slug })
-            .HasName("uq_unit_property_slug");
 
         builder.Entity<Vendor>()
             .HasAlternateKey(e => new { e.ManagementCompanyId, e.RegistryCode })
@@ -610,9 +598,6 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasAlternateKey(e => new { e.VendorId, e.TicketCategoryId })
             .HasName("uq_vtc_pair");
 
-        builder.Entity<Unit>()
-            .HasAlternateKey(e => new { e.PropertyId, e.UnitNr })
-            .HasName("uq_unit_property_unitnr");
 
         builder.Entity<Ticket>()
             .HasAlternateKey(e => new { e.ManagementCompanyId, e.TicketNr })
@@ -661,9 +646,19 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasDatabaseName("ix_customer_mcompany_id_fk");
 
         builder.Entity<ManagementCompany>()
+            .HasIndex(e => e.RegistryCode)
+            .IsUnique()
+            .HasDatabaseName("ux_management_company_registry_code");
+
+        builder.Entity<ManagementCompany>()
             .HasIndex(e => e.Slug)
             .IsUnique()
             .HasDatabaseName("ux_management_company_slug");
+
+        builder.Entity<Customer>()
+            .HasIndex(e => new { e.ManagementCompanyId, e.RegistryCode })
+            .IsUnique()
+            .HasDatabaseName("ux_customer_company_registry_code");
 
         builder.Entity<Customer>()
             .HasIndex(e => new { e.ManagementCompanyId, e.Slug })

@@ -108,8 +108,8 @@
 
                 <a class="management-sidebar-link @(customerLayoutVm.CurrentSection == "Profile" ? "active" : "")"
                    asp-area="Customer"
-                   asp-controller="CustomerDashboard"
-                   asp-action="Profile"
+                   asp-controller="CustomerProfile"
+                   asp-action="Index"
                    asp-route-companySlug="@customerLayoutVm.CompanySlug"
                    asp-route-customerSlug="@customerLayoutVm.CustomerSlug">@T("Profile", "Profile")</a>
 

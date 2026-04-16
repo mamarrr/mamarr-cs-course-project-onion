@@ -120,8 +120,8 @@
 
                 <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Profile" ? "active" : "")"
                    asp-area="Property"
-                   asp-controller="PropertyDashboard"
-                   asp-action="Profile"
+                   asp-controller="PropertyProfile"
+                   asp-action="Index"
                    asp-route-companySlug="@propertyLayoutVm.CompanySlug"
                    asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
                    asp-route-propertySlug="@propertyLayoutVm.PropertySlug">@T("Profile", "Profile")</a>

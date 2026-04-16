@@ -296,4 +296,18 @@
   <data name="ActiveLeaseAlreadyExists" xml:space="preserve">
     <value>Active Lease already exists</value>
   </data>
+  <data name="DangerZone" xml:space="preserve"><value>Danger zone</value></data>
+  <data name="DeleteConfirmation" xml:space="preserve"><value>Delete confirmation</value></data>
+  <data name="DeleteConfirmationDoesNotMatch" xml:space="preserve"><value>Delete confirmation does not match.</value></data>
+  <data name="ManagementCompanyProfileDescription" xml:space="preserve"><value>Review and update the current management company profile details.</value></data>
+  <data name="CustomerProfileDescription" xml:space="preserve"><value>Review and update the current customer profile details.</value></data>
+  <data name="PropertyProfileDescription" xml:space="preserve"><value>Review and update the current property profile details.</value></data>
+  <data name="UnitProfileDescription" xml:space="preserve"><value>Review and update the current unit profile details.</value></data>
+  <data name="ResidentProfileDescription" xml:space="preserve"><value>Review and update the current resident profile details.</value></data>
+  <data name="ProfileDeleteWarning" xml:space="preserve"><value>Deleting this profile is permanent and cannot be undone.</value></data>
+  <data name="ProfileDeletedSuccessfully" xml:space="preserve"><value>Profile deleted successfully.</value></data>
+  <data name="ProfileUpdatedSuccessfully" xml:space="preserve"><value>Profile updated successfully.</value></data>
+  <data name="TypeValueToConfirmDelete" xml:space="preserve"><value>Type "{0}" to confirm deletion.</value></data>
+  <data name="UnableToDeleteProfile" xml:space="preserve"><value>Unable to delete profile.</value></data>
+  <data name="UnableToUpdateProfile" xml:space="preserve"><value>Unable to update profile.</value></data>
 </root>

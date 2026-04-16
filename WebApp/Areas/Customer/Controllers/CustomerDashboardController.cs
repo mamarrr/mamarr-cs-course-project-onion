@@ -44,12 +44,6 @@ public class CustomerDashboardController : Controller
         return await RenderSectionAsync(companySlug, customerSlug, "Dashboard", cancellationToken);
     }
 
-    [HttpGet("profile")]
-    public async Task<IActionResult> Profile(string companySlug, string customerSlug, CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, customerSlug, "Profile", cancellationToken);
-    }
-
     [HttpGet("tickets")]
     public async Task<IActionResult> Tickets(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
