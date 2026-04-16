@@ -1,0 +1,12 @@
+﻿
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  only:
+    - main
+  tags:
+    - shared
+  script:
+    - docker compose -p apartmentcrmsaas up --build --remove-orphans --detach

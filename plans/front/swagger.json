@@ -1,0 +1,5093 @@
+﻿{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "API 1.0",
+    "version": "1.0"
+  },
+  "paths": {
+    "/api/v1/identity/Account/Register": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "expiresInSeconds",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Identity.RegisterInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Onboarding.SpaJwtResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/Account/Login": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "expiresInSeconds",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Identity.LoginInfo"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Identity.LoginInfo"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Identity.LoginInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Onboarding.SpaJwtResponseDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Onboarding.SpaJwtResponseDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Onboarding.SpaJwtResponseDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/Account/RefreshTokenData": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "expiresInSeconds",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Identity.TokenRefreshInfo"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Identity.TokenRefreshInfo"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Identity.TokenRefreshInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Identity.JWTResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Identity.JWTResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Identity.JWTResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/identity/Account/Logout": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Identity.LogoutInfo"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Identity.LogoutInfo"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Identity.LogoutInfo"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/dashboard": {
+      "get": {
+        "tags": [
+          "CustomerDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Customer.CustomerDashboardResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/profile": {
+      "get": {
+        "tags": [
+          "CustomerProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Customer.CustomerProfileResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "CustomerProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Customer.UpdateCustomerProfileRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Customer.CustomerProfileResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "CustomerProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Customer.DeleteCustomerProfileRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/pr": {
+      "get": {
+        "tags": [
+          "CustomerProperties"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Customer.CustomerPropertiesResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "CustomerProperties"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Property.CreateCustomerPropertyRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Property.CreateCustomerPropertyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Management.ManagementCustomersResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Customers"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Management.CreateManagementCustomerRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Management.CreateManagementCustomerResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/contexts": {
+      "get": {
+        "tags": [
+          "Onboarding"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Onboarding.OnboardingContextsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/management-companies": {
+      "post": {
+        "tags": [
+          "Onboarding"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Onboarding.CreateManagementCompanyRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Onboarding.CreateManagementCompanyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/dashboard": {
+      "get": {
+        "tags": [
+          "PropertyDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Property.PropertyDashboardResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/profile": {
+      "get": {
+        "tags": [
+          "PropertyProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Property.PropertyProfileResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "PropertyProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Property.UpdatePropertyProfileRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Property.PropertyProfileResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "PropertyProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Property.DeletePropertyProfileRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un": {
+      "get": {
+        "tags": [
+          "PropertyUnits"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Property.PropertyUnitsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "PropertyUnits"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Property.CreatePropertyUnitRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Property.CreatePropertyUnitResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/re/{residentIdCode}/dashboard": {
+      "get": {
+        "tags": [
+          "ResidentDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentIdCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentDashboardResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/re/{residentIdCode}/profile": {
+      "get": {
+        "tags": [
+          "ResidentProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentIdCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentProfileResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ResidentProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentIdCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Resident.UpdateResidentProfileRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentProfileResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ResidentProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentIdCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Resident.DeleteResidentProfileRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/re": {
+      "get": {
+        "tags": [
+          "Residents"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Management.ManagementResidentsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Residents"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Management.CreateManagementResidentRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Management.CreateManagementResidentResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/re/{residentIdCode}/units": {
+      "get": {
+        "tags": [
+          "ResidentUnits"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentIdCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentUnitsBootstrapResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/re/{residentIdCode}/property-search": {
+      "get": {
+        "tags": [
+          "ResidentUnits"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentIdCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentPropertySearchResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/re/{residentIdCode}/properties/{propertyId}/units": {
+      "get": {
+        "tags": [
+          "ResidentUnits"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentIdCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentPropertyUnitsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/re/{residentIdCode}/leases": {
+      "post": {
+        "tags": [
+          "ResidentUnits"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentIdCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Resident.CreateResidentLeaseRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentLeaseCommandResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/re/{residentIdCode}/leases/{leaseId}": {
+      "put": {
+        "tags": [
+          "ResidentUnits"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentIdCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "leaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Resident.UpdateResidentLeaseRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentLeaseCommandResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ResidentUnits"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "residentIdCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "leaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un/{unitSlug}/dashboard": {
+      "get": {
+        "tags": [
+          "UnitDashboard"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unitSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Unit.UnitDashboardResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un/{unitSlug}/profile": {
+      "get": {
+        "tags": [
+          "UnitProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unitSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Unit.UnitProfileResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "UnitProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unitSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Unit.UpdateUnitProfileRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Unit.UnitProfileResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "UnitProfile"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unitSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Unit.DeleteUnitProfileRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un/{unitSlug}/tenants": {
+      "get": {
+        "tags": [
+          "UnitTenants"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unitSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Unit.UnitTenantsBootstrapResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un/{unitSlug}/resident-search": {
+      "get": {
+        "tags": [
+          "UnitTenants"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unitSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Unit.UnitResidentSearchResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un/{unitSlug}/leases": {
+      "post": {
+        "tags": [
+          "UnitTenants"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unitSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Unit.CreateUnitLeaseRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Unit.UnitLeaseCommandResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un/{unitSlug}/leases/{leaseId}": {
+      "put": {
+        "tags": [
+          "UnitTenants"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unitSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "leaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/App.DTO.v1.Unit.UpdateUnitLeaseRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.Unit.UnitLeaseCommandResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "UnitTenants"
+        ],
+        "parameters": [
+          {
+            "name": "companySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "propertySlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "unitSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "leaseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/App.DTO.v1.RestApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "App.DTO.v1.Customer.CustomerDashboardResponseDto": {
+        "type": "object",
+        "properties": {
+          "dashboard": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiDashboardDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Customer.CustomerProfileDto": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "registryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "billingEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "billingAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Customer.CustomerProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/App.DTO.v1.Customer.CustomerProfileDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Customer.CustomerPropertiesResponseDto": {
+        "type": "object",
+        "properties": {
+          "properties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Customer.CustomerPropertySummaryDto"
+            },
+            "nullable": true
+          },
+          "propertyTypeOptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Shared.LookupOptionDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Customer.CustomerPropertySummaryDto": {
+        "type": "object",
+        "properties": {
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertySlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "propertyName": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressLine": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "propertyTypeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertyTypeCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "propertyTypeLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Customer.DeleteCustomerProfileRequestDto": {
+        "required": [
+          "confirmationName"
+        ],
+        "type": "object",
+        "properties": {
+          "confirmationName": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Customer.UpdateCustomerProfileRequestDto": {
+        "required": [
+          "name",
+          "registryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "registryCode": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "billingEmail": {
+            "maxLength": 255,
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          },
+          "billingAddress": {
+            "maxLength": 255,
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "maxLength": 64,
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Identity.JWTResponse": {
+        "type": "object",
+        "properties": {
+          "jwt": {
+            "type": "string",
+            "nullable": true
+          },
+          "refreshToken": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Identity.LoginInfo": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Identity.LogoutInfo": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Identity.RegisterInfo": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "password": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstname": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastname": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Identity.TokenRefreshInfo": {
+        "type": "object",
+        "properties": {
+          "jwt": {
+            "type": "string",
+            "nullable": true
+          },
+          "refreshToken": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Management.CreateManagementCustomerRequestDto": {
+        "required": [
+          "name",
+          "registryCode"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "registryCode": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "billingEmail": {
+            "maxLength": 320,
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          },
+          "billingAddress": {
+            "maxLength": 500,
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "maxLength": 64,
+            "type": "string",
+            "format": "tel",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Management.CreateManagementCustomerResponseDto": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Management.CreateManagementResidentRequestDto": {
+        "required": [
+          "firstName",
+          "idCode",
+          "lastName"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "lastName": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "idCode": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "preferredLanguage": {
+            "maxLength": 32,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Management.CreateManagementResidentResponseDto": {
+        "type": "object",
+        "properties": {
+          "residentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "residentIdCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Management.ManagementCustomerSummaryDto": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "registryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "billingEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "billingAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Management.ManagementCustomersResponseDto": {
+        "type": "object",
+        "properties": {
+          "customers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Management.ManagementCustomerSummaryDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Management.ManagementResidentSummaryDto": {
+        "type": "object",
+        "properties": {
+          "residentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "idCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "preferredLanguage": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Management.ManagementResidentsResponseDto": {
+        "type": "object",
+        "properties": {
+          "residents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Management.ManagementResidentSummaryDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Onboarding.CreateManagementCompanyRequestDto": {
+        "required": [
+          "address",
+          "email",
+          "name",
+          "phone",
+          "registryCode",
+          "vatNumber"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "registryCode": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "vatNumber": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "email": {
+            "maxLength": 320,
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "phone": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string",
+            "format": "tel"
+          },
+          "address": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Onboarding.CreateManagementCompanyResponseDto": {
+        "type": "object",
+        "properties": {
+          "managementCompanyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "managementCompanySlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Onboarding.OnboardingContextSummaryDto": {
+        "type": "object",
+        "properties": {
+          "contextType": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Onboarding.OnboardingContextsResponseDto": {
+        "type": "object",
+        "properties": {
+          "contexts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Onboarding.OnboardingContextSummaryDto"
+            },
+            "nullable": true
+          },
+          "defaultContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Onboarding.OnboardingContextSummaryDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Onboarding.SpaJwtResponseDto": {
+        "type": "object",
+        "properties": {
+          "jwt": {
+            "type": "string",
+            "nullable": true
+          },
+          "refreshToken": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "onboarding": {
+            "$ref": "#/components/schemas/App.DTO.v1.Onboarding.OnboardingContextsResponseDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.CreateCustomerPropertyRequestDto": {
+        "required": [
+          "addressLine",
+          "city",
+          "name",
+          "postalCode",
+          "propertyTypeId"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "addressLine": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "city": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "postalCode": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+          },
+          "propertyTypeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "notes": {
+            "maxLength": 2000,
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.CreateCustomerPropertyResponseDto": {
+        "type": "object",
+        "properties": {
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertySlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.CreatePropertyUnitRequestDto": {
+        "required": [
+          "unitNr"
+        ],
+        "type": "object",
+        "properties": {
+          "unitNr": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "floorNr": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sizeM2": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "notes": {
+            "maxLength": 2000,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.CreatePropertyUnitResponseDto": {
+        "type": "object",
+        "properties": {
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.DeletePropertyProfileRequestDto": {
+        "required": [
+          "confirmationName"
+        ],
+        "type": "object",
+        "properties": {
+          "confirmationName": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.PropertyDashboardResponseDto": {
+        "type": "object",
+        "properties": {
+          "dashboard": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiDashboardDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.PropertyProfileDto": {
+        "type": "object",
+        "properties": {
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertySlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressLine": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.PropertyProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/App.DTO.v1.Property.PropertyProfileDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.PropertyUnitSummaryDto": {
+        "type": "object",
+        "properties": {
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitNr": {
+            "type": "string",
+            "nullable": true
+          },
+          "floorNr": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sizeM2": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.PropertyUnitsResponseDto": {
+        "type": "object",
+        "properties": {
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Property.PropertyUnitSummaryDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Property.UpdatePropertyProfileRequestDto": {
+        "required": [
+          "addressLine",
+          "city",
+          "name",
+          "postalCode"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "addressLine": {
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "city": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "postalCode": {
+            "maxLength": 32,
+            "minLength": 1,
+            "type": "string"
+          },
+          "notes": {
+            "maxLength": 2000,
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.CreateResidentLeaseRequestDto": {
+        "required": [
+          "leaseRoleId",
+          "startDate",
+          "unitId"
+        ],
+        "type": "object",
+        "properties": {
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "leaseRoleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "notes": {
+            "maxLength": 2000,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.DeleteResidentProfileRequestDto": {
+        "required": [
+          "confirmationIdCode"
+        ],
+        "type": "object",
+        "properties": {
+          "confirmationIdCode": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.ResidentDashboardResponseDto": {
+        "type": "object",
+        "properties": {
+          "dashboard": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiDashboardDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.ResidentLeaseCommandResponseDto": {
+        "type": "object",
+        "properties": {
+          "leaseId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.ResidentProfileDto": {
+        "type": "object",
+        "properties": {
+          "residentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "residentIdCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "preferredLanguage": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.ResidentProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentProfileDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.ResidentPropertySearchResponseDto": {
+        "type": "object",
+        "properties": {
+          "properties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentPropertySearchResultDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.ResidentPropertySearchResultDto": {
+        "type": "object",
+        "properties": {
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertySlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "propertyName": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "addressLine": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.ResidentPropertyUnitOptionDto": {
+        "type": "object",
+        "properties": {
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitNr": {
+            "type": "string",
+            "nullable": true
+          },
+          "floorNr": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.ResidentPropertyUnitsResponseDto": {
+        "type": "object",
+        "properties": {
+          "units": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentPropertyUnitOptionDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.ResidentUnitLeaseDto": {
+        "type": "object",
+        "properties": {
+          "leaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "residentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertyName": {
+            "type": "string",
+            "nullable": true
+          },
+          "propertySlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitNr": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "leaseRoleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "leaseRoleCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "leaseRoleLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.ResidentUnitsBootstrapResponseDto": {
+        "type": "object",
+        "properties": {
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          },
+          "leases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Resident.ResidentUnitLeaseDto"
+            },
+            "nullable": true
+          },
+          "leaseRoles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Shared.LookupOptionDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.UpdateResidentLeaseRequestDto": {
+        "required": [
+          "leaseRoleId",
+          "startDate"
+        ],
+        "type": "object",
+        "properties": {
+          "leaseRoleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "notes": {
+            "maxLength": 2000,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Resident.UpdateResidentProfileRequestDto": {
+        "required": [
+          "firstName",
+          "idCode",
+          "lastName"
+        ],
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "lastName": {
+            "maxLength": 128,
+            "minLength": 1,
+            "type": "string"
+          },
+          "idCode": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "preferredLanguage": {
+            "maxLength": 32,
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.RestApiErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/System.Net.HttpStatusCode"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "errorCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "nullable": true
+          },
+          "traceId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Shared.ApiDashboardDto": {
+        "type": "object",
+        "properties": {
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "sectionLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "widgets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Shared.ApiRouteContextDto": {
+        "type": "object",
+        "properties": {
+          "companySlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "companyName": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerName": {
+            "type": "string",
+            "nullable": true
+          },
+          "propertySlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "propertyName": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitName": {
+            "type": "string",
+            "nullable": true
+          },
+          "residentIdCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "residentDisplayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "currentSection": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Shared.LookupOptionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.CreateUnitLeaseRequestDto": {
+        "required": [
+          "leaseRoleId",
+          "residentId",
+          "startDate"
+        ],
+        "type": "object",
+        "properties": {
+          "residentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "leaseRoleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "notes": {
+            "maxLength": 2000,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.DeleteUnitProfileRequestDto": {
+        "required": [
+          "confirmationUnitNr"
+        ],
+        "type": "object",
+        "properties": {
+          "confirmationUnitNr": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.UnitDashboardResponseDto": {
+        "type": "object",
+        "properties": {
+          "dashboard": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiDashboardDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.UnitLeaseCommandResponseDto": {
+        "type": "object",
+        "properties": {
+          "leaseId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.UnitProfileDto": {
+        "type": "object",
+        "properties": {
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitSlug": {
+            "type": "string",
+            "nullable": true
+          },
+          "unitNr": {
+            "type": "string",
+            "nullable": true
+          },
+          "floorNr": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sizeM2": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.UnitProfileResponseDto": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "$ref": "#/components/schemas/App.DTO.v1.Unit.UnitProfileDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.UnitResidentSearchResponseDto": {
+        "type": "object",
+        "properties": {
+          "residents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Unit.UnitResidentSearchResultDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.UnitResidentSearchResultDto": {
+        "type": "object",
+        "properties": {
+          "residentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "idCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.UnitTenantLeaseDto": {
+        "type": "object",
+        "properties": {
+          "leaseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "residentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "unitId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "residentFullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "residentIdCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "leaseRoleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "leaseRoleCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "leaseRoleLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.UnitTenantsBootstrapResponseDto": {
+        "type": "object",
+        "properties": {
+          "routeContext": {
+            "$ref": "#/components/schemas/App.DTO.v1.Shared.ApiRouteContextDto"
+          },
+          "leases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Unit.UnitTenantLeaseDto"
+            },
+            "nullable": true
+          },
+          "leaseRoles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App.DTO.v1.Shared.LookupOptionDto"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.UpdateUnitLeaseRequestDto": {
+        "required": [
+          "leaseRoleId",
+          "startDate"
+        ],
+        "type": "object",
+        "properties": {
+          "leaseRoleId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "notes": {
+            "maxLength": 2000,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "App.DTO.v1.Unit.UpdateUnitProfileRequestDto": {
+        "required": [
+          "unitNr"
+        ],
+        "type": "object",
+        "properties": {
+          "unitNr": {
+            "maxLength": 64,
+            "minLength": 1,
+            "type": "string"
+          },
+          "floorNr": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sizeM2": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "notes": {
+            "maxLength": 2000,
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "System.Net.HttpStatusCode": {
+        "enum": [
+          100,
+          101,
+          102,
+          103,
+          200,
+          201,
+          202,
+          203,
+          204,
+          205,
+          206,
+          207,
+          208,
+          226,
+          300,
+          301,
+          302,
+          303,
+          304,
+          305,
+          306,
+          307,
+          308,
+          400,
+          401,
+          402,
+          403,
+          404,
+          405,
+          406,
+          407,
+          408,
+          409,
+          410,
+          411,
+          412,
+          413,
+          414,
+          415,
+          416,
+          417,
+          421,
+          422,
+          423,
+          424,
+          426,
+          428,
+          429,
+          431,
+          451,
+          500,
+          501,
+          502,
+          503,
+          504,
+          505,
+          506,
+          507,
+          508,
+          510,
+          511
+        ],
+        "type": "integer",
+        "format": "int32"
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "JWT Authorization header using the Bearer scheme.\r\n<br/>Enter your token in the text box below.\r\n<br/>You will get the bearer from the <i>account/login</i> or <i>account/register</i> endpoint.",
+        "scheme": "Bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "Account"
+    },
+    {
+      "name": "CustomerDashboard"
+    },
+    {
+      "name": "CustomerProfile"
+    },
+    {
+      "name": "CustomerProperties"
+    },
+    {
+      "name": "Customers"
+    },
+    {
+      "name": "Onboarding"
+    },
+    {
+      "name": "PropertyDashboard"
+    },
+    {
+      "name": "PropertyProfile"
+    },
+    {
+      "name": "PropertyUnits"
+    },
+    {
+      "name": "ResidentDashboard"
+    },
+    {
+      "name": "ResidentProfile"
+    },
+    {
+      "name": "Residents"
+    },
+    {
+      "name": "ResidentUnits"
+    },
+    {
+      "name": "UnitDashboard"
+    },
+    {
+      "name": "UnitProfile"
+    },
+    {
+      "name": "UnitTenants"
+    }
+  ]
+}

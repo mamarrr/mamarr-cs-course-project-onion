@@ -1,5 +1,7 @@
 using App.DTO.v1;
 using App.DTO.v1.Identity;
+using App.DTO.v1.Onboarding;
+using App.BLL.Onboarding;
 using Base.Helpers;
 
 namespace WebApp.ApiControllers.Identity;
@@ -15,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebApp.ApiControllers.Shared;
 
 [ApiVersion("1.0")]
 [ApiController]
@@ -26,15 +29,21 @@ public class AccountController : ControllerBase
     private readonly SignInManager<AppUser> _signInManager;
     private readonly IConfiguration _configuration;
     private readonly AppDbContext _context;
+    private readonly IApiOnboardingContextService _apiOnboardingContextService;
+    private readonly IApiOnboardingRouteContextMapper _routeContextMapper;
 
     public AccountController(UserManager<AppUser> userManager, ILogger<AccountController> logger,
-        SignInManager<AppUser> signInManager, IConfiguration configuration, AppDbContext context)
+        SignInManager<AppUser> signInManager, IConfiguration configuration, AppDbContext context,
+        IApiOnboardingContextService apiOnboardingContextService,
+        IApiOnboardingRouteContextMapper routeContextMapper)
     {
         _userManager = userManager;
         _logger = logger;
         _signInManager = signInManager;
         _configuration = configuration;
         _context = context;
+        _apiOnboardingContextService = apiOnboardingContextService;
+        _routeContextMapper = routeContextMapper;
     }
 
 
@@ -47,9 +56,9 @@ public class AccountController : ControllerBase
     [HttpPost]
     [Produces("application/json")]
     [Consumes("application/json")]
-    [ProducesResponseType<JWTResponse>((int) HttpStatusCode.OK)]
+    [ProducesResponseType<SpaJwtResponseDto>((int) HttpStatusCode.OK)]
     [ProducesResponseType<RestApiErrorResponse>((int) HttpStatusCode.BadRequest)]
-    public async Task<ActionResult<JWTResponse>> Register(
+    public async Task<ActionResult<SpaJwtResponseDto>> Register(
         [FromBody]
         RegisterInfo registrationData,
         [FromQuery]
@@ -81,7 +90,9 @@ public class AccountController : ControllerBase
         {
             Email = registrationData.Email,
             UserName = registrationData.Email,
-            RefreshTokens = new List<AppRefreshToken>() {refreshToken}
+            FirstName = registrationData.Firstname,
+            LastName = registrationData.Lastname,
+            RefreshTokens = new List<AppRefreshToken>() { refreshToken }
         };
         refreshToken.AppUser = appUser;
 
@@ -138,17 +149,13 @@ public class AccountController : ControllerBase
             _configuration.GetValue<string>("JWT:Audience")!,
             expiresInSeconds
         );
-        var res = new JWTResponse()
-        {
-            Jwt = jwt,
-            RefreshToken = refreshToken.RefreshToken,
-        };
+        var res = await BuildSpaJwtResponseAsync(appUser, jwt, refreshToken.RefreshToken);
         return Ok(res);
     }
 
 
     [HttpPost]
-    public async Task<ActionResult<JWTResponse>> Login(
+    public async Task<ActionResult<SpaJwtResponseDto>> Login(
         [FromBody]
         LoginInfo loginInfo,
         [FromQuery]
@@ -208,11 +215,7 @@ public class AccountController : ControllerBase
             expiresInSeconds
         );
 
-        var responseData = new JWTResponse()
-        {
-            Jwt = jwt,
-            RefreshToken = refreshToken.RefreshToken
-        };
+        var responseData = await BuildSpaJwtResponseAsync(appUser, jwt, refreshToken.RefreshToken);
 
         return Ok(responseData);
     }
@@ -405,5 +408,20 @@ public class AccountController : ControllerBase
         var deleteCount = await _context.SaveChangesAsync();
 
         return Ok(new {TokenDeleteCount = deleteCount});
+    }
+
+    private async Task<SpaJwtResponseDto> BuildSpaJwtResponseAsync(AppUser appUser, string jwt, string refreshToken)
+    {
+        var roles = await _userManager.GetRolesAsync(appUser);
+        var onboardingContexts = await _apiOnboardingContextService.GetContextsAsync(appUser.Id, HttpContext.RequestAborted);
+
+        return new SpaJwtResponseDto
+        {
+            Jwt = jwt,
+            RefreshToken = refreshToken,
+            Email = appUser.Email ?? string.Empty,
+            Roles = roles.ToArray(),
+            Onboarding = _routeContextMapper.MapCatalog(onboardingContexts)
+        };
     }
 }

@@ -18,6 +18,7 @@ using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApp;
+using WebApp.ApiControllers.Shared;
 using WebApp.Middleware;
 using WebApp.Services.ManagementLayout;
 using WebApp.Services.SharedLayout;
@@ -67,6 +68,8 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<IOnboardingContextService, OnboardingContextService>();
+builder.Services.AddScoped<IApiOnboardingContextService, ApiOnboardingContextService>();
+builder.Services.AddScoped<IApiOnboardingRouteContextMapper, ApiOnboardingRouteContextMapper>();
 builder.Services.AddScoped<IUserContextCatalogService, UserContextCatalogService>();
 builder.Services.AddScoped<IManagementCompanyJoinRequestService, ManagementCompanyJoinRequestService>();
 builder.Services.AddScoped<IManagementUserAdminService, ManagementUserAdminService>();

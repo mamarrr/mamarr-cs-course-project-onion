@@ -732,6 +732,8 @@ Key widgets:
 
 ## 13. Testing expectations
 
+OVERRIDE TESTING: DO NOT WRITE TESTS UNTIL FURTHER NOTICE
+
 Contributors must validate changes with tests proportional to scope.
 
 Minimum expected coverage areas:

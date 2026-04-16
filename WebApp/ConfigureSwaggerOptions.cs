@@ -1,5 +1,6 @@
 using System.Reflection;
 using Asp.Versioning.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -18,6 +19,19 @@ public class ConfigureSwaggerOptions : IConfigureOptions<SwaggerGenOptions>
 
     public void Configure(SwaggerGenOptions options)
     {
+        options.DocInclusionPredicate((documentName, apiDescription) =>
+        {
+            if (!string.Equals(apiDescription.GroupName, documentName, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            var controllerActionDescriptor = apiDescription.ActionDescriptor as ControllerActionDescriptor;
+            var controllerNamespace = controllerActionDescriptor?.ControllerTypeInfo.Namespace;
+
+            return controllerNamespace?.Contains(".ApiControllers.", StringComparison.Ordinal) == true;
+        });
+
         foreach (var description in _descriptionProvider.ApiVersionDescriptions)
         {
             options.SwaggerDoc(
