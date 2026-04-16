@@ -31,12 +31,6 @@ public class ResidentDashboardController : Controller
         return await RenderSectionAsync(companySlug, residentIdCode, "Dashboard", cancellationToken);
     }
 
-    [HttpGet("units")]
-    public async Task<IActionResult> Units(string companySlug, string residentIdCode, CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, residentIdCode, "Units", cancellationToken);
-    }
-
     [HttpGet("tickets")]
     public async Task<IActionResult> Tickets(string companySlug, string residentIdCode, CancellationToken cancellationToken)
     {

@@ -3,6 +3,8 @@ using App.BLL.Management;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Services.SharedLayout;
+using WebApp.ViewModels.Shared.Layout;
 using WebApp.ViewModels.Unit;
 
 namespace WebApp.Areas.Unit.Controllers;
@@ -15,15 +17,18 @@ public class UnitDashboardController : Controller
     private readonly IManagementCustomerAccessService _managementCustomerAccessService;
     private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
     private readonly IManagementUnitDashboardService _managementUnitDashboardService;
+    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public UnitDashboardController(
         IManagementCustomerAccessService managementCustomerAccessService,
         IManagementCustomerPropertyService managementCustomerPropertyService,
-        IManagementUnitDashboardService managementUnitDashboardService)
+        IManagementUnitDashboardService managementUnitDashboardService,
+        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _managementCustomerAccessService = managementCustomerAccessService;
         _managementCustomerPropertyService = managementCustomerPropertyService;
         _managementUnitDashboardService = managementUnitDashboardService;
+        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
     [HttpGet("")]
@@ -46,17 +51,6 @@ public class UnitDashboardController : Controller
         CancellationToken cancellationToken)
     {
         return await RenderSectionAsync(companySlug, customerSlug, propertySlug, unitSlug, "Details", cancellationToken);
-    }
-
-    [HttpGet("tenants")]
-    public async Task<IActionResult> Tenants(
-        string companySlug,
-        string customerSlug,
-        string propertySlug,
-        string unitSlug,
-        CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, customerSlug, propertySlug, unitSlug, "Tenants", cancellationToken);
     }
 
     [HttpGet("tickets")]
@@ -94,7 +88,7 @@ public class UnitDashboardController : Controller
             _ => UiText.Dashboard
         };
 
-        ViewData["UnitLayout"] = new UnitLayoutViewModel
+        var unitLayout = new UnitLayoutViewModel
         {
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
@@ -107,8 +101,16 @@ public class UnitDashboardController : Controller
             CurrentSection = currentSection
         };
 
+        var pageShell = await BuildPageShellAsync(
+            ViewData["Title"] as string ?? T("UnitDashboard", "Unit dashboard"),
+            ViewData["CurrentSectionLabel"] as string ?? UiText.Dashboard,
+            context.CompanySlug,
+            cancellationToken,
+            unitLayout);
+
         var vm = new UnitDashboardPageViewModel
         {
+            PageShell = pageShell,
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CustomerSlug = context.CustomerSlug,
@@ -121,6 +123,38 @@ public class UnitDashboardController : Controller
         };
 
         return View("Index", vm);
+    }
+
+    private async Task<UnitPageShellViewModel> BuildPageShellAsync(
+        string title,
+        string currentSectionLabel,
+        string companySlug,
+        CancellationToken cancellationToken,
+        UnitLayoutViewModel unitLayout)
+    {
+        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
+            User,
+            BuildWorkspaceRequest(companySlug),
+            cancellationToken);
+
+        return new UnitPageShellViewModel
+        {
+            Title = title,
+            CurrentSectionLabel = currentSectionLabel,
+            LayoutContext = layoutContext,
+            Unit = unitLayout
+        };
+    }
+
+    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
+    {
+        return new WorkspaceLayoutRequestViewModel
+        {
+            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
+            CompanySlug = companySlug,
+            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
+            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
+        };
     }
 
     private async Task<(IActionResult? response, ManagementUnitDashboardContext? context)> ResolveUnitContextAsync(

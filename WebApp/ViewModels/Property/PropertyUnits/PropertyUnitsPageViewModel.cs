@@ -55,7 +55,14 @@ public class AddUnitViewModel
     [Display(Name = "FloorNr")]
     public int? FloorNr { get; set; }
 
-    [Range(typeof(decimal), "0", "99999999.99", ErrorMessageResourceType = typeof(UiText), ErrorMessageResourceName = nameof(UiText.InvalidData))]
+    [Range(
+        typeof(decimal),
+        "0",
+        "99999999.99",
+        ParseLimitsInInvariantCulture = true,
+        ConvertValueInInvariantCulture = true,
+        ErrorMessageResourceType = typeof(UiText),
+        ErrorMessageResourceName = nameof(UiText.InvalidData))]
     [Display(Name = "SizeM2")]
     public decimal? SizeM2 { get; set; }
 

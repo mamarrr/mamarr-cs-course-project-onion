@@ -103,8 +103,8 @@
 
                 <a class="management-sidebar-link @(residentLayoutVm.CurrentSection == "Units" ? "active" : "")"
                    asp-area="Resident"
-                   asp-controller="ResidentDashboard"
-                   asp-action="Units"
+                   asp-controller="ResidentUnits"
+                   asp-action="Index"
                    asp-route-companySlug="@residentLayoutVm.CompanySlug"
                    asp-route-residentIdCode="@residentLayoutVm.ResidentIdCode">@T("Units", "Units")</a>
 

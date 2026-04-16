@@ -60,6 +60,7 @@
   <data name="Dashboard" xml:space="preserve"><value>Dashboard</value></data>
   <data name="Tickets" xml:space="preserve"><value>Tickets</value></data>
   <data name="Properties" xml:space="preserve"><value>Properties</value></data>
+  <data name="Property" xml:space="preserve"><value>Property</value></data>
   <data name="Users" xml:space="preserve"><value>Users</value></data>
   <data name="Vendors" xml:space="preserve"><value>Vendors</value></data>
   <data name="NewContext" xml:space="preserve"><value>New context</value></data>
@@ -185,6 +186,38 @@
   <data name="UnableToLoadUnit" xml:space="preserve"><value>Unable to load unit.</value></data>
   <data name="UnableToAddUnit" xml:space="preserve"><value>Unable to add unit.</value></data>
   <data name="UnitAddedSuccessfully" xml:space="preserve"><value>Unit added successfully.</value></data>
+  <data name="AddLease" xml:space="preserve"><value>Add lease</value></data>
+  <data name="LeaseRole" xml:space="preserve"><value>Lease role</value></data>
+  <data name="StartDate" xml:space="preserve"><value>Start date</value></data>
+  <data name="EndDate" xml:space="preserve"><value>End date</value></data>
+  <data name="SearchProperties" xml:space="preserve"><value>Search properties</value></data>
+  <data name="SearchResidents" xml:space="preserve"><value>Search residents</value></data>
+  <data name="PropertyResults" xml:space="preserve"><value>Property results</value></data>
+  <data name="ResidentResults" xml:space="preserve"><value>Resident results</value></data>
+  <data name="SelectUnit" xml:space="preserve"><value>Select unit</value></data>
+  <data name="SelectLeaseRole" xml:space="preserve"><value>Select lease role</value></data>
+  <data name="CurrentLeases" xml:space="preserve"><value>Current leases</value></data>
+  <data name="ResidentLeaseAddDescription" xml:space="preserve"><value>Search a property, select a unit, and link it to this resident.</value></data>
+  <data name="ResidentLeaseListDescription" xml:space="preserve"><value>Existing resident unit leases in the current company scope.</value></data>
+  <data name="NoPropertiesFoundDescription" xml:space="preserve"><value>Try a different property search term within the current resident company scope.</value></data>
+  <data name="NoResidentLeasesFoundDescription" xml:space="preserve"><value>No units are currently linked to this resident.</value></data>
+  <data name="UnitLeaseAddDescription" xml:space="preserve"><value>Search a resident, select one result, and link the resident to this unit.</value></data>
+  <data name="UnitLeaseListDescription" xml:space="preserve"><value>Existing resident leases linked to this unit in the current company scope.</value></data>
+  <data name="NoUnitLeasesFoundDescription" xml:space="preserve"><value>No residents are currently linked to this unit.</value></data>
+  <data name="NoTenantsFound" xml:space="preserve"><value>No tenants found.</value></data>
+  <data name="LeaseAddedSuccessfully" xml:space="preserve"><value>Lease added successfully.</value></data>
+  <data name="LeaseUpdatedSuccessfully" xml:space="preserve"><value>Lease updated successfully.</value></data>
+  <data name="LeaseDeletedSuccessfully" xml:space="preserve"><value>Lease deleted successfully.</value></data>
+  <data name="UnableToAddLease" xml:space="preserve"><value>Unable to add lease.</value></data>
+  <data name="UnableToUpdateLease" xml:space="preserve"><value>Unable to update lease.</value></data>
+  <data name="UnableToDeleteLease" xml:space="preserve"><value>Unable to delete lease.</value></data>
+  <data name="UnableToLoadLease" xml:space="preserve"><value>Unable to load lease.</value></data>
+  <data name="UnableToLoadProperty" xml:space="preserve"><value>Unable to load property.</value></data>
+  <data name="UnableToLoadResident" xml:space="preserve"><value>Unable to load resident.</value></data>
+  <data name="InvalidLeaseRole" xml:space="preserve"><value>Selected lease role is invalid.</value></data>
+  <data name="InvalidEndDate" xml:space="preserve"><value>End date must be on or after the start date.</value></data>
+  <data name="DuplicateActiveLeaseForResident" xml:space="preserve"><value>An active lease for this unit already exists for the resident.</value></data>
+  <data name="DuplicateActiveLeaseForUnit" xml:space="preserve"><value>An active lease for this resident already exists for the unit.</value></data>
   <data name="InvalidPropertyType" xml:space="preserve"><value>Selected property type is invalid.</value></data>
   <data name="UnableToAddProperty" xml:space="preserve"><value>Unable to add property.</value></data>
   <data name="PropertyAddedSuccessfully" xml:space="preserve"><value>Property added successfully.</value></data>
@@ -244,5 +277,23 @@
   </data>
   <data name="Notes" xml:space="preserve">
     <value>Notes</value>
+  </data>
+  <data name="PropertyWasNotFound" xml:space="preserve">
+    <value>Property was not found</value>
+  </data>
+  <data name="LeaseWasNotFound" xml:space="preserve">
+    <value>Lease was not found.</value>
+  </data>
+  <data name="ResidentWasNotFound" xml:space="preserve">
+    <value>Resident was not found</value>
+  </data>
+  <data name="UnitWasNotFound" xml:space="preserve">
+    <value>Unit was not found.</value>
+  </data>
+  <data name="InvalidDateRange" xml:space="preserve">
+    <value>Invalid Date range</value>
+  </data>
+  <data name="ActiveLeaseAlreadyExists" xml:space="preserve">
+    <value>Active Lease already exists</value>
   </data>
 </root>

@@ -1,0 +1,281 @@
+@model WebApp.ViewModels.Unit.UnitTenantsPageViewModel
+@using App.Resources.Views
+@using App.Resources.Domain
+@{
+    ViewData["Title"] = T("Tenants", "Tenants");
+    ViewData["CurrentSectionLabel"] = T("Tenants", "Tenants");
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+
+    string ResidentLabel(WebApp.ViewModels.Unit.UnitLeaseResidentSearchResultViewModel resident)
+    {
+        var statusText = resident.IsActive ? string.Empty : $" ({T("Inactive", "Inactive")})";
+        return $"{resident.FullName} · {resident.IdCode}{statusText}";
+    }
+
+    var selectedResident = Model.ResidentSearchResults.FirstOrDefault(x => x.ResidentId == Model.AddLease.ResidentId);
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <p class="management-eyebrow mb-2">@T("Tenants", "Tenants")</p>
+        <h2 class="mb-1">@Model.UnitName</h2>
+        <p class="management-muted mb-0">@string.Format(T("UnitDashboardIntro", "Unit workspace for {0} in property {1}, customer {2} ({3})."), Model.UnitName, Model.PropertyName, Model.CustomerName, Model.CompanyName)</p>
+    </section>
+
+    <section class="management-card">
+        <h2>@T("AddLease", "Add lease")</h2>
+        <p class="management-muted">@T("UnitLeaseAddDescription", "Search a resident, select one result, and link the resident to this unit.")</p>
+
+        @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+        {
+            <div class="alert alert-success" role="alert">@Model.SuccessMessage</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger" role="alert">@Model.ErrorMessage</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <form method="get" asp-action="Index" asp-route-companySlug="@Model.CompanySlug" asp-route-customerSlug="@Model.CustomerSlug" asp-route-propertySlug="@Model.PropertySlug" asp-route-unitSlug="@Model.UnitSlug" class="row g-3 mb-4">
+            <div class="col-md-9">
+                <label asp-for="AddLease.ResidentSearchTerm" class="form-label"></label>
+                <input asp-for="AddLease.ResidentSearchTerm" class="form-control" />
+                <span asp-validation-for="AddLease.ResidentSearchTerm" class="text-danger"></span>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="management-btn w-100">@T("SearchResidents", "Search residents")</button>
+            </div>
+            <input type="hidden" asp-for="AddLease.ResidentId" />
+        </form>
+
+        @if (!string.IsNullOrWhiteSpace(Model.AddLease.ResidentSearchTerm))
+        {
+            if (Model.ResidentSearchResults.Count == 0)
+            {
+                <div class="border rounded p-3 bg-light-subtle mb-4">
+                    <strong>@T("NoResidentsFound", "No residents found")</strong>
+                    <p class="management-muted mb-0">@T("NoResidentsFoundDescription", "Try a different resident name or id code within the current company scope.")</p>
+                </div>
+            }
+            else
+            {
+                <div class="border rounded p-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>@T("ResidentResults", "Resident results")</strong>
+                        <span class="management-muted">@Model.ResidentSearchResults.Count</span>
+                    </div>
+                    <div class="list-group">
+                        @foreach (var resident in Model.ResidentSearchResults)
+                        {
+                            var isSelected = Model.AddLease.ResidentId == resident.ResidentId;
+                            <a class="list-group-item list-group-item-action @(isSelected ? "active" : string.Empty)"
+                               asp-action="Index"
+                               asp-route-companySlug="@Model.CompanySlug"
+                               asp-route-customerSlug="@Model.CustomerSlug"
+                               asp-route-propertySlug="@Model.PropertySlug"
+                               asp-route-unitSlug="@Model.UnitSlug"
+                               asp-route-AddLease.ResidentSearchTerm="@Model.AddLease.ResidentSearchTerm"
+                               asp-route-AddLease.ResidentId="@resident.ResidentId">
+                                <div class="fw-semibold">@resident.FullName</div>
+                                <div>@resident.IdCode</div>
+                                @if (!resident.IsActive)
+                                {
+                                    <div class="small @(isSelected ? "text-white-50" : "text-muted")">@T("Inactive", "Inactive")</div>
+                                }
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        }
+
+        <form method="post" asp-action="Add" asp-route-companySlug="@Model.CompanySlug" asp-route-customerSlug="@Model.CustomerSlug" asp-route-propertySlug="@Model.PropertySlug" asp-route-unitSlug="@Model.UnitSlug" class="row g-3">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="AddLease.ResidentSearchTerm" />
+            <input type="hidden" asp-for="AddLease.ResidentId" />
+
+            <div class="col-12">
+                <label class="form-label">@T("Resident", "Resident")</label>
+                @if (selectedResident == null)
+                {
+                    <div class="form-control bg-light-subtle">@UiText.NoValuePlaceholder</div>
+                }
+                else
+                {
+                    <div class="form-control bg-light-subtle">@ResidentLabel(selectedResident)</div>
+                }
+                <span asp-validation-for="AddLease.ResidentId" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="AddLease.LeaseRoleId" class="form-label"></label>
+                <select asp-for="AddLease.LeaseRoleId" class="form-select">
+                    <option value="">@T("SelectLeaseRole", "Select lease role")</option>
+                    @foreach (var role in Model.LeaseRoleOptions)
+                    {
+                        <option value="@role.LeaseRoleId">@role.Label</option>
+                    }
+                </select>
+                <span asp-validation-for="AddLease.LeaseRoleId" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="AddLease.StartDate" class="form-label"></label>
+                <input asp-for="AddLease.StartDate" class="form-control" type="date" />
+                <span asp-validation-for="AddLease.StartDate" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-6">
+                <label asp-for="AddLease.EndDate" class="form-label"></label>
+                <input asp-for="AddLease.EndDate" class="form-control" type="date" />
+                <span asp-validation-for="AddLease.EndDate" class="text-danger"></span>
+            </div>
+
+            <div class="col-12 form-check ms-1">
+                <input asp-for="AddLease.IsActive" class="form-check-input" />
+                <label asp-for="AddLease.IsActive" class="form-check-label"></label>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="AddLease.Notes" class="form-label"></label>
+                <textarea asp-for="AddLease.Notes" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="AddLease.Notes" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="management-btn">@T("AddLease", "Add lease")</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="management-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="mb-1">@T("CurrentLeases", "Current leases")</h2>
+                <p class="management-muted mb-0">@T("UnitLeaseListDescription", "Existing resident leases linked to this unit in the current company scope.")</p>
+            </div>
+            <span class="management-badge @(Model.Leases.Count > 0 ? "success" : "warning")">
+                @string.Format(UiText.ActiveRecords, Model.Leases.Count)
+            </span>
+        </div>
+
+        @if (Model.Leases.Count == 0)
+        {
+            <div class="border rounded p-3 bg-light-subtle">
+                <strong>@T("NoTenantsFound", "No tenants found")</strong>
+                <p class="management-muted mb-0">@T("NoUnitLeasesFoundDescription", "No residents are currently linked to this unit.")</p>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex flex-column gap-3">
+                @foreach (var lease in Model.Leases)
+                {
+                    var isEditing = Model.ActiveEditLeaseId == lease.LeaseId;
+                    <article class="border rounded p-3">
+                        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                            <div>
+                                <div class="management-eyebrow mb-1">@lease.ResidentIdCode</div>
+                                <h3 class="h5 mb-1">@lease.ResidentFullName</h3>
+                                <div class="management-muted mb-2">@lease.LeaseRoleLabel</div>
+                                <div class="small text-muted">
+                                    @T("StartDate", "Start date"): @lease.StartDate.ToString("yyyy-MM-dd")
+                                    @if (lease.EndDate.HasValue)
+                                    {
+                                        <span class="ms-2">@T("EndDate", "End date"): @lease.EndDate.Value.ToString("yyyy-MM-dd")</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-lg-end gap-2">
+                                <span class="management-badge @(lease.IsActive ? "success" : "warning")">
+                                    @(lease.IsActive ? UiText.Active : T("Inactive", "Inactive"))
+                                </span>
+                                <div class="d-flex gap-2">
+                                    <a class="management-btn ghost"
+                                       asp-action="Index"
+                                       asp-route-companySlug="@Model.CompanySlug"
+                                       asp-route-customerSlug="@Model.CustomerSlug"
+                                       asp-route-propertySlug="@Model.PropertySlug"
+                                       asp-route-unitSlug="@Model.UnitSlug"
+                                       asp-route-AddLease.ResidentSearchTerm="@Model.AddLease.ResidentSearchTerm"
+                                       asp-route-AddLease.ResidentId="@Model.AddLease.ResidentId"
+                                       asp-route-ActiveEditLeaseId="@lease.LeaseId">@UiText.Edit</a>
+                                    <form method="post" asp-action="Delete" asp-route-companySlug="@Model.CompanySlug" asp-route-customerSlug="@Model.CustomerSlug" asp-route-propertySlug="@Model.PropertySlug" asp-route-unitSlug="@Model.UnitSlug" asp-route-leaseId="@lease.LeaseId">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="management-btn ghost">@UiText.Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(lease.Notes))
+                        {
+                            <div class="mt-3">
+                                <strong>@UiText.Notes</strong>
+                                <p class="mb-0">@lease.Notes</p>
+                            </div>
+                        }
+
+                        @if (isEditing)
+                        {
+                            <hr />
+                            <form method="post" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-customerSlug="@Model.CustomerSlug" asp-route-propertySlug="@Model.PropertySlug" asp-route-unitSlug="@Model.UnitSlug" asp-route-leaseId="@lease.LeaseId" class="row g-3">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" asp-for="EditLease.LeaseId" value="@lease.LeaseId" />
+
+                                <div class="col-md-6">
+                                    <label asp-for="EditLease.LeaseRoleId" class="form-label"></label>
+                                    <select asp-for="EditLease.LeaseRoleId" class="form-select">
+                                        <option value="">@T("SelectLeaseRole", "Select lease role")</option>
+                                        @foreach (var role in Model.LeaseRoleOptions)
+                                        {
+                                            var selectedRoleId = Model.EditLease.LeaseId == lease.LeaseId && Model.EditLease.LeaseRoleId.HasValue
+                                                ? Model.EditLease.LeaseRoleId.Value
+                                                : lease.LeaseRoleId;
+                                            <option value="@role.LeaseRoleId" selected="@(selectedRoleId == role.LeaseRoleId)">@role.Label</option>
+                                        }
+                                    </select>
+                                    <span asp-validation-for="EditLease.LeaseRoleId" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="EditLease.StartDate" class="form-label"></label>
+                                    <input asp-for="EditLease.StartDate" class="form-control" type="date" value="@((Model.EditLease.LeaseId == lease.LeaseId ? Model.EditLease.StartDate : lease.StartDate).ToString("yyyy-MM-dd"))" />
+                                    <span asp-validation-for="EditLease.StartDate" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label asp-for="EditLease.EndDate" class="form-label"></label>
+                                    <input asp-for="EditLease.EndDate" class="form-control" type="date" value="@((Model.EditLease.LeaseId == lease.LeaseId ? Model.EditLease.EndDate : lease.EndDate)?.ToString("yyyy-MM-dd"))" />
+                                    <span asp-validation-for="EditLease.EndDate" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-12 form-check ms-1">
+                                    <input asp-for="EditLease.IsActive" class="form-check-input" checked="@((Model.EditLease.LeaseId == lease.LeaseId ? Model.EditLease.IsActive : lease.IsActive))" />
+                                    <label asp-for="EditLease.IsActive" class="form-check-label"></label>
+                                </div>
+
+                                <div class="col-12">
+                                    <label asp-for="EditLease.Notes" class="form-label"></label>
+                                    <textarea asp-for="EditLease.Notes" class="form-control" rows="3">@(Model.EditLease.LeaseId == lease.LeaseId ? Model.EditLease.Notes : lease.Notes)</textarea>
+                                    <span asp-validation-for="EditLease.Notes" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-12 d-flex gap-2">
+                                    <button type="submit" class="management-btn">@UiText.SaveChanges</button>
+                                    <a class="management-btn ghost" asp-action="Index" asp-route-companySlug="@Model.CompanySlug" asp-route-customerSlug="@Model.CustomerSlug" asp-route-propertySlug="@Model.PropertySlug" asp-route-unitSlug="@Model.UnitSlug">@UiText.Cancel</a>
+                                </div>
+                            </form>
+                        }
+                    </article>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

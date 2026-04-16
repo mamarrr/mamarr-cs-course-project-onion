@@ -56,6 +56,7 @@
   <data name="Dashboard" xml:space="preserve"><value>Töölaud</value></data>
   <data name="Tickets" xml:space="preserve"><value>Piletid</value></data>
   <data name="Properties" xml:space="preserve"><value>Kinnistud</value></data>
+  <data name="Property" xml:space="preserve"><value>Kinnistu</value></data>
   <data name="Users" xml:space="preserve"><value>Kasutajad</value></data>
   <data name="Vendors" xml:space="preserve"><value>Teenusepakkujad</value></data>
   <data name="NewContext" xml:space="preserve"><value>Uus kontekst</value></data>
@@ -178,6 +179,38 @@
   <data name="UnableToLoadUnit" xml:space="preserve"><value>Üksuse laadimine ebaõnnestus.</value></data>
   <data name="UnableToAddUnit" xml:space="preserve"><value>Üksuse lisamine ebaõnnestus.</value></data>
   <data name="UnitAddedSuccessfully" xml:space="preserve"><value>Üksus lisati edukalt.</value></data>
+  <data name="AddLease" xml:space="preserve"><value>Lisa üürileping</value></data>
+  <data name="LeaseRole" xml:space="preserve"><value>Üürilepingu roll</value></data>
+  <data name="StartDate" xml:space="preserve"><value>Alguskuupäev</value></data>
+  <data name="EndDate" xml:space="preserve"><value>Lõppkuupäev</value></data>
+  <data name="SearchProperties" xml:space="preserve"><value>Otsi kinnistuid</value></data>
+  <data name="SearchResidents" xml:space="preserve"><value>Otsi elanikke</value></data>
+  <data name="PropertyResults" xml:space="preserve"><value>Kinnistute tulemused</value></data>
+  <data name="ResidentResults" xml:space="preserve"><value>Elanike tulemused</value></data>
+  <data name="SelectUnit" xml:space="preserve"><value>Vali üksus</value></data>
+  <data name="SelectLeaseRole" xml:space="preserve"><value>Vali üürilepingu roll</value></data>
+  <data name="CurrentLeases" xml:space="preserve"><value>Praegused üürilepingud</value></data>
+  <data name="ResidentLeaseAddDescription" xml:space="preserve"><value>Otsi kinnistut, vali üksus ja seo see selle elanikuga.</value></data>
+  <data name="ResidentLeaseListDescription" xml:space="preserve"><value>Praeguse ettevõtte ulatuses olemasolevad elaniku üksuse üürilepingud.</value></data>
+  <data name="NoPropertiesFoundDescription" xml:space="preserve"><value>Proovi praeguse elaniku ettevõtte ulatuses teistsugust kinnistu otsingusõna.</value></data>
+  <data name="NoResidentLeasesFoundDescription" xml:space="preserve"><value>Selle elanikuga ei ole praegu seotud ühtegi üksust.</value></data>
+  <data name="UnitLeaseAddDescription" xml:space="preserve"><value>Otsi elanikku, vali üks tulemus ja seo elanik selle üksusega.</value></data>
+  <data name="UnitLeaseListDescription" xml:space="preserve"><value>Praeguse ettevõtte ulatuses selle üksusega seotud olemasolevad elanike üürilepingud.</value></data>
+  <data name="NoUnitLeasesFoundDescription" xml:space="preserve"><value>Selle üksusega ei ole praegu seotud ühtegi elanikku.</value></data>
+  <data name="NoTenantsFound" xml:space="preserve"><value>Üürnikke ei leitud.</value></data>
+  <data name="LeaseAddedSuccessfully" xml:space="preserve"><value>Üürileping lisati edukalt.</value></data>
+  <data name="LeaseUpdatedSuccessfully" xml:space="preserve"><value>Üürilepingut uuendati edukalt.</value></data>
+  <data name="LeaseDeletedSuccessfully" xml:space="preserve"><value>Üürileping kustutati edukalt.</value></data>
+  <data name="UnableToAddLease" xml:space="preserve"><value>Üürilepingu lisamine ebaõnnestus.</value></data>
+  <data name="UnableToUpdateLease" xml:space="preserve"><value>Üürilepingu uuendamine ebaõnnestus.</value></data>
+  <data name="UnableToDeleteLease" xml:space="preserve"><value>Üürilepingu kustutamine ebaõnnestus.</value></data>
+  <data name="UnableToLoadLease" xml:space="preserve"><value>Üürilepingu laadimine ebaõnnestus.</value></data>
+  <data name="UnableToLoadProperty" xml:space="preserve"><value>Kinnistu laadimine ebaõnnestus.</value></data>
+  <data name="UnableToLoadResident" xml:space="preserve"><value>Elaniku laadimine ebaõnnestus.</value></data>
+  <data name="InvalidLeaseRole" xml:space="preserve"><value>Valitud üürilepingu roll on vigane.</value></data>
+  <data name="InvalidEndDate" xml:space="preserve"><value>Lõppkuupäev peab olema alguskuupäevaga samal päeval või sellest hilisem.</value></data>
+  <data name="DuplicateActiveLeaseForResident" xml:space="preserve"><value>Selle elaniku jaoks on selle üksuse kohta aktiivne üürileping juba olemas.</value></data>
+  <data name="DuplicateActiveLeaseForUnit" xml:space="preserve"><value>Selle üksuse jaoks on selle elaniku kohta aktiivne üürileping juba olemas.</value></data>
   <data name="InvalidPropertyType" xml:space="preserve"><value>Valitud kinnistu tüüp on vigane.</value></data>
   <data name="UnableToAddProperty" xml:space="preserve"><value>Kinnistu lisamine ebaõnnestus.</value></data>
   <data name="PropertyAddedSuccessfully" xml:space="preserve"><value>Kinnistu lisati edukalt.</value></data>
@@ -234,5 +267,23 @@
   </data>
   <data name="Notes" xml:space="preserve">
     <value>Märkused</value>
+  </data>
+  <data name="PropertyWasNotFound" xml:space="preserve">
+    <value>Kinnistut ei leitud</value>
+  </data>
+  <data name="LeaseWasNotFound" xml:space="preserve">
+    <value>Lepingut ei leitud</value>
+  </data>
+  <data name="ResidentWasNotFound" xml:space="preserve">
+    <value>Elanikku ei leitud</value>
+  </data>
+  <data name="UnitWasNotFound" xml:space="preserve">
+    <value>Korterit ei leitud.</value>
+  </data>
+  <data name="InvalidDateRange" xml:space="preserve">
+    <value>Vigased kuupäevad</value>
+  </data>
+  <data name="ActiveLeaseAlreadyExists" xml:space="preserve">
+    <value>Aktiivne leping juba kehtib</value>
   </data>
 </root>

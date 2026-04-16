@@ -142,8 +142,8 @@
 
                 <a class="management-sidebar-link @(unitLayoutVm.CurrentSection == "Tenants" ? "active" : "")"
                    asp-area="Unit"
-                   asp-controller="UnitDashboard"
-                   asp-action="Tenants"
+                   asp-controller="UnitTenants"
+                   asp-action="Index"
                    asp-route-companySlug="@unitLayoutVm.CompanySlug"
                    asp-route-customerSlug="@unitLayoutVm.CustomerSlug"
                    asp-route-propertySlug="@unitLayoutVm.PropertySlug"

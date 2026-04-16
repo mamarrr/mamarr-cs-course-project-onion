@@ -733,6 +733,10 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasIndex(e => e.ResidentId)
             .HasDatabaseName("ix_lease_resident_id_fk");
 
+        builder.Entity<Lease>()
+            .HasIndex(e => new { e.ResidentId, e.UnitId, e.IsActive, e.StartDate })
+            .HasDatabaseName("ix_lease_resident_unit_active_start_date");
+ 
         builder.Entity<Vendor>()
             .HasIndex(e => e.ManagementCompanyId)
             .HasDatabaseName("ix_vendor_mcompany_id_fk");

@@ -123,6 +123,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Active Lease already exists.
+        /// </summary>
+        public static string ActiveLeaseAlreadyExists {
+            get {
+                return ResourceManager.GetString("ActiveLeaseAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} active records.
         /// </summary>
         public static string ActiveRecords {
@@ -164,6 +173,15 @@ namespace App.Resources.Views {
         public static string AddCustomerDescription {
             get {
                 return ResourceManager.GetString("AddCustomerDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add lease.
+        /// </summary>
+        public static string AddLease {
+            get {
+                return ResourceManager.GetString("AddLease", resourceCulture);
             }
         }
         
@@ -465,6 +483,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Current leases.
+        /// </summary>
+        public static string CurrentLeases {
+            get {
+                return ResourceManager.GetString("CurrentLeases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Current owner.
         /// </summary>
         public static string CurrentOwner {
@@ -636,6 +663,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An active lease for this unit already exists for the resident..
+        /// </summary>
+        public static string DuplicateActiveLeaseForResident {
+            get {
+                return ResourceManager.GetString("DuplicateActiveLeaseForResident", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An active lease for this resident already exists for the unit..
+        /// </summary>
+        public static string DuplicateActiveLeaseForUnit {
+            get {
+                return ResourceManager.GetString("DuplicateActiveLeaseForUnit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit.
         /// </summary>
         public static string Edit {
@@ -668,6 +713,15 @@ namespace App.Resources.Views {
         public static string Email {
             get {
                 return ResourceManager.GetString("Email", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to End date.
+        /// </summary>
+        public static string EndDate {
+            get {
+                return ResourceManager.GetString("EndDate", resourceCulture);
             }
         }
         
@@ -816,6 +870,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid Date range.
+        /// </summary>
+        public static string InvalidDateRange {
+            get {
+                return ResourceManager.GetString("InvalidDateRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The {0} field is not a valid e-mail address..
         /// </summary>
         public static string InvalidEmailAddress {
@@ -830,6 +893,24 @@ namespace App.Resources.Views {
         public static string InvalidEmailOrPassword {
             get {
                 return ResourceManager.GetString("InvalidEmailOrPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to End date must be on or after the start date..
+        /// </summary>
+        public static string InvalidEndDate {
+            get {
+                return ResourceManager.GetString("InvalidEndDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selected lease role is invalid..
+        /// </summary>
+        public static string InvalidLeaseRole {
+            get {
+                return ResourceManager.GetString("InvalidLeaseRole", resourceCulture);
             }
         }
         
@@ -902,6 +983,51 @@ namespace App.Resources.Views {
         public static string LastName {
             get {
                 return ResourceManager.GetString("LastName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lease added successfully..
+        /// </summary>
+        public static string LeaseAddedSuccessfully {
+            get {
+                return ResourceManager.GetString("LeaseAddedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lease deleted successfully..
+        /// </summary>
+        public static string LeaseDeletedSuccessfully {
+            get {
+                return ResourceManager.GetString("LeaseDeletedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lease role.
+        /// </summary>
+        public static string LeaseRole {
+            get {
+                return ResourceManager.GetString("LeaseRole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lease updated successfully..
+        /// </summary>
+        public static string LeaseUpdatedSuccessfully {
+            get {
+                return ResourceManager.GetString("LeaseUpdatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Lease was not found..
+        /// </summary>
+        public static string LeaseWasNotFound {
+            get {
+                return ResourceManager.GetString("LeaseWasNotFound", resourceCulture);
             }
         }
         
@@ -1140,11 +1266,29 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Try a different property search term within the current resident company scope..
+        /// </summary>
+        public static string NoPropertiesFoundDescription {
+            get {
+                return ResourceManager.GetString("NoPropertiesFoundDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No resident context.
         /// </summary>
         public static string NoResidentContext {
             get {
                 return ResourceManager.GetString("NoResidentContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No units are currently linked to this resident..
+        /// </summary>
+        public static string NoResidentLeasesFoundDescription {
+            get {
+                return ResourceManager.GetString("NoResidentLeasesFoundDescription", resourceCulture);
             }
         }
         
@@ -1176,11 +1320,29 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No tenants found..
+        /// </summary>
+        public static string NoTenantsFound {
+            get {
+                return ResourceManager.GetString("NoTenantsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Notes.
         /// </summary>
         public static string Notes {
             get {
                 return ResourceManager.GetString("Notes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No residents are currently linked to this unit..
+        /// </summary>
+        public static string NoUnitLeasesFoundDescription {
+            get {
+                return ResourceManager.GetString("NoUnitLeasesFoundDescription", resourceCulture);
             }
         }
         
@@ -1365,6 +1527,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Property.
+        /// </summary>
+        public static string Property {
+            get {
+                return ResourceManager.GetString("Property", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Property added successfully..
         /// </summary>
         public static string PropertyAddedSuccessfully {
@@ -1392,6 +1563,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Property results.
+        /// </summary>
+        public static string PropertyResults {
+            get {
+                return ResourceManager.GetString("PropertyResults", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} content is planned and will be added in a later increment..
         /// </summary>
         public static string PropertySectionPlaceholder {
@@ -1415,6 +1595,15 @@ namespace App.Resources.Views {
         public static string PropertyUnits {
             get {
                 return ResourceManager.GetString("PropertyUnits", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property was not found.
+        /// </summary>
+        public static string PropertyWasNotFound {
+            get {
+                return ResourceManager.GetString("PropertyWasNotFound", resourceCulture);
             }
         }
         
@@ -1599,6 +1788,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search a property, select a unit, and link it to this resident..
+        /// </summary>
+        public static string ResidentLeaseAddDescription {
+            get {
+                return ResourceManager.GetString("ResidentLeaseAddDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Existing resident unit leases in the current company scope..
+        /// </summary>
+        public static string ResidentLeaseListDescription {
+            get {
+                return ResourceManager.GetString("ResidentLeaseListDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This flow is not part of the current slice and is intentionally left as a placeholder..
         /// </summary>
         public static string ResidentOnboardingDescription {
@@ -1613,6 +1820,15 @@ namespace App.Resources.Views {
         public static string ResidentRequestAccess {
             get {
                 return ResourceManager.GetString("ResidentRequestAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resident results.
+        /// </summary>
+        public static string ResidentResults {
+            get {
+                return ResourceManager.GetString("ResidentResults", resourceCulture);
             }
         }
         
@@ -1640,6 +1856,15 @@ namespace App.Resources.Views {
         public static string ResidentsPageIntro {
             get {
                 return ResourceManager.GetString("ResidentsPageIntro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resident was not found.
+        /// </summary>
+        public static string ResidentWasNotFound {
+            get {
+                return ResourceManager.GetString("ResidentWasNotFound", resourceCulture);
             }
         }
         
@@ -1680,11 +1905,38 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search properties.
+        /// </summary>
+        public static string SearchProperties {
+            get {
+                return ResourceManager.GetString("SearchProperties", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search residents.
+        /// </summary>
+        public static string SearchResidents {
+            get {
+                return ResourceManager.GetString("SearchResidents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Selected role is invalid..
         /// </summary>
         public static string SelectedRoleIsInvalid {
             get {
                 return ResourceManager.GetString("SelectedRoleIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select lease role.
+        /// </summary>
+        public static string SelectLeaseRole {
+            get {
+                return ResourceManager.GetString("SelectLeaseRole", resourceCulture);
             }
         }
         
@@ -1716,6 +1968,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Select unit.
+        /// </summary>
+        public static string SelectUnit {
+            get {
+                return ResourceManager.GetString("SelectUnit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set up your access to enter the platform..
         /// </summary>
         public static string SetupAccessPrompt {
@@ -1739,6 +2000,15 @@ namespace App.Resources.Views {
         public static string SizeM2 {
             get {
                 return ResourceManager.GetString("SizeM2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start date.
+        /// </summary>
+        public static string StartDate {
+            get {
+                return ResourceManager.GetString("StartDate", resourceCulture);
             }
         }
         
@@ -1860,6 +2130,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to add lease..
+        /// </summary>
+        public static string UnableToAddLease {
+            get {
+                return ResourceManager.GetString("UnableToAddLease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to add property..
         /// </summary>
         public static string UnableToAddProperty {
@@ -1901,6 +2180,42 @@ namespace App.Resources.Views {
         public static string UnableToApproveAccessRequest {
             get {
                 return ResourceManager.GetString("UnableToApproveAccessRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to delete lease..
+        /// </summary>
+        public static string UnableToDeleteLease {
+            get {
+                return ResourceManager.GetString("UnableToDeleteLease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load lease..
+        /// </summary>
+        public static string UnableToLoadLease {
+            get {
+                return ResourceManager.GetString("UnableToLoadLease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load property..
+        /// </summary>
+        public static string UnableToLoadProperty {
+            get {
+                return ResourceManager.GetString("UnableToLoadProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to load resident..
+        /// </summary>
+        public static string UnableToLoadResident {
+            get {
+                return ResourceManager.GetString("UnableToLoadResident", resourceCulture);
             }
         }
         
@@ -1959,6 +2274,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to update lease..
+        /// </summary>
+        public static string UnableToUpdateLease {
+            get {
+                return ResourceManager.GetString("UnableToUpdateLease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to update user..
         /// </summary>
         public static string UnableToUpdateUser {
@@ -2004,6 +2328,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search a resident, select one result, and link the resident to this unit..
+        /// </summary>
+        public static string UnitLeaseAddDescription {
+            get {
+                return ResourceManager.GetString("UnitLeaseAddDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Existing resident leases linked to this unit in the current company scope..
+        /// </summary>
+        public static string UnitLeaseListDescription {
+            get {
+                return ResourceManager.GetString("UnitLeaseListDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unit number.
         /// </summary>
         public static string UnitNr {
@@ -2027,6 +2369,15 @@ namespace App.Resources.Views {
         public static string UnitSectionPlaceholder {
             get {
                 return ResourceManager.GetString("UnitSectionPlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unit was not found..
+        /// </summary>
+        public static string UnitWasNotFound {
+            get {
+                return ResourceManager.GetString("UnitWasNotFound", resourceCulture);
             }
         }
         

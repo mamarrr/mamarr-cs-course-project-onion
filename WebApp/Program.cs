@@ -78,6 +78,8 @@ builder.Services.AddScoped<IManagementResidentAccessService, ManagementResidentA
 builder.Services.AddScoped<IManagementResidentService, ManagementResidentService>();
 builder.Services.AddScoped<IManagementPropertyUnitService, ManagementPropertyUnitService>();
 builder.Services.AddScoped<IManagementUnitDashboardService, ManagementPropertyUnitService>();
+builder.Services.AddScoped<IManagementLeaseService, ManagementLeaseService>();
+builder.Services.AddScoped<IManagementLeaseSearchService, ManagementLeaseSearchService>();
 builder.Services.AddScoped<IWorkspaceLayoutContextProvider, WorkspaceLayoutContextProvider>();
 builder.Services.AddScoped<IManagementLayoutViewModelProvider, ManagementLayoutViewModelProvider>();
 
