@@ -1,13 +1,13 @@
 namespace App.BLL.ManagementCompany.Membership;
 
-public interface IManagementUserAuthorizationService
+public interface ICompanyMembershipAuthorizationService
 {
-    Task<ManagementAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
+    Task<CompanyAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementUserAdminAuthorizationResult> AuthorizeAsync(
+    Task<CompanyAdminAuthorizationResult> AuthorizeAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default);

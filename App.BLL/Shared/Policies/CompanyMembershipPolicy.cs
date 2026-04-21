@@ -48,9 +48,9 @@ public static class CompanyMembershipPolicy
         return isOwner || string.Equals(actorRoleCode, ManagerRoleCode, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static ManagementRoleOption MapRoleOption(ManagementCompanyRole role)
+    public static CompanyMembershipRoleOption MapRoleOption(ManagementCompanyRole role)
     {
-        return new ManagementRoleOption
+        return new CompanyMembershipRoleOption
         {
             RoleId = role.Id,
             RoleCode = role.Code,

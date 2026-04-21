@@ -1,18 +1,18 @@
 namespace App.BLL.ManagementCompany.Membership;
 
-public interface IManagementAccessRequestService
+public interface ICompanyAccessRequestReviewService
 {
     Task<PendingAccessRequestListResult> GetPendingAccessRequestsAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
     Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default);
 
     Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default);
 }

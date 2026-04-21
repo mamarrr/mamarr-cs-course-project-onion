@@ -12,14 +12,14 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}")]
 public class DashboardController : ManagementPageShellController
 {
-    private readonly IManagementUserAdminService _managementUserAdminService;
+    private readonly ICompanyMembershipAdminService _companyMembershipAdminService;
 
     public DashboardController(
-        IManagementUserAdminService managementUserAdminService,
+        ICompanyMembershipAdminService companyMembershipAdminService,
         IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
         : base(managementLayoutViewModelProvider)
     {
-        _managementUserAdminService = managementUserAdminService;
+        _companyMembershipAdminService = companyMembershipAdminService;
     }
 
     [HttpGet("")]
@@ -32,7 +32,7 @@ public class DashboardController : ManagementPageShellController
             return Challenge();
         }
 
-        var auth = await _managementUserAdminService.AuthorizeManagementAreaAccessAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeManagementAreaAccessAsync(appUserId.Value, companySlug, cancellationToken);
         if (auth.CompanyNotFound)
         {
             return NotFound();

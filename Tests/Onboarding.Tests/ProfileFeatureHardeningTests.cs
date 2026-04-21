@@ -24,7 +24,7 @@ public class ProfileFeatureHardeningTests
     {
         await using var db = CreateDbContext();
         var fixture = await SeedManagementCompanyFixtureAsync(db, "OWNER");
-        var authorizationService = new FakeManagementUserAdminService(fixture.AuthorizationResult);
+        var authorizationService = new FakeCompanyMembershipAdminService(fixture.AuthorizationResult);
         var sut = new ManagementCompanyProfileService(db, authorizationService);
 
         var result = await sut.UpdateProfileAsync(
@@ -242,11 +242,11 @@ public class ProfileFeatureHardeningTests
         return new ManagementCompanyFixture(
             company,
             actor,
-            new ManagementAreaAuthorizationResult
+            new CompanyAreaAuthorizationResult
             {
                 IsAuthorized = true,
                 CompanyNotFound = false,
-                Context = new ManagementMembershipContext
+                Context = new CompanyMembershipContext
                 {
                     ManagementCompanyId = company.Id,
                     CompanySlug = company.Slug,
@@ -717,22 +717,22 @@ public class ProfileFeatureHardeningTests
     private sealed record ManagementCompanyFixture(
         ManagementCompany Company,
         AppUser Actor,
-        ManagementAreaAuthorizationResult AuthorizationResult);
+        CompanyAreaAuthorizationResult AuthorizationResult);
 
     private sealed record UnitFixture(
         ManagementUnitDashboardContext Context,
         Unit Unit);
 
-    private sealed class FakeManagementUserAdminService : IManagementUserAdminService
+    private sealed class FakeCompanyMembershipAdminService : ICompanyMembershipAdminService
     {
-        private readonly ManagementAreaAuthorizationResult _authorizationResult;
+        private readonly CompanyAreaAuthorizationResult _authorizationResult;
 
-        public FakeManagementUserAdminService(ManagementAreaAuthorizationResult authorizationResult)
+        public FakeCompanyMembershipAdminService(CompanyAreaAuthorizationResult authorizationResult)
         {
             _authorizationResult = authorizationResult;
         }
 
-        public Task<ManagementAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
+        public Task<CompanyAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
             Guid appUserId,
             string companySlug,
             CancellationToken cancellationToken = default)
@@ -740,7 +740,7 @@ public class ProfileFeatureHardeningTests
             return Task.FromResult(_authorizationResult);
         }
 
-        public Task<ManagementUserAdminAuthorizationResult> AuthorizeAsync(
+        public Task<CompanyAdminAuthorizationResult> AuthorizeAsync(
             Guid appUserId,
             string companySlug,
             CancellationToken cancellationToken = default)
@@ -748,55 +748,55 @@ public class ProfileFeatureHardeningTests
             throw new NotSupportedException();
         }
 
-        public Task<ManagementUserListResult> ListCompanyMembersAsync(
-            ManagementUserAdminAuthorizedContext context,
+        public Task<CompanyMembershipListResult> ListCompanyMembersAsync(
+            CompanyAdminAuthorizedContext context,
             CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
-        public Task<ManagementUserEditResult> GetMembershipForEditAsync(
-            ManagementUserAdminAuthorizedContext context,
+        public Task<CompanyMembershipEditResult> GetMembershipForEditAsync(
+            CompanyAdminAuthorizedContext context,
             Guid membershipId,
             CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
-        public Task<IReadOnlyList<ManagementRoleOption>> GetAddRoleOptionsAsync(
-            ManagementUserAdminAuthorizedContext context,
+        public Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAddRoleOptionsAsync(
+            CompanyAdminAuthorizedContext context,
             CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
-        public Task<ManagementRoleOptionsResult> GetEditRoleOptionsAsync(
-            ManagementUserAdminAuthorizedContext context,
+        public Task<CompanyMembershipOptionsResult> GetEditRoleOptionsAsync(
+            CompanyAdminAuthorizedContext context,
             Guid membershipId,
             CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
-        public Task<ManagementUserAddResult> AddUserByEmailAsync(
-            ManagementUserAdminAuthorizedContext context,
-            ManagementUserAddRequest request,
+        public Task<CompanyMembershipAddResult> AddUserByEmailAsync(
+            CompanyAdminAuthorizedContext context,
+            CompanyMembershipAddRequest request,
             CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
-        public Task<ManagementUserUpdateResult> UpdateMembershipAsync(
-            ManagementUserAdminAuthorizedContext context,
+        public Task<CompanyMembershipUpdateResult> UpdateMembershipAsync(
+            CompanyAdminAuthorizedContext context,
             Guid membershipId,
-            ManagementUserUpdateRequest request,
+            CompanyMembershipUpdateRequest request,
             CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
-        public Task<ManagementUserDeleteResult> DeleteMembershipAsync(
-            ManagementUserAdminAuthorizedContext context,
+        public Task<CompanyMembershipDeleteResult> DeleteMembershipAsync(
+            CompanyAdminAuthorizedContext context,
             Guid membershipId,
             CancellationToken cancellationToken = default)
         {
@@ -804,14 +804,14 @@ public class ProfileFeatureHardeningTests
         }
 
         public Task<OwnershipTransferCandidateListResult> GetOwnershipTransferCandidatesAsync(
-            ManagementUserAdminAuthorizedContext context,
+            CompanyAdminAuthorizedContext context,
             CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
         public Task<OwnershipTransferResult> TransferOwnershipAsync(
-            ManagementUserAdminAuthorizedContext context,
+            CompanyAdminAuthorizedContext context,
             TransferOwnershipRequest request,
             CancellationToken cancellationToken = default)
         {
@@ -825,14 +825,14 @@ public class ProfileFeatureHardeningTests
         }
 
         public Task<PendingAccessRequestListResult> GetPendingAccessRequestsAsync(
-            ManagementUserAdminAuthorizedContext context,
+            CompanyAdminAuthorizedContext context,
             CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 
         public Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
-            ManagementUserAdminAuthorizedContext context,
+            CompanyAdminAuthorizedContext context,
             Guid requestId,
             CancellationToken cancellationToken = default)
         {
@@ -840,7 +840,7 @@ public class ProfileFeatureHardeningTests
         }
 
         public Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
-            ManagementUserAdminAuthorizedContext context,
+            CompanyAdminAuthorizedContext context,
             Guid requestId,
             CancellationToken cancellationToken = default)
         {

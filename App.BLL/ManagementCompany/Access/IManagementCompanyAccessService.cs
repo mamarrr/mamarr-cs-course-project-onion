@@ -2,9 +2,9 @@ using App.BLL.ManagementCompany.Membership;
 
 namespace App.BLL.ManagementCompany.Access;
 
-public interface IManagementAccessService
+public interface IManagementCompanyAccessService
 {
-    Task<ManagementAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
+    Task<CompanyAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default);

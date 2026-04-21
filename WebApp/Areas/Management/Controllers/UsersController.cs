@@ -13,15 +13,15 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}/users")]
 public class UsersController : ManagementPageShellController
 {
-    private readonly IManagementUserAdminService _managementUserAdminService;
+    private readonly ICompanyMembershipAdminService _companyMembershipAdminService;
 
     public UsersController(
-        IManagementUserAdminService managementUserAdminService,
+        ICompanyMembershipAdminService companyMembershipAdminService,
         ILogger<UsersController> logger,
         IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
         : base(managementLayoutViewModelProvider)
     {
-        _managementUserAdminService = managementUserAdminService;
+        _companyMembershipAdminService = companyMembershipAdminService;
     }
 
     [HttpGet("")]
@@ -44,7 +44,7 @@ public class UsersController : ManagementPageShellController
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -59,7 +59,7 @@ public class UsersController : ManagementPageShellController
             return View(nameof(Index), invalidVm);
         }
 
-        var result = await _managementUserAdminService.AddUserByEmailAsync(auth.Context!, new ManagementUserAddRequest
+        var result = await _companyMembershipAdminService.AddUserByEmailAsync(auth.Context!, new CompanyMembershipAddRequest
         {
             Email = vm.Email,
             RoleId = vm.RoleId.Value,
@@ -86,11 +86,11 @@ public class UsersController : ManagementPageShellController
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var editResult = await _managementUserAdminService.GetMembershipForEditAsync(auth.Context!, id, cancellationToken);
+        var editResult = await _companyMembershipAdminService.GetMembershipForEditAsync(auth.Context!, id, cancellationToken);
         if (editResult.NotFound)
         {
             return NotFound();
@@ -116,7 +116,7 @@ public class UsersController : ManagementPageShellController
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -125,7 +125,7 @@ public class UsersController : ManagementPageShellController
             return NotFound();
         }
 
-        var editResult = await _managementUserAdminService.GetMembershipForEditAsync(auth.Context!, id, cancellationToken);
+        var editResult = await _companyMembershipAdminService.GetMembershipForEditAsync(auth.Context!, id, cancellationToken);
         if (editResult.NotFound)
         {
             return NotFound();
@@ -151,7 +151,7 @@ public class UsersController : ManagementPageShellController
             return View(vm);
         }
 
-        var updateResult = await _managementUserAdminService.UpdateMembershipAsync(auth.Context!, id, new ManagementUserUpdateRequest
+        var updateResult = await _companyMembershipAdminService.UpdateMembershipAsync(auth.Context!, id, new CompanyMembershipUpdateRequest
         {
             RoleId = vm.RoleId.Value,
             JobTitle = vm.JobTitle,
@@ -179,11 +179,11 @@ public class UsersController : ManagementPageShellController
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var result = await _managementUserAdminService.DeleteMembershipAsync(auth.Context!, id, cancellationToken);
+        var result = await _companyMembershipAdminService.DeleteMembershipAsync(auth.Context!, id, cancellationToken);
         if (!result.Success)
         {
             TempData["ManagementUsersError"] = result.ErrorMessage ?? App.Resources.Views.UiText.UnableToRemoveCompanyUser;
@@ -200,11 +200,11 @@ public class UsersController : ManagementPageShellController
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var candidateResult = await _managementUserAdminService.GetOwnershipTransferCandidatesAsync(auth.Context!, cancellationToken);
+        var candidateResult = await _companyMembershipAdminService.GetOwnershipTransferCandidatesAsync(auth.Context!, cancellationToken);
         if (candidateResult.Forbidden)
         {
             TempData["ManagementUsersError"] = candidateResult.ErrorMessage ?? App.Resources.Views.UiText.OwnershipTransferRequiresCurrentOwner;
@@ -227,7 +227,7 @@ public class UsersController : ManagementPageShellController
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -245,7 +245,7 @@ public class UsersController : ManagementPageShellController
             return View(invalidVm);
         }
 
-        var result = await _managementUserAdminService.TransferOwnershipAsync(auth.Context!, new TransferOwnershipRequest
+        var result = await _companyMembershipAdminService.TransferOwnershipAsync(auth.Context!, new TransferOwnershipRequest
         {
             TargetMembershipId = vm.TargetMembershipId.Value
         }, cancellationToken);
@@ -269,11 +269,11 @@ public class UsersController : ManagementPageShellController
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var result = await _managementUserAdminService.ApprovePendingAccessRequestAsync(auth.Context!, requestId, cancellationToken);
+        var result = await _companyMembershipAdminService.ApprovePendingAccessRequestAsync(auth.Context!, requestId, cancellationToken);
         if (!result.Success)
         {
             TempData["ManagementUsersError"] = result.ErrorMessage ?? App.Resources.Views.UiText.UnableToApproveAccessRequest;
@@ -291,11 +291,11 @@ public class UsersController : ManagementPageShellController
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var result = await _managementUserAdminService.RejectPendingAccessRequestAsync(auth.Context!, requestId, cancellationToken);
+        var result = await _companyMembershipAdminService.RejectPendingAccessRequestAsync(auth.Context!, requestId, cancellationToken);
         if (!result.Success)
         {
             TempData["ManagementUsersError"] = result.ErrorMessage ?? App.Resources.Views.UiText.UnableToRejectAccessRequest;
@@ -314,11 +314,11 @@ public class UsersController : ManagementPageShellController
             return Challenge();
         }
 
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         return ToAuthorizationActionResult(auth);
     }
 
-    private IActionResult? ToAuthorizationActionResult(ManagementUserAdminAuthorizationResult auth)
+    private IActionResult? ToAuthorizationActionResult(CompanyAdminAuthorizationResult auth)
     {
         if (auth.CompanyNotFound)
         {
@@ -339,12 +339,12 @@ public class UsersController : ManagementPageShellController
         AddManagementUserViewModel? addUserOverride = null)
     {
         var appUserId = GetAppUserId()!.Value;
-        var auth = await _managementUserAdminService.AuthorizeAsync(appUserId, companySlug, cancellationToken);
+        var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId, companySlug, cancellationToken);
         var context = auth.Context!;
 
-        var members = await _managementUserAdminService.ListCompanyMembersAsync(context, cancellationToken);
-        var pendingRequests = await _managementUserAdminService.GetPendingAccessRequestsAsync(context, cancellationToken);
-        var availableRoles = await BuildRoleSelectListAsync(await _managementUserAdminService.GetAddRoleOptionsAsync(context, cancellationToken), addUserOverride?.RoleId);
+        var members = await _companyMembershipAdminService.ListCompanyMembersAsync(context, cancellationToken);
+        var pendingRequests = await _companyMembershipAdminService.GetPendingAccessRequestsAsync(context, cancellationToken);
+        var availableRoles = await BuildRoleSelectListAsync(await _companyMembershipAdminService.GetAddRoleOptionsAsync(context, cancellationToken), addUserOverride?.RoleId);
         var title = App.Resources.Views.UiText.Users;
 
         return new ManagementUsersPageViewModel
@@ -391,14 +391,14 @@ public class UsersController : ManagementPageShellController
     }
 
     private async Task<TransferOwnershipPageViewModel> BuildTransferOwnershipPageViewModelAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         string title,
         CancellationToken cancellationToken,
         TransferOwnershipInputViewModel? transferOverride = null)
     {
-        var members = await _managementUserAdminService.ListCompanyMembersAsync(context, cancellationToken);
+        var members = await _companyMembershipAdminService.ListCompanyMembersAsync(context, cancellationToken);
         var currentOwner = members.Members.Single(x => x.MembershipId == context.ActorMembershipId);
-        var candidateResult = await _managementUserAdminService.GetOwnershipTransferCandidatesAsync(context, cancellationToken);
+        var candidateResult = await _companyMembershipAdminService.GetOwnershipTransferCandidatesAsync(context, cancellationToken);
 
         return new TransferOwnershipPageViewModel
         {
@@ -420,8 +420,8 @@ public class UsersController : ManagementPageShellController
     }
 
     private async Task<EditManagementUserViewModel> MapEditViewModelAsync(
-        ManagementUserAdminAuthorizedContext context,
-        ManagementUserEditModel data,
+        CompanyAdminAuthorizedContext context,
+        CompanyMembershipEditModel data,
         string title,
         CancellationToken cancellationToken)
     {
@@ -456,8 +456,8 @@ public class UsersController : ManagementPageShellController
 
     private async Task HydrateEditViewModelAsync(
         EditManagementUserViewModel vm,
-        ManagementUserAdminAuthorizedContext context,
-        ManagementUserEditModel data,
+        CompanyAdminAuthorizedContext context,
+        CompanyMembershipEditModel data,
         string title,
         CancellationToken cancellationToken)
     {
@@ -482,7 +482,7 @@ public class UsersController : ManagementPageShellController
     }
 
     private static Task<IReadOnlyList<SelectListItem>> BuildRoleSelectListAsync(
-        IReadOnlyList<ManagementRoleOption> roles,
+        IReadOnlyList<CompanyMembershipRoleOption> roles,
         Guid? selectedRoleId = null)
     {
         IReadOnlyList<SelectListItem> items = roles

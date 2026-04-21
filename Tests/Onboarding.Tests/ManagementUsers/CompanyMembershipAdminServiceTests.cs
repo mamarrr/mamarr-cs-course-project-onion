@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Onboarding.Tests.ManagementUsers;
 
-public class ManagementUserAdminServiceTests
+public class CompanyMembershipAdminServiceTests
 {
     [Fact]
     public async Task AuthorizeManagementAreaAccessAsync_Allows_Finance_Effective_Member()
@@ -92,7 +92,7 @@ public class ManagementUserAdminServiceTests
         var result = await service.UpdateMembershipAsync(
             fixture.Context,
             fixture.Context.ActorMembershipId,
-            new ManagementUserUpdateRequest
+            new CompanyMembershipUpdateRequest
             {
                 RoleId = fixture.Roles["FINANCE"].Id,
                 JobTitle = "Changed",
@@ -114,7 +114,7 @@ public class ManagementUserAdminServiceTests
         var result = await service.UpdateMembershipAsync(
             fixture.Context,
             fixture.Context.ActorMembershipId,
-            new ManagementUserUpdateRequest
+            new CompanyMembershipUpdateRequest
             {
                 RoleId = fixture.Roles["MANAGER"].Id,
                 JobTitle = "Changed",
@@ -136,7 +136,7 @@ public class ManagementUserAdminServiceTests
         var result = await service.UpdateMembershipAsync(
             fixture.Context,
             fixture.TargetMembershipId,
-            new ManagementUserUpdateRequest
+            new CompanyMembershipUpdateRequest
             {
                 RoleId = fixture.Roles["OWNER"].Id,
                 JobTitle = "Promoted",
@@ -257,17 +257,17 @@ public class ManagementUserAdminServiceTests
         Assert.True(result.NotFound);
     }
 
-    private static ManagementUserAdminService CreateService(AppDbContext dbContext)
+    private static CompanyMembershipAdminService CreateService(AppDbContext dbContext)
     {
         var joinRequestService = new Mock<ICompanyJoinRequestService>();
         joinRequestService
             .Setup(x => x.ListPendingForCompanyAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Array.Empty<CompanyJoinRequestListItem>());
 
-        return new ManagementUserAdminService(
+        return new CompanyMembershipAdminService(
             dbContext,
             joinRequestService.Object,
-            NullLogger<ManagementUserAdminService>.Instance);
+            NullLogger<CompanyMembershipAdminService>.Instance);
     }
 
     private static async Task<(ManagementCompany Company, Dictionary<string, ManagementCompanyRole> Roles)> SeedCompanyWithRolesAsync(AppDbContext db)
@@ -301,7 +301,7 @@ public class ManagementUserAdminServiceTests
         return (company, roles.ToDictionary(x => x.Code, StringComparer.OrdinalIgnoreCase));
     }
 
-    private static async Task<(ManagementCompany Company, Dictionary<string, ManagementCompanyRole> Roles, ManagementUserAdminAuthorizedContext Context)> SeedCompanyWithActorAsync(
+    private static async Task<(ManagementCompany Company, Dictionary<string, ManagementCompanyRole> Roles, CompanyAdminAuthorizedContext Context)> SeedCompanyWithActorAsync(
         AppDbContext db,
         string actorRoleCode)
     {
@@ -313,7 +313,7 @@ public class ManagementUserAdminServiceTests
         db.ManagementCompanyUsers.Add(actorMembership);
         await db.SaveChangesAsync();
 
-        return (fixture.Company, fixture.Roles, new ManagementUserAdminAuthorizedContext
+        return (fixture.Company, fixture.Roles, new CompanyAdminAuthorizedContext
         {
             AppUserId = actor.Id,
             ManagementCompanyId = fixture.Company.Id,
@@ -330,7 +330,7 @@ public class ManagementUserAdminServiceTests
         });
     }
 
-    private static async Task<(ManagementCompany Company, Dictionary<string, ManagementCompanyRole> Roles, ManagementUserAdminAuthorizedContext Context, Guid TargetMembershipId)> SeedCompanyWithActorAndTargetAsync(
+    private static async Task<(ManagementCompany Company, Dictionary<string, ManagementCompanyRole> Roles, CompanyAdminAuthorizedContext Context, Guid TargetMembershipId)> SeedCompanyWithActorAndTargetAsync(
         AppDbContext db,
         string actorRoleCode,
         string targetRoleCode,

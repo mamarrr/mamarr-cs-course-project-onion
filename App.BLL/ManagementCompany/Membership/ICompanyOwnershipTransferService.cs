@@ -1,13 +1,13 @@
 namespace App.BLL.ManagementCompany.Membership;
 
-public interface IManagementOwnershipTransferService
+public interface ICompanyOwnershipTransferService
 {
     Task<OwnershipTransferCandidateListResult> GetOwnershipTransferCandidatesAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
     Task<OwnershipTransferResult> TransferOwnershipAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         TransferOwnershipRequest request,
         CancellationToken cancellationToken = default);
 }

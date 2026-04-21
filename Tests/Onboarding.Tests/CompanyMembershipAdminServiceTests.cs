@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Onboarding.Tests;
 
-public class ManagementUserAdminServiceTests
+public class CompanyMembershipAdminServiceTests
 {
     [Fact]
     public async Task AuthorizeAsync_ReturnsAuthorized_ForOwnerInSameCompany()
@@ -106,7 +106,7 @@ public class ManagementUserAdminServiceTests
         var sut = CreateSut(dbContext);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
-        var result = await sut.AddUserByEmailAsync(auth.Context!, new ManagementUserAddRequest
+        var result = await sut.AddUserByEmailAsync(auth.Context!, new CompanyMembershipAddRequest
         {
             Email = targetUser.Email!,
             RoleId = managerRole.Id,
@@ -141,7 +141,7 @@ public class ManagementUserAdminServiceTests
         var sut = CreateSut(dbContext);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
-        var result = await sut.AddUserByEmailAsync(auth.Context!, new ManagementUserAddRequest
+        var result = await sut.AddUserByEmailAsync(auth.Context!, new CompanyMembershipAddRequest
         {
             Email = targetUser.Email!,
             RoleId = managerRole.Id,
@@ -177,7 +177,7 @@ public class ManagementUserAdminServiceTests
         var sut = CreateSut(dbContext);
         var auth = await sut.AuthorizeAsync(actor.Id, company.Slug);
 
-        var result = await sut.UpdateMembershipAsync(auth.Context!, membership.Id, new ManagementUserUpdateRequest
+        var result = await sut.UpdateMembershipAsync(auth.Context!, membership.Id, new CompanyMembershipUpdateRequest
         {
             RoleId = financeRole.Id,
             JobTitle = "Finance lead",
@@ -343,10 +343,10 @@ public class ManagementUserAdminServiceTests
         Assert.Equal(ManagementCompanyJoinRequestStatus.Rejected, storedRequest.Status);
     }
 
-    private static ManagementUserAdminService CreateSut(AppDbContext dbContext)
+    private static CompanyMembershipAdminService CreateSut(AppDbContext dbContext)
     {
         var joinRequestService = new CompanyJoinRequestService(dbContext, NullLogger<CompanyJoinRequestService>.Instance);
-        return new ManagementUserAdminService(dbContext, joinRequestService, NullLogger<ManagementUserAdminService>.Instance);
+        return new CompanyMembershipAdminService(dbContext, joinRequestService, NullLogger<CompanyMembershipAdminService>.Instance);
     }
 
     private static AppDbContext CreateDbContext()

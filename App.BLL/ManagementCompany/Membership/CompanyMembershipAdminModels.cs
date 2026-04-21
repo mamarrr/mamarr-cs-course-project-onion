@@ -1,6 +1,6 @@
 namespace App.BLL.ManagementCompany.Membership;
 
-public enum ManagementAuthorizationFailureReason
+public enum CompanyMembershipAuthorizationFailureReason
 {
     None = 0,
     CompanyNotFound,
@@ -10,7 +10,7 @@ public enum ManagementAuthorizationFailureReason
     InsufficientPrivileges
 }
 
-public enum ManagementUserActionBlockReason
+public enum CompanyMembershipUserActionBlockReason
 {
     None = 0,
     OwnerProtected,
@@ -25,22 +25,22 @@ public enum ManagementUserActionBlockReason
 /// <summary>
 /// Result of authorization check for management-area access.
 /// </summary>
-public class ManagementAreaAuthorizationResult
+public class CompanyAreaAuthorizationResult
 {
     public bool IsAuthorized { get; set; }
     public bool IsForbidden { get; set; }
     public bool CompanyNotFound { get; set; }
     public bool MembershipInactive { get; set; }
     public bool MembershipNotEffective { get; set; }
-    public ManagementAuthorizationFailureReason FailureReason { get; set; }
-    public ManagementMembershipContext? Context { get; set; }
+    public CompanyMembershipAuthorizationFailureReason FailureReason { get; set; }
+    public CompanyMembershipContext? Context { get; set; }
     public string? ErrorMessage { get; set; }
 }
 
 /// <summary>
 /// Result of authorization check for management user administration.
 /// </summary>
-public class ManagementUserAdminAuthorizationResult
+public class CompanyAdminAuthorizationResult
 {
     public bool IsAuthorized { get; set; }
     public bool IsForbidden { get; set; }
@@ -48,15 +48,15 @@ public class ManagementUserAdminAuthorizationResult
     public bool MembershipInactive { get; set; }
     public bool MembershipNotEffective { get; set; }
     public bool MembershipValidButNotAdmin { get; set; }
-    public ManagementAuthorizationFailureReason FailureReason { get; set; }
-    public ManagementUserAdminAuthorizedContext? Context { get; set; }
+    public CompanyMembershipAuthorizationFailureReason FailureReason { get; set; }
+    public CompanyAdminAuthorizedContext? Context { get; set; }
     public string? ErrorMessage { get; set; }
 }
 
 /// <summary>
 /// Effective management membership context.
 /// </summary>
-public class ManagementMembershipContext
+public class CompanyMembershipContext
 {
     public Guid AppUserId { get; set; }
     public Guid ManagementCompanyId { get; set; }
@@ -75,22 +75,22 @@ public class ManagementMembershipContext
 /// <summary>
 /// Authorized context for performing management user administration operations.
 /// </summary>
-public class ManagementUserAdminAuthorizedContext : ManagementMembershipContext
+public class CompanyAdminAuthorizedContext : CompanyMembershipContext
 {
 }
 
 /// <summary>
 /// Result of listing company members.
 /// </summary>
-public class ManagementUserListResult
+public class CompanyMembershipListResult
 {
-    public IReadOnlyList<ManagementUserListItem> Members { get; set; } = Array.Empty<ManagementUserListItem>();
+    public IReadOnlyList<CompanyMembershipUserListItem> Members { get; set; } = Array.Empty<CompanyMembershipUserListItem>();
 }
 
 /// <summary>
 /// Single member item in the company users list.
 /// </summary>
-public class ManagementUserListItem
+public class CompanyMembershipUserListItem
 {
     public Guid MembershipId { get; set; }
     public Guid AppUserId { get; set; }
@@ -112,25 +112,25 @@ public class ManagementUserListItem
     public bool CanChangeRole { get; set; }
     public bool CanDeactivate { get; set; }
     public string? ProtectedReason { get; set; }
-    public ManagementUserActionBlockReason ProtectedReasonCode { get; set; }
+    public CompanyMembershipUserActionBlockReason ProtectedReasonCode { get; set; }
 }
 
 /// <summary>
 /// Result of getting a membership for editing.
 /// </summary>
-public class ManagementUserEditResult
+public class CompanyMembershipEditResult
 {
     public bool Success { get; set; }
     public bool NotFound { get; set; }
     public bool Forbidden { get; set; }
-    public ManagementUserEditModel? Data { get; set; }
+    public CompanyMembershipEditModel? Data { get; set; }
     public string? ErrorMessage { get; set; }
 }
 
 /// <summary>
 /// Model for editing a membership.
 /// </summary>
-public class ManagementUserEditModel
+public class CompanyMembershipEditModel
 {
     public Guid MembershipId { get; set; }
     public Guid AppUserId { get; set; }
@@ -153,31 +153,31 @@ public class ManagementUserEditModel
     public bool CanDeactivate { get; set; }
     public bool OwnershipTransferRequired { get; set; }
     public string? ProtectedReason { get; set; }
-    public ManagementUserActionBlockReason ProtectedReasonCode { get; set; }
-    public IReadOnlyList<ManagementRoleOption> AvailableRoleOptions { get; set; } = Array.Empty<ManagementRoleOption>();
+    public CompanyMembershipUserActionBlockReason ProtectedReasonCode { get; set; }
+    public IReadOnlyList<CompanyMembershipRoleOption> AvailableRoleOptions { get; set; } = Array.Empty<CompanyMembershipRoleOption>();
 }
 
-public class ManagementRoleOption
+public class CompanyMembershipRoleOption
 {
     public Guid RoleId { get; set; }
     public string RoleCode { get; set; } = default!;
     public string RoleLabel { get; set; } = default!;
 }
 
-public class ManagementRoleOptionsResult
+public class CompanyMembershipOptionsResult
 {
     public bool Success { get; set; }
     public bool NotFound { get; set; }
     public bool Forbidden { get; set; }
     public bool OwnershipTransferRequired { get; set; }
-    public IReadOnlyList<ManagementRoleOption> Options { get; set; } = Array.Empty<ManagementRoleOption>();
+    public IReadOnlyList<CompanyMembershipRoleOption> Options { get; set; } = Array.Empty<CompanyMembershipRoleOption>();
     public string? ErrorMessage { get; set; }
 }
 
 /// <summary>
 /// Request to add a user by email.
 /// </summary>
-public class ManagementUserAddRequest
+public class CompanyMembershipAddRequest
 {
     public string Email { get; set; } = default!;
     public Guid RoleId { get; set; }
@@ -190,7 +190,7 @@ public class ManagementUserAddRequest
 /// <summary>
 /// Result of adding a user by email.
 /// </summary>
-public class ManagementUserAddResult
+public class CompanyMembershipAddResult
 {
     public bool Success { get; set; }
     public bool UserNotFound { get; set; }
@@ -205,7 +205,7 @@ public class ManagementUserAddResult
 /// <summary>
 /// Request to update a membership.
 /// </summary>
-public class ManagementUserUpdateRequest
+public class CompanyMembershipUpdateRequest
 {
     public Guid RoleId { get; set; }
     public string JobTitle { get; set; } = default!;
@@ -217,7 +217,7 @@ public class ManagementUserUpdateRequest
 /// <summary>
 /// Result of updating a membership.
 /// </summary>
-public class ManagementUserUpdateResult
+public class CompanyMembershipUpdateResult
 {
     public bool Success { get; set; }
     public bool NotFound { get; set; }
@@ -229,21 +229,21 @@ public class ManagementUserUpdateResult
     public bool CannotChangeOwnRole { get; set; }
     public bool CannotDeactivateSelf { get; set; }
     public bool OwnershipTransferRequired { get; set; }
-    public ManagementUserActionBlockReason BlockReason { get; set; }
+    public CompanyMembershipUserActionBlockReason BlockReason { get; set; }
     public string? ErrorMessage { get; set; }
 }
 
 /// <summary>
 /// Result of deleting a membership.
 /// </summary>
-public class ManagementUserDeleteResult
+public class CompanyMembershipDeleteResult
 {
     public bool Success { get; set; }
     public bool NotFound { get; set; }
     public bool Forbidden { get; set; }
     public bool CannotDeleteOwner { get; set; }
     public bool CannotDeleteSelf { get; set; }
-    public ManagementUserActionBlockReason BlockReason { get; set; }
+    public CompanyMembershipUserActionBlockReason BlockReason { get; set; }
     public string? ErrorMessage { get; set; }
 }
 

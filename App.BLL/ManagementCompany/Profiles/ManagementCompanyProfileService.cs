@@ -10,14 +10,14 @@ namespace App.BLL.ManagementCompany.Profiles;
 public class ManagementCompanyProfileService : IManagementCompanyProfileService
 {
     private readonly AppDbContext _dbContext;
-    private readonly IManagementUserAdminService _managementUserAdminService;
+    private readonly ICompanyMembershipAdminService _companyMembershipAdminService;
 
     public ManagementCompanyProfileService(
         AppDbContext dbContext,
-        IManagementUserAdminService managementUserAdminService)
+        ICompanyMembershipAdminService companyMembershipAdminService)
     {
         _dbContext = dbContext;
-        _managementUserAdminService = managementUserAdminService;
+        _companyMembershipAdminService = companyMembershipAdminService;
     }
 
     public async Task<CompanyProfileModel?> GetProfileAsync(
@@ -25,7 +25,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
         string companySlug,
         CancellationToken cancellationToken = default)
     {
-        var auth = await _managementUserAdminService.AuthorizeManagementAreaAccessAsync(
+        var auth = await _companyMembershipAdminService.AuthorizeManagementAreaAccessAsync(
             appUserId,
             companySlug,
             cancellationToken);
@@ -59,7 +59,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
         CompanyProfileUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
-        var auth = await _managementUserAdminService.AuthorizeManagementAreaAccessAsync(
+        var auth = await _companyMembershipAdminService.AuthorizeManagementAreaAccessAsync(
             appUserId,
             companySlug,
             cancellationToken);
@@ -144,7 +144,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
         string companySlug,
         CancellationToken cancellationToken = default)
     {
-        var auth = await _managementUserAdminService.AuthorizeManagementAreaAccessAsync(
+        var auth = await _companyMembershipAdminService.AuthorizeManagementAreaAccessAsync(
             appUserId,
             companySlug,
             cancellationToken);

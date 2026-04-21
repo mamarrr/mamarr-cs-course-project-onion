@@ -817,9 +817,9 @@ public class ContinuedOnboardingServiceTests
         return new Mock<ICompanyJoinRequestService>();
     }
 
-    private static Mock<IManagementUserAdminService> CreateManagementUserAdminServiceMock()
+    private static Mock<ICompanyMembershipAdminService> CreateManagementUserAdminServiceMock()
     {
-        var mock = new Mock<IManagementUserAdminService>();
+        var mock = new Mock<ICompanyMembershipAdminService>();
         mock.Setup(x => x.GetAvailableRolesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<ManagementCompanyRole>());
         return mock;

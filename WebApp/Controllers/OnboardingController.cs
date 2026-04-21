@@ -18,7 +18,7 @@ public class OnboardingController : Controller
     private readonly IAccountOnboardingService _accountOnboardingService;
     private readonly IWorkspaceRedirectService _workspaceRedirectService;
     private readonly ICompanyJoinRequestService _joinRequestService;
-    private readonly IManagementUserAdminService _managementUserAdminService;
+    private readonly ICompanyMembershipAdminService _companyMembershipAdminService;
     private readonly UserManager<AppUser> _userManager;
     private readonly ILogger<OnboardingController> _logger;
 
@@ -26,14 +26,14 @@ public class OnboardingController : Controller
         IAccountOnboardingService accountOnboardingService,
         IWorkspaceRedirectService workspaceRedirectService,
         ICompanyJoinRequestService joinRequestService,
-        IManagementUserAdminService managementUserAdminService,
+        ICompanyMembershipAdminService companyMembershipAdminService,
         UserManager<AppUser> userManager,
         ILogger<OnboardingController> logger)
     {
         _accountOnboardingService = accountOnboardingService;
         _workspaceRedirectService = workspaceRedirectService;
         _joinRequestService = joinRequestService;
-        _managementUserAdminService = managementUserAdminService;
+        _companyMembershipAdminService = companyMembershipAdminService;
         _userManager = userManager;
         _logger = logger;
     }
@@ -437,7 +437,7 @@ public class OnboardingController : Controller
         CancellationToken cancellationToken,
         Guid? selectedRoleId)
     {
-        var roles = await _managementUserAdminService.GetAvailableRolesAsync(cancellationToken);
+        var roles = await _companyMembershipAdminService.GetAvailableRolesAsync(cancellationToken);
         return roles
             .Select(r => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
             {

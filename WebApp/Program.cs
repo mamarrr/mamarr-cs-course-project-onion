@@ -92,7 +92,7 @@ builder.Services.AddScoped<IApiOnboardingContextService, ApiWorkspaceContextServ
 builder.Services.AddScoped<IApiOnboardingRouteContextMapper, ApiOnboardingRouteContextMapper>();
 builder.Services.AddScoped<IUserWorkspaceCatalogService, UserWorkspaceCatalogService>();
 builder.Services.AddScoped<ICompanyJoinRequestService, CompanyJoinRequestService>();
-builder.Services.AddScoped<IManagementUserAdminService, ManagementUserAdminService>();
+builder.Services.AddScoped<ICompanyMembershipAdminService, CompanyMembershipAdminService>();
 builder.Services.AddScoped<IManagementCustomersService, ManagementCustomersService>();
 builder.Services.AddScoped<IManagementCustomerAccessService, ManagementCustomersService>();
 builder.Services.AddScoped<IManagementCustomerService, ManagementCustomersService>();

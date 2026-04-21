@@ -12,15 +12,15 @@ namespace App.BLL.ManagementCompany.Membership;
 /// <summary>
 /// Implementation of management user administration service with tenant isolation and role checks.
 /// </summary>
-public class ManagementUserAdminService :
-    IManagementUserAdminService,
-    IManagementAccessService,
-    IManagementUserAuthorizationService,
-    IManagementUserQueryService,
-    IManagementUserCommandService,
-    IManagementUserRoleService,
-    IManagementOwnershipTransferService,
-    IManagementAccessRequestService
+public class CompanyMembershipAdminService :
+    ICompanyMembershipAdminService,
+    IManagementCompanyAccessService,
+    ICompanyMembershipAuthorizationService,
+    ICompanyMembershipQueryService,
+    ICompanyMembershipCommandService,
+    ICompanyRoleOptionsService,
+    ICompanyOwnershipTransferService,
+    ICompanyAccessRequestReviewService
 {
     private const string OwnerRoleCode = "OWNER";
     private const string ManagerRoleCode = "MANAGER";
@@ -42,17 +42,17 @@ public class ManagementUserAdminService :
         "SUPPORT"
     };
 
-    public ManagementUserAdminService(
+    public CompanyMembershipAdminService(
         AppDbContext dbContext,
         ICompanyJoinRequestService joinRequestService,
-        ILogger<ManagementUserAdminService> logger)
+        ILogger<CompanyMembershipAdminService> logger)
     {
         _dbContext = dbContext;
         _joinRequestService = joinRequestService;
     }
 
     /// <inheritdoc />
-    public async Task<ManagementAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
+    public async Task<CompanyAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
@@ -65,15 +65,15 @@ public class ManagementUserAdminService :
 
         if (!ManagementAreaRoleCodes.Contains(resolution.MembershipContext!.ActorRoleCode))
         {
-            return new ManagementAreaAuthorizationResult
+            return new CompanyAreaAuthorizationResult
             {
                 IsForbidden = true,
-                FailureReason = ManagementAuthorizationFailureReason.InsufficientPrivileges,
+                FailureReason = CompanyMembershipAuthorizationFailureReason.InsufficientPrivileges,
                 ErrorMessage = "You do not have access to the management area."
             };
         }
 
-        return new ManagementAreaAuthorizationResult
+        return new CompanyAreaAuthorizationResult
         {
             IsAuthorized = true,
             Context = resolution.MembershipContext
@@ -81,7 +81,7 @@ public class ManagementUserAdminService :
     }
 
     /// <inheritdoc />
-    public async Task<ManagementUserAdminAuthorizationResult> AuthorizeAsync(
+    public async Task<CompanyAdminAuthorizationResult> AuthorizeAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
@@ -94,19 +94,19 @@ public class ManagementUserAdminService :
 
         if (!AdminRoleCodes.Contains(resolution.MembershipContext!.ActorRoleCode))
         {
-            return new ManagementUserAdminAuthorizationResult
+            return new CompanyAdminAuthorizationResult
             {
                 IsForbidden = true,
                 MembershipValidButNotAdmin = true,
-                FailureReason = ManagementAuthorizationFailureReason.InsufficientPrivileges,
+                FailureReason = CompanyMembershipAuthorizationFailureReason.InsufficientPrivileges,
                 ErrorMessage = "You do not have permission to manage company users."
             };
         }
 
-        return new ManagementUserAdminAuthorizationResult
+        return new CompanyAdminAuthorizationResult
         {
             IsAuthorized = true,
-            Context = new ManagementUserAdminAuthorizedContext
+            Context = new CompanyAdminAuthorizedContext
             {
                 AppUserId = resolution.MembershipContext.AppUserId,
                 ManagementCompanyId = resolution.MembershipContext.ManagementCompanyId,
@@ -125,8 +125,8 @@ public class ManagementUserAdminService :
     }
 
     /// <inheritdoc />
-    public async Task<ManagementUserListResult> ListCompanyMembersAsync(
-        ManagementUserAdminAuthorizedContext context,
+    public async Task<CompanyMembershipListResult> ListCompanyMembersAsync(
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -148,7 +148,7 @@ public class ManagementUserAdminService :
             var isEffective = IsMembershipEffective(m.IsActive, m.ValidFrom, m.ValidTo, today);
             var capabilities = ResolveTargetCapabilities(context, m.Id, roleCode, m.IsActive, m.ValidFrom, m.ValidTo, today);
 
-            return new ManagementUserListItem
+            return new CompanyMembershipUserListItem
             {
                 MembershipId = m.Id,
                 AppUserId = m.AppUserId,
@@ -174,15 +174,15 @@ public class ManagementUserAdminService :
             };
         }).ToList();
 
-        return new ManagementUserListResult
+        return new CompanyMembershipListResult
         {
             Members = items
         };
     }
 
     /// <inheritdoc />
-    public async Task<ManagementUserEditResult> GetMembershipForEditAsync(
-        ManagementUserAdminAuthorizedContext context,
+    public async Task<CompanyMembershipEditResult> GetMembershipForEditAsync(
+        CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default)
     {
@@ -197,7 +197,7 @@ public class ManagementUserAdminService :
 
         if (membership == null)
         {
-            return new ManagementUserEditResult
+            return new CompanyMembershipEditResult
             {
                 NotFound = true,
                 ErrorMessage = "Membership not found."
@@ -215,7 +215,7 @@ public class ManagementUserAdminService :
 
         if (!capabilities.CanEdit && !capabilities.CanTransferOwnership)
         {
-            return new ManagementUserEditResult
+            return new CompanyMembershipEditResult
             {
                 Forbidden = true,
                 ErrorMessage = capabilities.ProtectedReason ?? "This membership cannot be edited."
@@ -223,13 +223,13 @@ public class ManagementUserAdminService :
         }
 
         var optionsResult = await GetEditRoleOptionsAsync(context, membershipId, cancellationToken);
-        var options = optionsResult.Success ? optionsResult.Options : Array.Empty<ManagementRoleOption>();
+        var options = optionsResult.Success ? optionsResult.Options : Array.Empty<CompanyMembershipRoleOption>();
         var roleCode = membership.ManagementCompanyRole?.Code ?? string.Empty;
 
-        return new ManagementUserEditResult
+        return new CompanyMembershipEditResult
         {
             Success = true,
-            Data = new ManagementUserEditModel
+            Data = new CompanyMembershipEditModel
             {
                 MembershipId = membership.Id,
                 AppUserId = membership.AppUserId,
@@ -250,7 +250,7 @@ public class ManagementUserAdminService :
                 CanTransferOwnership = capabilities.CanTransferOwnership,
                 CanChangeRole = capabilities.CanChangeRole,
                 CanDeactivate = capabilities.CanDeactivate,
-                OwnershipTransferRequired = capabilities.ProtectedReasonCode == ManagementUserActionBlockReason.OwnershipTransferRequired,
+                OwnershipTransferRequired = capabilities.ProtectedReasonCode == CompanyMembershipUserActionBlockReason.OwnershipTransferRequired,
                 ProtectedReason = capabilities.ProtectedReason,
                 ProtectedReasonCode = capabilities.ProtectedReasonCode,
                 AvailableRoleOptions = options
@@ -259,8 +259,8 @@ public class ManagementUserAdminService :
     }
 
     /// <inheritdoc />
-    public async Task<IReadOnlyList<ManagementRoleOption>> GetAddRoleOptionsAsync(
-        ManagementUserAdminAuthorizedContext context,
+    public async Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAddRoleOptionsAsync(
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
         var roles = await _dbContext.ManagementCompanyRoles
@@ -275,8 +275,8 @@ public class ManagementUserAdminService :
     }
 
     /// <inheritdoc />
-    public async Task<ManagementRoleOptionsResult> GetEditRoleOptionsAsync(
-        ManagementUserAdminAuthorizedContext context,
+    public async Task<CompanyMembershipOptionsResult> GetEditRoleOptionsAsync(
+        CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default)
     {
@@ -288,7 +288,7 @@ public class ManagementUserAdminService :
 
         if (membership == null)
         {
-            return new ManagementRoleOptionsResult
+            return new CompanyMembershipOptionsResult
             {
                 NotFound = true,
                 ErrorMessage = "Membership not found."
@@ -298,7 +298,7 @@ public class ManagementUserAdminService :
         var roleCode = membership.ManagementCompanyRole?.Code ?? string.Empty;
         if (IsOwnerRole(roleCode))
         {
-            return new ManagementRoleOptionsResult
+            return new CompanyMembershipOptionsResult
             {
                 Forbidden = true,
                 OwnershipTransferRequired = true,
@@ -307,7 +307,7 @@ public class ManagementUserAdminService :
         }
 
         var roles = await GetAddRoleOptionsAsync(context, cancellationToken);
-        return new ManagementRoleOptionsResult
+        return new CompanyMembershipOptionsResult
         {
             Success = true,
             Options = roles
@@ -315,14 +315,14 @@ public class ManagementUserAdminService :
     }
 
     /// <inheritdoc />
-    public async Task<ManagementUserAddResult> AddUserByEmailAsync(
-        ManagementUserAdminAuthorizedContext context,
-        ManagementUserAddRequest request,
+    public async Task<CompanyMembershipAddResult> AddUserByEmailAsync(
+        CompanyAdminAuthorizedContext context,
+        CompanyMembershipAddRequest request,
         CancellationToken cancellationToken = default)
     {
         if (!IsValidDateRange(request.ValidFrom, request.ValidTo))
         {
-            return new ManagementUserAddResult
+            return new CompanyMembershipAddResult
             {
                 InvalidDateRange = true,
                 ErrorMessage = "Membership validity range is invalid."
@@ -336,7 +336,7 @@ public class ManagementUserAdminService :
 
         if (appUser == null)
         {
-            return new ManagementUserAddResult
+            return new CompanyMembershipAddResult
             {
                 UserNotFound = true,
                 ErrorMessage = "User with this email does not exist. They must register first."
@@ -350,7 +350,7 @@ public class ManagementUserAdminService :
 
         if (existingMembership != null)
         {
-            return new ManagementUserAddResult
+            return new CompanyMembershipAddResult
             {
                 DuplicateMembership = true,
                 ErrorMessage = "This user is already a member of this company."
@@ -363,7 +363,7 @@ public class ManagementUserAdminService :
 
         if (role == null)
         {
-            return new ManagementUserAddResult
+            return new CompanyMembershipAddResult
             {
                 InvalidRole = true,
                 ErrorMessage = "Selected role is invalid."
@@ -372,7 +372,7 @@ public class ManagementUserAdminService :
 
         if (!CanAssignRoleInGenericFlow(context, role.Code))
         {
-            return new ManagementUserAddResult
+            return new CompanyMembershipAddResult
             {
                 InvalidRole = true,
                 CannotAssignOwner = IsOwnerRole(role.Code),
@@ -398,7 +398,7 @@ public class ManagementUserAdminService :
         _dbContext.ManagementCompanyUsers.Add(membership);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementUserAddResult
+        return new CompanyMembershipAddResult
         {
             Success = true,
             CreatedMembershipId = membership.Id
@@ -406,18 +406,18 @@ public class ManagementUserAdminService :
     }
 
     /// <inheritdoc />
-    public async Task<ManagementUserUpdateResult> UpdateMembershipAsync(
-        ManagementUserAdminAuthorizedContext context,
+    public async Task<CompanyMembershipUpdateResult> UpdateMembershipAsync(
+        CompanyAdminAuthorizedContext context,
         Guid membershipId,
-        ManagementUserUpdateRequest request,
+        CompanyMembershipUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
         if (!IsValidDateRange(request.ValidFrom, request.ValidTo))
         {
-            return new ManagementUserUpdateResult
+            return new CompanyMembershipUpdateResult
             {
                 InvalidDateRange = true,
-                BlockReason = ManagementUserActionBlockReason.InvalidDateRange,
+                BlockReason = CompanyMembershipUserActionBlockReason.InvalidDateRange,
                 ErrorMessage = "Membership validity range is invalid."
             };
         }
@@ -431,7 +431,7 @@ public class ManagementUserAdminService :
 
         if (membership == null)
         {
-            return new ManagementUserUpdateResult
+            return new CompanyMembershipUpdateResult
             {
                 NotFound = true,
                 ErrorMessage = "Membership not found."
@@ -445,7 +445,7 @@ public class ManagementUserAdminService :
 
         if (role == null)
         {
-            return new ManagementUserUpdateResult
+            return new CompanyMembershipUpdateResult
             {
                 InvalidRole = true,
                 ErrorMessage = "Selected role is invalid."
@@ -459,56 +459,56 @@ public class ManagementUserAdminService :
         if (targetIsOwner)
         {
 
-            return new ManagementUserUpdateResult
+            return new CompanyMembershipUpdateResult
             {
                 Forbidden = true,
                 CannotEditOwner = true,
                 OwnershipTransferRequired = true,
-                BlockReason = ManagementUserActionBlockReason.OwnershipTransferRequired,
+                BlockReason = CompanyMembershipUserActionBlockReason.OwnershipTransferRequired,
                 ErrorMessage = "Owner role cannot be changed in the standard edit flow. Use ownership transfer instead."
             };
         }
 
         if (isSelf && !string.Equals(currentRoleCode, requestedRoleCode, StringComparison.OrdinalIgnoreCase))
         {
-            return new ManagementUserUpdateResult
+            return new CompanyMembershipUpdateResult
             {
                 Forbidden = true,
                 CannotChangeOwnRole = true,
-                BlockReason = ManagementUserActionBlockReason.SelfProtected,
+                BlockReason = CompanyMembershipUserActionBlockReason.SelfProtected,
                 ErrorMessage = "You cannot change your own role through the generic edit flow."
             };
         }
 
         if (isSelf && membership.IsActive && !request.IsActive)
         {
-            return new ManagementUserUpdateResult
+            return new CompanyMembershipUpdateResult
             {
                 Forbidden = true,
                 CannotDeactivateSelf = true,
-                BlockReason = ManagementUserActionBlockReason.SelfProtected,
+                BlockReason = CompanyMembershipUserActionBlockReason.SelfProtected,
                 ErrorMessage = "You cannot deactivate your own membership."
             };
         }
 
         if (IsOwnerRole(requestedRoleCode))
         {
-            return new ManagementUserUpdateResult
+            return new CompanyMembershipUpdateResult
             {
                 Forbidden = true,
                 CannotAssignOwner = true,
-                BlockReason = ManagementUserActionBlockReason.RoleNotAssignable,
+                BlockReason = CompanyMembershipUserActionBlockReason.RoleNotAssignable,
                 ErrorMessage = "Owner cannot be assigned through the generic edit flow."
             };
         }
 
         if (!CanAssignRoleInGenericFlow(context, requestedRoleCode))
         {
-            return new ManagementUserUpdateResult
+            return new CompanyMembershipUpdateResult
             {
                 Forbidden = true,
                 InvalidRole = true,
-                BlockReason = ManagementUserActionBlockReason.RoleNotAssignable,
+                BlockReason = CompanyMembershipUserActionBlockReason.RoleNotAssignable,
                 ErrorMessage = "Selected role is not allowed for this action."
             };
         }
@@ -542,28 +542,28 @@ public class ManagementUserAdminService :
 
             if (noTrackedChanges)
             {
-                return new ManagementUserUpdateResult
+                return new CompanyMembershipUpdateResult
                 {
                     Success = true
                 };
             }
 
-            return new ManagementUserUpdateResult
+            return new CompanyMembershipUpdateResult
             {
                 Success = false,
                 ErrorMessage = App.Resources.Views.UiText.UnableToUpdateUser
             };
         }
 
-        return new ManagementUserUpdateResult
+        return new CompanyMembershipUpdateResult
         {
             Success = true
         };
     }
 
     /// <inheritdoc />
-    public async Task<ManagementUserDeleteResult> DeleteMembershipAsync(
-        ManagementUserAdminAuthorizedContext context,
+    public async Task<CompanyMembershipDeleteResult> DeleteMembershipAsync(
+        CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default)
     {
@@ -575,7 +575,7 @@ public class ManagementUserAdminService :
 
         if (membership == null)
         {
-            return new ManagementUserDeleteResult
+            return new CompanyMembershipDeleteResult
             {
                 NotFound = true,
                 ErrorMessage = "Membership not found."
@@ -585,11 +585,11 @@ public class ManagementUserAdminService :
         if (membership.Id == context.ActorMembershipId)
         {
 
-            return new ManagementUserDeleteResult
+            return new CompanyMembershipDeleteResult
             {
                 Forbidden = true,
                 CannotDeleteSelf = true,
-                BlockReason = ManagementUserActionBlockReason.SelfProtected,
+                BlockReason = CompanyMembershipUserActionBlockReason.SelfProtected,
                 ErrorMessage = "You cannot remove your own membership."
             };
         }
@@ -598,11 +598,11 @@ public class ManagementUserAdminService :
         if (IsOwnerRole(roleCode))
         {
 
-            return new ManagementUserDeleteResult
+            return new CompanyMembershipDeleteResult
             {
                 Forbidden = true,
                 CannotDeleteOwner = true,
-                BlockReason = ManagementUserActionBlockReason.OwnerProtected,
+                BlockReason = CompanyMembershipUserActionBlockReason.OwnerProtected,
                 ErrorMessage = "The current owner cannot be removed through the standard delete flow. Use ownership transfer instead."
             };
         }
@@ -610,7 +610,7 @@ public class ManagementUserAdminService :
         _dbContext.ManagementCompanyUsers.Remove(membership);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementUserDeleteResult
+        return new CompanyMembershipDeleteResult
         {
             Success = true
         };
@@ -618,7 +618,7 @@ public class ManagementUserAdminService :
 
     /// <inheritdoc />
     public async Task<OwnershipTransferCandidateListResult> GetOwnershipTransferCandidatesAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
         if (!context.IsOwner)
@@ -666,7 +666,7 @@ public class ManagementUserAdminService :
 
     /// <inheritdoc />
     public async Task<OwnershipTransferResult> TransferOwnershipAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         TransferOwnershipRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -811,7 +811,7 @@ public class ManagementUserAdminService :
 
     /// <inheritdoc />
     public async Task<PendingAccessRequestListResult> GetPendingAccessRequestsAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
         var requests = await _joinRequestService.ListPendingForCompanyAsync(context.ManagementCompanyId, cancellationToken);
@@ -834,7 +834,7 @@ public class ManagementUserAdminService :
 
     /// <inheritdoc />
     public async Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default)
     {
@@ -857,7 +857,7 @@ public class ManagementUserAdminService :
 
     /// <inheritdoc />
     public async Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default)
     {
@@ -878,7 +878,7 @@ public class ManagementUserAdminService :
         };
     }
 
-    private async Task<(ManagementAreaAuthorizationResult? Result, ManagementMembershipContext? MembershipContext)> ResolveMembershipContextAsync(
+    private async Task<(CompanyAreaAuthorizationResult? Result, CompanyMembershipContext? MembershipContext)> ResolveMembershipContextAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken)
@@ -886,10 +886,10 @@ public class ManagementUserAdminService :
         var normalizedSlug = companySlug.Trim();
         if (string.IsNullOrWhiteSpace(normalizedSlug))
         {
-            return (new ManagementAreaAuthorizationResult
+            return (new CompanyAreaAuthorizationResult
             {
                 CompanyNotFound = true,
-                FailureReason = ManagementAuthorizationFailureReason.CompanyNotFound,
+                FailureReason = CompanyMembershipAuthorizationFailureReason.CompanyNotFound,
                 ErrorMessage = "Company slug is required."
             }, null);
         }
@@ -900,10 +900,10 @@ public class ManagementUserAdminService :
 
         if (company == null)
         {
-            return (new ManagementAreaAuthorizationResult
+            return (new CompanyAreaAuthorizationResult
             {
                 CompanyNotFound = true,
-                FailureReason = ManagementAuthorizationFailureReason.CompanyNotFound,
+                FailureReason = CompanyMembershipAuthorizationFailureReason.CompanyNotFound,
                 ErrorMessage = "Company not found."
             }, null);
         }
@@ -916,21 +916,21 @@ public class ManagementUserAdminService :
 
         if (actorMembership == null)
         {
-            return (new ManagementAreaAuthorizationResult
+            return (new CompanyAreaAuthorizationResult
             {
                 IsForbidden = true,
-                FailureReason = ManagementAuthorizationFailureReason.MembershipNotFound,
+                FailureReason = CompanyMembershipAuthorizationFailureReason.MembershipNotFound,
                 ErrorMessage = "You do not have access to this company."
             }, null);
         }
 
         if (!actorMembership.IsActive)
         {
-            return (new ManagementAreaAuthorizationResult
+            return (new CompanyAreaAuthorizationResult
             {
                 IsForbidden = true,
                 MembershipInactive = true,
-                FailureReason = ManagementAuthorizationFailureReason.MembershipInactive,
+                FailureReason = CompanyMembershipAuthorizationFailureReason.MembershipInactive,
                 ErrorMessage = "Your company membership is inactive."
             }, null);
         }
@@ -938,17 +938,17 @@ public class ManagementUserAdminService :
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         if (!IsMembershipEffective(actorMembership.IsActive, actorMembership.ValidFrom, actorMembership.ValidTo, today))
         {
-            return (new ManagementAreaAuthorizationResult
+            return (new CompanyAreaAuthorizationResult
             {
                 IsForbidden = true,
                 MembershipNotEffective = true,
-                FailureReason = ManagementAuthorizationFailureReason.MembershipNotEffective,
+                FailureReason = CompanyMembershipAuthorizationFailureReason.MembershipNotEffective,
                 ErrorMessage = "Your company membership is not currently effective."
             }, null);
         }
 
         var roleCode = actorMembership.ManagementCompanyRole?.Code ?? string.Empty;
-        var membershipContext = new ManagementMembershipContext
+        var membershipContext = new CompanyMembershipContext
         {
             AppUserId = appUserId,
             ManagementCompanyId = company.Id,
@@ -967,9 +967,9 @@ public class ManagementUserAdminService :
         return (null, membershipContext);
     }
 
-    private static ManagementUserAdminAuthorizationResult ConvertToAdminAuthorizationResult(ManagementAreaAuthorizationResult result)
+    private static CompanyAdminAuthorizationResult ConvertToAdminAuthorizationResult(CompanyAreaAuthorizationResult result)
     {
-        return new ManagementUserAdminAuthorizationResult
+        return new CompanyAdminAuthorizationResult
         {
             IsAuthorized = false,
             IsForbidden = result.IsForbidden,
@@ -1011,7 +1011,7 @@ public class ManagementUserAdminService :
         return !validTo.HasValue || validTo.Value >= validFrom;
     }
 
-    private static bool CanAssignRoleInGenericFlow(ManagementUserAdminAuthorizedContext context, string roleCode)
+    private static bool CanAssignRoleInGenericFlow(CompanyAdminAuthorizedContext context, string roleCode)
     {
         if (IsOwnerRole(roleCode))
         {
@@ -1021,9 +1021,9 @@ public class ManagementUserAdminService :
         return context.IsOwner || string.Equals(context.ActorRoleCode, ManagerRoleCode, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static ManagementRoleOption MapRoleOption(ManagementCompanyRole role)
+    private static CompanyMembershipRoleOption MapRoleOption(ManagementCompanyRole role)
     {
-        return new ManagementRoleOption
+        return new CompanyMembershipRoleOption
         {
             RoleId = role.Id,
             RoleCode = role.Code,
@@ -1032,7 +1032,7 @@ public class ManagementUserAdminService :
     }
 
     private MemberCapabilities ResolveTargetCapabilities(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         Guid membershipId,
         string roleCode,
         bool isActive,
@@ -1055,7 +1055,7 @@ public class ManagementUserAdminService :
                     CanChangeRole: false,
                     CanDeactivate: false,
                     ProtectedReason: "Owner role cannot be changed here. Use ownership transfer instead.",
-                    ProtectedReasonCode: ManagementUserActionBlockReason.OwnershipTransferRequired);
+                    ProtectedReasonCode: CompanyMembershipUserActionBlockReason.OwnershipTransferRequired);
             }
 
             return new MemberCapabilities(
@@ -1065,7 +1065,7 @@ public class ManagementUserAdminService :
                 CanChangeRole: false,
                 CanDeactivate: false,
                 ProtectedReason: "The current owner is protected and cannot be modified in the standard flows.",
-                ProtectedReasonCode: ManagementUserActionBlockReason.OwnerProtected);
+                ProtectedReasonCode: CompanyMembershipUserActionBlockReason.OwnerProtected);
         }
 
         if (isActor)
@@ -1077,7 +1077,7 @@ public class ManagementUserAdminService :
                 CanChangeRole: false,
                 CanDeactivate: false,
                 ProtectedReason: "You cannot change your own role, deactivate yourself, or delete your own membership.",
-                ProtectedReasonCode: ManagementUserActionBlockReason.SelfProtected);
+                ProtectedReasonCode: CompanyMembershipUserActionBlockReason.SelfProtected);
         }
 
         return new MemberCapabilities(
@@ -1087,7 +1087,7 @@ public class ManagementUserAdminService :
             CanChangeRole: true,
             CanDeactivate: true,
             ProtectedReason: !isEffective ? "This membership is not currently effective." : null,
-            ProtectedReasonCode: !isEffective ? ManagementUserActionBlockReason.MembershipNotEffective : ManagementUserActionBlockReason.None);
+            ProtectedReasonCode: !isEffective ? CompanyMembershipUserActionBlockReason.MembershipNotEffective : CompanyMembershipUserActionBlockReason.None);
     }
 
     private async Task<int> CountEffectiveOwnersAsync(Guid companyId, CancellationToken cancellationToken)
@@ -1117,5 +1117,5 @@ public class ManagementUserAdminService :
         bool CanChangeRole,
         bool CanDeactivate,
         string? ProtectedReason,
-        ManagementUserActionBlockReason ProtectedReasonCode);
+        CompanyMembershipUserActionBlockReason ProtectedReasonCode);
 }

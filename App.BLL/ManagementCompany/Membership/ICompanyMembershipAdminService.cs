@@ -6,13 +6,13 @@ namespace App.BLL.ManagementCompany.Membership;
 /// Service for managing company users within a management company scope.
 /// Enforces tenant isolation and role-based authorization.
 /// </summary>
-public interface IManagementUserAdminService
+public interface ICompanyMembershipAdminService
 {
     /// <summary>
     /// Resolves management-area access for the given company slug.
     /// Returns actor context if the user is an effective company member.
     /// </summary>
-    Task<ManagementAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
+    Task<CompanyAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default);
@@ -21,7 +21,7 @@ public interface IManagementUserAdminService
     /// Resolves actor authorization for management user administration in the given company slug.
     /// Returns authorized actor context if the user has effective OWNER or MANAGER role.
     /// </summary>
-    Task<ManagementUserAdminAuthorizationResult> AuthorizeAsync(
+    Task<CompanyAdminAuthorizationResult> AuthorizeAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default);
@@ -29,55 +29,55 @@ public interface IManagementUserAdminService
     /// <summary>
     /// Lists all company members for the authorized company context.
     /// </summary>
-    Task<ManagementUserListResult> ListCompanyMembersAsync(
-        ManagementUserAdminAuthorizedContext context,
+    Task<CompanyMembershipListResult> ListCompanyMembersAsync(
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets a single membership for editing, scoped to the authorized company.
     /// </summary>
-    Task<ManagementUserEditResult> GetMembershipForEditAsync(
-        ManagementUserAdminAuthorizedContext context,
+    Task<CompanyMembershipEditResult> GetMembershipForEditAsync(
+        CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets role options for the generic add-user flow, filtered by actor capabilities.
     /// </summary>
-    Task<IReadOnlyList<ManagementRoleOption>> GetAddRoleOptionsAsync(
-        ManagementUserAdminAuthorizedContext context,
+    Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAddRoleOptionsAsync(
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets role options for the generic edit-user flow, filtered by actor capabilities and target membership.
     /// </summary>
-    Task<ManagementRoleOptionsResult> GetEditRoleOptionsAsync(
-        ManagementUserAdminAuthorizedContext context,
+    Task<CompanyMembershipOptionsResult> GetEditRoleOptionsAsync(
+        CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a new company user by email for the authorized company context.
     /// </summary>
-    Task<ManagementUserAddResult> AddUserByEmailAsync(
-        ManagementUserAdminAuthorizedContext context,
-        ManagementUserAddRequest request,
+    Task<CompanyMembershipAddResult> AddUserByEmailAsync(
+        CompanyAdminAuthorizedContext context,
+        CompanyMembershipAddRequest request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Updates an existing company membership within the authorized company scope.
     /// </summary>
-    Task<ManagementUserUpdateResult> UpdateMembershipAsync(
-        ManagementUserAdminAuthorizedContext context,
+    Task<CompanyMembershipUpdateResult> UpdateMembershipAsync(
+        CompanyAdminAuthorizedContext context,
         Guid membershipId,
-        ManagementUserUpdateRequest request,
+        CompanyMembershipUpdateRequest request,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes a company membership within the authorized company scope.
     /// </summary>
-    Task<ManagementUserDeleteResult> DeleteMembershipAsync(
-        ManagementUserAdminAuthorizedContext context,
+    Task<CompanyMembershipDeleteResult> DeleteMembershipAsync(
+        CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default);
 
@@ -85,14 +85,14 @@ public interface IManagementUserAdminService
     /// Lists ownership transfer candidates for the current owner.
     /// </summary>
     Task<OwnershipTransferCandidateListResult> GetOwnershipTransferCandidatesAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Transfers ownership from the current owner to another existing company member.
     /// </summary>
     Task<OwnershipTransferResult> TransferOwnershipAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         TransferOwnershipRequest request,
         CancellationToken cancellationToken = default);
 
@@ -108,14 +108,14 @@ public interface IManagementUserAdminService
     /// Currently returns empty placeholder; will be implemented with onboarding workflow.
     /// </summary>
     Task<PendingAccessRequestListResult> GetPendingAccessRequestsAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Approves a pending access request in the authorized company context.
     /// </summary>
     Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default);
 
@@ -123,7 +123,7 @@ public interface IManagementUserAdminService
     /// Rejects a pending access request in the authorized company context.
     /// </summary>
     Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
-        ManagementUserAdminAuthorizedContext context,
+        CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default);
 }

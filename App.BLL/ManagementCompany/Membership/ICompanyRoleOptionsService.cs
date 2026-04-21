@@ -2,14 +2,14 @@ using App.Domain;
 
 namespace App.BLL.ManagementCompany.Membership;
 
-public interface IManagementUserRoleService
+public interface ICompanyRoleOptionsService
 {
-    Task<IReadOnlyList<ManagementRoleOption>> GetAddRoleOptionsAsync(
-        ManagementUserAdminAuthorizedContext context,
+    Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAddRoleOptionsAsync(
+        CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementRoleOptionsResult> GetEditRoleOptionsAsync(
-        ManagementUserAdminAuthorizedContext context,
+    Task<CompanyMembershipOptionsResult> GetEditRoleOptionsAsync(
+        CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default);
 
