@@ -1,15 +1,15 @@
 namespace App.BLL.CustomerWorkspace.Workspace;
 
-public class ManagementCustomersAuthorizationResult
+public class CustomerWorkspaceAuthorizationResult
 {
     public bool IsAuthorized { get; set; }
     public bool IsForbidden { get; set; }
     public bool CompanyNotFound { get; set; }
     public string? ErrorMessage { get; set; }
-    public ManagementCustomersAuthorizedContext? Context { get; set; }
+    public CustomerWorkspaceAuthorizedContext? Context { get; set; }
 }
 
-public class ManagementCustomersAuthorizedContext
+public class CustomerWorkspaceAuthorizedContext
 {
     public Guid AppUserId { get; set; }
     public Guid ManagementCompanyId { get; set; }
@@ -17,12 +17,12 @@ public class ManagementCustomersAuthorizedContext
     public string CompanyName { get; set; } = default!;
 }
 
-public class ManagementCustomerListResult
+public class CompanyCustomerListResult
 {
-    public IReadOnlyList<ManagementCustomerListItem> Customers { get; set; } = Array.Empty<ManagementCustomerListItem>();
+    public IReadOnlyList<CompanyCustomerListItem> Customers { get; set; } = Array.Empty<CompanyCustomerListItem>();
 }
 
-public class ManagementCustomerListItem
+public class CompanyCustomerListItem
 {
     public Guid CustomerId { get; set; }
     public string CustomerSlug { get; set; } = default!;
@@ -33,17 +33,17 @@ public class ManagementCustomerListItem
     public string? Phone { get; set; }
 }
 
-public class ManagementCustomerDashboardAccessResult
+public class CustomerWorkspaceDashboardAccessResult
 {
     public bool IsAuthorized { get; set; }
     public bool IsForbidden { get; set; }
     public bool CompanyNotFound { get; set; }
     public bool CustomerNotFound { get; set; }
     public string? ErrorMessage { get; set; }
-    public ManagementCustomerDashboardContext? Context { get; set; }
+    public CustomerWorkspaceDashboardContext? Context { get; set; }
 }
 
-public class ManagementCustomerDashboardContext
+public class CustomerWorkspaceDashboardContext
 {
     public Guid AppUserId { get; set; }
     public Guid ManagementCompanyId { get; set; }
@@ -54,7 +54,7 @@ public class ManagementCustomerDashboardContext
     public string CustomerName { get; set; } = default!;
 }
 
-public class ManagementCustomerCreateRequest
+public class CustomerCreateRequest
 {
     public string Name { get; set; } = default!;
     public string RegistryCode { get; set; } = default!;
@@ -63,7 +63,7 @@ public class ManagementCustomerCreateRequest
     public string? Phone { get; set; }
 }
 
-public class ManagementCustomerCreateResult
+public class CustomerCreateResult
 {
     public bool Success { get; set; }
     public bool DuplicateRegistryCode { get; set; }
@@ -72,12 +72,12 @@ public class ManagementCustomerCreateResult
     public string? ErrorMessage { get; set; }
 }
 
-public class ManagementCustomerPropertyListResult
+public class CustomerPropertyListResult
 {
-    public IReadOnlyList<ManagementCustomerPropertyListItem> Properties { get; set; } = Array.Empty<ManagementCustomerPropertyListItem>();
+    public IReadOnlyList<CustomerPropertyListItem> Properties { get; set; } = Array.Empty<CustomerPropertyListItem>();
 }
 
-public class ManagementCustomerPropertyListItem
+public class CustomerPropertyListItem
 {
     public Guid PropertyId { get; set; }
     public string PropertySlug { get; set; } = default!;
@@ -91,7 +91,7 @@ public class ManagementCustomerPropertyListItem
     public bool IsActive { get; set; }
 }
 
-public class ManagementCustomerPropertyCreateRequest
+public class PropertyCreateRequest
 {
     public string Name { get; set; } = default!;
     public string AddressLine { get; set; } = default!;
@@ -102,7 +102,7 @@ public class ManagementCustomerPropertyCreateRequest
     public bool IsActive { get; set; } = true;
 }
 
-public class ManagementCustomerPropertyCreateResult
+public class PropertyCreateResult
 {
     public bool Success { get; set; }
     public bool InvalidPropertyType { get; set; }
@@ -111,15 +111,15 @@ public class ManagementCustomerPropertyCreateResult
     public string? ErrorMessage { get; set; }
 }
 
-public class ManagementCustomerPropertyDashboardAccessResult
+public class PropertyDashboardAccessResult
 {
     public bool IsAuthorized { get; set; }
     public bool PropertyNotFound { get; set; }
     public string? ErrorMessage { get; set; }
-    public ManagementCustomerPropertyDashboardContext? Context { get; set; }
+    public PropertyDashboardContext? Context { get; set; }
 }
 
-public class ManagementCustomerPropertyDashboardContext
+public class PropertyDashboardContext
 {
     public Guid AppUserId { get; set; }
     public Guid ManagementCompanyId { get; set; }

@@ -21,17 +21,17 @@ namespace WebApp.ApiControllers.Customer;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/pr")]
 public class CustomerPropertiesController : ControllerBase
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly AppDbContext _dbContext;
 
     public CustomerPropertiesController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService,
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService,
         AppDbContext dbContext)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
         _dbContext = dbContext;
     }
 
@@ -53,7 +53,7 @@ public class CustomerPropertiesController : ControllerBase
         }
 
         var context = access.Context!;
-        var result = await _managementCustomerPropertyService.ListPropertiesAsync(context, cancellationToken);
+        var result = await _propertyWorkspaceService.ListPropertiesAsync(context, cancellationToken);
         var propertyTypeOptions = await _dbContext.PropertyTypes
             .AsNoTracking()
             .OrderBy(x => x.Code)
@@ -109,9 +109,9 @@ public class CustomerPropertiesController : ControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _managementCustomerPropertyService.CreatePropertyAsync(
+        var result = await _propertyWorkspaceService.CreatePropertyAsync(
             access.Context!,
-            new ManagementCustomerPropertyCreateRequest
+            new PropertyCreateRequest
             {
                 Name = dto.Name,
                 AddressLine = dto.AddressLine,
@@ -145,7 +145,7 @@ public class CustomerPropertiesController : ControllerBase
             response);
     }
 
-    private async Task<(ManagementCustomerDashboardContext? Context, ActionResult? ErrorResult)> ResolveCustomerContextAsync(
+    private async Task<(CustomerWorkspaceDashboardContext? Context, ActionResult? ErrorResult)> ResolveCustomerContextAsync(
         string companySlug,
         string customerSlug,
         CancellationToken cancellationToken)
@@ -156,7 +156,7 @@ public class CustomerPropertiesController : ControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var access = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var access = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -182,7 +182,7 @@ public class CustomerPropertiesController : ControllerBase
     }
 
     private ApiRouteContextDto CreatePropertyRouteContext(
-        ManagementCustomerDashboardContext context,
+        CustomerWorkspaceDashboardContext context,
         string propertySlug,
         string propertyName)
     {

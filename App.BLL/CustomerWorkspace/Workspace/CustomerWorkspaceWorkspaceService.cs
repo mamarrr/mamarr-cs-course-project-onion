@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.CustomerWorkspace.Workspace;
 
-public class ManagementCustomersService :
-    IManagementCustomersService,
-    IManagementCustomerAccessService,
-    IManagementCustomerService,
-    IManagementCustomerPropertyService
+public class CustomerWorkspaceWorkspaceService :
+    ICustomerWorkspaceService,
+    ICustomerAccessService,
+    ICompanyCustomerService,
+    IPropertyWorkspaceService
 {
     private static readonly HashSet<string> AllowedRoleCodes =
     [
@@ -25,12 +25,12 @@ public class ManagementCustomersService :
 
     private readonly AppDbContext _dbContext;
 
-    public ManagementCustomersService(AppDbContext dbContext)
+    public CustomerWorkspaceWorkspaceService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<ManagementCustomersAuthorizationResult> AuthorizeAsync(
+    public async Task<CustomerWorkspaceAuthorizationResult> AuthorizeAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
@@ -38,7 +38,7 @@ public class ManagementCustomersService :
         var normalizedSlug = companySlug.Trim();
         if (string.IsNullOrWhiteSpace(normalizedSlug))
         {
-            return new ManagementCustomersAuthorizationResult
+            return new CustomerWorkspaceAuthorizationResult
             {
                 CompanyNotFound = true,
                 ErrorMessage = App.Resources.Views.UiText.ManagementCompanyWasNotFound
@@ -53,7 +53,7 @@ public class ManagementCustomersService :
 
         if (company == null)
         {
-            return new ManagementCustomersAuthorizationResult
+            return new CustomerWorkspaceAuthorizationResult
             {
                 CompanyNotFound = true,
                 ErrorMessage = App.Resources.Views.UiText.ManagementCompanyWasNotFound
@@ -73,17 +73,17 @@ public class ManagementCustomersService :
             (membership.ValidTo.HasValue && membership.ValidTo.Value < today) ||
             !AllowedRoleCodes.Contains((membership.ManagementCompanyRole?.Code ?? string.Empty).ToUpperInvariant()))
         {
-            return new ManagementCustomersAuthorizationResult
+            return new CustomerWorkspaceAuthorizationResult
             {
                 IsForbidden = true,
                 ErrorMessage = App.Resources.Views.UiText.AccessDeniedDescription
             };
         }
 
-        return new ManagementCustomersAuthorizationResult
+        return new CustomerWorkspaceAuthorizationResult
         {
             IsAuthorized = true,
-            Context = new ManagementCustomersAuthorizedContext
+            Context = new CustomerWorkspaceAuthorizedContext
             {
                 AppUserId = appUserId,
                 ManagementCompanyId = company.Id,
@@ -93,7 +93,7 @@ public class ManagementCustomersService :
         };
     }
 
-    public async Task<ManagementCustomerDashboardAccessResult> ResolveDashboardAccessAsync(
+    public async Task<CustomerWorkspaceDashboardAccessResult> ResolveDashboardAccessAsync(
         Guid appUserId,
         string companySlug,
         string customerSlug,
@@ -102,7 +102,7 @@ public class ManagementCustomersService :
         return await AuthorizeCustomerContextAsync(appUserId, companySlug, customerSlug, cancellationToken);
     }
 
-    public async Task<ManagementCustomerDashboardAccessResult> AuthorizeCustomerContextAsync(
+    public async Task<CustomerWorkspaceDashboardAccessResult> AuthorizeCustomerContextAsync(
         Guid appUserId,
         string companySlug,
         string customerSlug,
@@ -111,7 +111,7 @@ public class ManagementCustomersService :
         var authResult = await AuthorizeAsync(appUserId, companySlug, cancellationToken);
         if (authResult.CompanyNotFound)
         {
-            return new ManagementCustomerDashboardAccessResult
+            return new CustomerWorkspaceDashboardAccessResult
             {
                 CompanyNotFound = true,
                 ErrorMessage = authResult.ErrorMessage
@@ -120,7 +120,7 @@ public class ManagementCustomersService :
 
         if (authResult.IsForbidden || authResult.Context == null)
         {
-            return new ManagementCustomerDashboardAccessResult
+            return new CustomerWorkspaceDashboardAccessResult
             {
                 IsForbidden = true,
                 ErrorMessage = authResult.ErrorMessage
@@ -130,7 +130,7 @@ public class ManagementCustomersService :
         var normalizedCustomerSlug = customerSlug.Trim();
         if (string.IsNullOrWhiteSpace(normalizedCustomerSlug))
         {
-            return new ManagementCustomerDashboardAccessResult
+            return new CustomerWorkspaceDashboardAccessResult
             {
                 CustomerNotFound = true
             };
@@ -144,16 +144,16 @@ public class ManagementCustomersService :
 
         if (customer == null)
         {
-            return new ManagementCustomerDashboardAccessResult
+            return new CustomerWorkspaceDashboardAccessResult
             {
                 CustomerNotFound = true
             };
         }
 
-        return new ManagementCustomerDashboardAccessResult
+        return new CustomerWorkspaceDashboardAccessResult
         {
             IsAuthorized = true,
-            Context = new ManagementCustomerDashboardContext
+            Context = new CustomerWorkspaceDashboardContext
             {
                 AppUserId = authResult.Context.AppUserId,
                 ManagementCompanyId = authResult.Context.ManagementCompanyId,
@@ -166,8 +166,8 @@ public class ManagementCustomersService :
         };
     }
 
-    public async Task<ManagementCustomerPropertyListResult> ListPropertiesAsync(
-        ManagementCustomerDashboardContext context,
+    public async Task<CustomerPropertyListResult> ListPropertiesAsync(
+        CustomerWorkspaceDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         var properties = await _dbContext.Properties
@@ -175,7 +175,7 @@ public class ManagementCustomersService :
             .Where(p => p.CustomerId == context.CustomerId)
             .OrderBy(p => p.Label)
             .ThenBy(p => p.AddressLine)
-            .Select(p => new ManagementCustomerPropertyListItem
+            .Select(p => new CustomerPropertyListItem
             {
                 PropertyId = p.Id,
                 PropertySlug = p.Slug,
@@ -190,20 +190,20 @@ public class ManagementCustomersService :
             })
             .ToListAsync(cancellationToken);
 
-        return new ManagementCustomerPropertyListResult
+        return new CustomerPropertyListResult
         {
             Properties = properties
         };
     }
 
-    public async Task<ManagementCustomerPropertyCreateResult> CreatePropertyAsync(
-        ManagementCustomerDashboardContext context,
-        ManagementCustomerPropertyCreateRequest request,
+    public async Task<PropertyCreateResult> CreatePropertyAsync(
+        CustomerWorkspaceDashboardContext context,
+        PropertyCreateRequest request,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
         {
-            return new ManagementCustomerPropertyCreateResult
+            return new PropertyCreateResult
             {
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace("{0}", App.Resources.Views.UiText.Name)
             };
@@ -211,7 +211,7 @@ public class ManagementCustomersService :
 
         if (string.IsNullOrWhiteSpace(request.AddressLine))
         {
-            return new ManagementCustomerPropertyCreateResult
+            return new PropertyCreateResult
             {
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace("{0}", App.Resources.Views.UiText.Address)
             };
@@ -219,7 +219,7 @@ public class ManagementCustomersService :
 
         if (string.IsNullOrWhiteSpace(request.City))
         {
-            return new ManagementCustomerPropertyCreateResult
+            return new PropertyCreateResult
             {
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace(
                     "{0}",
@@ -229,7 +229,7 @@ public class ManagementCustomersService :
 
         if (string.IsNullOrWhiteSpace(request.PostalCode))
         {
-            return new ManagementCustomerPropertyCreateResult
+            return new PropertyCreateResult
             {
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace(
                     "{0}",
@@ -251,7 +251,7 @@ public class ManagementCustomersService :
 
         if (propertyType == null)
         {
-            return new ManagementCustomerPropertyCreateResult
+            return new PropertyCreateResult
             {
                 InvalidPropertyType = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("InvalidData") ?? "Invalid data."
@@ -285,7 +285,7 @@ public class ManagementCustomersService :
         _dbContext.Properties.Add(property);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementCustomerPropertyCreateResult
+        return new PropertyCreateResult
         {
             Success = true,
             CreatedPropertyId = property.Id,
@@ -293,15 +293,15 @@ public class ManagementCustomersService :
         };
     }
 
-    public async Task<ManagementCustomerPropertyDashboardAccessResult> ResolvePropertyDashboardContextAsync(
-        ManagementCustomerDashboardContext context,
+    public async Task<PropertyDashboardAccessResult> ResolvePropertyDashboardContextAsync(
+        CustomerWorkspaceDashboardContext context,
         string propertySlug,
         CancellationToken cancellationToken = default)
     {
         var normalizedPropertySlug = propertySlug.Trim();
         if (string.IsNullOrWhiteSpace(normalizedPropertySlug))
         {
-            return new ManagementCustomerPropertyDashboardAccessResult
+            return new PropertyDashboardAccessResult
             {
                 PropertyNotFound = true
             };
@@ -315,16 +315,16 @@ public class ManagementCustomersService :
 
         if (property == null)
         {
-            return new ManagementCustomerPropertyDashboardAccessResult
+            return new PropertyDashboardAccessResult
             {
                 PropertyNotFound = true
             };
         }
 
-        return new ManagementCustomerPropertyDashboardAccessResult
+        return new PropertyDashboardAccessResult
         {
             IsAuthorized = true,
-            Context = new ManagementCustomerPropertyDashboardContext
+            Context = new PropertyDashboardContext
             {
                 AppUserId = context.AppUserId,
                 ManagementCompanyId = context.ManagementCompanyId,
@@ -340,15 +340,15 @@ public class ManagementCustomersService :
         };
     }
 
-    public async Task<ManagementCustomerListResult> ListAsync(
-        ManagementCustomersAuthorizedContext context,
+    public async Task<CompanyCustomerListResult> ListAsync(
+        CustomerWorkspaceAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
         var customers = await _dbContext.Customers
             .AsNoTracking()
             .Where(c => c.ManagementCompanyId == context.ManagementCompanyId)
             .OrderBy(c => c.Name)
-            .Select(c => new ManagementCustomerListItem
+            .Select(c => new CompanyCustomerListItem
             {
                 CustomerId = c.Id,
                 CustomerSlug = c.Slug,
@@ -360,20 +360,20 @@ public class ManagementCustomersService :
             })
             .ToListAsync(cancellationToken);
 
-        return new ManagementCustomerListResult
+        return new CompanyCustomerListResult
         {
             Customers = customers
         };
     }
 
-    public async Task<ManagementCustomerCreateResult> CreateAsync(
-        ManagementCustomersAuthorizedContext context,
-        ManagementCustomerCreateRequest request,
+    public async Task<CustomerCreateResult> CreateAsync(
+        CustomerWorkspaceAuthorizedContext context,
+        CustomerCreateRequest request,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
         {
-            return new ManagementCustomerCreateResult
+            return new CustomerCreateResult
             {
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace("{0}", App.Resources.Views.UiText.Name)
             };
@@ -381,7 +381,7 @@ public class ManagementCustomersService :
 
         if (string.IsNullOrWhiteSpace(request.RegistryCode))
         {
-            return new ManagementCustomerCreateResult
+            return new CustomerCreateResult
             {
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace("{0}", App.Resources.Views.UiText.RegistryCode)
             };
@@ -398,7 +398,7 @@ public class ManagementCustomersService :
             var emailAttribute = new EmailAddressAttribute();
             if (!emailAttribute.IsValid(normalizedBillingEmail))
             {
-                return new ManagementCustomerCreateResult
+                return new CustomerCreateResult
                 {
                     InvalidBillingEmail = true,
                     ErrorMessage = App.Resources.Views.UiText.InvalidEmailAddress
@@ -413,7 +413,7 @@ public class ManagementCustomersService :
 
         if (duplicateRegistryCode)
         {
-            return new ManagementCustomerCreateResult
+            return new CustomerCreateResult
             {
                 DuplicateRegistryCode = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("CustomerRegistryCodeAlreadyExists")
@@ -446,7 +446,7 @@ public class ManagementCustomersService :
         _dbContext.Customers.Add(customer);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementCustomerCreateResult
+        return new CustomerCreateResult
         {
             Success = true,
             CreatedCustomerId = customer.Id

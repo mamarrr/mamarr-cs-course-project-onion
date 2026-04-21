@@ -17,19 +17,19 @@ namespace WebApp.Areas.Unit.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}")]
 public class UnitDashboardController : Controller
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IManagementUnitDashboardService _managementUnitDashboardService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public UnitDashboardController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService,
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService,
         IManagementUnitDashboardService managementUnitDashboardService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
         _managementUnitDashboardService = managementUnitDashboardService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
@@ -173,7 +173,7 @@ public class UnitDashboardController : Controller
             return (Challenge(), null);
         }
 
-        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -189,7 +189,7 @@ public class UnitDashboardController : Controller
             return (Forbid(), null);
         }
 
-        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
+        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
             customerAccess.Context,
             propertySlug,
             cancellationToken);

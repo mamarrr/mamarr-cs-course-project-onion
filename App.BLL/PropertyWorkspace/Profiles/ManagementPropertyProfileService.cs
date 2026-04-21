@@ -17,7 +17,7 @@ public class ManagementPropertyProfileService : IManagementPropertyProfileServic
     }
 
     public async Task<PropertyProfileModel?> GetProfileAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         return await _dbContext.Properties
@@ -38,7 +38,7 @@ public class ManagementPropertyProfileService : IManagementPropertyProfileServic
     }
 
     public async Task<ProfileOperationResult> UpdateProfileAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         PropertyProfileUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -114,7 +114,7 @@ public class ManagementPropertyProfileService : IManagementPropertyProfileServic
     }
 
     public async Task<ProfileOperationResult> DeleteProfileAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         var hasDeleteRole = await ProfileDeleteAuthorization.HasDeletePermissionAsync(

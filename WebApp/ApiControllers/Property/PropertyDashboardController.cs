@@ -18,15 +18,15 @@ namespace WebApp.ApiControllers.Property;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/dashboard")]
 public class PropertyDashboardController : ControllerBase
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
 
     public PropertyDashboardController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService)
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
     }
 
     [HttpGet]
@@ -69,7 +69,7 @@ public class PropertyDashboardController : ControllerBase
         });
     }
 
-    private async Task<(ManagementCustomerPropertyDashboardContext? Context, ActionResult? ErrorResult)> ResolvePropertyContextAsync(
+    private async Task<(PropertyDashboardContext? Context, ActionResult? ErrorResult)> ResolvePropertyContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -81,7 +81,7 @@ public class PropertyDashboardController : ControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -97,7 +97,7 @@ public class PropertyDashboardController : ControllerBase
             return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
         }
 
-        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
+        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
             customerAccess.Context,
             propertySlug,
             cancellationToken);

@@ -200,7 +200,7 @@ public class ProfileFeatureHardeningTests
         return new AppDbContext(options);
     }
 
-    private static async Task<(ManagementCustomerDashboardContext Context, Customer Customer)> SeedCustomerFixtureAsync(AppDbContext db, string actorRoleCode)
+    private static async Task<(CustomerWorkspaceDashboardContext Context, Customer Customer)> SeedCustomerFixtureAsync(AppDbContext db, string actorRoleCode)
     {
         var company = CreateCompany("customer-company", "Customer Company", "REG-CUST-COMP");
         var role = CreateRole(actorRoleCode);
@@ -214,7 +214,7 @@ public class ProfileFeatureHardeningTests
         db.Customers.Add(customer);
         await db.SaveChangesAsync();
 
-        return (new ManagementCustomerDashboardContext
+        return (new CustomerWorkspaceDashboardContext
         {
             AppUserId = actor.Id,
             ManagementCompanyId = company.Id,
@@ -347,7 +347,7 @@ public class ProfileFeatureHardeningTests
         await db.SaveChangesAsync();
 
         return new PropertyDeletionFixture(
-            new ManagementCustomerPropertyDashboardContext
+            new PropertyDashboardContext
             {
                 AppUserId = actor.Id,
                 ManagementCompanyId = companyA.Id,
@@ -684,7 +684,7 @@ public class ProfileFeatureHardeningTests
     }
 
     private sealed record PropertyDeletionFixture(
-        ManagementCustomerPropertyDashboardContext Context,
+        PropertyDashboardContext Context,
         Property Property,
         Property OtherTenantProperty,
         Unit OtherTenantUnit,

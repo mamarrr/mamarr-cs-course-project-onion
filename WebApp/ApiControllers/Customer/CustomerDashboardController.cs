@@ -17,11 +17,11 @@ namespace WebApp.ApiControllers.Customer;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/dashboard")]
 public class CustomerDashboardController : ControllerBase
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
+    private readonly ICustomerAccessService _customerAccessService;
 
-    public CustomerDashboardController(IManagementCustomerAccessService managementCustomerAccessService)
+    public CustomerDashboardController(ICustomerAccessService customerAccessService)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
+        _customerAccessService = customerAccessService;
     }
 
     [HttpGet]
@@ -61,7 +61,7 @@ public class CustomerDashboardController : ControllerBase
         });
     }
 
-    private async Task<(ManagementCustomerDashboardContext? Context, ActionResult? ErrorResult)> ResolveDashboardAccessAsync(
+    private async Task<(CustomerWorkspaceDashboardContext? Context, ActionResult? ErrorResult)> ResolveDashboardAccessAsync(
         string companySlug,
         string customerSlug,
         CancellationToken cancellationToken)
@@ -72,7 +72,7 @@ public class CustomerDashboardController : ControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var access = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var access = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,

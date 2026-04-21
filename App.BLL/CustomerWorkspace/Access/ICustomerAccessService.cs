@@ -2,20 +2,20 @@ using App.BLL.CustomerWorkspace.Workspace;
 
 namespace App.BLL.CustomerWorkspace.Access;
 
-public interface IManagementCustomerAccessService
+public interface ICustomerAccessService
 {
-    Task<ManagementCustomersAuthorizationResult> AuthorizeAsync(
+    Task<CustomerWorkspaceAuthorizationResult> AuthorizeAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementCustomerDashboardAccessResult> AuthorizeCustomerContextAsync(
+    Task<CustomerWorkspaceDashboardAccessResult> AuthorizeCustomerContextAsync(
         Guid appUserId,
         string companySlug,
         string customerSlug,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementCustomerDashboardAccessResult> ResolveDashboardAccessAsync(
+    Task<CustomerWorkspaceDashboardAccessResult> ResolveDashboardAccessAsync(
         Guid appUserId,
         string companySlug,
         string customerSlug,

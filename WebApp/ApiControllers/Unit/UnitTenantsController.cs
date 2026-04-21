@@ -21,21 +21,21 @@ namespace WebApp.ApiControllers.Unit;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un/{unitSlug}")]
 public class UnitTenantsController : ProfileApiControllerBase
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IManagementUnitDashboardService _managementUnitDashboardService;
     private readonly IManagementLeaseService _managementLeaseService;
     private readonly IManagementLeaseSearchService _managementLeaseSearchService;
 
     public UnitTenantsController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService,
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService,
         IManagementUnitDashboardService managementUnitDashboardService,
         IManagementLeaseService managementLeaseService,
         IManagementLeaseSearchService managementLeaseSearchService)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
         _managementUnitDashboardService = managementUnitDashboardService;
         _managementLeaseService = managementLeaseService;
         _managementLeaseSearchService = managementLeaseSearchService;
@@ -261,7 +261,7 @@ public class UnitTenantsController : ProfileApiControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -277,7 +277,7 @@ public class UnitTenantsController : ProfileApiControllerBase
             return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
         }
 
-        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
+        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
             customerAccess.Context,
             propertySlug,
             cancellationToken);

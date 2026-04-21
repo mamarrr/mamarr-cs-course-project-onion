@@ -19,7 +19,7 @@ public class CustomerPropertyDashboardControllerTests
     [Fact]
     public async Task Index_ReturnsChallenge_WhenUserIdClaimMissing()
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         var controller = CreateController(serviceMock.Object, BuildPrincipal(withNameIdentifier: false));
 
         var result = await controller.Index("north-estate", "acme", "alpha-house", CancellationToken.None);
@@ -30,10 +30,10 @@ public class CustomerPropertyDashboardControllerTests
     [Fact]
     public async Task Index_ReturnsNotFound_WhenCustomerContextMissing()
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult { CustomerNotFound = true });
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { CustomerNotFound = true });
 
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
 
@@ -45,10 +45,10 @@ public class CustomerPropertyDashboardControllerTests
     [Fact]
     public async Task Index_ReturnsForbid_WhenCustomerContextForbidden()
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult { IsForbidden = true });
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { IsForbidden = true });
 
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
 
@@ -64,7 +64,7 @@ public class CustomerPropertyDashboardControllerTests
         var serviceMock = BuildServiceWithCustomerContext(dashboardContext);
         serviceMock
             .Setup(x => x.ResolvePropertyDashboardContextAsync(dashboardContext, "alpha-house", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerPropertyDashboardAccessResult { PropertyNotFound = true });
+            .ReturnsAsync(new PropertyDashboardAccessResult { PropertyNotFound = true });
 
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
 
@@ -80,7 +80,7 @@ public class CustomerPropertyDashboardControllerTests
         var serviceMock = BuildServiceWithCustomerContext(dashboardContext);
         serviceMock
             .Setup(x => x.ResolvePropertyDashboardContextAsync(dashboardContext, "alpha-house", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerPropertyDashboardAccessResult { IsAuthorized = false });
+            .ReturnsAsync(new PropertyDashboardAccessResult { IsAuthorized = false });
 
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
 
@@ -93,7 +93,7 @@ public class CustomerPropertyDashboardControllerTests
     public async Task Index_ReturnsView_WhenAuthorized()
     {
         var dashboardContext = BuildDashboardContext();
-        var propertyContext = new ManagementCustomerPropertyDashboardContext
+        var propertyContext = new PropertyDashboardContext
         {
             AppUserId = dashboardContext.AppUserId,
             ManagementCompanyId = dashboardContext.ManagementCompanyId,
@@ -110,7 +110,7 @@ public class CustomerPropertyDashboardControllerTests
         var serviceMock = BuildServiceWithCustomerContext(dashboardContext);
         serviceMock
             .Setup(x => x.ResolvePropertyDashboardContextAsync(dashboardContext, "alpha-house", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerPropertyDashboardAccessResult
+            .ReturnsAsync(new PropertyDashboardAccessResult
             {
                 IsAuthorized = true,
                 Context = propertyContext
@@ -127,12 +127,12 @@ public class CustomerPropertyDashboardControllerTests
         Assert.Equal("Dashboard", vm.CurrentSection);
     }
 
-    private static Mock<IManagementCustomersService> BuildServiceWithCustomerContext(ManagementCustomerDashboardContext context)
+    private static Mock<ICustomerWorkspaceService> BuildServiceWithCustomerContext(CustomerWorkspaceDashboardContext context)
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult
             {
                 IsAuthorized = true,
                 Context = context
@@ -140,9 +140,9 @@ public class CustomerPropertyDashboardControllerTests
         return serviceMock;
     }
 
-    private static ManagementCustomerDashboardContext BuildDashboardContext()
+    private static CustomerWorkspaceDashboardContext BuildDashboardContext()
     {
-        return new ManagementCustomerDashboardContext
+        return new CustomerWorkspaceDashboardContext
         {
             AppUserId = Guid.NewGuid(),
             ManagementCompanyId = Guid.NewGuid(),
@@ -154,18 +154,18 @@ public class CustomerPropertyDashboardControllerTests
         };
     }
 
-    private static PropertyDashboardController CreateController(IManagementCustomersService service, ClaimsPrincipal user)
+    private static PropertyDashboardController CreateController(ICustomerWorkspaceService service, ClaimsPrincipal user)
     {
-        var accessService = new Mock<IManagementCustomerAccessService>();
+        var accessService = new Mock<ICustomerAccessService>();
         accessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Guid _, string companySlug, string customerSlug, CancellationToken _) =>
                 service.ResolveDashboardAccessAsync(Guid.Empty, companySlug, customerSlug, CancellationToken.None).GetAwaiter().GetResult());
 
-        var propertyService = new Mock<IManagementCustomerPropertyService>();
+        var propertyService = new Mock<IPropertyWorkspaceService>();
         propertyService
-            .Setup(x => x.ResolvePropertyDashboardContextAsync(It.IsAny<ManagementCustomerDashboardContext>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ManagementCustomerDashboardContext context, string propertySlug, CancellationToken _) =>
+            .Setup(x => x.ResolvePropertyDashboardContextAsync(It.IsAny<CustomerWorkspaceDashboardContext>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CustomerWorkspaceDashboardContext context, string propertySlug, CancellationToken _) =>
                 service.ResolvePropertyDashboardContextAsync(context, propertySlug, CancellationToken.None).GetAwaiter().GetResult());
 
         return new PropertyDashboardController(

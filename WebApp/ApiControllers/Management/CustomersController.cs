@@ -18,15 +18,15 @@ namespace WebApp.ApiControllers.Management;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu")]
 public class CustomersController : ControllerBase
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerService _managementCustomerService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly ICompanyCustomerService _companyCustomerService;
 
     public CustomersController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerService managementCustomerService)
+        ICustomerAccessService customerAccessService,
+        ICompanyCustomerService companyCustomerService)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerService = managementCustomerService;
+        _customerAccessService = customerAccessService;
+        _companyCustomerService = companyCustomerService;
     }
 
     [HttpGet]
@@ -45,7 +45,7 @@ public class CustomersController : ControllerBase
             return authorization.ErrorResult;
         }
 
-        var result = await _managementCustomerService.ListAsync(authorization.Context!, cancellationToken);
+        var result = await _companyCustomerService.ListAsync(authorization.Context!, cancellationToken);
         return Ok(new ManagementCustomersResponseDto
         {
             Customers = result.Customers.Select(x => new ManagementCustomerSummaryDto
@@ -86,9 +86,9 @@ public class CustomersController : ControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _managementCustomerService.CreateAsync(
+        var result = await _companyCustomerService.CreateAsync(
             authorization.Context!,
-            new ManagementCustomerCreateRequest
+            new CustomerCreateRequest
             {
                 Name = dto.Name,
                 RegistryCode = dto.RegistryCode,
@@ -111,7 +111,7 @@ public class CustomersController : ControllerBase
                         : (string.Empty, result.ErrorMessage ?? "Unable to create customer.")));
         }
 
-        var refreshedCustomers = await _managementCustomerService.ListAsync(authorization.Context!, cancellationToken);
+        var refreshedCustomers = await _companyCustomerService.ListAsync(authorization.Context!, cancellationToken);
         var createdCustomer = refreshedCustomers.Customers.FirstOrDefault(x => x.CustomerId == result.CreatedCustomerId.Value);
         if (createdCustomer == null)
         {
@@ -131,7 +131,7 @@ public class CustomersController : ControllerBase
             response);
     }
 
-    private async Task<(ManagementCustomersAuthorizedContext? Context, ActionResult? ErrorResult)> AuthorizeCompanyAsync(
+    private async Task<(CustomerWorkspaceAuthorizedContext? Context, ActionResult? ErrorResult)> AuthorizeCompanyAsync(
         string companySlug,
         CancellationToken cancellationToken)
     {
@@ -141,7 +141,7 @@ public class CustomersController : ControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var authorization = await _managementCustomerAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var authorization = await _customerAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         if (authorization.CompanyNotFound)
         {
             return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Management company was not found.", ApiErrorCodes.NotFound)));
@@ -162,7 +162,7 @@ public class CustomersController : ControllerBase
     }
 
     private ApiRouteContextDto CreateCustomerRouteContext(
-        ManagementCustomersAuthorizedContext context,
+        CustomerWorkspaceAuthorizedContext context,
         string customerSlug,
         string customerName)
     {

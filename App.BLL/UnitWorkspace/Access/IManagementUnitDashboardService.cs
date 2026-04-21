@@ -6,7 +6,7 @@ namespace App.BLL.UnitWorkspace.Access;
 public interface IManagementUnitDashboardService
 {
     Task<ManagementUnitDashboardAccessResult> ResolveUnitDashboardContextAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         string unitSlug,
         CancellationToken cancellationToken = default);
 }

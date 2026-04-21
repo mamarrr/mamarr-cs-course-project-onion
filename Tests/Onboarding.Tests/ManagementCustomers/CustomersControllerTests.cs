@@ -25,7 +25,7 @@ public class CustomersControllerTests
     [Fact]
     public async Task Index_ReturnsChallenge_WhenUserIdClaimMissing()
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         var controller = CreateController(serviceMock.Object, BuildPrincipal(withNameIdentifier: false));
 
         var result = await controller.Index("north-estate", CancellationToken.None);
@@ -36,10 +36,10 @@ public class CustomersControllerTests
     [Fact]
     public async Task Index_ReturnsNotFound_WhenCompanySlugInvalid()
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.AuthorizeAsync(It.IsAny<Guid>(), "missing-company", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomersAuthorizationResult { CompanyNotFound = true });
+            .ReturnsAsync(new CustomerWorkspaceAuthorizationResult { CompanyNotFound = true });
 
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
 
@@ -51,10 +51,10 @@ public class CustomersControllerTests
     [Fact]
     public async Task Index_ReturnsForbid_WhenUnauthorized()
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.AuthorizeAsync(It.IsAny<Guid>(), "north-estate", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomersAuthorizationResult { IsForbidden = true });
+            .ReturnsAsync(new CustomerWorkspaceAuthorizationResult { IsForbidden = true });
 
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
 
@@ -66,7 +66,7 @@ public class CustomersControllerTests
     [Fact]
     public async Task Add_SuccessfulCreate_RedirectsToIndex_AndSetsTempDataSuccess()
     {
-        var context = new ManagementCustomersAuthorizedContext
+        var context = new CustomerWorkspaceAuthorizedContext
         {
             AppUserId = Guid.NewGuid(),
             ManagementCompanyId = Guid.NewGuid(),
@@ -74,10 +74,10 @@ public class CustomersControllerTests
             CompanyName = "North Estate"
         };
 
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.AuthorizeAsync(It.IsAny<Guid>(), "north-estate", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomersAuthorizationResult
+            .ReturnsAsync(new CustomerWorkspaceAuthorizationResult
             {
                 IsAuthorized = true,
                 Context = context
@@ -86,9 +86,9 @@ public class CustomersControllerTests
         serviceMock
             .Setup(x => x.CreateAsync(
                 context,
-                It.IsAny<ManagementCustomerCreateRequest>(),
+                It.IsAny<CustomerCreateRequest>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerCreateResult { Success = true });
+            .ReturnsAsync(new CustomerCreateResult { Success = true });
 
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
         var vm = new ManagementCustomersPageViewModel
@@ -112,7 +112,7 @@ public class CustomersControllerTests
     [Fact]
     public async Task Add_InvalidModel_ReturnsIndexView_WithValidationErrors()
     {
-        var context = new ManagementCustomersAuthorizedContext
+        var context = new CustomerWorkspaceAuthorizedContext
         {
             AppUserId = Guid.NewGuid(),
             ManagementCompanyId = Guid.NewGuid(),
@@ -120,10 +120,10 @@ public class CustomersControllerTests
             CompanyName = "North Estate"
         };
 
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.AuthorizeAsync(It.IsAny<Guid>(), "north-estate", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomersAuthorizationResult
+            .ReturnsAsync(new CustomerWorkspaceAuthorizationResult
             {
                 IsAuthorized = true,
                 Context = context
@@ -131,11 +131,11 @@ public class CustomersControllerTests
 
         serviceMock
             .Setup(x => x.ListAsync(context, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerListResult
+            .ReturnsAsync(new CompanyCustomerListResult
             {
                 Customers =
                 [
-                    new ManagementCustomerListItem
+                    new CompanyCustomerListItem
                     {
                         CustomerId = Guid.NewGuid(),
                         Name = "Existing",
@@ -165,23 +165,23 @@ public class CustomersControllerTests
         Assert.IsType<ManagementCustomersPageViewModel>(view.Model);
     }
 
-    private static CustomersController CreateController(IManagementCustomersService service, ClaimsPrincipal user)
+    private static CustomersController CreateController(ICustomerWorkspaceService service, ClaimsPrincipal user)
     {
         var dbContext = CreateDbContext();
-        var accessService = new Mock<IManagementCustomerAccessService>();
+        var accessService = new Mock<ICustomerAccessService>();
         accessService
             .Setup(x => x.AuthorizeAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Guid _, string companySlug, CancellationToken _) =>
                 service.AuthorizeAsync(Guid.Empty, companySlug, CancellationToken.None).GetAwaiter().GetResult());
 
-        var customerService = new Mock<IManagementCustomerService>();
+        var customerService = new Mock<ICompanyCustomerService>();
         customerService
-            .Setup(x => x.ListAsync(It.IsAny<ManagementCustomersAuthorizedContext>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ManagementCustomersAuthorizedContext context, CancellationToken _) =>
+            .Setup(x => x.ListAsync(It.IsAny<CustomerWorkspaceAuthorizedContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CustomerWorkspaceAuthorizedContext context, CancellationToken _) =>
                 service.ListAsync(context, CancellationToken.None).GetAwaiter().GetResult());
         customerService
-            .Setup(x => x.CreateAsync(It.IsAny<ManagementCustomersAuthorizedContext>(), It.IsAny<ManagementCustomerCreateRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ManagementCustomersAuthorizedContext context, ManagementCustomerCreateRequest request, CancellationToken _) =>
+            .Setup(x => x.CreateAsync(It.IsAny<CustomerWorkspaceAuthorizedContext>(), It.IsAny<CustomerCreateRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CustomerWorkspaceAuthorizedContext context, CustomerCreateRequest request, CancellationToken _) =>
                 service.CreateAsync(context, request, CancellationToken.None).GetAwaiter().GetResult());
 
         var controller = new CustomersController(

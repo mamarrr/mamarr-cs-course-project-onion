@@ -17,21 +17,21 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}/customers")]
 public class CustomersController : ManagementPageShellController
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerService _managementCustomerService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly ICompanyCustomerService _companyCustomerService;
     private readonly AppDbContext _dbContext;
     private readonly ILogger<CustomersController> _logger;
 
     public CustomersController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerService managementCustomerService,
+        ICustomerAccessService customerAccessService,
+        ICompanyCustomerService companyCustomerService,
         AppDbContext dbContext,
         ILogger<CustomersController> logger,
         IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
         : base(managementLayoutViewModelProvider)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerService = managementCustomerService;
+        _customerAccessService = customerAccessService;
+        _companyCustomerService = companyCustomerService;
         _dbContext = dbContext;
         _logger = logger;
     }
@@ -89,9 +89,9 @@ public class CustomersController : ManagementPageShellController
             return View(nameof(Index), invalidVm);
         }
 
-        var createResult = await _managementCustomerService.CreateAsync(
+        var createResult = await _companyCustomerService.CreateAsync(
             authResult.context!,
-            new ManagementCustomerCreateRequest
+            new CustomerCreateRequest
             {
                 Name = vm.AddCustomer.Name,
                 RegistryCode = vm.AddCustomer.RegistryCode,
@@ -135,7 +135,7 @@ public class CustomersController : ManagementPageShellController
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 
-    private async Task<(IActionResult? response, ManagementCustomersAuthorizedContext? context)> AuthorizeAsync(
+    private async Task<(IActionResult? response, CustomerWorkspaceAuthorizedContext? context)> AuthorizeAsync(
         string companySlug,
         CancellationToken cancellationToken)
     {
@@ -145,7 +145,7 @@ public class CustomersController : ManagementPageShellController
             return (Challenge(), null);
         }
 
-        var auth = await _managementCustomerAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _customerAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         if (auth.CompanyNotFound)
         {
             return (NotFound(), null);
@@ -160,11 +160,11 @@ public class CustomersController : ManagementPageShellController
     }
 
     private async Task<ManagementCustomersPageViewModel> BuildPageViewModelAsync(
-        ManagementCustomersAuthorizedContext context,
+        CustomerWorkspaceAuthorizedContext context,
         CancellationToken cancellationToken,
         AddManagementCustomerViewModel? addCustomerOverride = null)
     {
-        var listResult = await _managementCustomerService.ListAsync(context, cancellationToken);
+        var listResult = await _companyCustomerService.ListAsync(context, cancellationToken);
         var customerIds = listResult.Customers.Select(c => c.CustomerId).ToArray();
 
         var propertiesByCustomerId = await _dbContext.Properties

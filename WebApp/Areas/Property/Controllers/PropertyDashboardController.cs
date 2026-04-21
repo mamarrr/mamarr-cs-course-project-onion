@@ -15,17 +15,17 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}")]
 public class PropertyDashboardController : Controller
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public PropertyDashboardController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService,
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
@@ -72,7 +72,7 @@ public class PropertyDashboardController : Controller
             return Challenge();
         }
 
-        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -88,7 +88,7 @@ public class PropertyDashboardController : Controller
             return Forbid();
         }
 
-        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
+        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
             customerAccess.Context,
             propertySlug,
             cancellationToken);

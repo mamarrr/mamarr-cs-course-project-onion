@@ -6,16 +6,16 @@ namespace App.BLL.PropertyWorkspace.Profiles;
 public interface IManagementPropertyProfileService
 {
     Task<PropertyProfileModel?> GetProfileAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         CancellationToken cancellationToken = default);
 
     Task<ProfileOperationResult> UpdateProfileAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         PropertyProfileUpdateRequest request,
         CancellationToken cancellationToken = default);
 
     Task<ProfileOperationResult> DeleteProfileAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         CancellationToken cancellationToken = default);
 }
 

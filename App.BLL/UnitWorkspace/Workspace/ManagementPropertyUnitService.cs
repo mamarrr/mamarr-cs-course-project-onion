@@ -26,7 +26,7 @@ public class ManagementPropertyUnitService :
     }
 
     public async Task<ManagementPropertyUnitListResult> ListUnitsAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         var units = await _dbContext.Units
@@ -52,7 +52,7 @@ public class ManagementPropertyUnitService :
     }
 
     public async Task<ManagementPropertyUnitCreateResult> CreateUnitAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         ManagementPropertyUnitCreateRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -127,7 +127,7 @@ public class ManagementPropertyUnitService :
     }
 
     public async Task<ManagementUnitDashboardAccessResult> ResolveUnitDashboardContextAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         string unitSlug,
         CancellationToken cancellationToken = default)
     {

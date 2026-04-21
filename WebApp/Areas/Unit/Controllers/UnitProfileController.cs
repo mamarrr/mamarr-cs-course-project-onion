@@ -19,21 +19,21 @@ namespace WebApp.Areas.Unit.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}/profile")]
 public class UnitProfileController : Controller
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IManagementUnitDashboardService _managementUnitDashboardService;
     private readonly IManagementUnitProfileService _managementUnitProfileService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public UnitProfileController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService,
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService,
         IManagementUnitDashboardService managementUnitDashboardService,
         IManagementUnitProfileService managementUnitProfileService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
         _managementUnitDashboardService = managementUnitDashboardService;
         _managementUnitProfileService = managementUnitProfileService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
@@ -253,7 +253,7 @@ public class UnitProfileController : Controller
             return (Challenge(), null);
         }
 
-        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -269,7 +269,7 @@ public class UnitProfileController : Controller
             return (Forbid(), null);
         }
 
-        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
+        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
             customerAccess.Context,
             propertySlug,
             cancellationToken);

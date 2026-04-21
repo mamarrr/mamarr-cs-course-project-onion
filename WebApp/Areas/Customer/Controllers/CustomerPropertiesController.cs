@@ -19,21 +19,21 @@ namespace WebApp.Areas.Customer.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/properties")]
 public class CustomerPropertiesController : Controller
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
     private readonly AppDbContext _dbContext;
     private readonly ILogger<CustomerPropertiesController> _logger;
 
     public CustomerPropertiesController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService,
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider,
         AppDbContext dbContext,
         ILogger<CustomerPropertiesController> logger)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
         _dbContext = dbContext;
         _logger = logger;
@@ -72,9 +72,9 @@ public class CustomerPropertiesController : Controller
             return View(nameof(Index), invalidVm);
         }
 
-        var createResult = await _managementCustomerPropertyService.CreatePropertyAsync(
+        var createResult = await _propertyWorkspaceService.CreatePropertyAsync(
             access.context!,
-            new ManagementCustomerPropertyCreateRequest
+            new PropertyCreateRequest
             {
                 Name = vm.AddProperty.Name,
                 AddressLine = vm.AddProperty.AddressLine,
@@ -116,7 +116,7 @@ public class CustomerPropertiesController : Controller
         return RedirectToAction(nameof(Index), new { companySlug, customerSlug });
     }
 
-    private async Task<(IActionResult? response, ManagementCustomerDashboardContext? context)> ResolveCustomerContextAsync(
+    private async Task<(IActionResult? response, CustomerWorkspaceDashboardContext? context)> ResolveCustomerContextAsync(
         string companySlug,
         string customerSlug,
         CancellationToken cancellationToken)
@@ -127,7 +127,7 @@ public class CustomerPropertiesController : Controller
             return (Challenge(), null);
         }
 
-        var access = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var access = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -147,11 +147,11 @@ public class CustomerPropertiesController : Controller
     }
 
     private async Task<CustomerPropertiesPageViewModel> BuildPageViewModelAsync(
-        ManagementCustomerDashboardContext context,
+        CustomerWorkspaceDashboardContext context,
         CancellationToken cancellationToken,
         AddPropertyViewModel? addPropertyOverride = null)
     {
-        var listResult = await _managementCustomerPropertyService.ListPropertiesAsync(context, cancellationToken);
+        var listResult = await _propertyWorkspaceService.ListPropertiesAsync(context, cancellationToken);
         var customerLayout = new CustomerLayoutViewModel
         {
             CompanySlug = context.CompanySlug,

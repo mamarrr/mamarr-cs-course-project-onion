@@ -1,21 +1,21 @@
 using App.BLL.CustomerWorkspace.Workspace;
-using App.BLL.Shared.Profiles;
 
-namespace App.BLL.CustomerWorkspace.Profiles;
+namespace App.BLL.PropertyWorkspace.Properties;
 
-public interface IManagementCustomerProfileService
+public interface IPropertyWorkspaceService
 {
-    Task<CustomerProfileModel?> GetProfileAsync(
+    Task<CustomerPropertyListResult> ListPropertiesAsync(
         CustomerWorkspaceDashboardContext context,
         CancellationToken cancellationToken = default);
 
-    Task<ProfileOperationResult> UpdateProfileAsync(
+    Task<PropertyCreateResult> CreatePropertyAsync(
         CustomerWorkspaceDashboardContext context,
-        CustomerProfileUpdateRequest request,
+        PropertyCreateRequest request,
         CancellationToken cancellationToken = default);
 
-    Task<ProfileOperationResult> DeleteProfileAsync(
+    Task<PropertyDashboardAccessResult> ResolvePropertyDashboardContextAsync(
         CustomerWorkspaceDashboardContext context,
+        string propertySlug,
         CancellationToken cancellationToken = default);
 }
 

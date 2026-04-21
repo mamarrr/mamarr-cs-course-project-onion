@@ -17,7 +17,7 @@ public class ManagementCustomerProfileService : IManagementCustomerProfileServic
     }
 
     public async Task<CustomerProfileModel?> GetProfileAsync(
-        ManagementCustomerDashboardContext context,
+        CustomerWorkspaceDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         return await _dbContext.Customers
@@ -38,7 +38,7 @@ public class ManagementCustomerProfileService : IManagementCustomerProfileServic
     }
 
     public async Task<ProfileOperationResult> UpdateProfileAsync(
-        ManagementCustomerDashboardContext context,
+        CustomerWorkspaceDashboardContext context,
         CustomerProfileUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -118,7 +118,7 @@ public class ManagementCustomerProfileService : IManagementCustomerProfileServic
     }
 
     public async Task<ProfileOperationResult> DeleteProfileAsync(
-        ManagementCustomerDashboardContext context,
+        CustomerWorkspaceDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         var hasDeleteRole = await ProfileDeleteAuthorization.HasDeletePermissionAsync(

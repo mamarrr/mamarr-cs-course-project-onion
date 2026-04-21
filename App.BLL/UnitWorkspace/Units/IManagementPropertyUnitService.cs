@@ -6,11 +6,11 @@ namespace App.BLL.UnitWorkspace.Units;
 public interface IManagementPropertyUnitService
 {
     Task<ManagementPropertyUnitListResult> ListUnitsAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         CancellationToken cancellationToken = default);
 
     Task<ManagementPropertyUnitCreateResult> CreateUnitAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         ManagementPropertyUnitCreateRequest request,
         CancellationToken cancellationToken = default);
 }

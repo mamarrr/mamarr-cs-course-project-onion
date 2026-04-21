@@ -20,14 +20,14 @@ namespace WebApp.ApiControllers.Customer;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/profile")]
 public class CustomerProfileController : ProfileApiControllerBase
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
+    private readonly ICustomerAccessService _customerAccessService;
     private readonly IManagementCustomerProfileService _managementCustomerProfileService;
 
     public CustomerProfileController(
-        IManagementCustomerAccessService managementCustomerAccessService,
+        ICustomerAccessService customerAccessService,
         IManagementCustomerProfileService managementCustomerProfileService)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
+        _customerAccessService = customerAccessService;
         _managementCustomerProfileService = managementCustomerProfileService;
     }
 
@@ -189,7 +189,7 @@ public class CustomerProfileController : ProfileApiControllerBase
         return NoContent();
     }
 
-    private async Task<(ManagementCustomerDashboardContext? Context, ActionResult? ErrorResult)> ResolveDashboardAccessAsync(
+    private async Task<(CustomerWorkspaceDashboardContext? Context, ActionResult? ErrorResult)> ResolveDashboardAccessAsync(
         string companySlug,
         string customerSlug,
         CancellationToken cancellationToken)
@@ -200,7 +200,7 @@ public class CustomerProfileController : ProfileApiControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var access = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var access = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -219,7 +219,7 @@ public class CustomerProfileController : ProfileApiControllerBase
         return (access.Context, null);
     }
 
-    private static CustomerProfileDto MapProfile(CustomerProfileModel profile, ManagementCustomerDashboardContext context)
+    private static CustomerProfileDto MapProfile(CustomerProfileModel profile, CustomerWorkspaceDashboardContext context)
     {
         return new CustomerProfileDto
         {

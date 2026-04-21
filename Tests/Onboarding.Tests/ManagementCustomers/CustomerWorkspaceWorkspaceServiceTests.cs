@@ -8,13 +8,13 @@ using Xunit;
 
 namespace Onboarding.Tests.ManagementCustomers;
 
-public class ManagementCustomersServiceTests
+public class CustomerWorkspaceWorkspaceServiceTests
 {
     [Fact]
     public async Task AuthorizeAsync_ReturnsCompanyNotFound_WhenSlugDoesNotExist()
     {
         await using var dbContext = CreateDbContext();
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
 
         var result = await sut.AuthorizeAsync(Guid.NewGuid(), "missing-company");
 
@@ -36,7 +36,7 @@ public class ManagementCustomersServiceTests
         dbContext.ManagementCompanyUsers.Add(CreateMembership(company.Id, appUser.Id, residentRole.Id));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var result = await sut.AuthorizeAsync(appUser.Id, company.Slug);
 
         Assert.True(result.IsForbidden);
@@ -61,7 +61,7 @@ public class ManagementCustomersServiceTests
             CreateCustomer(companyB.Id, "Acme B", "CUST-B", "acme-b"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var auth = await sut.AuthorizeAsync(appUser.Id, companyA.Slug);
 
         var result = await sut.ListAsync(auth.Context!);
@@ -85,10 +85,10 @@ public class ManagementCustomersServiceTests
         dbContext.ManagementCompanyUsers.Add(CreateMembership(companyA.Id, appUser.Id, role.Id));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var auth = await sut.AuthorizeAsync(appUser.Id, companyA.Slug);
 
-        var createResult = await sut.CreateAsync(auth.Context!, new ManagementCustomerCreateRequest
+        var createResult = await sut.CreateAsync(auth.Context!, new CustomerCreateRequest
         {
             Name = "Tenant A Customer",
             RegistryCode = "CUST-A-100",
@@ -119,10 +119,10 @@ public class ManagementCustomersServiceTests
         dbContext.Customers.Add(CreateCustomer(company.Id, "Acme", "DUP-REG", "acme"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var auth = await sut.AuthorizeAsync(appUser.Id, company.Slug);
 
-        var result = await sut.CreateAsync(auth.Context!, new ManagementCustomerCreateRequest
+        var result = await sut.CreateAsync(auth.Context!, new CustomerCreateRequest
         {
             Name = "Another Acme",
             RegistryCode = "dup-reg"
@@ -148,10 +148,10 @@ public class ManagementCustomersServiceTests
         dbContext.Customers.Add(CreateCustomer(companyB.Id, "South Existing", "SAME-REG", "south-existing"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var auth = await sut.AuthorizeAsync(appUser.Id, companyA.Slug);
 
-        var result = await sut.CreateAsync(auth.Context!, new ManagementCustomerCreateRequest
+        var result = await sut.CreateAsync(auth.Context!, new CustomerCreateRequest
         {
             Name = "North New",
             RegistryCode = "SAME-REG"
@@ -176,10 +176,10 @@ public class ManagementCustomersServiceTests
         dbContext.Customers.Add(CreateCustomer(company.Id, "Ari Klient", "REG-1", "ari-klient"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var auth = await sut.AuthorizeAsync(appUser.Id, company.Slug);
 
-        var result = await sut.CreateAsync(auth.Context!, new ManagementCustomerCreateRequest
+        var result = await sut.CreateAsync(auth.Context!, new CustomerCreateRequest
         {
             Name = "Äri Klient",
             RegistryCode = "REG-2"
@@ -206,7 +206,7 @@ public class ManagementCustomersServiceTests
         dbContext.Customers.Add(CreateCustomer(companyB.Id, "South Customer", "S-1", "south-customer"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
 
         var result = await sut.AuthorizeCustomerContextAsync(appUser.Id, companyA.Slug, "south-customer");
 
@@ -237,7 +237,7 @@ public class ManagementCustomersServiceTests
             CreateProperty(customerB.Id, propertyType.Id, "Beta House", "beta-house"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var access = await sut.AuthorizeCustomerContextAsync(appUser.Id, company.Slug, customerA.Slug);
 
         var result = await sut.ListPropertiesAsync(access.Context!);
@@ -265,10 +265,10 @@ public class ManagementCustomersServiceTests
         dbContext.PropertyTypes.Add(propertyType);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var access = await sut.AuthorizeCustomerContextAsync(appUser.Id, company.Slug, customerA.Slug);
 
-        var createResult = await sut.CreatePropertyAsync(access.Context!, new ManagementCustomerPropertyCreateRequest
+        var createResult = await sut.CreatePropertyAsync(access.Context!, new PropertyCreateRequest
         {
             Name = "Alpha House",
             AddressLine = "Main 1",
@@ -307,10 +307,10 @@ public class ManagementCustomersServiceTests
             CreateProperty(customerB.Id, propertyType.Id, "Äri Hoone", "ari-hoone"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var access = await sut.AuthorizeCustomerContextAsync(appUser.Id, company.Slug, customerA.Slug);
 
-        var createResult = await sut.CreatePropertyAsync(access.Context!, new ManagementCustomerPropertyCreateRequest
+        var createResult = await sut.CreatePropertyAsync(access.Context!, new PropertyCreateRequest
         {
             Name = "Ari Hoone",
             AddressLine = "Main 2",
@@ -344,7 +344,7 @@ public class ManagementCustomersServiceTests
         dbContext.Properties.Add(CreateProperty(customerB.Id, propertyType.Id, "Beta House", "beta-house"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var access = await sut.AuthorizeCustomerContextAsync(appUser.Id, company.Slug, customerA.Slug);
 
         var result = await sut.ResolvePropertyDashboardContextAsync(access.Context!, "beta-house");
@@ -372,7 +372,7 @@ public class ManagementCustomersServiceTests
         dbContext.Properties.Add(CreateProperty(customer.Id, propertyType.Id, "Alpha House", "alpha-house"));
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCustomersService(dbContext);
+        var sut = new CustomerWorkspaceWorkspaceService(dbContext);
         var access = await sut.AuthorizeCustomerContextAsync(appUser.Id, company.Slug, customer.Slug);
 
         var result = await sut.ResolvePropertyDashboardContextAsync(access.Context!, "alpha-house");

@@ -22,23 +22,23 @@ public class UnitTenantsController : Controller
     private const string SuccessTempDataKey = "UnitTenantsSuccess";
     private const string ErrorTempDataKey = "UnitTenantsError";
 
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IManagementUnitDashboardService _managementUnitDashboardService;
     private readonly IManagementLeaseService _managementLeaseService;
     private readonly IManagementLeaseSearchService _managementLeaseSearchService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public UnitTenantsController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService,
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService,
         IManagementUnitDashboardService managementUnitDashboardService,
         IManagementLeaseService managementLeaseService,
         IManagementLeaseSearchService managementLeaseSearchService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
         _managementUnitDashboardService = managementUnitDashboardService;
         _managementLeaseService = managementLeaseService;
         _managementLeaseSearchService = managementLeaseSearchService;
@@ -250,7 +250,7 @@ public class UnitTenantsController : Controller
             return (Challenge(), null);
         }
 
-        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -266,7 +266,7 @@ public class UnitTenantsController : Controller
             return (Forbid(), null);
         }
 
-        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
+        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
             customerAccess.Context,
             propertySlug,
             cancellationToken);

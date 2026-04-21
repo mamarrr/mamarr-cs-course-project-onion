@@ -14,18 +14,18 @@ namespace WebApp.Areas.Customer.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}")]
 public class CustomerDashboardController : Controller
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
+    private readonly ICustomerAccessService _customerAccessService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
     private readonly ILogger<CustomerDashboardController> _logger;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
     public CustomerDashboardController(
-        IManagementCustomerAccessService managementCustomerAccessService,
+        ICustomerAccessService customerAccessService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider,
         ILogger<CustomerDashboardController> logger,
         IWebHostEnvironment webHostEnvironment)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
+        _customerAccessService = customerAccessService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
         _logger = logger;
         _webHostEnvironment = webHostEnvironment;
@@ -70,7 +70,7 @@ public class CustomerDashboardController : Controller
             return Challenge();
         }
 
-        var access = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var access = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,

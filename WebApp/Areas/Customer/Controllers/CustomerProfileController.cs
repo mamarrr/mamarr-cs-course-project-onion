@@ -18,16 +18,16 @@ namespace WebApp.Areas.Customer.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/profile")]
 public class CustomerProfileController : Controller
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
+    private readonly ICustomerAccessService _customerAccessService;
     private readonly IManagementCustomerProfileService _managementCustomerProfileService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public CustomerProfileController(
-        IManagementCustomerAccessService managementCustomerAccessService,
+        ICustomerAccessService customerAccessService,
         IManagementCustomerProfileService managementCustomerProfileService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
+        _customerAccessService = customerAccessService;
         _managementCustomerProfileService = managementCustomerProfileService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
@@ -160,7 +160,7 @@ public class CustomerProfileController : Controller
     }
 
     private async Task<CustomerProfilePageViewModel> BuildViewModelAsync(
-        ManagementCustomerDashboardContext context,
+        CustomerWorkspaceDashboardContext context,
         CustomerProfileModel profile,
         CustomerProfileEditViewModel? edit,
         CancellationToken cancellationToken)
@@ -188,7 +188,7 @@ public class CustomerProfileController : Controller
     }
 
     private async Task<CustomerPageShellViewModel> BuildPageShellAsync(
-        ManagementCustomerDashboardContext context,
+        CustomerWorkspaceDashboardContext context,
         CancellationToken cancellationToken)
     {
         var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
@@ -218,7 +218,7 @@ public class CustomerProfileController : Controller
         };
     }
 
-    private async Task<(IActionResult? response, ManagementCustomerDashboardContext? context)> ResolveAccessAsync(
+    private async Task<(IActionResult? response, CustomerWorkspaceDashboardContext? context)> ResolveAccessAsync(
         string companySlug,
         string customerSlug,
         CancellationToken cancellationToken)
@@ -229,7 +229,7 @@ public class CustomerProfileController : Controller
             return (Challenge(), null);
         }
 
-        var access = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var access = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,

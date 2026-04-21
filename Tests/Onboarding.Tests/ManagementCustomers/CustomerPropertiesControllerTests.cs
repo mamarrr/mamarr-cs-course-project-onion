@@ -24,7 +24,7 @@ public class CustomerPropertiesControllerTests
     [Fact]
     public async Task Index_ReturnsChallenge_WhenUserIdClaimMissing()
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         var controller = CreateController(serviceMock.Object, BuildPrincipal(withNameIdentifier: false));
 
         var result = await controller.Index("north-estate", "acme", CancellationToken.None);
@@ -35,10 +35,10 @@ public class CustomerPropertiesControllerTests
     [Fact]
     public async Task Index_ReturnsNotFound_WhenCustomerScopeMissing()
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult
             {
                 CompanyNotFound = true
             });
@@ -53,10 +53,10 @@ public class CustomerPropertiesControllerTests
     [Fact]
     public async Task Index_ReturnsForbid_WhenForbidden()
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult
             {
                 IsForbidden = true
             });
@@ -75,7 +75,7 @@ public class CustomerPropertiesControllerTests
         var serviceMock = BuildAuthorizedService(context);
         serviceMock
             .Setup(x => x.ListPropertiesAsync(context, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerPropertyListResult());
+            .ReturnsAsync(new CustomerPropertyListResult());
 
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
         controller.ModelState.AddModelError("AddProperty.Name", "required");
@@ -101,9 +101,9 @@ public class CustomerPropertiesControllerTests
         serviceMock
             .Setup(x => x.CreatePropertyAsync(
                 context,
-                It.IsAny<ManagementCustomerPropertyCreateRequest>(),
+                It.IsAny<PropertyCreateRequest>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerPropertyCreateResult
+            .ReturnsAsync(new PropertyCreateResult
             {
                 Success = true,
                 CreatedPropertyId = Guid.NewGuid(),
@@ -133,12 +133,12 @@ public class CustomerPropertiesControllerTests
         Assert.False(string.IsNullOrWhiteSpace(controller.TempData["CustomerPropertiesSuccess"]?.ToString()));
     }
 
-    private static Mock<IManagementCustomersService> BuildAuthorizedService(ManagementCustomerDashboardContext context)
+    private static Mock<ICustomerWorkspaceService> BuildAuthorizedService(CustomerWorkspaceDashboardContext context)
     {
-        var serviceMock = new Mock<IManagementCustomersService>();
+        var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult
             {
                 IsAuthorized = true,
                 Context = context
@@ -146,9 +146,9 @@ public class CustomerPropertiesControllerTests
         return serviceMock;
     }
 
-    private static ManagementCustomerDashboardContext BuildDashboardContext()
+    private static CustomerWorkspaceDashboardContext BuildDashboardContext()
     {
-        return new ManagementCustomerDashboardContext
+        return new CustomerWorkspaceDashboardContext
         {
             AppUserId = Guid.NewGuid(),
             ManagementCompanyId = Guid.NewGuid(),
@@ -160,22 +160,22 @@ public class CustomerPropertiesControllerTests
         };
     }
 
-    private static CustomerPropertiesController CreateController(IManagementCustomersService service, ClaimsPrincipal user)
+    private static CustomerPropertiesController CreateController(ICustomerWorkspaceService service, ClaimsPrincipal user)
     {
-        var accessService = new Mock<IManagementCustomerAccessService>();
+        var accessService = new Mock<ICustomerAccessService>();
         accessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Guid _, string companySlug, string customerSlug, CancellationToken _) =>
                 service.ResolveDashboardAccessAsync(Guid.Empty, companySlug, customerSlug, CancellationToken.None).GetAwaiter().GetResult());
 
-        var propertyService = new Mock<IManagementCustomerPropertyService>();
+        var propertyService = new Mock<IPropertyWorkspaceService>();
         propertyService
-            .Setup(x => x.ListPropertiesAsync(It.IsAny<ManagementCustomerDashboardContext>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ManagementCustomerDashboardContext context, CancellationToken _) =>
+            .Setup(x => x.ListPropertiesAsync(It.IsAny<CustomerWorkspaceDashboardContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CustomerWorkspaceDashboardContext context, CancellationToken _) =>
                 service.ListPropertiesAsync(context, CancellationToken.None).GetAwaiter().GetResult());
         propertyService
-            .Setup(x => x.CreatePropertyAsync(It.IsAny<ManagementCustomerDashboardContext>(), It.IsAny<ManagementCustomerPropertyCreateRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ManagementCustomerDashboardContext context, ManagementCustomerPropertyCreateRequest request, CancellationToken _) =>
+            .Setup(x => x.CreatePropertyAsync(It.IsAny<CustomerWorkspaceDashboardContext>(), It.IsAny<PropertyCreateRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CustomerWorkspaceDashboardContext context, PropertyCreateRequest request, CancellationToken _) =>
                 service.CreatePropertyAsync(context, request, CancellationToken.None).GetAwaiter().GetResult());
 
         var controller = new CustomerPropertiesController(

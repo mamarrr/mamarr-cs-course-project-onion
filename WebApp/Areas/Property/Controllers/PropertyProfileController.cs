@@ -19,19 +19,19 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/profile")]
 public class PropertyProfileController : Controller
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IManagementPropertyProfileService _managementPropertyProfileService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public PropertyProfileController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService,
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService,
         IManagementPropertyProfileService managementPropertyProfileService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
         _managementPropertyProfileService = managementPropertyProfileService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
@@ -170,7 +170,7 @@ public class PropertyProfileController : Controller
     }
 
     private async Task<PropertyProfilePageViewModel> BuildViewModelAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         PropertyProfileModel profile,
         PropertyProfileEditViewModel? edit,
         CancellationToken cancellationToken)
@@ -200,7 +200,7 @@ public class PropertyProfileController : Controller
     }
 
     private async Task<PropertyPageShellViewModel> BuildPageShellAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         CancellationToken cancellationToken)
     {
         var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
@@ -232,7 +232,7 @@ public class PropertyProfileController : Controller
         };
     }
 
-    private async Task<(IActionResult? response, ManagementCustomerPropertyDashboardContext? context)> ResolveAccessAsync(
+    private async Task<(IActionResult? response, PropertyDashboardContext? context)> ResolveAccessAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -244,7 +244,7 @@ public class PropertyProfileController : Controller
             return (Challenge(), null);
         }
 
-        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -260,7 +260,7 @@ public class PropertyProfileController : Controller
             return (Forbid(), null);
         }
 
-        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
+        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
             customerAccess.Context,
             propertySlug,
             cancellationToken);

@@ -21,17 +21,17 @@ namespace WebApp.ApiControllers.Property;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/profile")]
 public class PropertyProfileController : ProfileApiControllerBase
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IManagementPropertyProfileService _managementPropertyProfileService;
 
     public PropertyProfileController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService,
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService,
         IManagementPropertyProfileService managementPropertyProfileService)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
         _managementPropertyProfileService = managementPropertyProfileService;
     }
 
@@ -190,7 +190,7 @@ public class PropertyProfileController : ProfileApiControllerBase
         return NoContent();
     }
 
-    private async Task<(ManagementCustomerPropertyDashboardContext? Context, ActionResult? ErrorResult)> ResolvePropertyContextAsync(
+    private async Task<(PropertyDashboardContext? Context, ActionResult? ErrorResult)> ResolvePropertyContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -202,7 +202,7 @@ public class PropertyProfileController : ProfileApiControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -218,7 +218,7 @@ public class PropertyProfileController : ProfileApiControllerBase
             return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
         }
 
-        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
+        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
             customerAccess.Context,
             propertySlug,
             cancellationToken);
@@ -236,7 +236,7 @@ public class PropertyProfileController : ProfileApiControllerBase
         return (propertyAccess.Context, null);
     }
 
-    private static PropertyProfileDto MapProfile(PropertyProfileModel profile, ManagementCustomerPropertyDashboardContext context)
+    private static PropertyProfileDto MapProfile(PropertyProfileModel profile, PropertyDashboardContext context)
     {
         return new PropertyProfileDto
         {

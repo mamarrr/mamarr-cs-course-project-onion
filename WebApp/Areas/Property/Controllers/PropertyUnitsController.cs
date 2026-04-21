@@ -19,19 +19,19 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/units")]
 public class PropertyUnitsController : Controller
 {
-    private readonly IManagementCustomerAccessService _managementCustomerAccessService;
-    private readonly IManagementCustomerPropertyService _managementCustomerPropertyService;
+    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IManagementPropertyUnitService _managementPropertyUnitService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public PropertyUnitsController(
-        IManagementCustomerAccessService managementCustomerAccessService,
-        IManagementCustomerPropertyService managementCustomerPropertyService,
+        ICustomerAccessService customerAccessService,
+        IPropertyWorkspaceService propertyWorkspaceService,
         IManagementPropertyUnitService managementPropertyUnitService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
-        _managementCustomerAccessService = managementCustomerAccessService;
-        _managementCustomerPropertyService = managementCustomerPropertyService;
+        _customerAccessService = customerAccessService;
+        _propertyWorkspaceService = propertyWorkspaceService;
         _managementPropertyUnitService = managementPropertyUnitService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
@@ -120,7 +120,7 @@ public class PropertyUnitsController : Controller
         return RedirectToAction(nameof(Units), new { companySlug, customerSlug, propertySlug });
     }
 
-    private async Task<(IActionResult? response, ManagementCustomerPropertyDashboardContext? context)> ResolvePropertyContextAsync(
+    private async Task<(IActionResult? response, PropertyDashboardContext? context)> ResolvePropertyContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -132,7 +132,7 @@ public class PropertyUnitsController : Controller
             return (Challenge(), null);
         }
 
-        var customerAccess = await _managementCustomerAccessService.ResolveDashboardAccessAsync(
+        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             customerSlug,
@@ -148,7 +148,7 @@ public class PropertyUnitsController : Controller
             return (Forbid(), null);
         }
 
-        var propertyAccess = await _managementCustomerPropertyService.ResolvePropertyDashboardContextAsync(
+        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
             customerAccess.Context,
             propertySlug,
             cancellationToken);
@@ -167,7 +167,7 @@ public class PropertyUnitsController : Controller
     }
 
     private async Task<PropertyUnitsPageViewModel> BuildUnitsPageViewModelAsync(
-        ManagementCustomerPropertyDashboardContext context,
+        PropertyDashboardContext context,
         CancellationToken cancellationToken,
         AddUnitViewModel? addUnitOverride = null)
     {

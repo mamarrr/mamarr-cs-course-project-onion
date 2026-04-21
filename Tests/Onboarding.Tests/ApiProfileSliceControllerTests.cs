@@ -42,10 +42,10 @@ public class ApiProfileSliceControllerTests
     [Fact]
     public async Task CustomerProfile_Get_ReturnsNotFound_WhenCustomerContextMissing()
     {
-        var accessService = new Mock<IManagementCustomerAccessService>();
+        var accessService = new Mock<ICustomerAccessService>();
         accessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "missing", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult { CustomerNotFound = true });
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { CustomerNotFound = true });
 
         var controller = CreateCustomerProfileController(BuildPrincipal(), accessService: accessService);
 
@@ -84,7 +84,7 @@ public class ApiProfileSliceControllerTests
 
         var badRequest = Assert.IsType<BadRequestObjectResult>(result);
         Assert.Equal(StatusCodes.Status400BadRequest, badRequest.StatusCode);
-        profileService.Verify(x => x.DeleteProfileAsync(It.IsAny<ManagementCustomerDashboardContext>(), It.IsAny<CancellationToken>()), Times.Never);
+        profileService.Verify(x => x.DeleteProfileAsync(It.IsAny<CustomerWorkspaceDashboardContext>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -309,15 +309,15 @@ public class ApiProfileSliceControllerTests
 
     private static CustomerProfileController CreateCustomerProfileController(
         ClaimsPrincipal user,
-        Mock<IManagementCustomerAccessService>? accessService = null,
-        ManagementCustomerDashboardContext? accessContext = null,
+        Mock<ICustomerAccessService>? accessService = null,
+        CustomerWorkspaceDashboardContext? accessContext = null,
         Mock<IManagementCustomerProfileService>? profileService = null)
     {
         accessContext ??= BuildCustomerContext();
-        accessService ??= new Mock<IManagementCustomerAccessService>();
+        accessService ??= new Mock<ICustomerAccessService>();
         accessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), accessContext.CompanySlug, accessContext.CustomerSlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult { IsAuthorized = true, Context = accessContext });
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { IsAuthorized = true, Context = accessContext });
 
         profileService ??= new Mock<IManagementCustomerProfileService>();
 
@@ -326,23 +326,23 @@ public class ApiProfileSliceControllerTests
 
     private static PropertyProfileController CreatePropertyProfileController(
         ClaimsPrincipal user,
-        ManagementCustomerDashboardContext? customerContext = null,
-        ManagementCustomerPropertyDashboardContext? propertyContext = null,
-        Mock<IManagementCustomerAccessService>? customerAccessService = null,
-        Mock<IManagementCustomerPropertyService>? propertyAccessService = null,
+        CustomerWorkspaceDashboardContext? customerContext = null,
+        PropertyDashboardContext? propertyContext = null,
+        Mock<ICustomerAccessService>? customerAccessService = null,
+        Mock<IPropertyWorkspaceService>? propertyAccessService = null,
         Mock<IManagementPropertyProfileService>? profileService = null)
     {
         customerContext ??= BuildCustomerContext();
         propertyContext ??= BuildPropertyContext(customerContext);
-        customerAccessService ??= new Mock<IManagementCustomerAccessService>();
+        customerAccessService ??= new Mock<ICustomerAccessService>();
         customerAccessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), customerContext.CompanySlug, customerContext.CustomerSlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult { IsAuthorized = true, Context = customerContext });
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { IsAuthorized = true, Context = customerContext });
 
-        propertyAccessService ??= new Mock<IManagementCustomerPropertyService>();
+        propertyAccessService ??= new Mock<IPropertyWorkspaceService>();
         propertyAccessService
             .Setup(x => x.ResolvePropertyDashboardContextAsync(customerContext, propertyContext.PropertySlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerPropertyDashboardAccessResult { IsAuthorized = true, Context = propertyContext });
+            .ReturnsAsync(new PropertyDashboardAccessResult { IsAuthorized = true, Context = propertyContext });
 
         profileService ??= new Mock<IManagementPropertyProfileService>();
 
@@ -351,23 +351,23 @@ public class ApiProfileSliceControllerTests
 
     private static UnitDashboardController CreateUnitDashboardController(
         ClaimsPrincipal user,
-        ManagementCustomerDashboardContext? customerContext = null,
-        ManagementCustomerPropertyDashboardContext? propertyContext = null,
-        Mock<IManagementCustomerAccessService>? customerAccessService = null,
-        Mock<IManagementCustomerPropertyService>? propertyAccessService = null,
+        CustomerWorkspaceDashboardContext? customerContext = null,
+        PropertyDashboardContext? propertyContext = null,
+        Mock<ICustomerAccessService>? customerAccessService = null,
+        Mock<IPropertyWorkspaceService>? propertyAccessService = null,
         Mock<IManagementUnitDashboardService>? unitDashboardService = null)
     {
         customerContext ??= BuildCustomerContext();
         propertyContext ??= BuildPropertyContext(customerContext);
-        customerAccessService ??= new Mock<IManagementCustomerAccessService>();
+        customerAccessService ??= new Mock<ICustomerAccessService>();
         customerAccessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), customerContext.CompanySlug, customerContext.CustomerSlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult { IsAuthorized = true, Context = customerContext });
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { IsAuthorized = true, Context = customerContext });
 
-        propertyAccessService ??= new Mock<IManagementCustomerPropertyService>();
+        propertyAccessService ??= new Mock<IPropertyWorkspaceService>();
         propertyAccessService
             .Setup(x => x.ResolvePropertyDashboardContextAsync(customerContext, propertyContext.PropertySlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerPropertyDashboardAccessResult { IsAuthorized = true, Context = propertyContext });
+            .ReturnsAsync(new PropertyDashboardAccessResult { IsAuthorized = true, Context = propertyContext });
 
         unitDashboardService ??= new Mock<IManagementUnitDashboardService>();
 
@@ -376,26 +376,26 @@ public class ApiProfileSliceControllerTests
 
     private static UnitProfileController CreateUnitProfileController(
         ClaimsPrincipal user,
-        ManagementCustomerDashboardContext? customerContext = null,
-        ManagementCustomerPropertyDashboardContext? propertyContext = null,
+        CustomerWorkspaceDashboardContext? customerContext = null,
+        PropertyDashboardContext? propertyContext = null,
         ManagementUnitDashboardContext? unitContext = null,
-        Mock<IManagementCustomerAccessService>? customerAccessService = null,
-        Mock<IManagementCustomerPropertyService>? propertyAccessService = null,
+        Mock<ICustomerAccessService>? customerAccessService = null,
+        Mock<IPropertyWorkspaceService>? propertyAccessService = null,
         Mock<IManagementUnitDashboardService>? unitDashboardService = null,
         Mock<IManagementUnitProfileService>? profileService = null)
     {
         unitContext ??= BuildUnitContext();
         customerContext ??= BuildCustomerContext(unitContext);
         propertyContext ??= BuildPropertyContext(customerContext, unitContext);
-        customerAccessService ??= new Mock<IManagementCustomerAccessService>();
+        customerAccessService ??= new Mock<ICustomerAccessService>();
         customerAccessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), customerContext.CompanySlug, customerContext.CustomerSlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerDashboardAccessResult { IsAuthorized = true, Context = customerContext });
+            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { IsAuthorized = true, Context = customerContext });
 
-        propertyAccessService ??= new Mock<IManagementCustomerPropertyService>();
+        propertyAccessService ??= new Mock<IPropertyWorkspaceService>();
         propertyAccessService
             .Setup(x => x.ResolvePropertyDashboardContextAsync(customerContext, propertyContext.PropertySlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementCustomerPropertyDashboardAccessResult { IsAuthorized = true, Context = propertyContext });
+            .ReturnsAsync(new PropertyDashboardAccessResult { IsAuthorized = true, Context = propertyContext });
 
         unitDashboardService ??= new Mock<IManagementUnitDashboardService>();
         unitDashboardService
@@ -466,9 +466,9 @@ public class ApiProfileSliceControllerTests
         return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthType"));
     }
 
-    private static ManagementCustomerDashboardContext BuildCustomerContext(ManagementUnitDashboardContext? unitContext = null)
+    private static CustomerWorkspaceDashboardContext BuildCustomerContext(ManagementUnitDashboardContext? unitContext = null)
     {
-        return new ManagementCustomerDashboardContext
+        return new CustomerWorkspaceDashboardContext
         {
             AppUserId = unitContext?.AppUserId ?? Guid.NewGuid(),
             ManagementCompanyId = unitContext?.ManagementCompanyId ?? Guid.NewGuid(),
@@ -480,12 +480,12 @@ public class ApiProfileSliceControllerTests
         };
     }
 
-    private static ManagementCustomerPropertyDashboardContext BuildPropertyContext(
-        ManagementCustomerDashboardContext? customerContext = null,
+    private static PropertyDashboardContext BuildPropertyContext(
+        CustomerWorkspaceDashboardContext? customerContext = null,
         ManagementUnitDashboardContext? unitContext = null)
     {
         customerContext ??= BuildCustomerContext(unitContext);
-        return new ManagementCustomerPropertyDashboardContext
+        return new PropertyDashboardContext
         {
             AppUserId = customerContext.AppUserId,
             ManagementCompanyId = customerContext.ManagementCompanyId,
