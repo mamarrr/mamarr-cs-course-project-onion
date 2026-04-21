@@ -12,11 +12,11 @@ namespace WebApp.Areas.Management.Controllers;
 [Area("Management")]
 [Authorize]
 [Route("m/{companySlug}/profile")]
-public class ManagementProfileController : ManagementPageShellController
+public class ProfileController : ManagementPageShellController
 {
     private readonly IManagementCompanyProfileService _managementCompanyProfileService;
 
-    public ManagementProfileController(
+    public ProfileController(
         IManagementCompanyProfileService managementCompanyProfileService,
         IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
         : base(managementLayoutViewModelProvider)

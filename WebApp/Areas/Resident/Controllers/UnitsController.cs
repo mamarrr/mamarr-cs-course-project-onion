@@ -55,7 +55,7 @@ public class UnitsController : Controller
             cancellationToken,
             addOverride: query?.AddLease,
             requestedEditLeaseId: query?.ActiveEditLeaseId);
-        return View("~/Areas/Resident/Views/ResidentUnits/Index.cshtml", vm);
+        return View("~/Areas/Resident/Views/Units/Index.cshtml", vm);
     }
 
     [HttpGet("property-search")]
@@ -136,7 +136,7 @@ public class UnitsController : Controller
         if (!TryValidateModel(vm.AddLease, nameof(UnitsPageViewModel.AddLease)))
         {
             var invalidVm = await BuildPageViewModelAsync(access.context!, cancellationToken, addOverride: vm.AddLease);
-            return View("~/Areas/Resident/Views/ResidentUnits/Index.cshtml", invalidVm);
+            return View("~/Areas/Resident/Views/Units/Index.cshtml", invalidVm);
         }
 
         var result = await _leaseAssignmentService.CreateFromResidentAsync(
@@ -157,7 +157,7 @@ public class UnitsController : Controller
         {
             ApplyCreateErrors(result, ModelState);
             var invalidVm = await BuildPageViewModelAsync(access.context!, cancellationToken, addOverride: vm.AddLease);
-            return View("~/Areas/Resident/Views/ResidentUnits/Index.cshtml", invalidVm);
+            return View("~/Areas/Resident/Views/Units/Index.cshtml", invalidVm);
         }
 
         TempData[SuccessTempDataKey] = UiText.LeaseAddedSuccessfully;
@@ -193,7 +193,7 @@ public class UnitsController : Controller
         {
             var invalidVm = await BuildPageViewModelAsync(access.context!, cancellationToken, editOverride: editVm);
             invalidVm.ActiveEditLeaseId = leaseId;
-            return View("~/Areas/Resident/Views/ResidentUnits/Index.cshtml", invalidVm);
+            return View("~/Areas/Resident/Views/Units/Index.cshtml", invalidVm);
         }
 
         var result = await _leaseAssignmentService.UpdateFromResidentAsync(
@@ -214,7 +214,7 @@ public class UnitsController : Controller
             ApplyEditErrors(result, ModelState);
             var invalidVm = await BuildPageViewModelAsync(access.context!, cancellationToken, editOverride: editVm);
             invalidVm.ActiveEditLeaseId = leaseId;
-            return View("~/Areas/Resident/Views/ResidentUnits/Index.cshtml", invalidVm);
+            return View("~/Areas/Resident/Views/Units/Index.cshtml", invalidVm);
         }
 
         TempData[SuccessTempDataKey] = UiText.LeaseUpdatedSuccessfully;

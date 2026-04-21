@@ -85,7 +85,7 @@
             <div class="management-company-name">@layoutVm.ManagementCompanyName</div>
             <nav>
                 <a class="management-sidebar-link @(layoutVm.CurrentController == "Dashboard" ? "active" : "")" asp-route="management_dashboard" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Dashboard</a>
-                <a class="management-sidebar-link @(layoutVm.CurrentController == "ManagementProfile" ? "active" : "")" asp-area="Management" asp-controller="ManagementProfile" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Profile</a>
+                <a class="management-sidebar-link @(layoutVm.CurrentController == "ManagementProfile" ? "active" : "")" asp-area="Management" asp-controller="Profile" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Profile</a>
                 <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Tickets</span>
                 <span class="management-sidebar-link disabled">@App.Resources.Views.UiText.Properties</span>
                 <a class="management-sidebar-link @(layoutVm.CurrentController == "Customers" ? "active" : "")" asp-area="Management" asp-controller="Customers" asp-action="Index" asp-route-companySlug="@layoutVm.CompanySlug">@App.Resources.Views.UiText.Customers</a>
