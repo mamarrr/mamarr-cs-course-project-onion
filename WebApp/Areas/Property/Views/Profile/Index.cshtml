@@ -1,0 +1,82 @@
+@model WebApp.ViewModels.Property.ProfilePageViewModel
+@{
+    Layout = "~/Areas/Property/Views/Shared/_PropertyLayout.cshtml";
+    ViewData["Title"] = App.Resources.Views.UiText.Profile;
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
+{
+    <div class="alert alert-success" role="alert">@Model.SuccessMessage</div>
+}
+
+<div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <p class="management-eyebrow mb-2">@App.Resources.Views.UiText.Profile</p>
+        <h2 class="mb-1">@Model.PropertyName</h2>
+        <p class="management-muted mb-0">@App.Resources.Views.UiText.PropertyProfileDescription</p>
+    </section>
+
+    <section class="management-card">
+        <h3>@App.Resources.Views.UiText.Edit</h3>
+        <form method="post" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-customerSlug="@Model.CustomerSlug" asp-route-propertySlug="@Model.PropertySlug">
+            @Html.AntiForgeryToken()
+            <div class="mb-3">
+                <label asp-for="Edit.Name" class="form-label"></label>
+                <input asp-for="Edit.Name" class="form-control" />
+                <span asp-validation-for="Edit.Name" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Edit.AddressLine" class="form-label"></label>
+                <input asp-for="Edit.AddressLine" class="form-control" />
+                <span asp-validation-for="Edit.AddressLine" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Edit.City" class="form-label"></label>
+                <input asp-for="Edit.City" class="form-control" />
+                <span asp-validation-for="Edit.City" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Edit.PostalCode" class="form-label"></label>
+                <input asp-for="Edit.PostalCode" class="form-control" />
+                <span asp-validation-for="Edit.PostalCode" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Edit.Notes" class="form-label"></label>
+                <textarea asp-for="Edit.Notes" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Edit.Notes" class="text-danger"></span>
+            </div>
+            <div class="form-check mb-3">
+                <input asp-for="Edit.IsActive" class="form-check-input" />
+                <label asp-for="Edit.IsActive" class="form-check-label"></label>
+            </div>
+            <button type="submit" class="management-btn">@App.Resources.Views.UiText.SaveChanges</button>
+        </form>
+    </section>
+
+    <section class="management-card border border-danger-subtle">
+        <h3 class="text-danger">@App.Resources.Views.UiText.DangerZone</h3>
+        <p>@App.Resources.Views.UiText.ProfileDeleteWarning</p>
+        <p class="management-muted">@string.Format(App.Resources.Views.UiText.TypeValueToConfirmDelete, Model.PropertyName)</p>
+        <form method="post" asp-action="Delete" asp-route-companySlug="@Model.CompanySlug" asp-route-customerSlug="@Model.CustomerSlug" asp-route-propertySlug="@Model.PropertySlug">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Edit.Name" />
+            <input type="hidden" asp-for="Edit.AddressLine" />
+            <input type="hidden" asp-for="Edit.City" />
+            <input type="hidden" asp-for="Edit.PostalCode" />
+            <input type="hidden" asp-for="Edit.Notes" />
+            <input type="hidden" asp-for="Edit.IsActive" />
+            <div class="mb-3">
+                <label asp-for="Edit.DeleteConfirmation" class="form-label"></label>
+                <input asp-for="Edit.DeleteConfirmation" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Edit.DeleteConfirmation" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-danger">@App.Resources.Views.UiText.Delete</button>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

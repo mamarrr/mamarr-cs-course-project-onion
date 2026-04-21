@@ -1,4 +1,4 @@
-@model WebApp.ViewModels.Customer.CustomerProperties.CustomerPropertiesPageViewModel
+@model WebApp.ViewModels.Customer.CustomerProperties.PropertiesPageViewModel
 @{
     Layout = "~/Areas/Customer/Views/Shared/_CustomerLayout.cshtml";
 }
@@ -36,7 +36,7 @@
                         <tr>
                             <td>
                                 <a asp-area="Property"
-                                   asp-controller="PropertyDashboard"
+                                   asp-controller="Dashboard"
                                    asp-action="Index"
                                    asp-route-companySlug="@Model.CompanySlug"
                                    asp-route-customerSlug="@Model.CustomerSlug"

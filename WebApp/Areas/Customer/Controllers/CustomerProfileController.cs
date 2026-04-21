@@ -159,7 +159,7 @@ public class CustomerProfileController : Controller
         return RedirectToAction("Index", "Dashboard", new { area = "Management", companySlug });
     }
 
-    private async Task<CustomerProfilePageViewModel> BuildViewModelAsync(
+    private async Task<ProfilePageViewModel> BuildViewModelAsync(
         CustomerWorkspaceDashboardContext context,
         CustomerProfileModel profile,
         CustomerProfileEditViewModel? edit,
@@ -167,7 +167,7 @@ public class CustomerProfileController : Controller
     {
         var pageShell = await BuildPageShellAsync(context, cancellationToken);
 
-        return new CustomerProfilePageViewModel
+        return new ProfilePageViewModel
         {
             PageShell = pageShell,
             CompanySlug = context.CompanySlug,

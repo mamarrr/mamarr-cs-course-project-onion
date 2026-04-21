@@ -1,8 +1,7 @@
 using WebApp.ViewModels.Customer.CustomerDashboard;
 using WebApp.ViewModels.Management.Layout;
-using WebApp.ViewModels.Management.CustomerProperties;
-using WebApp.ViewModels.Resident;
-using WebApp.ViewModels.Unit;
+using LayoutViewModel = WebApp.ViewModels.Unit.LayoutViewModel;
+using WebApp.ViewModels.Property;
 
 namespace WebApp.ViewModels.Shared.Layout;
 
@@ -50,10 +49,10 @@ public class PropertyPageShellViewModel : WorkspacePageShellViewModel
 
 public class ResidentPageShellViewModel : WorkspacePageShellViewModel
 {
-    public ResidentLayoutViewModel Resident { get; init; } = new();
+    public Resident.LayoutViewModel Resident { get; init; } = new();
 }
 
 public class UnitPageShellViewModel : WorkspacePageShellViewModel
 {
-    public UnitLayoutViewModel Unit { get; init; } = new();
+    public LayoutViewModel Unit { get; init; } = new();
 }

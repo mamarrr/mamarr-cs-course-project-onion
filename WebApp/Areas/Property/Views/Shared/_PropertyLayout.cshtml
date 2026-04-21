@@ -38,7 +38,7 @@
             <div class="text-muted">
                 <a class="text-decoration-none"
                    asp-area="Property"
-                   asp-controller="PropertyDashboard"
+                   asp-controller="Dashboard"
                    asp-action="Index"
                    asp-route-companySlug="@propertyLayoutVm.CompanySlug"
                    asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
@@ -112,7 +112,7 @@
             <nav>
                 <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Dashboard" ? "active" : "")"
                    asp-area="Property"
-                   asp-controller="PropertyDashboard"
+                   asp-controller="Dashboard"
                    asp-action="Index"
                    asp-route-companySlug="@propertyLayoutVm.CompanySlug"
                    asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
@@ -120,7 +120,7 @@
 
                 <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Profile" ? "active" : "")"
                    asp-area="Property"
-                   asp-controller="PropertyProfile"
+                   asp-controller="Profile"
                    asp-action="Index"
                    asp-route-companySlug="@propertyLayoutVm.CompanySlug"
                    asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
@@ -128,7 +128,7 @@
 
                 <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Units" ? "active" : "")"
                    asp-area="Property"
-                   asp-controller="PropertyUnits"
+                   asp-controller="Units"
                    asp-action="Units"
                    asp-route-companySlug="@propertyLayoutVm.CompanySlug"
                    asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
@@ -136,7 +136,7 @@
 
                 <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Residents" ? "active" : "")"
                    asp-area="Property"
-                   asp-controller="PropertyDashboard"
+                   asp-controller="Dashboard"
                    asp-action="Residents"
                    asp-route-companySlug="@propertyLayoutVm.CompanySlug"
                    asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"
@@ -144,7 +144,7 @@
 
                 <a class="management-sidebar-link @(propertyLayoutVm.CurrentSection == "Tickets" ? "active" : "")"
                    asp-area="Property"
-                   asp-controller="PropertyDashboard"
+                   asp-controller="Dashboard"
                    asp-action="Tickets"
                    asp-route-companySlug="@propertyLayoutVm.CompanySlug"
                    asp-route-customerSlug="@propertyLayoutVm.CustomerSlug"

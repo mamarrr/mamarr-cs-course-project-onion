@@ -57,7 +57,7 @@ public class CustomerPropertiesController : Controller
     public async Task<IActionResult> Add(
         string companySlug,
         string customerSlug,
-        CustomerPropertiesPageViewModel vm,
+        PropertiesPageViewModel vm,
         CancellationToken cancellationToken)
     {
         var access = await ResolveCustomerContextAsync(companySlug, customerSlug, cancellationToken);
@@ -146,7 +146,7 @@ public class CustomerPropertiesController : Controller
         return (null, access.Context);
     }
 
-    private async Task<CustomerPropertiesPageViewModel> BuildPageViewModelAsync(
+    private async Task<PropertiesPageViewModel> BuildPageViewModelAsync(
         CustomerWorkspaceDashboardContext context,
         CancellationToken cancellationToken,
         AddPropertyViewModel? addPropertyOverride = null)
@@ -168,7 +168,7 @@ public class CustomerPropertiesController : Controller
             cancellationToken,
             customerLayout);
 
-        return new CustomerPropertiesPageViewModel
+        return new PropertiesPageViewModel
         {
             PageShell = pageShell,
             CompanySlug = context.CompanySlug,

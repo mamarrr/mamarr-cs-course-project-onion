@@ -5,7 +5,7 @@ using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Services.ManagementLayout;
-using WebApp.ViewModels.ManagementResidents;
+using WebApp.ViewModels.Management.Residents;
 
 namespace WebApp.Areas.Management.Controllers;
 
@@ -47,7 +47,7 @@ public class ResidentsController : ManagementPageShellController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Add(
         string companySlug,
-        ManagementResidentsPageViewModel vm,
+        ResidentsPageViewModel vm,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(
@@ -148,7 +148,7 @@ public class ResidentsController : ManagementPageShellController
         return (null, auth.Context);
     }
 
-    private async Task<ManagementResidentsPageViewModel> BuildPageViewModelAsync(
+    private async Task<ResidentsPageViewModel> BuildPageViewModelAsync(
         CompanyResidentsAuthorizedContext context,
         CancellationToken cancellationToken,
         AddManagementResidentViewModel? addResidentOverride = null)
@@ -156,7 +156,7 @@ public class ResidentsController : ManagementPageShellController
         var listResult = await _companyResidentService.ListAsync(context, cancellationToken);
         var title = T("Residents", "Residents");
 
-        return new ManagementResidentsPageViewModel
+        return new ResidentsPageViewModel
         {
             PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
             CompanySlug = context.CompanySlug,

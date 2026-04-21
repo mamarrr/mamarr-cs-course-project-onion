@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using WebApp.Services.ManagementLayout;
-using WebApp.ViewModels.ManagementUsers;
+using WebApp.ViewModels.Management.Users;
 
 namespace WebApp.Areas.Management.Controllers;
 
@@ -333,7 +333,7 @@ public class UsersController : ManagementPageShellController
         return null;
     }
 
-    private async Task<ManagementUsersPageViewModel> BuildPageViewModelAsync(
+    private async Task<UsersPageViewModel> BuildPageViewModelAsync(
         string companySlug,
         CancellationToken cancellationToken,
         AddManagementUserViewModel? addUserOverride = null)
@@ -347,7 +347,7 @@ public class UsersController : ManagementPageShellController
         var availableRoles = await BuildRoleSelectListAsync(await _companyMembershipAdminService.GetAddRoleOptionsAsync(context, cancellationToken), addUserOverride?.RoleId);
         var title = App.Resources.Views.UiText.Users;
 
-        return new ManagementUsersPageViewModel
+        return new UsersPageViewModel
         {
             PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
             CompanySlug = context.CompanySlug,

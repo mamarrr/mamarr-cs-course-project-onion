@@ -14,7 +14,7 @@ using Moq;
 using WebApp.Areas.Management.Controllers;
 using WebApp.Services.ManagementLayout;
 using WebApp.ViewModels.Management.Layout;
-using WebApp.ViewModels.ManagementCustomers;
+using WebApp.ViewModels.Management.Customers;
 using WebApp.ViewModels.Shared.Layout;
 using Xunit;
 
@@ -91,7 +91,7 @@ public class CustomersControllerTests
             .ReturnsAsync(new CustomerCreateResult { Success = true });
 
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
-        var vm = new ManagementCustomersPageViewModel
+        var vm = new CustomersPageViewModel
         {
             AddCustomer = new AddManagementCustomerViewModel
             {
@@ -147,7 +147,7 @@ public class CustomersControllerTests
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
         controller.ModelState.AddModelError("AddCustomer.Name", "Name is required");
 
-        var vm = new ManagementCustomersPageViewModel
+        var vm = new CustomersPageViewModel
         {
             AddCustomer = new AddManagementCustomerViewModel
             {
@@ -162,7 +162,7 @@ public class CustomersControllerTests
         Assert.Equal("Index", view.ViewName);
         Assert.False(controller.ModelState.IsValid);
         Assert.True(controller.ModelState.ContainsKey("AddCustomer.Name"));
-        Assert.IsType<ManagementCustomersPageViewModel>(view.Model);
+        Assert.IsType<CustomersPageViewModel>(view.Model);
     }
 
     private static CustomersController CreateController(ICustomerWorkspaceService service, ClaimsPrincipal user)

@@ -5,10 +5,9 @@ using App.BLL.PropertyWorkspace.Properties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using WebApp.Areas.Customer.Controllers;
 using WebApp.Areas.Property.Controllers;
 using WebApp.Services.SharedLayout;
-using WebApp.ViewModels.Management.CustomerProperties;
+using WebApp.ViewModels.Property;
 using WebApp.ViewModels.Shared.Layout;
 using Xunit;
 
@@ -122,7 +121,7 @@ public class CustomerPropertyDashboardControllerTests
 
         var view = Assert.IsType<ViewResult>(result);
         Assert.Equal("Index", view.ViewName);
-        var vm = Assert.IsType<PropertyDashboardPageViewModel>(view.Model);
+        var vm = Assert.IsType<DashboardPageViewModel>(view.Model);
         Assert.Equal("alpha-house", vm.PropertySlug);
         Assert.Equal("Dashboard", vm.CurrentSection);
     }
@@ -154,7 +153,7 @@ public class CustomerPropertyDashboardControllerTests
         };
     }
 
-    private static PropertyDashboardController CreateController(ICustomerWorkspaceService service, ClaimsPrincipal user)
+    private static DashboardController CreateController(ICustomerWorkspaceService service, ClaimsPrincipal user)
     {
         var accessService = new Mock<ICustomerAccessService>();
         accessService
@@ -168,7 +167,7 @@ public class CustomerPropertyDashboardControllerTests
             .ReturnsAsync((CustomerWorkspaceDashboardContext context, string propertySlug, CancellationToken _) =>
                 service.ResolvePropertyDashboardContextAsync(context, propertySlug, CancellationToken.None).GetAwaiter().GetResult());
 
-        return new PropertyDashboardController(
+        return new DashboardController(
             accessService.Object,
             propertyService.Object,
             Mock.Of<IWorkspaceLayoutContextProvider>(x => x.BuildAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<WorkspaceLayoutRequestViewModel>(), It.IsAny<CancellationToken>()) == Task.FromResult(new WorkspaceLayoutContextViewModel())))

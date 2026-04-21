@@ -1,4 +1,4 @@
-@model WebApp.ViewModels.Property.PropertyUnits.PropertyUnitsPageViewModel
+@model WebApp.ViewModels.Property.UnitsPageViewModel
 
 @if (TempData["PropertyUnitsSuccess"] is string successMessage && !string.IsNullOrWhiteSpace(successMessage))
 {
@@ -47,7 +47,7 @@
         <h2 class="mb-3">@T("AddUnit", "Add unit")</h2>
 
         <form asp-area="Property"
-              asp-controller="PropertyUnits"
+              asp-controller="Units"
               asp-action="AddUnit"
               asp-route-companySlug="@Model.CompanySlug"
               asp-route-customerSlug="@Model.CustomerSlug"

@@ -158,14 +158,14 @@ public class ManagementProfileController : ManagementPageShellController
         return RedirectToAction("Index", "Onboarding", new { area = "", showChooser = true });
     }
 
-    private async Task<ManagementCompanyProfilePageViewModel> BuildViewModelAsync(
+    private async Task<ProfilePageViewModel> BuildViewModelAsync(
         CompanyProfileModel profile,
         ManagementCompanyProfileEditViewModel? edit,
         CancellationToken cancellationToken)
     {
         var title = UiText.Profile;
 
-        return new ManagementCompanyProfilePageViewModel
+        return new ProfilePageViewModel
         {
             PageShell = await BuildManagementPageShellAsync(title, title, profile.CompanySlug, cancellationToken),
             CompanySlug = profile.CompanySlug,

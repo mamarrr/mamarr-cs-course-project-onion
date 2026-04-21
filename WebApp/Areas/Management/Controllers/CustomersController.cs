@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebApp.Services.ManagementLayout;
-using WebApp.ViewModels.ManagementCustomers;
+using WebApp.ViewModels.Management.Customers;
 
 namespace WebApp.Areas.Management.Controllers;
 
@@ -53,7 +53,7 @@ public class CustomersController : ManagementPageShellController
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Add(
         string companySlug,
-        ManagementCustomersPageViewModel vm,
+        CustomersPageViewModel vm,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(
@@ -159,7 +159,7 @@ public class CustomersController : ManagementPageShellController
         return (null, auth.Context);
     }
 
-    private async Task<ManagementCustomersPageViewModel> BuildPageViewModelAsync(
+    private async Task<CustomersPageViewModel> BuildPageViewModelAsync(
         CustomerWorkspaceContext context,
         CancellationToken cancellationToken,
         AddManagementCustomerViewModel? addCustomerOverride = null)
@@ -193,7 +193,7 @@ public class CustomersController : ManagementPageShellController
 
         var title = UiText.Customers;
 
-        return new ManagementCustomersPageViewModel
+        return new CustomersPageViewModel
         {
             PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
             CompanySlug = context.CompanySlug,

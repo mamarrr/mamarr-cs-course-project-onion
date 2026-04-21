@@ -1,4 +1,4 @@
-@model WebApp.ViewModels.ManagementResidents.ManagementResidentsPageViewModel
+@model WebApp.ViewModels.Management.Residents.ResidentsPageViewModel
 @using App.Resources.Views
 @{
     ViewData["Title"] = UiText.ResourceManager.GetString("Residents") ?? "Residents";
@@ -94,14 +94,14 @@
                         <tr>
                             <td>
                                 <a asp-area="Resident"
-                                   asp-controller="ResidentDashboard"
+                                   asp-controller="Dashboard"
                                    asp-action="Index"
                                    asp-route-companySlug="@Model.CompanySlug"
                                    asp-route-residentIdCode="@resident.IdCode">@resident.FullName</a>
                             </td>
                             <td>
                                 <a asp-area="Resident"
-                                   asp-controller="ResidentDashboard"
+                                   asp-controller="Dashboard"
                                    asp-action="Index"
                                    asp-route-companySlug="@Model.CompanySlug"
                                    asp-route-residentIdCode="@resident.IdCode">@resident.IdCode</a>

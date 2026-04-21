@@ -40,7 +40,6 @@
       <Folder Include="Areas\Property\Views\Shared\" />
       <Folder Include="Areas\Resident\" />
       <Folder Include="Areas\Unit\" />
-      <Folder Include="ViewModels\Customer\" />
       <Folder Include="ViewModels\Unit\" />
     </ItemGroup>
 

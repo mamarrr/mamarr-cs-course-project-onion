@@ -114,7 +114,7 @@ public class CustomerDashboardController : Controller
             cancellationToken,
             customerLayout);
 
-        var vm = new CustomerDashboardPageViewModel
+        var vm = new DashboardPageViewModel
         {
             PageShell = pageShell,
             CompanySlug = access.Context.CompanySlug,

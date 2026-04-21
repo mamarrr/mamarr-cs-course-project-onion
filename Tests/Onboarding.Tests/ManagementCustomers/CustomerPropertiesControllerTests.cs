@@ -80,7 +80,7 @@ public class CustomerPropertiesControllerTests
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
         controller.ModelState.AddModelError("AddProperty.Name", "required");
 
-        var vm = new CustomerPropertiesPageViewModel
+        var vm = new PropertiesPageViewModel
         {
             AddProperty = new AddPropertyViewModel()
         };
@@ -89,7 +89,7 @@ public class CustomerPropertiesControllerTests
 
         var view = Assert.IsType<ViewResult>(result);
         Assert.Equal("Index", view.ViewName);
-        Assert.IsType<CustomerPropertiesPageViewModel>(view.Model);
+        Assert.IsType<PropertiesPageViewModel>(view.Model);
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class CustomerPropertiesControllerTests
             });
 
         var controller = CreateController(serviceMock.Object, BuildPrincipal());
-        var vm = new CustomerPropertiesPageViewModel
+        var vm = new PropertiesPageViewModel
         {
             AddProperty = new AddPropertyViewModel
             {

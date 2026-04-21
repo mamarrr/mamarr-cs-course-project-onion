@@ -44,7 +44,7 @@ public class DashboardController : ManagementPageShellController
         }
 
         var title = App.Resources.Views.UiText.Dashboard;
-        var vm = new ManagementDashboardPageViewModel
+        var vm = new DashboardPageViewModel
         {
             PageShell = await BuildManagementPageShellAsync(title, title, auth.Context!.CompanySlug, cancellationToken),
             CompanySlug = auth.Context.CompanySlug,

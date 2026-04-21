@@ -1,0 +1,22 @@
+@model WebApp.ViewModels.Property.DashboardPageViewModel
+@{
+    var currentSectionLabel = (ViewData["CurrentSectionLabel"] as string) ?? App.Resources.Views.UiText.Dashboard;
+}
+
+<section class="management-card mb-4">
+    <p class="management-eyebrow mb-2">@T("PropertyDashboard", "Property dashboard")</p>
+    <h2 class="mb-1">@Model.PropertyName</h2>
+    <p class="management-muted mb-0">@string.Format(T("PropertyDashboardIntro", "Property workspace for {0} in customer {1} ({2})."), Model.PropertyName, Model.CustomerName, Model.CompanyName)</p>
+</section>
+
+<section class="management-card">
+    <h3>@currentSectionLabel</h3>
+    <p class="management-muted mb-0">@string.Format(T("PropertySectionPlaceholder", "{0} content is planned and will be added in a later increment."), currentSectionLabel)</p>
+</section>
+
+@functions {
+    private static string T(string key, string fallback)
+    {
+        return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
+    }
+}
