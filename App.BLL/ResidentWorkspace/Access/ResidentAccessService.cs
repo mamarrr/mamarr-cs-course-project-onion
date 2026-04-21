@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.ResidentWorkspace.Access;
 
-public class ManagementResidentAccessService : IManagementResidentAccessService
+public class ResidentAccessService : IResidentAccessService
 {
     private static readonly HashSet<string> AllowedRoleCodes =
     [
@@ -16,12 +16,12 @@ public class ManagementResidentAccessService : IManagementResidentAccessService
 
     private readonly AppDbContext _dbContext;
 
-    public ManagementResidentAccessService(AppDbContext dbContext)
+    public ResidentAccessService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<ManagementResidentsAuthorizationResult> AuthorizeAsync(
+    public async Task<CompanyResidentsAuthorizationResult> AuthorizeAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
@@ -29,7 +29,7 @@ public class ManagementResidentAccessService : IManagementResidentAccessService
         var normalizedSlug = companySlug.Trim();
         if (string.IsNullOrWhiteSpace(normalizedSlug))
         {
-            return new ManagementResidentsAuthorizationResult
+            return new CompanyResidentsAuthorizationResult
             {
                 CompanyNotFound = true,
                 ErrorMessage = App.Resources.Views.UiText.ManagementCompanyWasNotFound
@@ -44,7 +44,7 @@ public class ManagementResidentAccessService : IManagementResidentAccessService
 
         if (company == null)
         {
-            return new ManagementResidentsAuthorizationResult
+            return new CompanyResidentsAuthorizationResult
             {
                 CompanyNotFound = true,
                 ErrorMessage = App.Resources.Views.UiText.ManagementCompanyWasNotFound
@@ -66,17 +66,17 @@ public class ManagementResidentAccessService : IManagementResidentAccessService
             (membership.ValidTo.HasValue && membership.ValidTo.Value < today) ||
             !AllowedRoleCodes.Contains((membership.ManagementCompanyRole?.Code ?? string.Empty).ToUpperInvariant()))
         {
-            return new ManagementResidentsAuthorizationResult
+            return new CompanyResidentsAuthorizationResult
             {
                 IsForbidden = true,
                 ErrorMessage = App.Resources.Views.UiText.AccessDeniedDescription
             };
         }
 
-        return new ManagementResidentsAuthorizationResult
+        return new CompanyResidentsAuthorizationResult
         {
             IsAuthorized = true,
-            Context = new ManagementResidentsAuthorizedContext
+            Context = new CompanyResidentsAuthorizedContext
             {
                 AppUserId = appUserId,
                 ManagementCompanyId = company.Id,
@@ -86,7 +86,7 @@ public class ManagementResidentAccessService : IManagementResidentAccessService
         };
     }
 
-    public async Task<ManagementResidentDashboardAccessResult> ResolveDashboardAccessAsync(
+    public async Task<ResidentDashboardAccessResult> ResolveDashboardAccessAsync(
         Guid appUserId,
         string companySlug,
         string residentIdCode,
@@ -95,7 +95,7 @@ public class ManagementResidentAccessService : IManagementResidentAccessService
         var authResult = await AuthorizeAsync(appUserId, companySlug, cancellationToken);
         if (authResult.CompanyNotFound)
         {
-            return new ManagementResidentDashboardAccessResult
+            return new ResidentDashboardAccessResult
             {
                 CompanyNotFound = true,
                 ErrorMessage = authResult.ErrorMessage
@@ -104,7 +104,7 @@ public class ManagementResidentAccessService : IManagementResidentAccessService
 
         if (authResult.IsForbidden || authResult.Context == null)
         {
-            return new ManagementResidentDashboardAccessResult
+            return new ResidentDashboardAccessResult
             {
                 IsForbidden = true,
                 ErrorMessage = authResult.ErrorMessage
@@ -114,7 +114,7 @@ public class ManagementResidentAccessService : IManagementResidentAccessService
         var normalizedResidentIdCode = residentIdCode.Trim();
         if (string.IsNullOrWhiteSpace(normalizedResidentIdCode))
         {
-            return new ManagementResidentDashboardAccessResult
+            return new ResidentDashboardAccessResult
             {
                 ResidentNotFound = true
             };
@@ -137,7 +137,7 @@ public class ManagementResidentAccessService : IManagementResidentAccessService
 
         if (resident == null)
         {
-            return new ManagementResidentDashboardAccessResult
+            return new ResidentDashboardAccessResult
             {
                 ResidentNotFound = true
             };
@@ -145,10 +145,10 @@ public class ManagementResidentAccessService : IManagementResidentAccessService
 
         var fullName = string.Join(" ", new[] { resident.FirstName, resident.LastName }.Where(s => !string.IsNullOrWhiteSpace(s)));
 
-        return new ManagementResidentDashboardAccessResult
+        return new ResidentDashboardAccessResult
         {
             IsAuthorized = true,
-            Context = new ManagementResidentDashboardContext
+            Context = new ResidentDashboardContext
             {
                 AppUserId = authResult.Context.AppUserId,
                 ManagementCompanyId = authResult.Context.ManagementCompanyId,

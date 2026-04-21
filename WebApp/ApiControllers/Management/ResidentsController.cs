@@ -17,15 +17,15 @@ namespace WebApp.ApiControllers.Management;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/re")]
 public class ResidentsController : ProfileApiControllerBase
 {
-    private readonly IManagementResidentAccessService _managementResidentAccessService;
-    private readonly IManagementResidentService _managementResidentService;
+    private readonly IResidentAccessService _residentAccessService;
+    private readonly ICompanyResidentService _companyResidentService;
 
     public ResidentsController(
-        IManagementResidentAccessService managementResidentAccessService,
-        IManagementResidentService managementResidentService)
+        IResidentAccessService residentAccessService,
+        ICompanyResidentService companyResidentService)
     {
-        _managementResidentAccessService = managementResidentAccessService;
-        _managementResidentService = managementResidentService;
+        _residentAccessService = residentAccessService;
+        _companyResidentService = companyResidentService;
     }
 
     [HttpGet]
@@ -44,7 +44,7 @@ public class ResidentsController : ProfileApiControllerBase
             return authorization.ErrorResult;
         }
 
-        var result = await _managementResidentService.ListAsync(authorization.Context!, cancellationToken);
+        var result = await _companyResidentService.ListAsync(authorization.Context!, cancellationToken);
         return Ok(new ManagementResidentsResponseDto
         {
             Residents = result.Residents.Select(x => new ManagementResidentSummaryDto
@@ -85,9 +85,9 @@ public class ResidentsController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _managementResidentService.CreateAsync(
+        var result = await _companyResidentService.CreateAsync(
             authorization.Context!,
-            new ManagementResidentCreateRequest
+            new ResidentCreateRequest
             {
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
@@ -115,7 +115,7 @@ public class ResidentsController : ProfileApiControllerBase
                 detail));
         }
 
-        var refreshedResidents = await _managementResidentService.ListAsync(authorization.Context!, cancellationToken);
+        var refreshedResidents = await _companyResidentService.ListAsync(authorization.Context!, cancellationToken);
         var createdResident = refreshedResidents.Residents.FirstOrDefault(x => x.ResidentId == result.CreatedResidentId.Value);
         if (createdResident == null)
         {
@@ -135,7 +135,7 @@ public class ResidentsController : ProfileApiControllerBase
             response);
     }
 
-    private async Task<(ManagementResidentsAuthorizedContext? Context, ActionResult? ErrorResult)> AuthorizeCompanyAsync(
+    private async Task<(CompanyResidentsAuthorizedContext? Context, ActionResult? ErrorResult)> AuthorizeCompanyAsync(
         string companySlug,
         CancellationToken cancellationToken)
     {
@@ -145,7 +145,7 @@ public class ResidentsController : ProfileApiControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var authorization = await _managementResidentAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var authorization = await _residentAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         if (authorization.CompanyNotFound)
         {
             return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Management company was not found.", ApiErrorCodes.NotFound)));
@@ -160,7 +160,7 @@ public class ResidentsController : ProfileApiControllerBase
     }
 
     private static ApiRouteContextDto CreateResidentRouteContext(
-        ManagementResidentsAuthorizedContext context,
+        CompanyResidentsAuthorizedContext context,
         string residentIdCode,
         string residentDisplayName)
     {

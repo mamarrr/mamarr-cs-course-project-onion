@@ -20,14 +20,14 @@ namespace WebApp.ApiControllers.Resident;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/re/{residentIdCode}/profile")]
 public class ResidentProfileController : ProfileApiControllerBase
 {
-    private readonly IManagementResidentAccessService _managementResidentAccessService;
+    private readonly IResidentAccessService _residentAccessService;
     private readonly IManagementResidentProfileService _managementResidentProfileService;
 
     public ResidentProfileController(
-        IManagementResidentAccessService managementResidentAccessService,
+        IResidentAccessService residentAccessService,
         IManagementResidentProfileService managementResidentProfileService)
     {
-        _managementResidentAccessService = managementResidentAccessService;
+        _residentAccessService = residentAccessService;
         _managementResidentProfileService = managementResidentProfileService;
     }
 
@@ -188,7 +188,7 @@ public class ResidentProfileController : ProfileApiControllerBase
         return NoContent();
     }
 
-    private async Task<(ManagementResidentDashboardContext? Context, ActionResult? ErrorResult)> ResolveDashboardAccessAsync(
+    private async Task<(ResidentDashboardContext? Context, ActionResult? ErrorResult)> ResolveDashboardAccessAsync(
         string companySlug,
         string residentIdCode,
         CancellationToken cancellationToken)
@@ -199,7 +199,7 @@ public class ResidentProfileController : ProfileApiControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var access = await _managementResidentAccessService.ResolveDashboardAccessAsync(
+        var access = await _residentAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             residentIdCode,
@@ -218,7 +218,7 @@ public class ResidentProfileController : ProfileApiControllerBase
         return (access.Context, null);
     }
 
-    private static ResidentProfileDto MapProfile(ResidentProfileModel profile, ManagementResidentDashboardContext context)
+    private static ResidentProfileDto MapProfile(ResidentProfileModel profile, ResidentDashboardContext context)
     {
         return new ResidentProfileDto
         {

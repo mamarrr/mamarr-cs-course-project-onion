@@ -18,11 +18,11 @@ namespace WebApp.ApiControllers.Resident;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/re/{residentIdCode}/dashboard")]
 public class ResidentDashboardController : ProfileApiControllerBase
 {
-    private readonly IManagementResidentAccessService _managementResidentAccessService;
+    private readonly IResidentAccessService _residentAccessService;
 
-    public ResidentDashboardController(IManagementResidentAccessService managementResidentAccessService)
+    public ResidentDashboardController(IResidentAccessService residentAccessService)
     {
-        _managementResidentAccessService = managementResidentAccessService;
+        _residentAccessService = residentAccessService;
     }
 
     [HttpGet]
@@ -59,7 +59,7 @@ public class ResidentDashboardController : ProfileApiControllerBase
         });
     }
 
-    private async Task<(ManagementResidentDashboardContext? Context, ActionResult? ErrorResult)> ResolveDashboardAccessAsync(
+    private async Task<(ResidentDashboardContext? Context, ActionResult? ErrorResult)> ResolveDashboardAccessAsync(
         string companySlug,
         string residentIdCode,
         CancellationToken cancellationToken)
@@ -70,7 +70,7 @@ public class ResidentDashboardController : ProfileApiControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var access = await _managementResidentAccessService.ResolveDashboardAccessAsync(
+        var access = await _residentAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             residentIdCode,

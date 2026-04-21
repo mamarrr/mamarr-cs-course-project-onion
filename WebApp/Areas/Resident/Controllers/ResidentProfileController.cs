@@ -17,16 +17,16 @@ namespace WebApp.Areas.Resident.Controllers;
 [Route("m/{companySlug}/r/{residentIdCode}/profile")]
 public class ResidentProfileController : Controller
 {
-    private readonly IManagementResidentAccessService _managementResidentAccessService;
+    private readonly IResidentAccessService _residentAccessService;
     private readonly IManagementResidentProfileService _managementResidentProfileService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public ResidentProfileController(
-        IManagementResidentAccessService managementResidentAccessService,
+        IResidentAccessService residentAccessService,
         IManagementResidentProfileService managementResidentProfileService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
-        _managementResidentAccessService = managementResidentAccessService;
+        _residentAccessService = residentAccessService;
         _managementResidentProfileService = managementResidentProfileService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
@@ -158,7 +158,7 @@ public class ResidentProfileController : Controller
     }
 
     private async Task<ResidentProfilePageViewModel> BuildViewModelAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ResidentProfileModel profile,
         ResidentProfileEditViewModel? edit,
         CancellationToken cancellationToken)
@@ -188,7 +188,7 @@ public class ResidentProfileController : Controller
     }
 
     private async Task<ResidentPageShellViewModel> BuildPageShellAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         CancellationToken cancellationToken)
     {
         var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
@@ -219,7 +219,7 @@ public class ResidentProfileController : Controller
         };
     }
 
-    private async Task<(IActionResult? response, ManagementResidentDashboardContext? context)> ResolveAccessAsync(
+    private async Task<(IActionResult? response, ResidentDashboardContext? context)> ResolveAccessAsync(
         string companySlug,
         string residentIdCode,
         CancellationToken cancellationToken)
@@ -230,7 +230,7 @@ public class ResidentProfileController : Controller
             return (Challenge(), null);
         }
 
-        var access = await _managementResidentAccessService.ResolveDashboardAccessAsync(
+        var access = await _residentAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             residentIdCode,

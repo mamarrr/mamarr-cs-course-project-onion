@@ -6,12 +6,12 @@ namespace App.BLL.LeaseAssignments;
 public interface IManagementLeaseSearchService
 {
     Task<ManagementLeasePropertySearchResult> SearchPropertiesAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         string? searchTerm,
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseUnitOptionsResult> ListUnitsForPropertyAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         Guid propertyId,
         CancellationToken cancellationToken = default);
 

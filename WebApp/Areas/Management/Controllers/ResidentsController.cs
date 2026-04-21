@@ -14,19 +14,19 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}/residents")]
 public class ResidentsController : ManagementPageShellController
 {
-    private readonly IManagementResidentAccessService _managementResidentAccessService;
-    private readonly IManagementResidentService _managementResidentService;
+    private readonly IResidentAccessService _residentAccessService;
+    private readonly ICompanyResidentService _companyResidentService;
     private readonly ILogger<ResidentsController> _logger;
 
     public ResidentsController(
-        IManagementResidentAccessService managementResidentAccessService,
-        IManagementResidentService managementResidentService,
+        IResidentAccessService residentAccessService,
+        ICompanyResidentService companyResidentService,
         ILogger<ResidentsController> logger,
         IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
         : base(managementLayoutViewModelProvider)
     {
-        _managementResidentAccessService = managementResidentAccessService;
-        _managementResidentService = managementResidentService;
+        _residentAccessService = residentAccessService;
+        _companyResidentService = companyResidentService;
         _logger = logger;
     }
 
@@ -73,9 +73,9 @@ public class ResidentsController : ManagementPageShellController
             return View(nameof(Index), invalidVm);
         }
 
-        var createResult = await _managementResidentService.CreateAsync(
+        var createResult = await _companyResidentService.CreateAsync(
             authResult.context!,
-            new ManagementResidentCreateRequest
+            new ResidentCreateRequest
             {
                 FirstName = vm.AddResident.FirstName,
                 LastName = vm.AddResident.LastName,
@@ -124,7 +124,7 @@ public class ResidentsController : ManagementPageShellController
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 
-    private async Task<(IActionResult? response, ManagementResidentsAuthorizedContext? context)> AuthorizeAsync(
+    private async Task<(IActionResult? response, CompanyResidentsAuthorizedContext? context)> AuthorizeAsync(
         string companySlug,
         CancellationToken cancellationToken)
     {
@@ -134,7 +134,7 @@ public class ResidentsController : ManagementPageShellController
             return (Challenge(), null);
         }
 
-        var auth = await _managementResidentAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _residentAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         if (auth.CompanyNotFound)
         {
             return (NotFound(), null);
@@ -149,11 +149,11 @@ public class ResidentsController : ManagementPageShellController
     }
 
     private async Task<ManagementResidentsPageViewModel> BuildPageViewModelAsync(
-        ManagementResidentsAuthorizedContext context,
+        CompanyResidentsAuthorizedContext context,
         CancellationToken cancellationToken,
         AddManagementResidentViewModel? addResidentOverride = null)
     {
-        var listResult = await _managementResidentService.ListAsync(context, cancellationToken);
+        var listResult = await _companyResidentService.ListAsync(context, cancellationToken);
         var title = T("Residents", "Residents");
 
         return new ManagementResidentsPageViewModel

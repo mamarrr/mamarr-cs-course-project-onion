@@ -6,16 +6,16 @@ namespace App.BLL.ResidentWorkspace.Profiles;
 public interface IManagementResidentProfileService
 {
     Task<ResidentProfileModel?> GetProfileAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         CancellationToken cancellationToken = default);
 
     Task<ProfileOperationResult> UpdateProfileAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ResidentProfileUpdateRequest request,
         CancellationToken cancellationToken = default);
 
     Task<ProfileOperationResult> DeleteProfileAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         CancellationToken cancellationToken = default);
 }
 

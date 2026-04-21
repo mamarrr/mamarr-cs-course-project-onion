@@ -4,17 +4,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.ResidentWorkspace.Residents;
 
-public class ManagementResidentService : IManagementResidentService
+public class CompanyResidentService : ICompanyResidentService
 {
     private readonly AppDbContext _dbContext;
 
-    public ManagementResidentService(AppDbContext dbContext)
+    public CompanyResidentService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<ManagementResidentListResult> ListAsync(
-        ManagementResidentsAuthorizedContext context,
+    public async Task<CompanyResidentListResult> ListAsync(
+        CompanyResidentsAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
         var residents = await _dbContext.Residents
@@ -23,7 +23,7 @@ public class ManagementResidentService : IManagementResidentService
             .OrderBy(r => r.LastName)
             .ThenBy(r => r.FirstName)
             .ThenBy(r => r.IdCode)
-            .Select(r => new ManagementResidentListItem
+            .Select(r => new CompanyResidentListItem
             {
                 ResidentId = r.Id,
                 FirstName = r.FirstName,
@@ -35,21 +35,21 @@ public class ManagementResidentService : IManagementResidentService
             })
             .ToListAsync(cancellationToken);
 
-        return new ManagementResidentListResult
+        return new CompanyResidentListResult
         {
             Residents = residents
         };
     }
 
-    public async Task<ManagementResidentCreateResult> CreateAsync(
-        ManagementResidentsAuthorizedContext context,
-        ManagementResidentCreateRequest request,
+    public async Task<ResidentCreateResult> CreateAsync(
+        CompanyResidentsAuthorizedContext context,
+        ResidentCreateRequest request,
         CancellationToken cancellationToken = default)
     {
         var normalizedFirstName = request.FirstName?.Trim();
         if (string.IsNullOrWhiteSpace(normalizedFirstName))
         {
-            return new ManagementResidentCreateResult
+            return new ResidentCreateResult
             {
                 InvalidFirstName = true,
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace(
@@ -61,7 +61,7 @@ public class ManagementResidentService : IManagementResidentService
         var normalizedLastName = request.LastName?.Trim();
         if (string.IsNullOrWhiteSpace(normalizedLastName))
         {
-            return new ManagementResidentCreateResult
+            return new ResidentCreateResult
             {
                 InvalidLastName = true,
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace(
@@ -73,7 +73,7 @@ public class ManagementResidentService : IManagementResidentService
         var normalizedIdCode = request.IdCode?.Trim();
         if (string.IsNullOrWhiteSpace(normalizedIdCode))
         {
-            return new ManagementResidentCreateResult
+            return new ResidentCreateResult
             {
                 InvalidIdCode = true,
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace(
@@ -94,7 +94,7 @@ public class ManagementResidentService : IManagementResidentService
 
         if (duplicateIdCode)
         {
-            return new ManagementResidentCreateResult
+            return new ResidentCreateResult
             {
                 DuplicateIdCode = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("ResidentIdCodeAlreadyExists")
@@ -117,7 +117,7 @@ public class ManagementResidentService : IManagementResidentService
         _dbContext.Residents.Add(resident);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementResidentCreateResult
+        return new ResidentCreateResult
         {
             Success = true,
             CreatedResidentId = resident.Id

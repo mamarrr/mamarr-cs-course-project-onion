@@ -229,10 +229,10 @@ public class ApiProfileSliceControllerTests
     [Fact]
     public async Task ResidentDashboard_Get_ReturnsForbid_WhenForbidden()
     {
-        var accessService = new Mock<IManagementResidentAccessService>();
+        var accessService = new Mock<IResidentAccessService>();
         accessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "49001010001", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementResidentDashboardAccessResult { IsForbidden = true });
+            .ReturnsAsync(new ResidentDashboardAccessResult { IsForbidden = true });
 
         var controller = CreateResidentDashboardController(BuildPrincipal(), accessService: accessService);
 
@@ -413,29 +413,29 @@ public class ApiProfileSliceControllerTests
 
     private static ResidentDashboardController CreateResidentDashboardController(
         ClaimsPrincipal user,
-        Mock<IManagementResidentAccessService>? accessService = null,
-        ManagementResidentDashboardContext? residentContext = null)
+        Mock<IResidentAccessService>? accessService = null,
+        ResidentDashboardContext? residentContext = null)
     {
         residentContext ??= BuildResidentContext();
-        accessService ??= new Mock<IManagementResidentAccessService>();
+        accessService ??= new Mock<IResidentAccessService>();
         accessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), residentContext.CompanySlug, residentContext.ResidentIdCode, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementResidentDashboardAccessResult { IsAuthorized = true, Context = residentContext });
+            .ReturnsAsync(new ResidentDashboardAccessResult { IsAuthorized = true, Context = residentContext });
 
         return AttachControllerContext(new ResidentDashboardController(accessService.Object), user);
     }
 
     private static ResidentProfileController CreateResidentProfileController(
         ClaimsPrincipal user,
-        Mock<IManagementResidentAccessService>? accessService = null,
-        ManagementResidentDashboardContext? residentContext = null,
+        Mock<IResidentAccessService>? accessService = null,
+        ResidentDashboardContext? residentContext = null,
         Mock<IManagementResidentProfileService>? profileService = null)
     {
         residentContext ??= BuildResidentContext();
-        accessService ??= new Mock<IManagementResidentAccessService>();
+        accessService ??= new Mock<IResidentAccessService>();
         accessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), residentContext.CompanySlug, residentContext.ResidentIdCode, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementResidentDashboardAccessResult { IsAuthorized = true, Context = residentContext });
+            .ReturnsAsync(new ResidentDashboardAccessResult { IsAuthorized = true, Context = residentContext });
 
         profileService ??= new Mock<IManagementResidentProfileService>();
 
@@ -520,9 +520,9 @@ public class ApiProfileSliceControllerTests
         };
     }
 
-    private static ManagementResidentDashboardContext BuildResidentContext()
+    private static ResidentDashboardContext BuildResidentContext()
     {
-        return new ManagementResidentDashboardContext
+        return new ResidentDashboardContext
         {
             AppUserId = Guid.NewGuid(),
             ManagementCompanyId = Guid.NewGuid(),

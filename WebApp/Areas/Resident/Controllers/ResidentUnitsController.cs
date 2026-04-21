@@ -20,18 +20,18 @@ public class ResidentUnitsController : Controller
     private const string SuccessTempDataKey = "ResidentUnitsSuccess";
     private const string ErrorTempDataKey = "ResidentUnitsError";
 
-    private readonly IManagementResidentAccessService _managementResidentAccessService;
+    private readonly IResidentAccessService _residentAccessService;
     private readonly IManagementLeaseService _managementLeaseService;
     private readonly IManagementLeaseSearchService _managementLeaseSearchService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public ResidentUnitsController(
-        IManagementResidentAccessService managementResidentAccessService,
+        IResidentAccessService residentAccessService,
         IManagementLeaseService managementLeaseService,
         IManagementLeaseSearchService managementLeaseSearchService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
-        _managementResidentAccessService = managementResidentAccessService;
+        _residentAccessService = residentAccessService;
         _managementLeaseService = managementLeaseService;
         _managementLeaseSearchService = managementLeaseSearchService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
@@ -253,7 +253,7 @@ public class ResidentUnitsController : Controller
         return RedirectToAction(nameof(Index), new { companySlug, residentIdCode });
     }
 
-    private async Task<(IActionResult? response, ManagementResidentDashboardContext? context)> ResolveResidentContextAsync(
+    private async Task<(IActionResult? response, ResidentDashboardContext? context)> ResolveResidentContextAsync(
         string companySlug,
         string residentIdCode,
         CancellationToken cancellationToken)
@@ -264,7 +264,7 @@ public class ResidentUnitsController : Controller
             return (Challenge(), null);
         }
 
-        var access = await _managementResidentAccessService.ResolveDashboardAccessAsync(
+        var access = await _residentAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             residentIdCode,
@@ -284,7 +284,7 @@ public class ResidentUnitsController : Controller
     }
 
     private async Task<ResidentUnitsPageViewModel> BuildPageViewModelAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         CancellationToken cancellationToken,
         AddResidentLeaseViewModel? addOverride = null,
         EditResidentLeaseViewModel? editOverride = null,

@@ -17,7 +17,7 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
     }
 
     public async Task<ManagementLeasePropertySearchResult> SearchPropertiesAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         string? searchTerm,
         CancellationToken cancellationToken = default)
     {
@@ -80,7 +80,7 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
     }
 
     public async Task<ManagementLeaseUnitOptionsResult> ListUnitsForPropertyAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         Guid propertyId,
         CancellationToken cancellationToken = default)
     {

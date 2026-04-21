@@ -6,7 +6,7 @@ namespace App.BLL.LeaseAssignments;
 public interface IManagementLeaseService
 {
     Task<ManagementResidentLeaseListResult> ListForResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         CancellationToken cancellationToken = default);
 
     Task<ManagementUnitLeaseListResult> ListForUnitAsync(
@@ -14,7 +14,7 @@ public interface IManagementLeaseService
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseDetailsResult> GetForResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         Guid leaseId,
         CancellationToken cancellationToken = default);
 
@@ -24,7 +24,7 @@ public interface IManagementLeaseService
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseCommandResult> CreateFromResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ManagementLeaseCreateRequest request,
         CancellationToken cancellationToken = default);
 
@@ -34,7 +34,7 @@ public interface IManagementLeaseService
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseCommandResult> UpdateFromResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ManagementLeaseUpdateRequest request,
         CancellationToken cancellationToken = default);
 
@@ -44,7 +44,7 @@ public interface IManagementLeaseService
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseCommandResult> DeleteFromResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ManagementLeaseDeleteRequest request,
         CancellationToken cancellationToken = default);
 

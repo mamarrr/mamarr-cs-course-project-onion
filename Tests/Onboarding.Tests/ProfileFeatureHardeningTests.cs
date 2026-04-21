@@ -416,7 +416,7 @@ public class ProfileFeatureHardeningTests
         await db.SaveChangesAsync();
 
         return new ResidentDeletionFixture(
-            new ManagementResidentDashboardContext
+            new ResidentDashboardContext
             {
                 AppUserId = actor.Id,
                 ManagementCompanyId = companyA.Id,
@@ -699,7 +699,7 @@ public class ProfileFeatureHardeningTests
         IReadOnlyCollection<Guid> DeletedWorkLogIds);
 
     private sealed record ResidentDeletionFixture(
-        ManagementResidentDashboardContext Context,
+        ResidentDashboardContext Context,
         Resident Resident,
         Resident OtherTenantResident,
         Contact OrphanedContact,

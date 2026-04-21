@@ -97,8 +97,8 @@ builder.Services.AddScoped<ICustomerWorkspaceService, CustomerWorkspaceWorkspace
 builder.Services.AddScoped<ICustomerAccessService, CustomerWorkspaceWorkspaceService>();
 builder.Services.AddScoped<ICompanyCustomerService, CustomerWorkspaceWorkspaceService>();
 builder.Services.AddScoped<IPropertyWorkspaceService, CustomerWorkspaceWorkspaceService>();
-builder.Services.AddScoped<IManagementResidentAccessService, ManagementResidentAccessService>();
-builder.Services.AddScoped<IManagementResidentService, ManagementResidentService>();
+builder.Services.AddScoped<IResidentAccessService, ResidentAccessService>();
+builder.Services.AddScoped<ICompanyResidentService, CompanyResidentService>();
 builder.Services.AddScoped<IManagementPropertyUnitService, ManagementPropertyUnitService>();
 builder.Services.AddScoped<IManagementUnitDashboardService, ManagementPropertyUnitService>();
 builder.Services.AddScoped<IManagementLeaseService, ManagementLeaseService>();

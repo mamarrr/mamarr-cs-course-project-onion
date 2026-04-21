@@ -1,15 +1,15 @@
 namespace App.BLL.ResidentWorkspace.Residents;
 
-public class ManagementResidentsAuthorizationResult
+public class CompanyResidentsAuthorizationResult
 {
     public bool IsAuthorized { get; set; }
     public bool IsForbidden { get; set; }
     public bool CompanyNotFound { get; set; }
     public string? ErrorMessage { get; set; }
-    public ManagementResidentsAuthorizedContext? Context { get; set; }
+    public CompanyResidentsAuthorizedContext? Context { get; set; }
 }
 
-public class ManagementResidentsAuthorizedContext
+public class CompanyResidentsAuthorizedContext
 {
     public Guid AppUserId { get; set; }
     public Guid ManagementCompanyId { get; set; }
@@ -17,12 +17,12 @@ public class ManagementResidentsAuthorizedContext
     public string CompanyName { get; set; } = default!;
 }
 
-public class ManagementResidentListResult
+public class CompanyResidentListResult
 {
-    public IReadOnlyList<ManagementResidentListItem> Residents { get; set; } = Array.Empty<ManagementResidentListItem>();
+    public IReadOnlyList<CompanyResidentListItem> Residents { get; set; } = Array.Empty<CompanyResidentListItem>();
 }
 
-public class ManagementResidentListItem
+public class CompanyResidentListItem
 {
     public Guid ResidentId { get; set; }
     public string FirstName { get; set; } = default!;
@@ -33,7 +33,7 @@ public class ManagementResidentListItem
     public bool IsActive { get; set; }
 }
 
-public class ManagementResidentCreateRequest
+public class ResidentCreateRequest
 {
     public string FirstName { get; set; } = default!;
     public string LastName { get; set; } = default!;
@@ -41,7 +41,7 @@ public class ManagementResidentCreateRequest
     public string? PreferredLanguage { get; set; }
 }
 
-public class ManagementResidentCreateResult
+public class ResidentCreateResult
 {
     public bool Success { get; set; }
     public bool DuplicateIdCode { get; set; }
@@ -52,17 +52,17 @@ public class ManagementResidentCreateResult
     public string? ErrorMessage { get; set; }
 }
 
-public class ManagementResidentDashboardAccessResult
+public class ResidentDashboardAccessResult
 {
     public bool IsAuthorized { get; set; }
     public bool IsForbidden { get; set; }
     public bool CompanyNotFound { get; set; }
     public bool ResidentNotFound { get; set; }
     public string? ErrorMessage { get; set; }
-    public ManagementResidentDashboardContext? Context { get; set; }
+    public ResidentDashboardContext? Context { get; set; }
 }
 
-public class ManagementResidentDashboardContext
+public class ResidentDashboardContext
 {
     public Guid AppUserId { get; set; }
     public Guid ManagementCompanyId { get; set; }

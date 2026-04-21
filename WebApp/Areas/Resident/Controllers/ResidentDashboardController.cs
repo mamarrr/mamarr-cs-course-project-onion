@@ -14,14 +14,14 @@ namespace WebApp.Areas.Resident.Controllers;
 [Route("m/{companySlug}/r/{residentIdCode}")]
 public class ResidentDashboardController : Controller
 {
-    private readonly IManagementResidentAccessService _managementResidentAccessService;
+    private readonly IResidentAccessService _residentAccessService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public ResidentDashboardController(
-        IManagementResidentAccessService managementResidentAccessService,
+        IResidentAccessService residentAccessService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
-        _managementResidentAccessService = managementResidentAccessService;
+        _residentAccessService = residentAccessService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
@@ -61,7 +61,7 @@ public class ResidentDashboardController : Controller
             return Challenge();
         }
 
-        var access = await _managementResidentAccessService.ResolveDashboardAccessAsync(
+        var access = await _residentAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             residentIdCode,

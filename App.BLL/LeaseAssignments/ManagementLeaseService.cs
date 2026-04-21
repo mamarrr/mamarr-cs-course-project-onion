@@ -18,7 +18,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     public async Task<ManagementResidentLeaseListResult> ListForResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         var leases = await _dbContext.Leases
@@ -91,7 +91,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     public Task<ManagementLeaseDetailsResult> GetForResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         Guid leaseId,
         CancellationToken cancellationToken = default)
     {
@@ -111,7 +111,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     public async Task<ManagementLeaseCommandResult> CreateFromResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ManagementLeaseCreateRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -177,7 +177,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     public async Task<ManagementLeaseCommandResult> UpdateFromResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ManagementLeaseUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -219,7 +219,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     public async Task<ManagementLeaseCommandResult> DeleteFromResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ManagementLeaseDeleteRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -311,7 +311,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     private async Task<CreateValidationResult> ValidateCreateFromResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ManagementLeaseCreateRequest request,
         CancellationToken cancellationToken)
     {
@@ -441,7 +441,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     private async Task<UpdateValidationResult> ValidateUpdateFromResidentAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ManagementLeaseUpdateRequest request,
         CancellationToken cancellationToken)
     {

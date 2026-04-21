@@ -16,7 +16,7 @@ public class ManagementResidentProfileService : IManagementResidentProfileServic
     }
 
     public async Task<ResidentProfileModel?> GetProfileAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         return await _dbContext.Residents
@@ -35,7 +35,7 @@ public class ManagementResidentProfileService : IManagementResidentProfileServic
     }
 
     public async Task<ProfileOperationResult> UpdateProfileAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         ResidentProfileUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -111,7 +111,7 @@ public class ManagementResidentProfileService : IManagementResidentProfileServic
     }
 
     public async Task<ProfileOperationResult> DeleteProfileAsync(
-        ManagementResidentDashboardContext context,
+        ResidentDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         var hasDeleteRole = await ProfileDeleteAuthorization.HasDeletePermissionAsync(

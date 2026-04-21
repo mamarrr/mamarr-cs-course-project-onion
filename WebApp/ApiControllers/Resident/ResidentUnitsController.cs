@@ -19,16 +19,16 @@ namespace WebApp.ApiControllers.Resident;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/re/{residentIdCode}")]
 public class ResidentUnitsController : ProfileApiControllerBase
 {
-    private readonly IManagementResidentAccessService _managementResidentAccessService;
+    private readonly IResidentAccessService _residentAccessService;
     private readonly IManagementLeaseService _managementLeaseService;
     private readonly IManagementLeaseSearchService _managementLeaseSearchService;
 
     public ResidentUnitsController(
-        IManagementResidentAccessService managementResidentAccessService,
+        IResidentAccessService residentAccessService,
         IManagementLeaseService managementLeaseService,
         IManagementLeaseSearchService managementLeaseSearchService)
     {
-        _managementResidentAccessService = managementResidentAccessService;
+        _residentAccessService = residentAccessService;
         _managementLeaseService = managementLeaseService;
         _managementLeaseSearchService = managementLeaseSearchService;
     }
@@ -272,7 +272,7 @@ public class ResidentUnitsController : ProfileApiControllerBase
         return NoContent();
     }
 
-    private async Task<(ManagementResidentDashboardContext? Context, ActionResult? ErrorResult)> ResolveResidentContextAsync(
+    private async Task<(ResidentDashboardContext? Context, ActionResult? ErrorResult)> ResolveResidentContextAsync(
         string companySlug,
         string residentIdCode,
         CancellationToken cancellationToken)
@@ -283,7 +283,7 @@ public class ResidentUnitsController : ProfileApiControllerBase
             return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
         }
 
-        var access = await _managementResidentAccessService.ResolveDashboardAccessAsync(
+        var access = await _residentAccessService.ResolveDashboardAccessAsync(
             appUserId.Value,
             companySlug,
             residentIdCode,
@@ -369,7 +369,7 @@ public class ResidentUnitsController : ProfileApiControllerBase
         };
     }
 
-    private static ApiRouteContextDto CreateRouteContext(ManagementResidentDashboardContext context)
+    private static ApiRouteContextDto CreateRouteContext(ResidentDashboardContext context)
     {
         return new ApiRouteContextDto
         {
