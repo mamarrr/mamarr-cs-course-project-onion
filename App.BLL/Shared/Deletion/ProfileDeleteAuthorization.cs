@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.Shared.Deletion;
 
-internal static class ManagementProfileDeleteAuthorization
+internal static class ProfileDeleteAuthorization
 {
     private static readonly HashSet<string> DeleteAllowedRoleCodes =
     [

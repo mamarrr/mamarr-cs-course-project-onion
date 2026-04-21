@@ -4,7 +4,7 @@ namespace App.BLL.ManagementCompany.Profiles;
 
 public interface IManagementCompanyProfileService
 {
-    Task<ManagementCompanyProfileModel?> GetProfileAsync(
+    Task<CompanyProfileModel?> GetProfileAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default);
@@ -12,7 +12,7 @@ public interface IManagementCompanyProfileService
     Task<ProfileOperationResult> UpdateProfileAsync(
         Guid appUserId,
         string companySlug,
-        ManagementCompanyProfileUpdateRequest request,
+        CompanyProfileUpdateRequest request,
         CancellationToken cancellationToken = default);
 
     Task<ProfileOperationResult> DeleteProfileAsync(

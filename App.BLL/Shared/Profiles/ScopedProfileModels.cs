@@ -1,6 +1,6 @@
 namespace App.BLL.Shared.Profiles;
 
-public class ManagementCompanyProfileModel
+public class CompanyProfileModel
 {
     public Guid ManagementCompanyId { get; set; }
     public string CompanySlug { get; set; } = string.Empty;
@@ -13,7 +13,7 @@ public class ManagementCompanyProfileModel
     public bool IsActive { get; set; }
 }
 
-public class ManagementCompanyProfileUpdateRequest
+public class CompanyProfileUpdateRequest
 {
     public string Name { get; set; } = string.Empty;
     public string RegistryCode { get; set; } = string.Empty;

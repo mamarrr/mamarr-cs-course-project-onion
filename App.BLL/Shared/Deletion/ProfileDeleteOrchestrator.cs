@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.Shared.Deletion;
 
-internal static class ManagementProfileDeleteOrchestrator
+internal static class ProfileDeleteOrchestrator
 {
     public static async Task DeleteTicketsAsync(
         AppDbContext dbContext,

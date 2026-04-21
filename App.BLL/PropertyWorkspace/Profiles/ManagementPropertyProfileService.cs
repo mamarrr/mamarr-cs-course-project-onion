@@ -117,7 +117,7 @@ public class ManagementPropertyProfileService : IManagementPropertyProfileServic
         ManagementCustomerPropertyDashboardContext context,
         CancellationToken cancellationToken = default)
     {
-        var hasDeleteRole = await ManagementProfileDeleteAuthorization.HasDeletePermissionAsync(
+        var hasDeleteRole = await ProfileDeleteAuthorization.HasDeletePermissionAsync(
             _dbContext,
             context.ManagementCompanyId,
             context.AppUserId,
@@ -125,7 +125,7 @@ public class ManagementPropertyProfileService : IManagementPropertyProfileServic
 
         if (!hasDeleteRole)
         {
-            return ManagementProfileDeleteAuthorization.ForbiddenResult();
+            return ProfileDeleteAuthorization.ForbiddenResult();
         }
 
         var property = await _dbContext.Properties
@@ -153,7 +153,7 @@ public class ManagementPropertyProfileService : IManagementPropertyProfileServic
             .Select(t => t.Id)
             .ToListAsync(cancellationToken);
 
-        await ManagementProfileDeleteOrchestrator.DeleteTicketsAsync(_dbContext, ticketIds, cancellationToken);
+        await ProfileDeleteOrchestrator.DeleteTicketsAsync(_dbContext, ticketIds, cancellationToken);
 
         await _dbContext.Leases
             .Where(l => unitIds.Contains(l.UnitId))

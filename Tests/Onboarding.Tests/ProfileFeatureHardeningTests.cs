@@ -30,7 +30,7 @@ public class ProfileFeatureHardeningTests
         var result = await sut.UpdateProfileAsync(
             fixture.Actor.Id,
             fixture.Company.Slug,
-            new ManagementCompanyProfileUpdateRequest
+            new CompanyProfileUpdateRequest
             {
                 Name = fixture.Company.Name,
                 RegistryCode = "REG-COMP-UPDATED",

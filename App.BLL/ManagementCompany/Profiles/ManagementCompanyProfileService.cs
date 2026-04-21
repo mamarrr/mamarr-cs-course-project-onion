@@ -20,7 +20,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
         _managementUserAdminService = managementUserAdminService;
     }
 
-    public async Task<ManagementCompanyProfileModel?> GetProfileAsync(
+    public async Task<CompanyProfileModel?> GetProfileAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
@@ -38,7 +38,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
         return await _dbContext.ManagementCompanies
             .AsNoTracking()
             .Where(mc => mc.Id == auth.Context.ManagementCompanyId)
-            .Select(mc => new ManagementCompanyProfileModel
+            .Select(mc => new CompanyProfileModel
             {
                 ManagementCompanyId = mc.Id,
                 CompanySlug = mc.Slug,
@@ -56,7 +56,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
     public async Task<ProfileOperationResult> UpdateProfileAsync(
         Guid appUserId,
         string companySlug,
-        ManagementCompanyProfileUpdateRequest request,
+        CompanyProfileUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
         var auth = await _managementUserAdminService.AuthorizeManagementAreaAccessAsync(
@@ -159,7 +159,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
             return new ProfileOperationResult { Forbidden = true };
         }
 
-        var hasDeleteRole = await ManagementProfileDeleteAuthorization.HasDeletePermissionAsync(
+        var hasDeleteRole = await ProfileDeleteAuthorization.HasDeletePermissionAsync(
             _dbContext,
             auth.Context.ManagementCompanyId,
             appUserId,
@@ -167,7 +167,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
 
         if (!hasDeleteRole)
         {
-            return ManagementProfileDeleteAuthorization.ForbiddenResult();
+            return ProfileDeleteAuthorization.ForbiddenResult();
         }
 
         var company = await _dbContext.ManagementCompanies
@@ -218,7 +218,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
             .Select(t => t.Id)
             .ToListAsync(cancellationToken);
 
-        await ManagementProfileDeleteOrchestrator.DeleteTicketsAsync(_dbContext, ticketIds, cancellationToken);
+        await ProfileDeleteOrchestrator.DeleteTicketsAsync(_dbContext, ticketIds, cancellationToken);
 
         await _dbContext.CustomerRepresentatives
             .Where(cr => customerIds.Contains(cr.CustomerId) || residentIds.Contains(cr.ResidentId))
@@ -293,7 +293,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
             .Distinct()
             .ToArray();
 
-        await ManagementProfileDeleteOrchestrator.DeleteContactsIfOrphanedAsync(
+        await ProfileDeleteOrchestrator.DeleteContactsIfOrphanedAsync(
             _dbContext,
             allContactIds,
             cancellationToken);
@@ -310,7 +310,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
         };
     }
 
-    private static ProfileOperationResult? ValidateRequiredCompanyFields(ManagementCompanyProfileUpdateRequest request)
+    private static ProfileOperationResult? ValidateRequiredCompanyFields(CompanyProfileUpdateRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
         {

@@ -92,7 +92,7 @@ public class ManagementUnitProfileService : IManagementUnitProfileService
         ManagementUnitDashboardContext context,
         CancellationToken cancellationToken = default)
     {
-        var hasDeleteRole = await ManagementProfileDeleteAuthorization.HasDeletePermissionAsync(
+        var hasDeleteRole = await ProfileDeleteAuthorization.HasDeletePermissionAsync(
             _dbContext,
             context.ManagementCompanyId,
             context.AppUserId,
@@ -100,7 +100,7 @@ public class ManagementUnitProfileService : IManagementUnitProfileService
 
         if (!hasDeleteRole)
         {
-            return ManagementProfileDeleteAuthorization.ForbiddenResult();
+            return ProfileDeleteAuthorization.ForbiddenResult();
         }
 
         var unit = await _dbContext.Units
@@ -121,7 +121,7 @@ public class ManagementUnitProfileService : IManagementUnitProfileService
             .Select(t => t.Id)
             .ToListAsync(cancellationToken);
 
-        await ManagementProfileDeleteOrchestrator.DeleteTicketsAsync(_dbContext, ticketIds, cancellationToken);
+        await ProfileDeleteOrchestrator.DeleteTicketsAsync(_dbContext, ticketIds, cancellationToken);
 
         await _dbContext.Leases
             .Where(l => l.UnitId == unit.Id)

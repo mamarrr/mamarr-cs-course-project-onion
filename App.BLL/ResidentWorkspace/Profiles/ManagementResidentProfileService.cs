@@ -114,7 +114,7 @@ public class ManagementResidentProfileService : IManagementResidentProfileServic
         ManagementResidentDashboardContext context,
         CancellationToken cancellationToken = default)
     {
-        var hasDeleteRole = await ManagementProfileDeleteAuthorization.HasDeletePermissionAsync(
+        var hasDeleteRole = await ProfileDeleteAuthorization.HasDeletePermissionAsync(
             _dbContext,
             context.ManagementCompanyId,
             context.AppUserId,
@@ -122,7 +122,7 @@ public class ManagementResidentProfileService : IManagementResidentProfileServic
 
         if (!hasDeleteRole)
         {
-            return ManagementProfileDeleteAuthorization.ForbiddenResult();
+            return ProfileDeleteAuthorization.ForbiddenResult();
         }
 
         var resident = await _dbContext.Residents
@@ -143,7 +143,7 @@ public class ManagementResidentProfileService : IManagementResidentProfileServic
             .Select(t => t.Id)
             .ToListAsync(cancellationToken);
 
-        await ManagementProfileDeleteOrchestrator.DeleteTicketsAsync(_dbContext, ticketIds, cancellationToken);
+        await ProfileDeleteOrchestrator.DeleteTicketsAsync(_dbContext, ticketIds, cancellationToken);
 
         await _dbContext.CustomerRepresentatives
             .Where(cr => cr.ResidentId == resident.Id)
@@ -166,7 +166,7 @@ public class ManagementResidentProfileService : IManagementResidentProfileServic
             .Where(rc => rc.ResidentId == resident.Id)
             .ExecuteDeleteAsync(cancellationToken);
 
-        await ManagementProfileDeleteOrchestrator.DeleteContactsIfOrphanedAsync(
+        await ProfileDeleteOrchestrator.DeleteContactsIfOrphanedAsync(
             _dbContext,
             residentContactIds,
             cancellationToken);

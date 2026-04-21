@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.Shared.Policies;
 
-public static class ManagementMembershipPolicy
+public static class CompanyMembershipPolicy
 {
     public const string OwnerRoleCode = "OWNER";
     public const string ManagerRoleCode = "MANAGER";

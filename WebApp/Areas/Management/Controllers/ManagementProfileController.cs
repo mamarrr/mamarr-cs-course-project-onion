@@ -70,7 +70,7 @@ public class ManagementProfileController : ManagementPageShellController
         var result = await _managementCompanyProfileService.UpdateProfileAsync(
             appUserId.Value,
             companySlug,
-            new ManagementCompanyProfileUpdateRequest
+            new CompanyProfileUpdateRequest
             {
                 Name = edit.Name,
                 RegistryCode = edit.RegistryCode,
@@ -159,7 +159,7 @@ public class ManagementProfileController : ManagementPageShellController
     }
 
     private async Task<ManagementCompanyProfilePageViewModel> BuildViewModelAsync(
-        ManagementCompanyProfileModel profile,
+        CompanyProfileModel profile,
         ManagementCompanyProfileEditViewModel? edit,
         CancellationToken cancellationToken)
     {

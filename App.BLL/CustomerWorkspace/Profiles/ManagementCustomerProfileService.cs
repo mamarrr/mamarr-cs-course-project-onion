@@ -121,7 +121,7 @@ public class ManagementCustomerProfileService : IManagementCustomerProfileServic
         ManagementCustomerDashboardContext context,
         CancellationToken cancellationToken = default)
     {
-        var hasDeleteRole = await ManagementProfileDeleteAuthorization.HasDeletePermissionAsync(
+        var hasDeleteRole = await ProfileDeleteAuthorization.HasDeletePermissionAsync(
             _dbContext,
             context.ManagementCompanyId,
             context.AppUserId,
@@ -129,7 +129,7 @@ public class ManagementCustomerProfileService : IManagementCustomerProfileServic
 
         if (!hasDeleteRole)
         {
-            return ManagementProfileDeleteAuthorization.ForbiddenResult();
+            return ProfileDeleteAuthorization.ForbiddenResult();
         }
 
         var customer = await _dbContext.Customers
@@ -163,7 +163,7 @@ public class ManagementCustomerProfileService : IManagementCustomerProfileServic
             .Select(t => t.Id)
             .ToListAsync(cancellationToken);
 
-        await ManagementProfileDeleteOrchestrator.DeleteTicketsAsync(_dbContext, ticketIds, cancellationToken);
+        await ProfileDeleteOrchestrator.DeleteTicketsAsync(_dbContext, ticketIds, cancellationToken);
 
         await _dbContext.CustomerRepresentatives
             .Where(cr => cr.CustomerId == customer.Id)
