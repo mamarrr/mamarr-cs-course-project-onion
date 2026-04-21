@@ -21,18 +21,18 @@ public class PropertyUnitsController : Controller
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IManagementPropertyUnitService _managementPropertyUnitService;
+    private readonly IPropertyUnitService _propertyUnitService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public PropertyUnitsController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IManagementPropertyUnitService managementPropertyUnitService,
+        IPropertyUnitService propertyUnitService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _managementPropertyUnitService = managementPropertyUnitService;
+        _propertyUnitService = propertyUnitService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
@@ -74,9 +74,9 @@ public class PropertyUnitsController : Controller
             return View("~/Areas/Property/Views/Units/Index.cshtml", invalidVm);
         }
 
-        var createResult = await _managementPropertyUnitService.CreateUnitAsync(
+        var createResult = await _propertyUnitService.CreateUnitAsync(
             access.context!,
-            new ManagementPropertyUnitCreateRequest
+            new UnitCreateRequest
             {
                 UnitNr = vm.AddUnit.UnitNr,
                 FloorNr = vm.AddUnit.FloorNr,
@@ -171,7 +171,7 @@ public class PropertyUnitsController : Controller
         CancellationToken cancellationToken,
         AddUnitViewModel? addUnitOverride = null)
     {
-        var listResult = await _managementPropertyUnitService.ListUnitsAsync(context, cancellationToken);
+        var listResult = await _propertyUnitService.ListUnitsAsync(context, cancellationToken);
         var propertyLayout = new PropertyLayoutViewModel
         {
             CompanySlug = context.CompanySlug,

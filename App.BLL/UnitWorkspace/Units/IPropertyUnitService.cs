@@ -3,14 +3,14 @@ using App.BLL.UnitWorkspace.Workspace;
 
 namespace App.BLL.UnitWorkspace.Units;
 
-public interface IManagementPropertyUnitService
+public interface IPropertyUnitService
 {
-    Task<ManagementPropertyUnitListResult> ListUnitsAsync(
+    Task<PropertyUnitListResult> ListUnitsAsync(
         PropertyDashboardContext context,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementPropertyUnitCreateResult> CreateUnitAsync(
+    Task<UnitCreateResult> CreateUnitAsync(
         PropertyDashboardContext context,
-        ManagementPropertyUnitCreateRequest request,
+        UnitCreateRequest request,
         CancellationToken cancellationToken = default);
 }

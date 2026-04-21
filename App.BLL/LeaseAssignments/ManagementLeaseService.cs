@@ -55,7 +55,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     public async Task<ManagementUnitLeaseListResult> ListForUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         var leases = await _dbContext.Leases
@@ -101,7 +101,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     public Task<ManagementLeaseDetailsResult> GetForUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         Guid leaseId,
         CancellationToken cancellationToken = default)
     {
@@ -144,7 +144,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     public async Task<ManagementLeaseCommandResult> CreateFromUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         ManagementLeaseCreateRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -198,7 +198,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     public async Task<ManagementLeaseCommandResult> UpdateFromUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         ManagementLeaseUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -248,7 +248,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     public async Task<ManagementLeaseCommandResult> DeleteFromUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         ManagementLeaseDeleteRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -376,7 +376,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     private async Task<CreateValidationResult> ValidateCreateFromUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         ManagementLeaseCreateRequest request,
         CancellationToken cancellationToken)
     {
@@ -495,7 +495,7 @@ public class ManagementLeaseService : IManagementLeaseService
     }
 
     private async Task<UpdateValidationResult> ValidateUpdateFromUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         ManagementLeaseUpdateRequest request,
         CancellationToken cancellationToken)
     {

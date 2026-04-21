@@ -170,10 +170,10 @@ public class ApiProfileSliceControllerTests
         var customerContext = BuildCustomerContext();
         var propertyContext = BuildPropertyContext(customerContext);
 
-        var unitDashboardService = new Mock<IManagementUnitDashboardService>();
+        var unitDashboardService = new Mock<IUnitAccessService>();
         unitDashboardService
             .Setup(x => x.ResolveUnitDashboardContextAsync(propertyContext, "u-404", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementUnitDashboardAccessResult { UnitNotFound = true });
+            .ReturnsAsync(new UnitDashboardAccessResult { UnitNotFound = true });
 
         var controller = CreateUnitDashboardController(
             BuildPrincipal(),
@@ -355,7 +355,7 @@ public class ApiProfileSliceControllerTests
         PropertyDashboardContext? propertyContext = null,
         Mock<ICustomerAccessService>? customerAccessService = null,
         Mock<IPropertyWorkspaceService>? propertyAccessService = null,
-        Mock<IManagementUnitDashboardService>? unitDashboardService = null)
+        Mock<IUnitAccessService>? unitDashboardService = null)
     {
         customerContext ??= BuildCustomerContext();
         propertyContext ??= BuildPropertyContext(customerContext);
@@ -369,7 +369,7 @@ public class ApiProfileSliceControllerTests
             .Setup(x => x.ResolvePropertyDashboardContextAsync(customerContext, propertyContext.PropertySlug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PropertyDashboardAccessResult { IsAuthorized = true, Context = propertyContext });
 
-        unitDashboardService ??= new Mock<IManagementUnitDashboardService>();
+        unitDashboardService ??= new Mock<IUnitAccessService>();
 
         return AttachControllerContext(new UnitDashboardController(customerAccessService.Object, propertyAccessService.Object, unitDashboardService.Object), user);
     }
@@ -378,10 +378,10 @@ public class ApiProfileSliceControllerTests
         ClaimsPrincipal user,
         CustomerWorkspaceDashboardContext? customerContext = null,
         PropertyDashboardContext? propertyContext = null,
-        ManagementUnitDashboardContext? unitContext = null,
+        UnitDashboardContext? unitContext = null,
         Mock<ICustomerAccessService>? customerAccessService = null,
         Mock<IPropertyWorkspaceService>? propertyAccessService = null,
-        Mock<IManagementUnitDashboardService>? unitDashboardService = null,
+        Mock<IUnitAccessService>? unitDashboardService = null,
         Mock<IManagementUnitProfileService>? profileService = null)
     {
         unitContext ??= BuildUnitContext();
@@ -397,10 +397,10 @@ public class ApiProfileSliceControllerTests
             .Setup(x => x.ResolvePropertyDashboardContextAsync(customerContext, propertyContext.PropertySlug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PropertyDashboardAccessResult { IsAuthorized = true, Context = propertyContext });
 
-        unitDashboardService ??= new Mock<IManagementUnitDashboardService>();
+        unitDashboardService ??= new Mock<IUnitAccessService>();
         unitDashboardService
             .Setup(x => x.ResolveUnitDashboardContextAsync(propertyContext, unitContext.UnitSlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ManagementUnitDashboardAccessResult { IsAuthorized = true, Context = unitContext });
+            .ReturnsAsync(new UnitDashboardAccessResult { IsAuthorized = true, Context = unitContext });
 
         profileService ??= new Mock<IManagementUnitProfileService>();
 
@@ -466,7 +466,7 @@ public class ApiProfileSliceControllerTests
         return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuthType"));
     }
 
-    private static CustomerWorkspaceDashboardContext BuildCustomerContext(ManagementUnitDashboardContext? unitContext = null)
+    private static CustomerWorkspaceDashboardContext BuildCustomerContext(UnitDashboardContext? unitContext = null)
     {
         return new CustomerWorkspaceDashboardContext
         {
@@ -482,7 +482,7 @@ public class ApiProfileSliceControllerTests
 
     private static PropertyDashboardContext BuildPropertyContext(
         CustomerWorkspaceDashboardContext? customerContext = null,
-        ManagementUnitDashboardContext? unitContext = null)
+        UnitDashboardContext? unitContext = null)
     {
         customerContext ??= BuildCustomerContext(unitContext);
         return new PropertyDashboardContext
@@ -500,9 +500,9 @@ public class ApiProfileSliceControllerTests
         };
     }
 
-    private static ManagementUnitDashboardContext BuildUnitContext()
+    private static UnitDashboardContext BuildUnitContext()
     {
-        return new ManagementUnitDashboardContext
+        return new UnitDashboardContext
         {
             AppUserId = Guid.NewGuid(),
             ManagementCompanyId = Guid.NewGuid(),

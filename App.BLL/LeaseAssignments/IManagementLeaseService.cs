@@ -10,7 +10,7 @@ public interface IManagementLeaseService
         CancellationToken cancellationToken = default);
 
     Task<ManagementUnitLeaseListResult> ListForUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseDetailsResult> GetForResidentAsync(
@@ -19,7 +19,7 @@ public interface IManagementLeaseService
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseDetailsResult> GetForUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         Guid leaseId,
         CancellationToken cancellationToken = default);
 
@@ -29,7 +29,7 @@ public interface IManagementLeaseService
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseCommandResult> CreateFromUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         ManagementLeaseCreateRequest request,
         CancellationToken cancellationToken = default);
 
@@ -39,7 +39,7 @@ public interface IManagementLeaseService
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseCommandResult> UpdateFromUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         ManagementLeaseUpdateRequest request,
         CancellationToken cancellationToken = default);
 
@@ -49,7 +49,7 @@ public interface IManagementLeaseService
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseCommandResult> DeleteFromUnitAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         ManagementLeaseDeleteRequest request,
         CancellationToken cancellationToken = default);
 }

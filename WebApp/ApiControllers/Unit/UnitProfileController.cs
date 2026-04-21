@@ -24,18 +24,18 @@ public class UnitProfileController : ProfileApiControllerBase
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IManagementUnitDashboardService _managementUnitDashboardService;
+    private readonly IUnitAccessService _unitAccessService;
     private readonly IManagementUnitProfileService _managementUnitProfileService;
 
     public UnitProfileController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IManagementUnitDashboardService managementUnitDashboardService,
+        IUnitAccessService unitAccessService,
         IManagementUnitProfileService managementUnitProfileService)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _managementUnitDashboardService = managementUnitDashboardService;
+        _unitAccessService = unitAccessService;
         _managementUnitProfileService = managementUnitProfileService;
     }
 
@@ -196,7 +196,7 @@ public class UnitProfileController : ProfileApiControllerBase
         return NoContent();
     }
 
-    private async Task<(ManagementUnitDashboardContext? Context, ActionResult? ErrorResult)> ResolveUnitContextAsync(
+    private async Task<(UnitDashboardContext? Context, ActionResult? ErrorResult)> ResolveUnitContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -240,7 +240,7 @@ public class UnitProfileController : ProfileApiControllerBase
             return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
         }
 
-        var unitAccess = await _managementUnitDashboardService.ResolveUnitDashboardContextAsync(
+        var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
             propertyAccess.Context,
             unitSlug,
             cancellationToken);
@@ -258,7 +258,7 @@ public class UnitProfileController : ProfileApiControllerBase
         return (unitAccess.Context, null);
     }
 
-    private static UnitProfileDto MapProfile(UnitProfileModel profile, ManagementUnitDashboardContext context)
+    private static UnitProfileDto MapProfile(UnitProfileModel profile, UnitDashboardContext context)
     {
         return new UnitProfileDto
         {

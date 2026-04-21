@@ -17,7 +17,7 @@ public class ManagementUnitProfileService : IManagementUnitProfileService
     }
 
     public async Task<UnitProfileModel?> GetProfileAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         return await _dbContext.Units
@@ -37,7 +37,7 @@ public class ManagementUnitProfileService : IManagementUnitProfileService
     }
 
     public async Task<ProfileOperationResult> UpdateProfileAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         UnitProfileUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -89,7 +89,7 @@ public class ManagementUnitProfileService : IManagementUnitProfileService
     }
 
     public async Task<ProfileOperationResult> DeleteProfileAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         CancellationToken cancellationToken = default)
     {
         var hasDeleteRole = await ProfileDeleteAuthorization.HasDeletePermissionAsync(

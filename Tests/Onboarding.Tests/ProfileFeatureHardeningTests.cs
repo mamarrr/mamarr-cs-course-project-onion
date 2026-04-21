@@ -286,7 +286,7 @@ public class ProfileFeatureHardeningTests
         await db.SaveChangesAsync();
 
         return new UnitFixture(
-            new ManagementUnitDashboardContext
+            new UnitDashboardContext
             {
                 AppUserId = actor.Id,
                 ManagementCompanyId = company.Id,
@@ -720,7 +720,7 @@ public class ProfileFeatureHardeningTests
         CompanyAreaAuthorizationResult AuthorizationResult);
 
     private sealed record UnitFixture(
-        ManagementUnitDashboardContext Context,
+        UnitDashboardContext Context,
         Unit Unit);
 
     private sealed class FakeCompanyMembershipAdminService : ICompanyMembershipAdminService

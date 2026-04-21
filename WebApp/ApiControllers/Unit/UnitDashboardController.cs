@@ -22,16 +22,16 @@ public class UnitDashboardController : ProfileApiControllerBase
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IManagementUnitDashboardService _managementUnitDashboardService;
+    private readonly IUnitAccessService _unitAccessService;
 
     public UnitDashboardController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IManagementUnitDashboardService managementUnitDashboardService)
+        IUnitAccessService unitAccessService)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _managementUnitDashboardService = managementUnitDashboardService;
+        _unitAccessService = unitAccessService;
     }
 
     [HttpGet]
@@ -74,7 +74,7 @@ public class UnitDashboardController : ProfileApiControllerBase
         });
     }
 
-    private async Task<(ManagementUnitDashboardContext? Context, ActionResult? ErrorResult)> ResolveUnitContextAsync(
+    private async Task<(UnitDashboardContext? Context, ActionResult? ErrorResult)> ResolveUnitContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -118,7 +118,7 @@ public class UnitDashboardController : ProfileApiControllerBase
             return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
         }
 
-        var unitAccess = await _managementUnitDashboardService.ResolveUnitDashboardContextAsync(
+        var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
             propertyAccess.Context,
             unitSlug,
             cancellationToken);

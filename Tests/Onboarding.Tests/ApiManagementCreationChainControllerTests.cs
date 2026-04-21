@@ -277,7 +277,7 @@ public class ApiManagementCreationChainControllerTests
 
     private static PropertyUnitsControllerApi CreatePropertyUnitsController(CustomerWorkspaceWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
     {
-        var unitService = new ManagementPropertyUnitService(dbContext);
+        var unitService = new UnitWorkspaceService(dbContext);
         return new PropertyUnitsControllerApi(workspaceService, workspaceService, unitService)
         {
             ControllerContext = new ControllerContext

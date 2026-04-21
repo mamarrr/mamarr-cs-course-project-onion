@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.UnitWorkspace.Workspace;
 
-public class ManagementPropertyUnitService :
-    IManagementPropertyUnitService,
-    IManagementUnitDashboardService
+public class UnitWorkspaceService :
+    IPropertyUnitService,
+    IUnitAccessService
 {
     private const int MinFloorNr = -200;
     private const int MaxFloorNr = 300;
@@ -20,12 +20,12 @@ public class ManagementPropertyUnitService :
 
     private readonly AppDbContext _dbContext;
 
-    public ManagementPropertyUnitService(AppDbContext dbContext)
+    public UnitWorkspaceService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<ManagementPropertyUnitListResult> ListUnitsAsync(
+    public async Task<PropertyUnitListResult> ListUnitsAsync(
         PropertyDashboardContext context,
         CancellationToken cancellationToken = default)
     {
@@ -35,7 +35,7 @@ public class ManagementPropertyUnitService :
             .OrderBy(u => u.UnitNr)
             .ThenBy(u => u.FloorNr)
             .ThenBy(u => u.Id)
-            .Select(u => new ManagementPropertyUnitListItem
+            .Select(u => new PropertyUnitListItem
             {
                 UnitId = u.Id,
                 UnitSlug = u.Slug,
@@ -45,21 +45,21 @@ public class ManagementPropertyUnitService :
             })
             .ToListAsync(cancellationToken);
 
-        return new ManagementPropertyUnitListResult
+        return new PropertyUnitListResult
         {
             Units = units
         };
     }
 
-    public async Task<ManagementPropertyUnitCreateResult> CreateUnitAsync(
+    public async Task<UnitCreateResult> CreateUnitAsync(
         PropertyDashboardContext context,
-        ManagementPropertyUnitCreateRequest request,
+        UnitCreateRequest request,
         CancellationToken cancellationToken = default)
     {
         var normalizedUnitNr = request.UnitNr?.Trim();
         if (string.IsNullOrWhiteSpace(normalizedUnitNr))
         {
-            return new ManagementPropertyUnitCreateResult
+            return new UnitCreateResult
             {
                 InvalidUnitNr = true,
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace(
@@ -71,7 +71,7 @@ public class ManagementPropertyUnitService :
         if (request.FloorNr.HasValue &&
             (request.FloorNr.Value < MinFloorNr || request.FloorNr.Value > MaxFloorNr))
         {
-            return new ManagementPropertyUnitCreateResult
+            return new UnitCreateResult
             {
                 InvalidFloorNr = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("InvalidData")
@@ -82,7 +82,7 @@ public class ManagementPropertyUnitService :
         if (request.SizeM2.HasValue &&
             (request.SizeM2.Value < MinSizeM2 || request.SizeM2.Value > MaxSizeM2))
         {
-            return new ManagementPropertyUnitCreateResult
+            return new UnitCreateResult
             {
                 InvalidSizeM2 = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("InvalidData")
@@ -118,7 +118,7 @@ public class ManagementPropertyUnitService :
         _dbContext.Units.Add(unit);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementPropertyUnitCreateResult
+        return new UnitCreateResult
         {
             Success = true,
             CreatedUnitId = unit.Id,
@@ -126,7 +126,7 @@ public class ManagementPropertyUnitService :
         };
     }
 
-    public async Task<ManagementUnitDashboardAccessResult> ResolveUnitDashboardContextAsync(
+    public async Task<UnitDashboardAccessResult> ResolveUnitDashboardContextAsync(
         PropertyDashboardContext context,
         string unitSlug,
         CancellationToken cancellationToken = default)
@@ -134,7 +134,7 @@ public class ManagementPropertyUnitService :
         var normalizedUnitSlug = unitSlug.Trim();
         if (string.IsNullOrWhiteSpace(normalizedUnitSlug))
         {
-            return new ManagementUnitDashboardAccessResult
+            return new UnitDashboardAccessResult
             {
                 UnitNotFound = true
             };
@@ -153,16 +153,16 @@ public class ManagementPropertyUnitService :
 
         if (unit == null)
         {
-            return new ManagementUnitDashboardAccessResult
+            return new UnitDashboardAccessResult
             {
                 UnitNotFound = true
             };
         }
 
-        return new ManagementUnitDashboardAccessResult
+        return new UnitDashboardAccessResult
         {
             IsAuthorized = true,
-            Context = new ManagementUnitDashboardContext
+            Context = new UnitDashboardContext
             {
                 AppUserId = context.AppUserId,
                 ManagementCompanyId = context.ManagementCompanyId,

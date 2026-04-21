@@ -23,20 +23,20 @@ public class UnitTenantsController : ProfileApiControllerBase
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IManagementUnitDashboardService _managementUnitDashboardService;
+    private readonly IUnitAccessService _unitAccessService;
     private readonly IManagementLeaseService _managementLeaseService;
     private readonly IManagementLeaseSearchService _managementLeaseSearchService;
 
     public UnitTenantsController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IManagementUnitDashboardService managementUnitDashboardService,
+        IUnitAccessService unitAccessService,
         IManagementLeaseService managementLeaseService,
         IManagementLeaseSearchService managementLeaseSearchService)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _managementUnitDashboardService = managementUnitDashboardService;
+        _unitAccessService = unitAccessService;
         _managementLeaseService = managementLeaseService;
         _managementLeaseSearchService = managementLeaseSearchService;
     }
@@ -248,7 +248,7 @@ public class UnitTenantsController : ProfileApiControllerBase
         return NoContent();
     }
 
-    private async Task<(ManagementUnitDashboardContext? Context, ActionResult? ErrorResult)> ResolveUnitContextAsync(
+    private async Task<(UnitDashboardContext? Context, ActionResult? ErrorResult)> ResolveUnitContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -292,7 +292,7 @@ public class UnitTenantsController : ProfileApiControllerBase
             return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
         }
 
-        var unitAccess = await _managementUnitDashboardService.ResolveUnitDashboardContextAsync(
+        var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
             propertyAccess.Context,
             unitSlug,
             cancellationToken);
@@ -375,7 +375,7 @@ public class UnitTenantsController : ProfileApiControllerBase
         };
     }
 
-    private static ApiRouteContextDto CreateRouteContext(ManagementUnitDashboardContext context)
+    private static ApiRouteContextDto CreateRouteContext(UnitDashboardContext context)
     {
         return new ApiRouteContextDto
         {

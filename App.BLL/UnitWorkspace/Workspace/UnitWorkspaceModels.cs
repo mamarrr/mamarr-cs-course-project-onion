@@ -1,11 +1,11 @@
 namespace App.BLL.UnitWorkspace.Workspace;
 
-public class ManagementPropertyUnitListResult
+public class PropertyUnitListResult
 {
-    public IReadOnlyList<ManagementPropertyUnitListItem> Units { get; set; } = Array.Empty<ManagementPropertyUnitListItem>();
+    public IReadOnlyList<PropertyUnitListItem> Units { get; set; } = Array.Empty<PropertyUnitListItem>();
 }
 
-public class ManagementPropertyUnitListItem
+public class PropertyUnitListItem
 {
     public Guid UnitId { get; set; }
     public string UnitSlug { get; set; } = default!;
@@ -14,7 +14,7 @@ public class ManagementPropertyUnitListItem
     public decimal? SizeM2 { get; set; }
 }
 
-public class ManagementPropertyUnitCreateRequest
+public class UnitCreateRequest
 {
     public string UnitNr { get; set; } = default!;
     public int? FloorNr { get; set; }
@@ -22,7 +22,7 @@ public class ManagementPropertyUnitCreateRequest
     public string? Notes { get; set; }
 }
 
-public class ManagementPropertyUnitCreateResult
+public class UnitCreateResult
 {
     public bool Success { get; set; }
     public bool InvalidUnitNr { get; set; }
@@ -33,15 +33,15 @@ public class ManagementPropertyUnitCreateResult
     public string? ErrorMessage { get; set; }
 }
 
-public class ManagementUnitDashboardAccessResult
+public class UnitDashboardAccessResult
 {
     public bool IsAuthorized { get; set; }
     public bool UnitNotFound { get; set; }
     public string? ErrorMessage { get; set; }
-    public ManagementUnitDashboardContext? Context { get; set; }
+    public UnitDashboardContext? Context { get; set; }
 }
 
-public class ManagementUnitDashboardContext
+public class UnitDashboardContext
 {
     public Guid AppUserId { get; set; }
     public Guid ManagementCompanyId { get; set; }

@@ -19,18 +19,18 @@ public class UnitDashboardController : Controller
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IManagementUnitDashboardService _managementUnitDashboardService;
+    private readonly IUnitAccessService _unitAccessService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public UnitDashboardController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IManagementUnitDashboardService managementUnitDashboardService,
+        IUnitAccessService unitAccessService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _managementUnitDashboardService = managementUnitDashboardService;
+        _unitAccessService = unitAccessService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
@@ -160,7 +160,7 @@ public class UnitDashboardController : Controller
         };
     }
 
-    private async Task<(IActionResult? response, ManagementUnitDashboardContext? context)> ResolveUnitContextAsync(
+    private async Task<(IActionResult? response, UnitDashboardContext? context)> ResolveUnitContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -204,7 +204,7 @@ public class UnitDashboardController : Controller
             return (Forbid(), null);
         }
 
-        var unitAccess = await _managementUnitDashboardService.ResolveUnitDashboardContextAsync(
+        var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
             propertyAccess.Context,
             unitSlug,
             cancellationToken);

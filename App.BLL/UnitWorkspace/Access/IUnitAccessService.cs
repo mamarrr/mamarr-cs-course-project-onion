@@ -3,9 +3,9 @@ using App.BLL.UnitWorkspace.Workspace;
 
 namespace App.BLL.UnitWorkspace.Access;
 
-public interface IManagementUnitDashboardService
+public interface IUnitAccessService
 {
-    Task<ManagementUnitDashboardAccessResult> ResolveUnitDashboardContextAsync(
+    Task<UnitDashboardAccessResult> ResolveUnitDashboardContextAsync(
         PropertyDashboardContext context,
         string unitSlug,
         CancellationToken cancellationToken = default);

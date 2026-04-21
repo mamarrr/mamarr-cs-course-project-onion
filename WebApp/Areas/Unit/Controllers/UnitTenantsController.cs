@@ -24,7 +24,7 @@ public class UnitTenantsController : Controller
 
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IManagementUnitDashboardService _managementUnitDashboardService;
+    private readonly IUnitAccessService _unitAccessService;
     private readonly IManagementLeaseService _managementLeaseService;
     private readonly IManagementLeaseSearchService _managementLeaseSearchService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
@@ -32,14 +32,14 @@ public class UnitTenantsController : Controller
     public UnitTenantsController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IManagementUnitDashboardService managementUnitDashboardService,
+        IUnitAccessService unitAccessService,
         IManagementLeaseService managementLeaseService,
         IManagementLeaseSearchService managementLeaseSearchService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _managementUnitDashboardService = managementUnitDashboardService;
+        _unitAccessService = unitAccessService;
         _managementLeaseService = managementLeaseService;
         _managementLeaseSearchService = managementLeaseSearchService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
@@ -237,7 +237,7 @@ public class UnitTenantsController : Controller
         return RedirectToAction(nameof(Index), new { companySlug, customerSlug, propertySlug, unitSlug });
     }
 
-    private async Task<(IActionResult? response, ManagementUnitDashboardContext? context)> ResolveUnitContextAsync(
+    private async Task<(IActionResult? response, UnitDashboardContext? context)> ResolveUnitContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -281,7 +281,7 @@ public class UnitTenantsController : Controller
             return (Forbid(), null);
         }
 
-        var unitAccess = await _managementUnitDashboardService.ResolveUnitDashboardContextAsync(
+        var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
             propertyAccess.Context,
             unitSlug,
             cancellationToken);
@@ -300,7 +300,7 @@ public class UnitTenantsController : Controller
     }
 
     private async Task<UnitTenantsPageViewModel> BuildPageViewModelAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         CancellationToken cancellationToken,
         AddUnitLeaseViewModel? addOverride = null,
         EditUnitLeaseViewModel? editOverride = null,

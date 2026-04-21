@@ -16,7 +16,7 @@ public interface IManagementLeaseSearchService
         CancellationToken cancellationToken = default);
 
     Task<ManagementLeaseResidentSearchResult> SearchResidentsAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         string? searchTerm,
         CancellationToken cancellationToken = default);
 

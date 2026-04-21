@@ -21,20 +21,20 @@ public class UnitProfileController : Controller
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IManagementUnitDashboardService _managementUnitDashboardService;
+    private readonly IUnitAccessService _unitAccessService;
     private readonly IManagementUnitProfileService _managementUnitProfileService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public UnitProfileController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IManagementUnitDashboardService managementUnitDashboardService,
+        IUnitAccessService unitAccessService,
         IManagementUnitProfileService managementUnitProfileService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _managementUnitDashboardService = managementUnitDashboardService;
+        _unitAccessService = unitAccessService;
         _managementUnitProfileService = managementUnitProfileService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
@@ -175,7 +175,7 @@ public class UnitProfileController : Controller
     }
 
     private async Task<UnitProfilePageViewModel> BuildViewModelAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         UnitProfileModel profile,
         UnitProfileEditViewModel? edit,
         CancellationToken cancellationToken)
@@ -206,7 +206,7 @@ public class UnitProfileController : Controller
     }
 
     private async Task<UnitPageShellViewModel> BuildPageShellAsync(
-        ManagementUnitDashboardContext context,
+        UnitDashboardContext context,
         CancellationToken cancellationToken)
     {
         var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
@@ -240,7 +240,7 @@ public class UnitProfileController : Controller
         };
     }
 
-    private async Task<(IActionResult? response, ManagementUnitDashboardContext? context)> ResolveAccessAsync(
+    private async Task<(IActionResult? response, UnitDashboardContext? context)> ResolveAccessAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -284,7 +284,7 @@ public class UnitProfileController : Controller
             return (Forbid(), null);
         }
 
-        var unitAccess = await _managementUnitDashboardService.ResolveUnitDashboardContextAsync(
+        var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
             propertyAccess.Context,
             unitSlug,
             cancellationToken);

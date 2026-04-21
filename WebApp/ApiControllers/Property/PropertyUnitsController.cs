@@ -22,16 +22,16 @@ public class PropertyUnitsController : ControllerBase
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IManagementPropertyUnitService _managementPropertyUnitService;
+    private readonly IPropertyUnitService _propertyUnitService;
 
     public PropertyUnitsController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IManagementPropertyUnitService managementPropertyUnitService)
+        IPropertyUnitService propertyUnitService)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _managementPropertyUnitService = managementPropertyUnitService;
+        _propertyUnitService = propertyUnitService;
     }
 
     [HttpGet]
@@ -53,7 +53,7 @@ public class PropertyUnitsController : ControllerBase
         }
 
         var context = access.Context!;
-        var result = await _managementPropertyUnitService.ListUnitsAsync(context, cancellationToken);
+        var result = await _propertyUnitService.ListUnitsAsync(context, cancellationToken);
 
         return Ok(new PropertyUnitsResponseDto
         {
@@ -95,9 +95,9 @@ public class PropertyUnitsController : ControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _managementPropertyUnitService.CreateUnitAsync(
+        var result = await _propertyUnitService.CreateUnitAsync(
             access.Context!,
-            new ManagementPropertyUnitCreateRequest
+            new UnitCreateRequest
             {
                 UnitNr = dto.UnitNr,
                 FloorNr = dto.FloorNr,
