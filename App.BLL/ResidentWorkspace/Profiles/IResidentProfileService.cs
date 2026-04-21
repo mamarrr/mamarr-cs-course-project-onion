@@ -3,7 +3,7 @@ using App.BLL.Shared.Profiles;
 
 namespace App.BLL.ResidentWorkspace.Profiles;
 
-public interface IManagementResidentProfileService
+public interface IResidentProfileService
 {
     Task<ResidentProfileModel?> GetProfileAsync(
         ResidentDashboardContext context,

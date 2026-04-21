@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.CustomerWorkspace.Profiles;
 
-public class ManagementCustomerProfileService : IManagementCustomerProfileService
+public class CustomerProfileService : ICustomerProfileService
 {
     private readonly AppDbContext _dbContext;
 
-    public ManagementCustomerProfileService(AppDbContext dbContext)
+    public CustomerProfileService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }

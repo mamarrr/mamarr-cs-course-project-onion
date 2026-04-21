@@ -3,7 +3,7 @@ using App.BLL.Shared.Profiles;
 
 namespace App.BLL.CustomerWorkspace.Profiles;
 
-public interface IManagementCustomerProfileService
+public interface ICustomerProfileService
 {
     Task<CustomerProfileModel?> GetProfileAsync(
         CustomerWorkspaceDashboardContext context,

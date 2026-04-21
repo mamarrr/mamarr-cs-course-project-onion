@@ -53,7 +53,7 @@ public class ProfileFeatureHardeningTests
     {
         await using var db = CreateDbContext();
         var fixture = await SeedCustomerFixtureAsync(db, "MANAGER");
-        var sut = new ManagementCustomerProfileService(db);
+        var sut = new CustomerProfileService(db);
 
         var result = await sut.UpdateProfileAsync(
             fixture.Context,
@@ -79,7 +79,7 @@ public class ProfileFeatureHardeningTests
     {
         await using var db = CreateDbContext();
         var fixture = await SeedUnitFixtureAsync(db, "OWNER");
-        var sut = new ManagementUnitProfileService(db);
+        var sut = new UnitProfileService(db);
 
         var result = await sut.UpdateProfileAsync(
             fixture.Context,
@@ -105,7 +105,7 @@ public class ProfileFeatureHardeningTests
     {
         await using var db = CreateDbContext();
         var fixture = await SeedCustomerFixtureAsync(db, "FINANCE");
-        var sut = new ManagementCustomerProfileService(db);
+        var sut = new CustomerProfileService(db);
 
         var result = await sut.DeleteProfileAsync(fixture.Context);
 
@@ -120,7 +120,7 @@ public class ProfileFeatureHardeningTests
     {
         await using var db = CreateDbContext();
         var fixture = await SeedCustomerFixtureAsync(db, "MANAGER");
-        var sut = new ManagementCustomerProfileService(db);
+        var sut = new CustomerProfileService(db);
 
         var result = await sut.UpdateProfileAsync(
             fixture.Context,
@@ -144,7 +144,7 @@ public class ProfileFeatureHardeningTests
     {
         await using var db = CreateDbContext();
         var fixture = await SeedPropertyDeletionFixtureAsync(db, "OWNER");
-        var sut = new ManagementPropertyProfileService(db);
+        var sut = new PropertyProfileService(db);
 
         var result = await sut.DeleteProfileAsync(fixture.Context);
 
@@ -169,7 +169,7 @@ public class ProfileFeatureHardeningTests
     {
         await using var db = CreateDbContext();
         var fixture = await SeedResidentDeletionFixtureAsync(db, "OWNER");
-        var sut = new ManagementResidentProfileService(db);
+        var sut = new ResidentProfileService(db);
 
         var result = await sut.DeleteProfileAsync(fixture.Context);
 

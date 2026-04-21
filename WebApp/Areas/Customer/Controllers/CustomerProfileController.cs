@@ -19,16 +19,16 @@ namespace WebApp.Areas.Customer.Controllers;
 public class CustomerProfileController : Controller
 {
     private readonly ICustomerAccessService _customerAccessService;
-    private readonly IManagementCustomerProfileService _managementCustomerProfileService;
+    private readonly ICustomerProfileService _customerProfileService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public CustomerProfileController(
         ICustomerAccessService customerAccessService,
-        IManagementCustomerProfileService managementCustomerProfileService,
+        ICustomerProfileService customerProfileService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _customerAccessService = customerAccessService;
-        _managementCustomerProfileService = managementCustomerProfileService;
+        _customerProfileService = customerProfileService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
@@ -41,7 +41,7 @@ public class CustomerProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementCustomerProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _customerProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -64,7 +64,7 @@ public class CustomerProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementCustomerProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _customerProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -76,7 +76,7 @@ public class CustomerProfileController : Controller
             return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
         }
 
-        var result = await _managementCustomerProfileService.UpdateProfileAsync(
+        var result = await _customerProfileService.UpdateProfileAsync(
             access.context!,
             new CustomerProfileUpdateRequest
             {
@@ -124,7 +124,7 @@ public class CustomerProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementCustomerProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _customerProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -137,7 +137,7 @@ public class CustomerProfileController : Controller
             return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
         }
 
-        var result = await _managementCustomerProfileService.DeleteProfileAsync(access.context!, cancellationToken);
+        var result = await _customerProfileService.DeleteProfileAsync(access.context!, cancellationToken);
         if (result.NotFound)
         {
             return NotFound();

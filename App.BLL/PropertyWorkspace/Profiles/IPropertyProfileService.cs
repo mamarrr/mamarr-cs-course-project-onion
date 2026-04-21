@@ -3,7 +3,7 @@ using App.BLL.Shared.Profiles;
 
 namespace App.BLL.PropertyWorkspace.Profiles;
 
-public interface IManagementPropertyProfileService
+public interface IPropertyProfileService
 {
     Task<PropertyProfileModel?> GetProfileAsync(
         PropertyDashboardContext context,

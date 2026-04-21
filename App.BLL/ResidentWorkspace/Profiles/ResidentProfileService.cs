@@ -6,11 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.ResidentWorkspace.Profiles;
 
-public class ManagementResidentProfileService : IManagementResidentProfileService
+public class ResidentProfileService : IResidentProfileService
 {
     private readonly AppDbContext _dbContext;
 
-    public ManagementResidentProfileService(AppDbContext dbContext)
+    public ResidentProfileService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }

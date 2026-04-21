@@ -3,7 +3,7 @@ using App.BLL.UnitWorkspace.Workspace;
 
 namespace App.BLL.UnitWorkspace.Profiles;
 
-public interface IManagementUnitProfileService
+public interface IUnitProfileService
 {
     Task<UnitProfileModel?> GetProfileAsync(
         UnitDashboardContext context,

@@ -18,16 +18,16 @@ namespace WebApp.Areas.Resident.Controllers;
 public class ResidentProfileController : Controller
 {
     private readonly IResidentAccessService _residentAccessService;
-    private readonly IManagementResidentProfileService _managementResidentProfileService;
+    private readonly IResidentProfileService _residentProfileService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public ResidentProfileController(
         IResidentAccessService residentAccessService,
-        IManagementResidentProfileService managementResidentProfileService,
+        IResidentProfileService residentProfileService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _residentAccessService = residentAccessService;
-        _managementResidentProfileService = managementResidentProfileService;
+        _residentProfileService = residentProfileService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
@@ -40,7 +40,7 @@ public class ResidentProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementResidentProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _residentProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -63,7 +63,7 @@ public class ResidentProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementResidentProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _residentProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -75,7 +75,7 @@ public class ResidentProfileController : Controller
             return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
         }
 
-        var result = await _managementResidentProfileService.UpdateProfileAsync(
+        var result = await _residentProfileService.UpdateProfileAsync(
             access.context!,
             new ResidentProfileUpdateRequest
             {
@@ -122,7 +122,7 @@ public class ResidentProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementResidentProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _residentProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -135,7 +135,7 @@ public class ResidentProfileController : Controller
             return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
         }
 
-        var result = await _managementResidentProfileService.DeleteProfileAsync(access.context!, cancellationToken);
+        var result = await _residentProfileService.DeleteProfileAsync(access.context!, cancellationToken);
         if (result.NotFound)
         {
             return NotFound();

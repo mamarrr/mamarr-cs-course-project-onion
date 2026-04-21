@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.UnitWorkspace.Profiles;
 
-public class ManagementUnitProfileService : IManagementUnitProfileService
+public class UnitProfileService : IUnitProfileService
 {
     private readonly AppDbContext _dbContext;
 
-    public ManagementUnitProfileService(AppDbContext dbContext)
+    public UnitProfileService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }

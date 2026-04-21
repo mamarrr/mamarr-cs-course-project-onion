@@ -22,20 +22,20 @@ public class UnitProfileController : Controller
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IUnitAccessService _unitAccessService;
-    private readonly IManagementUnitProfileService _managementUnitProfileService;
+    private readonly IUnitProfileService _unitProfileService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public UnitProfileController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
         IUnitAccessService unitAccessService,
-        IManagementUnitProfileService managementUnitProfileService,
+        IUnitProfileService unitProfileService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
-        _managementUnitProfileService = managementUnitProfileService;
+        _unitProfileService = unitProfileService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
@@ -53,7 +53,7 @@ public class UnitProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementUnitProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _unitProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -78,7 +78,7 @@ public class UnitProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementUnitProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _unitProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -90,7 +90,7 @@ public class UnitProfileController : Controller
             return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
         }
 
-        var result = await _managementUnitProfileService.UpdateProfileAsync(
+        var result = await _unitProfileService.UpdateProfileAsync(
             access.context!,
             new UnitProfileUpdateRequest
             {
@@ -139,7 +139,7 @@ public class UnitProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementUnitProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _unitProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -152,7 +152,7 @@ public class UnitProfileController : Controller
             return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
         }
 
-        var result = await _managementUnitProfileService.DeleteProfileAsync(access.context!, cancellationToken);
+        var result = await _unitProfileService.DeleteProfileAsync(access.context!, cancellationToken);
         if (result.NotFound)
         {
             return NotFound();

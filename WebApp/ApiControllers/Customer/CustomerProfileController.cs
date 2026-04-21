@@ -21,14 +21,14 @@ namespace WebApp.ApiControllers.Customer;
 public class CustomerProfileController : ProfileApiControllerBase
 {
     private readonly ICustomerAccessService _customerAccessService;
-    private readonly IManagementCustomerProfileService _managementCustomerProfileService;
+    private readonly ICustomerProfileService _customerProfileService;
 
     public CustomerProfileController(
         ICustomerAccessService customerAccessService,
-        IManagementCustomerProfileService managementCustomerProfileService)
+        ICustomerProfileService customerProfileService)
     {
         _customerAccessService = customerAccessService;
-        _managementCustomerProfileService = managementCustomerProfileService;
+        _customerProfileService = customerProfileService;
     }
 
     [HttpGet]
@@ -48,7 +48,7 @@ public class CustomerProfileController : ProfileApiControllerBase
             return access.ErrorResult;
         }
 
-        var profile = await _managementCustomerProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _customerProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Customer profile was not found.", ApiErrorCodes.NotFound));
@@ -85,7 +85,7 @@ public class CustomerProfileController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _managementCustomerProfileService.UpdateProfileAsync(
+        var result = await _customerProfileService.UpdateProfileAsync(
             access.Context!,
             new CustomerProfileUpdateRequest
             {
@@ -119,7 +119,7 @@ public class CustomerProfileController : ProfileApiControllerBase
                     : (string.Empty, result.ErrorMessage ?? "Unable to update customer profile.")));
         }
 
-        var profile = await _managementCustomerProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _customerProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Customer profile was not found.", ApiErrorCodes.NotFound));
@@ -155,7 +155,7 @@ public class CustomerProfileController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var profile = await _managementCustomerProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _customerProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Customer profile was not found.", ApiErrorCodes.NotFound));
@@ -170,7 +170,7 @@ public class CustomerProfileController : ProfileApiControllerBase
                 (nameof(dto.ConfirmationName), "Delete confirmation does not match the current customer name.")));
         }
 
-        var result = await _managementCustomerProfileService.DeleteProfileAsync(access.Context!, cancellationToken);
+        var result = await _customerProfileService.DeleteProfileAsync(access.Context!, cancellationToken);
         if (result.NotFound)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Customer profile was not found.", ApiErrorCodes.NotFound));

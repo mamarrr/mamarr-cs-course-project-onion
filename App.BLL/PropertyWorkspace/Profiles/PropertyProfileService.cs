@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.PropertyWorkspace.Profiles;
 
-public class ManagementPropertyProfileService : IManagementPropertyProfileService
+public class PropertyProfileService : IPropertyProfileService
 {
     private readonly AppDbContext _dbContext;
 
-    public ManagementPropertyProfileService(AppDbContext dbContext)
+    public PropertyProfileService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }

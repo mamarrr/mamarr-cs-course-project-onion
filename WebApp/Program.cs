@@ -104,10 +104,10 @@ builder.Services.AddScoped<IUnitAccessService, UnitWorkspaceService>();
 builder.Services.AddScoped<ILeaseAssignmentService, LeaseAssignmentService>();
 builder.Services.AddScoped<ILeaseLookupService, LeaseLookupService>();
 builder.Services.AddScoped<IManagementCompanyProfileService, ManagementCompanyProfileService>();
-builder.Services.AddScoped<IManagementCustomerProfileService, ManagementCustomerProfileService>();
-builder.Services.AddScoped<IManagementPropertyProfileService, ManagementPropertyProfileService>();
-builder.Services.AddScoped<IManagementUnitProfileService, ManagementUnitProfileService>();
-builder.Services.AddScoped<IManagementResidentProfileService, ManagementResidentProfileService>();
+builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+builder.Services.AddScoped<IPropertyProfileService, PropertyProfileService>();
+builder.Services.AddScoped<IUnitProfileService, UnitProfileService>();
+builder.Services.AddScoped<IResidentProfileService, ResidentProfileService>();
 builder.Services.AddScoped<IWorkspaceLayoutContextProvider, WorkspaceLayoutContextProvider>();
 builder.Services.AddScoped<IManagementLayoutViewModelProvider, ManagementLayoutViewModelProvider>();
 

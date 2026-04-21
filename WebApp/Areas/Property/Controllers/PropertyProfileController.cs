@@ -21,18 +21,18 @@ public class PropertyProfileController : Controller
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IManagementPropertyProfileService _managementPropertyProfileService;
+    private readonly IPropertyProfileService _propertyProfileService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public PropertyProfileController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IManagementPropertyProfileService managementPropertyProfileService,
+        IPropertyProfileService propertyProfileService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _managementPropertyProfileService = managementPropertyProfileService;
+        _propertyProfileService = propertyProfileService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
@@ -49,7 +49,7 @@ public class PropertyProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementPropertyProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _propertyProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -73,7 +73,7 @@ public class PropertyProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementPropertyProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _propertyProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -85,7 +85,7 @@ public class PropertyProfileController : Controller
             return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
         }
 
-        var result = await _managementPropertyProfileService.UpdateProfileAsync(
+        var result = await _propertyProfileService.UpdateProfileAsync(
             access.context!,
             new PropertyProfileUpdateRequest
             {
@@ -134,7 +134,7 @@ public class PropertyProfileController : Controller
             return access.response;
         }
 
-        var profile = await _managementPropertyProfileService.GetProfileAsync(access.context!, cancellationToken);
+        var profile = await _propertyProfileService.GetProfileAsync(access.context!, cancellationToken);
         if (profile == null)
         {
             return NotFound();
@@ -147,7 +147,7 @@ public class PropertyProfileController : Controller
             return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
         }
 
-        var result = await _managementPropertyProfileService.DeleteProfileAsync(access.context!, cancellationToken);
+        var result = await _propertyProfileService.DeleteProfileAsync(access.context!, cancellationToken);
         if (result.NotFound)
         {
             return NotFound();

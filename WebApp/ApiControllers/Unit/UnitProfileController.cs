@@ -25,18 +25,18 @@ public class UnitProfileController : ProfileApiControllerBase
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IUnitAccessService _unitAccessService;
-    private readonly IManagementUnitProfileService _managementUnitProfileService;
+    private readonly IUnitProfileService _unitProfileService;
 
     public UnitProfileController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
         IUnitAccessService unitAccessService,
-        IManagementUnitProfileService managementUnitProfileService)
+        IUnitProfileService unitProfileService)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
-        _managementUnitProfileService = managementUnitProfileService;
+        _unitProfileService = unitProfileService;
     }
 
     [HttpGet]
@@ -58,7 +58,7 @@ public class UnitProfileController : ProfileApiControllerBase
             return access.ErrorResult;
         }
 
-        var profile = await _managementUnitProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _unitProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Unit profile was not found.", ApiErrorCodes.NotFound));
@@ -97,7 +97,7 @@ public class UnitProfileController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _managementUnitProfileService.UpdateProfileAsync(
+        var result = await _unitProfileService.UpdateProfileAsync(
             access.Context!,
             new UnitProfileUpdateRequest
             {
@@ -124,7 +124,7 @@ public class UnitProfileController : ProfileApiControllerBase
             return BadRequest(CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? "Unable to update unit profile.", ApiErrorCodes.BusinessRuleViolation));
         }
 
-        var profile = await _managementUnitProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _unitProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Unit profile was not found.", ApiErrorCodes.NotFound));
@@ -162,7 +162,7 @@ public class UnitProfileController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var profile = await _managementUnitProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _unitProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Unit profile was not found.", ApiErrorCodes.NotFound));
@@ -177,7 +177,7 @@ public class UnitProfileController : ProfileApiControllerBase
                 (nameof(dto.ConfirmationUnitNr), "Delete confirmation does not match the current unit number.")));
         }
 
-        var result = await _managementUnitProfileService.DeleteProfileAsync(access.Context!, cancellationToken);
+        var result = await _unitProfileService.DeleteProfileAsync(access.Context!, cancellationToken);
         if (result.NotFound)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Unit profile was not found.", ApiErrorCodes.NotFound));

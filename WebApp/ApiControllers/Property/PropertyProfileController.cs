@@ -23,16 +23,16 @@ public class PropertyProfileController : ProfileApiControllerBase
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IManagementPropertyProfileService _managementPropertyProfileService;
+    private readonly IPropertyProfileService _propertyProfileService;
 
     public PropertyProfileController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IManagementPropertyProfileService managementPropertyProfileService)
+        IPropertyProfileService propertyProfileService)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _managementPropertyProfileService = managementPropertyProfileService;
+        _propertyProfileService = propertyProfileService;
     }
 
     [HttpGet]
@@ -53,7 +53,7 @@ public class PropertyProfileController : ProfileApiControllerBase
             return access.ErrorResult;
         }
 
-        var profile = await _managementPropertyProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _propertyProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Property profile was not found.", ApiErrorCodes.NotFound));
@@ -91,7 +91,7 @@ public class PropertyProfileController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _managementPropertyProfileService.UpdateProfileAsync(
+        var result = await _propertyProfileService.UpdateProfileAsync(
             access.Context!,
             new PropertyProfileUpdateRequest
             {
@@ -119,7 +119,7 @@ public class PropertyProfileController : ProfileApiControllerBase
             return BadRequest(CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? "Unable to update property profile.", ApiErrorCodes.BusinessRuleViolation));
         }
 
-        var profile = await _managementPropertyProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _propertyProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Property profile was not found.", ApiErrorCodes.NotFound));
@@ -156,7 +156,7 @@ public class PropertyProfileController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var profile = await _managementPropertyProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _propertyProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Property profile was not found.", ApiErrorCodes.NotFound));
@@ -171,7 +171,7 @@ public class PropertyProfileController : ProfileApiControllerBase
                 (nameof(dto.ConfirmationName), "Delete confirmation does not match the current property name.")));
         }
 
-        var result = await _managementPropertyProfileService.DeleteProfileAsync(access.Context!, cancellationToken);
+        var result = await _propertyProfileService.DeleteProfileAsync(access.Context!, cancellationToken);
         if (result.NotFound)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Property profile was not found.", ApiErrorCodes.NotFound));

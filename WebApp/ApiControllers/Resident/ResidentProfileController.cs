@@ -21,14 +21,14 @@ namespace WebApp.ApiControllers.Resident;
 public class ResidentProfileController : ProfileApiControllerBase
 {
     private readonly IResidentAccessService _residentAccessService;
-    private readonly IManagementResidentProfileService _managementResidentProfileService;
+    private readonly IResidentProfileService _residentProfileService;
 
     public ResidentProfileController(
         IResidentAccessService residentAccessService,
-        IManagementResidentProfileService managementResidentProfileService)
+        IResidentProfileService residentProfileService)
     {
         _residentAccessService = residentAccessService;
-        _managementResidentProfileService = managementResidentProfileService;
+        _residentProfileService = residentProfileService;
     }
 
     [HttpGet]
@@ -48,7 +48,7 @@ public class ResidentProfileController : ProfileApiControllerBase
             return access.ErrorResult;
         }
 
-        var profile = await _managementResidentProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _residentProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Resident profile was not found.", ApiErrorCodes.NotFound));
@@ -85,7 +85,7 @@ public class ResidentProfileController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _managementResidentProfileService.UpdateProfileAsync(
+        var result = await _residentProfileService.UpdateProfileAsync(
             access.Context!,
             new ResidentProfileUpdateRequest
             {
@@ -118,7 +118,7 @@ public class ResidentProfileController : ProfileApiControllerBase
                     : (string.Empty, result.ErrorMessage ?? "Unable to update resident profile.")));
         }
 
-        var profile = await _managementResidentProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _residentProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Resident profile was not found.", ApiErrorCodes.NotFound));
@@ -154,7 +154,7 @@ public class ResidentProfileController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var profile = await _managementResidentProfileService.GetProfileAsync(access.Context!, cancellationToken);
+        var profile = await _residentProfileService.GetProfileAsync(access.Context!, cancellationToken);
         if (profile == null)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Resident profile was not found.", ApiErrorCodes.NotFound));
@@ -169,7 +169,7 @@ public class ResidentProfileController : ProfileApiControllerBase
                 (nameof(dto.ConfirmationIdCode), "Delete confirmation does not match the current resident ID code.")));
         }
 
-        var result = await _managementResidentProfileService.DeleteProfileAsync(access.Context!, cancellationToken);
+        var result = await _residentProfileService.DeleteProfileAsync(access.Context!, cancellationToken);
         if (result.NotFound)
         {
             return NotFound(CreateError(HttpStatusCode.NotFound, "Resident profile was not found.", ApiErrorCodes.NotFound));

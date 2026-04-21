@@ -59,7 +59,7 @@ public class ApiProfileSliceControllerTests
     public async Task CustomerProfile_Delete_ReturnsBadRequest_WhenConfirmationMismatch()
     {
         var context = BuildCustomerContext();
-        var profileService = new Mock<IManagementCustomerProfileService>();
+        var profileService = new Mock<ICustomerProfileService>();
         profileService
             .Setup(x => x.GetProfileAsync(context, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CustomerProfileModel
@@ -91,7 +91,7 @@ public class ApiProfileSliceControllerTests
     public async Task CustomerProfile_Update_ReturnsBadRequest_WhenDuplicateRegistryCode()
     {
         var context = BuildCustomerContext();
-        var profileService = new Mock<IManagementCustomerProfileService>();
+        var profileService = new Mock<ICustomerProfileService>();
         profileService
             .Setup(x => x.UpdateProfileAsync(context, It.IsAny<CustomerProfileUpdateRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ProfileOperationResult
@@ -124,7 +124,7 @@ public class ApiProfileSliceControllerTests
     public async Task PropertyProfile_Update_ReturnsOk_WhenSuccessful()
     {
         var context = BuildPropertyContext();
-        var profileService = new Mock<IManagementPropertyProfileService>();
+        var profileService = new Mock<IPropertyProfileService>();
         profileService
             .Setup(x => x.UpdateProfileAsync(context, It.IsAny<PropertyProfileUpdateRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ProfileOperationResult { Success = true });
@@ -196,7 +196,7 @@ public class ApiProfileSliceControllerTests
     public async Task UnitProfile_Delete_ReturnsNoContent_WhenSuccessful()
     {
         var unitContext = BuildUnitContext();
-        var profileService = new Mock<IManagementUnitProfileService>();
+        var profileService = new Mock<IUnitProfileService>();
         profileService
             .Setup(x => x.GetProfileAsync(unitContext, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new UnitProfileModel
@@ -246,7 +246,7 @@ public class ApiProfileSliceControllerTests
     public async Task ResidentProfile_Update_ReturnsBadRequest_WhenDuplicateIdCode()
     {
         var context = BuildResidentContext();
-        var profileService = new Mock<IManagementResidentProfileService>();
+        var profileService = new Mock<IResidentProfileService>();
         profileService
             .Setup(x => x.UpdateProfileAsync(context, It.IsAny<ResidentProfileUpdateRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ProfileOperationResult
@@ -280,7 +280,7 @@ public class ApiProfileSliceControllerTests
     public async Task ResidentProfile_Delete_ReturnsBadRequest_WhenConfirmationMismatch()
     {
         var context = BuildResidentContext();
-        var profileService = new Mock<IManagementResidentProfileService>();
+        var profileService = new Mock<IResidentProfileService>();
         profileService
             .Setup(x => x.GetProfileAsync(context, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResidentProfileModel
@@ -311,7 +311,7 @@ public class ApiProfileSliceControllerTests
         ClaimsPrincipal user,
         Mock<ICustomerAccessService>? accessService = null,
         CustomerWorkspaceDashboardContext? accessContext = null,
-        Mock<IManagementCustomerProfileService>? profileService = null)
+        Mock<ICustomerProfileService>? profileService = null)
     {
         accessContext ??= BuildCustomerContext();
         accessService ??= new Mock<ICustomerAccessService>();
@@ -319,7 +319,7 @@ public class ApiProfileSliceControllerTests
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), accessContext.CompanySlug, accessContext.CustomerSlug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { IsAuthorized = true, Context = accessContext });
 
-        profileService ??= new Mock<IManagementCustomerProfileService>();
+        profileService ??= new Mock<ICustomerProfileService>();
 
         return AttachControllerContext(new CustomerProfileController(accessService.Object, profileService.Object), user);
     }
@@ -330,7 +330,7 @@ public class ApiProfileSliceControllerTests
         PropertyDashboardContext? propertyContext = null,
         Mock<ICustomerAccessService>? customerAccessService = null,
         Mock<IPropertyWorkspaceService>? propertyAccessService = null,
-        Mock<IManagementPropertyProfileService>? profileService = null)
+        Mock<IPropertyProfileService>? profileService = null)
     {
         customerContext ??= BuildCustomerContext();
         propertyContext ??= BuildPropertyContext(customerContext);
@@ -344,7 +344,7 @@ public class ApiProfileSliceControllerTests
             .Setup(x => x.ResolvePropertyDashboardContextAsync(customerContext, propertyContext.PropertySlug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new PropertyDashboardAccessResult { IsAuthorized = true, Context = propertyContext });
 
-        profileService ??= new Mock<IManagementPropertyProfileService>();
+        profileService ??= new Mock<IPropertyProfileService>();
 
         return AttachControllerContext(new PropertyProfileController(customerAccessService.Object, propertyAccessService.Object, profileService.Object), user);
     }
@@ -382,7 +382,7 @@ public class ApiProfileSliceControllerTests
         Mock<ICustomerAccessService>? customerAccessService = null,
         Mock<IPropertyWorkspaceService>? propertyAccessService = null,
         Mock<IUnitAccessService>? unitDashboardService = null,
-        Mock<IManagementUnitProfileService>? profileService = null)
+        Mock<IUnitProfileService>? profileService = null)
     {
         unitContext ??= BuildUnitContext();
         customerContext ??= BuildCustomerContext(unitContext);
@@ -402,7 +402,7 @@ public class ApiProfileSliceControllerTests
             .Setup(x => x.ResolveUnitDashboardContextAsync(propertyContext, unitContext.UnitSlug, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new UnitDashboardAccessResult { IsAuthorized = true, Context = unitContext });
 
-        profileService ??= new Mock<IManagementUnitProfileService>();
+        profileService ??= new Mock<IUnitProfileService>();
 
         return AttachControllerContext(new UnitProfileController(
             customerAccessService.Object,
@@ -429,7 +429,7 @@ public class ApiProfileSliceControllerTests
         ClaimsPrincipal user,
         Mock<IResidentAccessService>? accessService = null,
         ResidentDashboardContext? residentContext = null,
-        Mock<IManagementResidentProfileService>? profileService = null)
+        Mock<IResidentProfileService>? profileService = null)
     {
         residentContext ??= BuildResidentContext();
         accessService ??= new Mock<IResidentAccessService>();
@@ -437,7 +437,7 @@ public class ApiProfileSliceControllerTests
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), residentContext.CompanySlug, residentContext.ResidentIdCode, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ResidentDashboardAccessResult { IsAuthorized = true, Context = residentContext });
 
-        profileService ??= new Mock<IManagementResidentProfileService>();
+        profileService ??= new Mock<IResidentProfileService>();
 
         return AttachControllerContext(new ResidentProfileController(accessService.Object, profileService.Object), user);
     }
