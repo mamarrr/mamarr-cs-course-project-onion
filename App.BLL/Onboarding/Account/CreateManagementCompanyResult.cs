@@ -1,6 +1,6 @@
 namespace App.BLL.Onboarding.Account;
 
-public class OnboardingCreateManagementCompanyResult
+public class CreateManagementCompanyResult
 {
     public bool Succeeded { get; set; }
     public string[] Errors { get; set; } = [];

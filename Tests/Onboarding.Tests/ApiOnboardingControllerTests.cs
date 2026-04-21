@@ -109,8 +109,8 @@ public class ApiOnboardingControllerTests
         dbContext.SaveChanges();
 
         var userManager = CreateUserManagerMock(dbContext, appUser).Object;
-        var onboardingService = new OnboardingService(userManager, CreateSignInManagerMock(userManager).Object, dbContext);
-        var apiContextService = new ApiOnboardingContextService(dbContext, onboardingService);
+        var onboardingService = new AccountOnboardingService(userManager, CreateSignInManagerMock(userManager).Object, dbContext);
+        var apiContextService = new ApiWorkspaceContextService(dbContext, onboardingService);
         var routeContextMapper = new ApiOnboardingRouteContextMapper();
 
         var sut = new OnboardingController(apiContextService, routeContextMapper, onboardingService, userManager)

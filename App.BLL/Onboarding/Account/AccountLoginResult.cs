@@ -1,6 +1,6 @@
 namespace App.BLL.Onboarding.Account;
 
-public class OnboardingLoginResult
+public class AccountLoginResult
 {
     public bool Succeeded { get; set; }
 }

@@ -86,12 +86,12 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Home/AccessDenied";
 });
 
-builder.Services.AddScoped<IOnboardingService, OnboardingService>();
-builder.Services.AddScoped<IOnboardingContextService, OnboardingContextService>();
-builder.Services.AddScoped<IApiOnboardingContextService, ApiOnboardingContextService>();
+builder.Services.AddScoped<IAccountOnboardingService, AccountOnboardingService>();
+builder.Services.AddScoped<IWorkspaceRedirectService, WorkspaceRedirectService>();
+builder.Services.AddScoped<IApiOnboardingContextService, ApiWorkspaceContextService>();
 builder.Services.AddScoped<IApiOnboardingRouteContextMapper, ApiOnboardingRouteContextMapper>();
-builder.Services.AddScoped<IUserContextCatalogService, UserContextCatalogService>();
-builder.Services.AddScoped<IManagementCompanyJoinRequestService, ManagementCompanyJoinRequestService>();
+builder.Services.AddScoped<IUserWorkspaceCatalogService, UserWorkspaceCatalogService>();
+builder.Services.AddScoped<ICompanyJoinRequestService, CompanyJoinRequestService>();
 builder.Services.AddScoped<IManagementUserAdminService, ManagementUserAdminService>();
 builder.Services.AddScoped<IManagementCustomersService, ManagementCustomersService>();
 builder.Services.AddScoped<IManagementCustomerAccessService, ManagementCustomersService>();

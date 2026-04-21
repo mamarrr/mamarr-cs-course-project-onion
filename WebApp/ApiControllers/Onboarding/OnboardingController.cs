@@ -23,18 +23,18 @@ public class OnboardingController : ControllerBase
 {
     private readonly IApiOnboardingContextService _apiOnboardingContextService;
     private readonly IApiOnboardingRouteContextMapper _routeContextMapper;
-    private readonly IOnboardingService _onboardingService;
+    private readonly IAccountOnboardingService _accountOnboardingService;
     private readonly UserManager<AppUser> _userManager;
 
     public OnboardingController(
         IApiOnboardingContextService apiOnboardingContextService,
         IApiOnboardingRouteContextMapper routeContextMapper,
-        IOnboardingService onboardingService,
+        IAccountOnboardingService accountOnboardingService,
         UserManager<AppUser> userManager)
     {
         _apiOnboardingContextService = apiOnboardingContextService;
         _routeContextMapper = routeContextMapper;
-        _onboardingService = onboardingService;
+        _accountOnboardingService = accountOnboardingService;
         _userManager = userManager;
     }
 
@@ -76,7 +76,7 @@ public class OnboardingController : ControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _onboardingService.CreateManagementCompanyAsync(new OnboardingCreateManagementCompanyRequest
+        var result = await _accountOnboardingService.CreateManagementCompanyAsync(new CreateManagementCompanyRequest
         {
             AppUserId = appUser.Id,
             Name = dto.Name,

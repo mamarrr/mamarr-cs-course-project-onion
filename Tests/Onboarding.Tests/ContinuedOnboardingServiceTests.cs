@@ -39,8 +39,8 @@ public class ContinuedOnboardingServiceTests
         dbContext.ManagementCompanyRoles.Add(managerRole);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
-        var result = await sut.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
+        var sut = new CompanyJoinRequestService(dbContext, NullLogger<CompanyJoinRequestService>.Instance);
+        var result = await sut.CreateJoinRequestAsync(new CompanyJoinRequest
         {
             AppUserId = requester.Id,
             RegistryCode = company.RegistryCode,
@@ -75,8 +75,8 @@ public class ContinuedOnboardingServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
-        var result = await sut.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
+        var sut = new CompanyJoinRequestService(dbContext, NullLogger<CompanyJoinRequestService>.Instance);
+        var result = await sut.CreateJoinRequestAsync(new CompanyJoinRequest
         {
             AppUserId = requester.Id,
             RegistryCode = company.RegistryCode,
@@ -111,8 +111,8 @@ public class ContinuedOnboardingServiceTests
         });
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
-        var result = await sut.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
+        var sut = new CompanyJoinRequestService(dbContext, NullLogger<CompanyJoinRequestService>.Instance);
+        var result = await sut.CreateJoinRequestAsync(new CompanyJoinRequest
         {
             AppUserId = requester.Id,
             RegistryCode = company.RegistryCode,
@@ -159,7 +159,7 @@ public class ContinuedOnboardingServiceTests
         dbContext.ManagementCompanyJoinRequests.Add(request);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
+        var sut = new CompanyJoinRequestService(dbContext, NullLogger<CompanyJoinRequestService>.Instance);
         var result = await sut.ApproveRequestAsync(actor.Id, company.Id, request.Id);
 
         Assert.True(result.Forbidden);
@@ -202,7 +202,7 @@ public class ContinuedOnboardingServiceTests
         dbContext.ManagementCompanyJoinRequests.Add(request);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
+        var sut = new CompanyJoinRequestService(dbContext, NullLogger<CompanyJoinRequestService>.Instance);
         var first = await sut.RejectRequestAsync(actor.Id, company.Id, request.Id);
         var second = await sut.RejectRequestAsync(actor.Id, company.Id, request.Id);
 
@@ -247,7 +247,7 @@ public class ContinuedOnboardingServiceTests
         dbContext.ManagementCompanyJoinRequests.Add(requestInB);
         await dbContext.SaveChangesAsync();
 
-        var sut = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
+        var sut = new CompanyJoinRequestService(dbContext, NullLogger<CompanyJoinRequestService>.Instance);
         var result = await sut.ApproveRequestAsync(actor.Id, companyA.Id, requestInB.Id);
 
         Assert.True(result.NotFound);
@@ -369,18 +369,18 @@ public class ContinuedOnboardingServiceTests
         await dbContext.SaveChangesAsync();
 
         var onboardingService = CreateService(dbContext);
-        var contextService = new OnboardingContextService(dbContext, onboardingService);
+        var contextService = new WorkspaceRedirectService(dbContext, onboardingService);
 
         var result = await contextService.ResolveContextRedirectAsync(
             appUserId,
-            new OnboardingContextSelectionCookieState
+            new WorkspaceRedirectCookieState
             {
                 ContextType = "management",
                 ManagementCompanySlug = "north-estate"
             });
 
         Assert.NotNull(result);
-        Assert.Equal(OnboardingContextRedirectDestination.ManagementDashboard, result!.Destination);
+        Assert.Equal(WorkspaceRedirectDestination.ManagementDashboard, result!.Destination);
         Assert.Equal("north-estate", result.CompanySlug);
     }
 
@@ -394,7 +394,7 @@ public class ContinuedOnboardingServiceTests
         await dbContext.SaveChangesAsync();
 
         var onboardingService = CreateService(dbContext);
-        var contextService = new OnboardingContextService(dbContext, onboardingService);
+        var contextService = new WorkspaceRedirectService(dbContext, onboardingService);
         var unauthorizedCompanyId = Guid.NewGuid();
 
         var result = await contextService.AuthorizeContextSelectionAsync(appUserId, "management", unauthorizedCompanyId);
@@ -502,8 +502,8 @@ public class ContinuedOnboardingServiceTests
         userManager.SetupGet(x => x.Users).Returns(dbContext.Users);
         userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(appUser);
 
-        var onboardingService = new OnboardingService(userManager.Object, signInManager.Object, dbContext);
-        var onboardingContextService = new OnboardingContextService(dbContext, onboardingService);
+        var onboardingService = new AccountOnboardingService(userManager.Object, signInManager.Object, dbContext);
+        var onboardingContextService = new WorkspaceRedirectService(dbContext, onboardingService);
         var controller = new OnboardingController(
             onboardingService,
             onboardingContextService,
@@ -550,8 +550,8 @@ public class ContinuedOnboardingServiceTests
         userManager.SetupGet(x => x.Users).Returns(dbContext.Users);
         userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(appUser);
 
-        var onboardingService = new OnboardingService(userManager.Object, signInManager.Object, dbContext);
-        var onboardingContextService = new OnboardingContextService(dbContext, onboardingService);
+        var onboardingService = new AccountOnboardingService(userManager.Object, signInManager.Object, dbContext);
+        var onboardingContextService = new WorkspaceRedirectService(dbContext, onboardingService);
         var httpContext = new DefaultHttpContext
         {
             User = BuildAuthenticatedPrincipal()
@@ -627,8 +627,8 @@ public class ContinuedOnboardingServiceTests
         userManager.SetupGet(x => x.Users).Returns(dbContext.Users);
         userManager.Setup(x => x.GetUserAsync(It.IsAny<ClaimsPrincipal>())).ReturnsAsync(appUser);
 
-        var onboardingService = new OnboardingService(userManager.Object, signInManager.Object, dbContext);
-        var onboardingContextService = new OnboardingContextService(dbContext, onboardingService);
+        var onboardingService = new AccountOnboardingService(userManager.Object, signInManager.Object, dbContext);
+        var onboardingContextService = new WorkspaceRedirectService(dbContext, onboardingService);
         var httpContext = new DefaultHttpContext
         {
             User = BuildAuthenticatedPrincipal()
@@ -693,7 +693,7 @@ public class ContinuedOnboardingServiceTests
 
     private static async Task<(bool nextCalled, string? location, int statusCode)> InvokeMiddlewareAsync(
         ClaimsPrincipal user,
-        IOnboardingService onboardingService,
+        IAccountOnboardingService accountOnboardingService,
         UserManager<AppUser> userManager,
         string path)
     {
@@ -709,7 +709,7 @@ public class ContinuedOnboardingServiceTests
         httpContext.Request.Path = path;
         httpContext.User = user;
 
-        await middleware.InvokeAsync(httpContext, onboardingService, userManager);
+        await middleware.InvokeAsync(httpContext, accountOnboardingService, userManager);
 
         return (
             nextCalled,
@@ -776,13 +776,13 @@ public class ContinuedOnboardingServiceTests
         });
     }
 
-    private static OnboardingService CreateService(AppDbContext dbContext)
+    private static AccountOnboardingService CreateService(AppDbContext dbContext)
     {
         var userManager = CreateUserManagerMock();
         userManager.SetupGet(x => x.Users).Returns(dbContext.Users);
         var signInManager = CreateSignInManagerMock(userManager.Object);
 
-        return new OnboardingService(userManager.Object, signInManager.Object, dbContext);
+        return new AccountOnboardingService(userManager.Object, signInManager.Object, dbContext);
     }
 
     private static Mock<UserManager<AppUser>> CreateUserManagerMock()
@@ -812,9 +812,9 @@ public class ContinuedOnboardingServiceTests
             new DefaultUserConfirmation<AppUser>());
     }
 
-    private static Mock<IManagementCompanyJoinRequestService> CreateJoinRequestServiceMock()
+    private static Mock<ICompanyJoinRequestService> CreateJoinRequestServiceMock()
     {
-        return new Mock<IManagementCompanyJoinRequestService>();
+        return new Mock<ICompanyJoinRequestService>();
     }
 
     private static Mock<IManagementUserAdminService> CreateManagementUserAdminServiceMock()

@@ -23,7 +23,7 @@ public class OnboardingContextGuardMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context, IOnboardingService onboardingService, UserManager<AppUser> userManager)
+    public async Task InvokeAsync(HttpContext context, IAccountOnboardingService accountOnboardingService, UserManager<AppUser> userManager)
     {
         var path = context.Request.Path;
 
@@ -60,7 +60,7 @@ public class OnboardingContextGuardMiddleware
                 .FirstOrDefault();
 
             var hasManagementAccess = !string.IsNullOrWhiteSpace(companySlug) &&
-                                      await onboardingService.UserHasManagementCompanyAccessAsync(appUser.Id, companySlug);
+                                      await accountOnboardingService.UserHasManagementCompanyAccessAsync(appUser.Id, companySlug);
 
             if (!hasManagementAccess)
             {
@@ -72,7 +72,7 @@ public class OnboardingContextGuardMiddleware
             return;
         }
 
-        var hasContext = await onboardingService.HasAnyContextAsync(appUser.Id);
+        var hasContext = await accountOnboardingService.HasAnyContextAsync(appUser.Id);
         if (hasContext)
         {
             await _next(context);

@@ -1,22 +1,22 @@
 namespace App.BLL.Onboarding.CompanyJoinRequests;
 
-public interface IManagementCompanyJoinRequestService
+public interface ICompanyJoinRequestService
 {
-    Task<CreateManagementCompanyJoinRequestResult> CreateJoinRequestAsync(
-        CreateManagementCompanyJoinRequest request,
+    Task<CompanyJoinRequestResult> CreateJoinRequestAsync(
+        CompanyJoinRequest request,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<ManagementCompanyJoinRequestListItem>> ListPendingForCompanyAsync(
+    Task<IReadOnlyList<CompanyJoinRequestListItem>> ListPendingForCompanyAsync(
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
-    Task<ResolveManagementCompanyJoinRequestResult> ApproveRequestAsync(
+    Task<ResolveCompanyJoinRequestResult> ApproveRequestAsync(
         Guid actorAppUserId,
         Guid managementCompanyId,
         Guid requestId,
         CancellationToken cancellationToken = default);
 
-    Task<ResolveManagementCompanyJoinRequestResult> RejectRequestAsync(
+    Task<ResolveCompanyJoinRequestResult> RejectRequestAsync(
         Guid actorAppUserId,
         Guid managementCompanyId,
         Guid requestId,

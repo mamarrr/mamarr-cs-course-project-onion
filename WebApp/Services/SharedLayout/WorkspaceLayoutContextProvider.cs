@@ -9,14 +9,14 @@ namespace WebApp.Services.SharedLayout;
 
 public class WorkspaceLayoutContextProvider : IWorkspaceLayoutContextProvider
 {
-    private readonly IUserContextCatalogService _userContextCatalogService;
+    private readonly IUserWorkspaceCatalogService _userWorkspaceCatalogService;
     private readonly IOptions<RequestLocalizationOptions> _localizationOptions;
 
     public WorkspaceLayoutContextProvider(
-        IUserContextCatalogService userContextCatalogService,
+        IUserWorkspaceCatalogService userWorkspaceCatalogService,
         IOptions<RequestLocalizationOptions> localizationOptions)
     {
-        _userContextCatalogService = userContextCatalogService;
+        _userWorkspaceCatalogService = userWorkspaceCatalogService;
         _localizationOptions = localizationOptions;
     }
 
@@ -31,7 +31,7 @@ public class WorkspaceLayoutContextProvider : IWorkspaceLayoutContextProvider
             return BuildEmpty(request);
         }
 
-        var contextCatalog = await _userContextCatalogService.GetUserContextCatalogAsync(appUserId, request.CompanySlug, cancellationToken);
+        var contextCatalog = await _userWorkspaceCatalogService.GetUserContextCatalogAsync(appUserId, request.CompanySlug, cancellationToken);
 
         var cultureOptions = _localizationOptions.Value.SupportedUICultures!
             .Select(c => new WorkspaceLayoutCultureOptionViewModel

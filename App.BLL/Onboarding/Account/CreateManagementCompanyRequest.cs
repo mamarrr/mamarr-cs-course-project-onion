@@ -1,6 +1,6 @@
 namespace App.BLL.Onboarding.Account;
 
-public class OnboardingCreateManagementCompanyRequest
+public class CreateManagementCompanyRequest
 {
     public Guid AppUserId { get; set; }
     public string Name { get; set; } = default!;

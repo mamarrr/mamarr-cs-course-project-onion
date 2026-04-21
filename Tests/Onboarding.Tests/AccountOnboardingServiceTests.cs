@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Onboarding.Tests;
 
-public class OnboardingServiceTests
+public class AccountOnboardingServiceTests
 {
     [Fact]
     public async Task RegisterAsync_CreatesUserWithFirstAndLastName()
@@ -28,9 +28,9 @@ public class OnboardingServiceTests
             .Callback<AppUser, string>((user, _) => createdUser = user)
             .ReturnsAsync(IdentityResult.Success);
 
-        var sut = new OnboardingService(userManager.Object, signInManager.Object);
+        var sut = new AccountOnboardingService(userManager.Object, signInManager.Object);
 
-        var result = await sut.RegisterAsync(new OnboardingRegisterRequest
+        var result = await sut.RegisterAsync(new AccountRegisterRequest
         {
             Email = "new@user.test",
             Password = "Pass123!",
@@ -56,9 +56,9 @@ public class OnboardingServiceTests
             .Setup(m => m.FindByEmailAsync("existing@user.test"))
             .ReturnsAsync(new AppUser { Email = "existing@user.test", UserName = "existing@user.test", FirstName = "Ex", LastName = "User" });
 
-        var sut = new OnboardingService(userManager.Object, signInManager.Object);
+        var sut = new AccountOnboardingService(userManager.Object, signInManager.Object);
 
-        var result = await sut.RegisterAsync(new OnboardingRegisterRequest
+        var result = await sut.RegisterAsync(new AccountRegisterRequest
         {
             Email = "existing@user.test",
             Password = "Pass123!",

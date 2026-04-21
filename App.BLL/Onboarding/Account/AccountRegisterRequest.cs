@@ -1,6 +1,6 @@
 namespace App.BLL.Onboarding.Account;
 
-public class OnboardingRegisterRequest
+public class AccountRegisterRequest
 {
     public string Email { get; set; } = default!;
     public string Password { get; set; } = default!;

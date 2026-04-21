@@ -4,32 +4,32 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.Onboarding.ContextSelection;
 
-public class OnboardingContextService : IOnboardingContextService
+public class WorkspaceRedirectService : IWorkspaceRedirectService
 {
     private readonly AppDbContext _dbContext;
-    private readonly IOnboardingService _onboardingService;
+    private readonly IAccountOnboardingService _accountOnboardingService;
 
-    public OnboardingContextService(AppDbContext dbContext, IOnboardingService onboardingService)
+    public WorkspaceRedirectService(AppDbContext dbContext, IAccountOnboardingService accountOnboardingService)
     {
         _dbContext = dbContext;
-        _onboardingService = onboardingService;
+        _accountOnboardingService = accountOnboardingService;
     }
 
-    public async Task<OnboardingContextRedirectTarget?> ResolveContextRedirectAsync(
+    public async Task<WorkspaceRedirectTarget?> ResolveContextRedirectAsync(
         Guid appUserId,
-        OnboardingContextSelectionCookieState cookieState,
+        WorkspaceRedirectCookieState cookieState,
         CancellationToken cancellationToken = default)
     {
         if (cookieState.ContextType == "management" && !string.IsNullOrWhiteSpace(cookieState.ManagementCompanySlug))
         {
-            var hasSelectedManagementAccess = await _onboardingService.UserHasManagementCompanyAccessAsync(
+            var hasSelectedManagementAccess = await _accountOnboardingService.UserHasManagementCompanyAccessAsync(
                 appUserId,
                 cookieState.ManagementCompanySlug);
             if (hasSelectedManagementAccess)
             {
-                return new OnboardingContextRedirectTarget
+                return new WorkspaceRedirectTarget
                 {
-                    Destination = OnboardingContextRedirectDestination.ManagementDashboard,
+                    Destination = WorkspaceRedirectDestination.ManagementDashboard,
                     CompanySlug = cookieState.ManagementCompanySlug
                 };
             }
@@ -41,9 +41,9 @@ public class OnboardingContextService : IOnboardingContextService
                 .AnyAsync(x => x.AppUserId == appUserId && x.IsActive, cancellationToken);
             if (hasSelectedResidentContext)
             {
-                return new OnboardingContextRedirectTarget
+                return new WorkspaceRedirectTarget
                 {
-                    Destination = OnboardingContextRedirectDestination.ResidentDashboard
+                    Destination = WorkspaceRedirectDestination.ResidentDashboard
                 };
             }
         }
@@ -62,19 +62,19 @@ public class OnboardingContextService : IOnboardingContextService
                 .AnyAsync(cancellationToken);
             if (hasSelectedCustomerContext)
             {
-                return new OnboardingContextRedirectTarget
+                return new WorkspaceRedirectTarget
                 {
-                    Destination = OnboardingContextRedirectDestination.CustomerDashboard
+                    Destination = WorkspaceRedirectDestination.CustomerDashboard
                 };
             }
         }
 
-        var defaultManagementCompanySlug = await _onboardingService.GetDefaultManagementCompanySlugAsync(appUserId);
+        var defaultManagementCompanySlug = await _accountOnboardingService.GetDefaultManagementCompanySlugAsync(appUserId);
         if (!string.IsNullOrWhiteSpace(defaultManagementCompanySlug))
         {
-            return new OnboardingContextRedirectTarget
+            return new WorkspaceRedirectTarget
             {
-                Destination = OnboardingContextRedirectDestination.ManagementDashboard,
+                Destination = WorkspaceRedirectDestination.ManagementDashboard,
                 CompanySlug = defaultManagementCompanySlug
             };
         }
@@ -83,9 +83,9 @@ public class OnboardingContextService : IOnboardingContextService
             .AnyAsync(x => x.AppUserId == appUserId && x.IsActive, cancellationToken);
         if (hasResidentContext)
         {
-            return new OnboardingContextRedirectTarget
+            return new WorkspaceRedirectTarget
             {
-                Destination = OnboardingContextRedirectDestination.ResidentDashboard
+                Destination = WorkspaceRedirectDestination.ResidentDashboard
             };
         }
 
@@ -100,16 +100,16 @@ public class OnboardingContextService : IOnboardingContextService
             .AnyAsync(cancellationToken);
         if (hasCustomerContext)
         {
-            return new OnboardingContextRedirectTarget
+            return new WorkspaceRedirectTarget
             {
-                Destination = OnboardingContextRedirectDestination.CustomerDashboard
+                Destination = WorkspaceRedirectDestination.CustomerDashboard
             };
         }
 
         return null;
     }
 
-    public async Task<OnboardingContextSelectionAuthorizationResult> AuthorizeContextSelectionAsync(
+    public async Task<WorkspaceRedirectAuthorizationResult> AuthorizeContextSelectionAsync(
         Guid appUserId,
         string contextType,
         Guid? contextId,
@@ -122,7 +122,7 @@ public class OnboardingContextService : IOnboardingContextService
             case "management":
                 if (!contextId.HasValue)
                 {
-                    return new OnboardingContextSelectionAuthorizationResult { Authorized = false, NormalizedType = normalizedType };
+                    return new WorkspaceRedirectAuthorizationResult { Authorized = false, NormalizedType = normalizedType };
                 }
 
                 var managementCompany = await _dbContext.ManagementCompanyUsers
@@ -132,10 +132,10 @@ public class OnboardingContextService : IOnboardingContextService
 
                 if (managementCompany == null)
                 {
-                    return new OnboardingContextSelectionAuthorizationResult { Authorized = false, NormalizedType = normalizedType };
+                    return new WorkspaceRedirectAuthorizationResult { Authorized = false, NormalizedType = normalizedType };
                 }
 
-                return new OnboardingContextSelectionAuthorizationResult
+                return new WorkspaceRedirectAuthorizationResult
                 {
                     Authorized = true,
                     NormalizedType = normalizedType,
@@ -146,7 +146,7 @@ public class OnboardingContextService : IOnboardingContextService
             case "customer":
                 if (!contextId.HasValue)
                 {
-                    return new OnboardingContextSelectionAuthorizationResult { Authorized = false, NormalizedType = normalizedType };
+                    return new WorkspaceRedirectAuthorizationResult { Authorized = false, NormalizedType = normalizedType };
                 }
 
                 var hasCustomerContext = await (
@@ -160,7 +160,7 @@ public class OnboardingContextService : IOnboardingContextService
                         select customerRepresentative.Id)
                     .AnyAsync(cancellationToken);
 
-                return new OnboardingContextSelectionAuthorizationResult
+                return new WorkspaceRedirectAuthorizationResult
                 {
                     Authorized = hasCustomerContext,
                     NormalizedType = normalizedType,
@@ -171,14 +171,14 @@ public class OnboardingContextService : IOnboardingContextService
                 var hasResidentContext = await _dbContext.ResidentUsers
                     .AnyAsync(x => x.AppUserId == appUserId && x.IsActive, cancellationToken);
 
-                return new OnboardingContextSelectionAuthorizationResult
+                return new WorkspaceRedirectAuthorizationResult
                 {
                     Authorized = hasResidentContext,
                     NormalizedType = normalizedType
                 };
 
             default:
-                return new OnboardingContextSelectionAuthorizationResult
+                return new WorkspaceRedirectAuthorizationResult
                 {
                     Authorized = false,
                     NormalizedType = normalizedType

@@ -10,14 +10,14 @@ namespace WebApp.Services.ManagementLayout;
 public class ManagementLayoutViewModelProvider : IManagementLayoutViewModelProvider
 {
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
-    private readonly IUserContextCatalogService _userContextCatalogService;
+    private readonly IUserWorkspaceCatalogService _userWorkspaceCatalogService;
 
     public ManagementLayoutViewModelProvider(
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider,
-        IUserContextCatalogService userContextCatalogService)
+        IUserWorkspaceCatalogService userWorkspaceCatalogService)
     {
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
-        _userContextCatalogService = userContextCatalogService;
+        _userWorkspaceCatalogService = userWorkspaceCatalogService;
     }
 
     public async Task<ManagementLayoutViewModel> BuildAsync(
@@ -34,7 +34,7 @@ public class ManagementLayoutViewModelProvider : IManagementLayoutViewModelProvi
         var appUserIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
         if (Guid.TryParse(appUserIdValue, out var appUserId))
         {
-            var contextCatalog = await _userContextCatalogService.GetUserContextCatalogAsync(appUserId, request.CompanySlug, cancellationToken);
+            var contextCatalog = await _userWorkspaceCatalogService.GetUserContextCatalogAsync(appUserId, request.CompanySlug, cancellationToken);
             canManageCompanyUsers = contextCatalog.CanManageCompanyUsers;
         }
 

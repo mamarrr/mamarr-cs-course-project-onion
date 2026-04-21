@@ -1,13 +1,13 @@
 namespace App.BLL.Onboarding.ContextSelection;
 
-public interface IOnboardingContextService
+public interface IWorkspaceRedirectService
 {
-    Task<OnboardingContextRedirectTarget?> ResolveContextRedirectAsync(
+    Task<WorkspaceRedirectTarget?> ResolveContextRedirectAsync(
         Guid appUserId,
-        OnboardingContextSelectionCookieState cookieState,
+        WorkspaceRedirectCookieState cookieState,
         CancellationToken cancellationToken = default);
 
-    Task<OnboardingContextSelectionAuthorizationResult> AuthorizeContextSelectionAsync(
+    Task<WorkspaceRedirectAuthorizationResult> AuthorizeContextSelectionAsync(
         Guid appUserId,
         string contextType,
         Guid? contextId,

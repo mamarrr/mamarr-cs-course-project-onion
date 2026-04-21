@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace App.BLL.Onboarding.CompanyJoinRequests;
 
-public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequestService
+public class CompanyJoinRequestService : ICompanyJoinRequestService
 {
     private static readonly HashSet<string> ApproverRoleCodes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -16,25 +16,25 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
     };
 
     private readonly AppDbContext _dbContext;
-    private readonly ILogger<ManagementCompanyJoinRequestService> _logger;
+    private readonly ILogger<CompanyJoinRequestService> _logger;
 
-    public ManagementCompanyJoinRequestService(
+    public CompanyJoinRequestService(
         AppDbContext dbContext,
-        ILogger<ManagementCompanyJoinRequestService> logger)
+        ILogger<CompanyJoinRequestService> logger)
     {
         _dbContext = dbContext;
         _logger = logger;
     }
 
-    public async Task<CreateManagementCompanyJoinRequestResult> CreateJoinRequestAsync(
-        CreateManagementCompanyJoinRequest request,
+    public async Task<CompanyJoinRequestResult> CreateJoinRequestAsync(
+        CompanyJoinRequest request,
         CancellationToken cancellationToken = default)
     {
         var registryCode = request.RegistryCode.Trim();
         if (registryCode.Length == 0)
         {
             _logger.LogWarning("Join request validation failed: empty registry code. AppUserId={AppUserId}", request.AppUserId);
-            return new CreateManagementCompanyJoinRequestResult
+            return new CompanyJoinRequestResult
             {
                 UnknownRegistryCode = true,
                 ErrorMessage = L("ManagementCompanyWasNotFound", "Management company was not found.")
@@ -49,7 +49,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
         if (company == null)
         {
             _logger.LogWarning("Join request validation failed: company not found by registry code. AppUserId={AppUserId}; RegistryCode={RegistryCode}", request.AppUserId, registryCode);
-            return new CreateManagementCompanyJoinRequestResult
+            return new CompanyJoinRequestResult
             {
                 UnknownRegistryCode = true,
                 ErrorMessage = L("ManagementCompanyWasNotFound", "Management company was not found.")
@@ -63,7 +63,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
         if (!roleExists)
         {
             _logger.LogWarning("Join request validation failed: requested role does not exist. AppUserId={AppUserId}; RequestedRoleId={RequestedRoleId}", request.AppUserId, request.RequestedRoleId);
-            return new CreateManagementCompanyJoinRequestResult
+            return new CompanyJoinRequestResult
             {
                 InvalidRole = true,
                 ErrorMessage = L("SelectedRoleIsInvalid", "Selected role is invalid.")
@@ -79,7 +79,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
         if (membershipExists)
         {
             _logger.LogInformation("Join request skipped: user is already a member. AppUserId={AppUserId}; ManagementCompanyId={ManagementCompanyId}", request.AppUserId, company.Id);
-            return new CreateManagementCompanyJoinRequestResult
+            return new CompanyJoinRequestResult
             {
                 AlreadyMember = true,
                 ErrorMessage = L("AlreadyMemberOfThisManagementCompany", "You are already a member of this management company.")
@@ -96,7 +96,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
         if (duplicatePending)
         {
             _logger.LogInformation("Join request skipped: duplicate pending request exists. AppUserId={AppUserId}; ManagementCompanyId={ManagementCompanyId}", request.AppUserId, company.Id);
-            return new CreateManagementCompanyJoinRequestResult
+            return new CompanyJoinRequestResult
             {
                 DuplicatePendingRequest = true,
                 ErrorMessage = L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists.")
@@ -123,21 +123,21 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
         catch (DbUpdateException)
         {
             _logger.LogWarning("Join request save failed with DbUpdateException; returning duplicate pending response. AppUserId={AppUserId}; ManagementCompanyId={ManagementCompanyId}", request.AppUserId, company.Id);
-            return new CreateManagementCompanyJoinRequestResult
+            return new CompanyJoinRequestResult
             {
                 DuplicatePendingRequest = true,
                 ErrorMessage = L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists.")
             };
         }
 
-        return new CreateManagementCompanyJoinRequestResult
+        return new CompanyJoinRequestResult
         {
             Success = true,
             RequestId = joinRequest.Id
         };
     }
 
-    public async Task<IReadOnlyList<ManagementCompanyJoinRequestListItem>> ListPendingForCompanyAsync(
+    public async Task<IReadOnlyList<CompanyJoinRequestListItem>> ListPendingForCompanyAsync(
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
@@ -151,7 +151,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
             .ToListAsync(cancellationToken);
 
         return requests
-            .Select(x => new ManagementCompanyJoinRequestListItem
+            .Select(x => new CompanyJoinRequestListItem
             {
                 RequestId = x.Id,
                 AppUserId = x.AppUserId,
@@ -197,7 +197,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
         }
     }
 
-    public Task<ResolveManagementCompanyJoinRequestResult> ApproveRequestAsync(
+    public Task<ResolveCompanyJoinRequestResult> ApproveRequestAsync(
         Guid actorAppUserId,
         Guid managementCompanyId,
         Guid requestId,
@@ -212,7 +212,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
             cancellationToken);
     }
 
-    public Task<ResolveManagementCompanyJoinRequestResult> RejectRequestAsync(
+    public Task<ResolveCompanyJoinRequestResult> RejectRequestAsync(
         Guid actorAppUserId,
         Guid managementCompanyId,
         Guid requestId,
@@ -227,7 +227,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
             cancellationToken);
     }
 
-    private async Task<ResolveManagementCompanyJoinRequestResult> ResolveAsync(
+    private async Task<ResolveCompanyJoinRequestResult> ResolveAsync(
         Guid actorAppUserId,
         Guid managementCompanyId,
         Guid requestId,
@@ -247,7 +247,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
             || actorMembership.ManagementCompanyRole == null
             || !ApproverRoleCodes.Contains(actorMembership.ManagementCompanyRole.Code))
         {
-            return new ResolveManagementCompanyJoinRequestResult
+            return new ResolveCompanyJoinRequestResult
             {
                 Forbidden = true,
                 ErrorMessage = L("NoPermissionToResolveAccessRequests", "You do not have permission to resolve access requests.")
@@ -264,7 +264,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
 
         if (joinRequest == null)
         {
-            return new ResolveManagementCompanyJoinRequestResult
+            return new ResolveCompanyJoinRequestResult
             {
                 NotFound = true,
                 ErrorMessage = L("JoinRequestNotFound", "Join request not found.")
@@ -273,7 +273,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
 
         if (joinRequest.Status != ManagementCompanyJoinRequestStatus.Pending)
         {
-            return new ResolveManagementCompanyJoinRequestResult
+            return new ResolveCompanyJoinRequestResult
             {
                 AlreadyResolved = true,
                 ErrorMessage = L("JoinRequestAlreadyResolved", "Join request is already resolved.")
@@ -288,7 +288,7 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
 
         if (requesterMembershipExists)
         {
-            return new ResolveManagementCompanyJoinRequestResult
+            return new ResolveCompanyJoinRequestResult
             {
                 AlreadyMember = true,
                 ErrorMessage = L("RequesterAlreadyMemberOfThisCompany", "Requester is already a member of this company.")
@@ -324,14 +324,14 @@ public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequest
         catch (DbUpdateException)
         {
             await tx.RollbackAsync(cancellationToken);
-            return new ResolveManagementCompanyJoinRequestResult
+            return new ResolveCompanyJoinRequestResult
             {
                 AlreadyMember = true,
                 ErrorMessage = L("RequesterAlreadyMemberOfThisCompany", "Requester is already a member of this company.")
             };
         }
 
-        return new ResolveManagementCompanyJoinRequestResult
+        return new ResolveCompanyJoinRequestResult
         {
             Success = true
         };

@@ -345,7 +345,7 @@ public class ManagementUserAdminServiceTests
 
     private static ManagementUserAdminService CreateSut(AppDbContext dbContext)
     {
-        var joinRequestService = new ManagementCompanyJoinRequestService(dbContext, NullLogger<ManagementCompanyJoinRequestService>.Instance);
+        var joinRequestService = new CompanyJoinRequestService(dbContext, NullLogger<CompanyJoinRequestService>.Instance);
         return new ManagementUserAdminService(dbContext, joinRequestService, NullLogger<ManagementUserAdminService>.Instance);
     }
 

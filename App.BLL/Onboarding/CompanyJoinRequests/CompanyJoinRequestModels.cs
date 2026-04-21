@@ -1,6 +1,6 @@
 namespace App.BLL.Onboarding.CompanyJoinRequests;
 
-public class CreateManagementCompanyJoinRequest
+public class CompanyJoinRequest
 {
     public Guid AppUserId { get; set; }
     public string RegistryCode { get; set; } = default!;
@@ -8,7 +8,7 @@ public class CreateManagementCompanyJoinRequest
     public string? Message { get; set; }
 }
 
-public class CreateManagementCompanyJoinRequestResult
+public class CompanyJoinRequestResult
 {
     public bool Success { get; set; }
     public bool UnknownRegistryCode { get; set; }
@@ -19,7 +19,7 @@ public class CreateManagementCompanyJoinRequestResult
     public string? ErrorMessage { get; set; }
 }
 
-public class ManagementCompanyJoinRequestListItem
+public class CompanyJoinRequestListItem
 {
     public Guid RequestId { get; set; }
     public Guid AppUserId { get; set; }
@@ -32,7 +32,7 @@ public class ManagementCompanyJoinRequestListItem
     public DateTime CreatedAt { get; set; }
 }
 
-public class ResolveManagementCompanyJoinRequestResult
+public class ResolveCompanyJoinRequestResult
 {
     public bool Success { get; set; }
     public bool NotFound { get; set; }

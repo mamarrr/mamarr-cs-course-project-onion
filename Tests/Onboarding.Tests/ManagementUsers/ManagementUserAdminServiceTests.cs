@@ -259,10 +259,10 @@ public class ManagementUserAdminServiceTests
 
     private static ManagementUserAdminService CreateService(AppDbContext dbContext)
     {
-        var joinRequestService = new Mock<IManagementCompanyJoinRequestService>();
+        var joinRequestService = new Mock<ICompanyJoinRequestService>();
         joinRequestService
             .Setup(x => x.ListPendingForCompanyAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Array.Empty<ManagementCompanyJoinRequestListItem>());
+            .ReturnsAsync(Array.Empty<CompanyJoinRequestListItem>());
 
         return new ManagementUserAdminService(
             dbContext,

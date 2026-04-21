@@ -3,16 +3,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.Onboarding.WorkspaceCatalog;
 
-public class UserContextCatalogService : IUserContextCatalogService
+public class UserWorkspaceCatalogService : IUserWorkspaceCatalogService
 {
     private readonly AppDbContext _dbContext;
 
-    public UserContextCatalogService(AppDbContext dbContext)
+    public UserWorkspaceCatalogService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<UserContextCatalogResult> GetUserContextCatalogAsync(
+    public async Task<UserWorkspaceCatalogResult> GetUserContextCatalogAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
@@ -21,7 +21,7 @@ public class UserContextCatalogService : IUserContextCatalogService
 
         var managementContexts = await _dbContext.ManagementCompanyUsers
             .Where(x => x.AppUserId == appUserId && x.IsActive)
-            .Select(x => new UserContextCatalogCompany
+            .Select(x => new UserWorkspaceCatalogCompany
             {
                 ManagementCompanyId = x.ManagementCompanyId,
                 Slug = x.ManagementCompany!.Slug,
@@ -53,7 +53,7 @@ public class UserContextCatalogService : IUserContextCatalogService
                 where residentUser.AppUserId == appUserId
                       && residentUser.IsActive
                       && customerRepresentative.IsActive
-                select new UserContextCatalogCustomer
+                select new UserWorkspaceCatalogCustomer
                 {
                     CustomerId = customer.Id,
                     Name = customer.Name
@@ -64,7 +64,7 @@ public class UserContextCatalogService : IUserContextCatalogService
         var hasResidentContext = await _dbContext.ResidentUsers
             .AnyAsync(x => x.AppUserId == appUserId && x.IsActive, cancellationToken);
 
-        return new UserContextCatalogResult
+        return new UserWorkspaceCatalogResult
         {
             ManagementCompanyName = managementCompanyName,
             CanManageCompanyUsers = canManageCompanyUsers,

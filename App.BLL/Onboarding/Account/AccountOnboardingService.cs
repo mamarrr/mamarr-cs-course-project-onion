@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.Onboarding.Account;
 
-public class OnboardingService : IOnboardingService
+public class AccountOnboardingService : IAccountOnboardingService
 {
     private const string InitialManagementRoleCode = "OWNER";
 
@@ -15,7 +15,7 @@ public class OnboardingService : IOnboardingService
     private readonly SignInManager<AppUser> _signInManager;
     private readonly AppDbContext? _dbContext;
 
-    public OnboardingService(
+    public AccountOnboardingService(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
         AppDbContext? dbContext = null)
@@ -25,12 +25,12 @@ public class OnboardingService : IOnboardingService
         _dbContext = dbContext;
     }
 
-    public async Task<OnboardingRegisterResult> RegisterAsync(OnboardingRegisterRequest request)
+    public async Task<AccountRegisterResult> RegisterAsync(AccountRegisterRequest request)
     {
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
         if (existingUser != null)
         {
-            return new OnboardingRegisterResult
+            return new AccountRegisterResult
             {
                 Succeeded = false,
                 Errors = new[] { "A user with this email already exists." }
@@ -48,19 +48,19 @@ public class OnboardingService : IOnboardingService
 
         var createResult = await _userManager.CreateAsync(appUser, request.Password);
 
-        return new OnboardingRegisterResult
+        return new AccountRegisterResult
         {
             Succeeded = createResult.Succeeded,
             Errors = createResult.Errors.Select(e => e.Description).ToArray()
         };
     }
 
-    public async Task<OnboardingLoginResult> LoginAsync(OnboardingLoginRequest request)
+    public async Task<AccountLoginResult> LoginAsync(AccountLoginRequest request)
     {
         var appUser = await _userManager.FindByEmailAsync(request.Email);
         if (appUser == null)
         {
-            return new OnboardingLoginResult { Succeeded = false };
+            return new AccountLoginResult { Succeeded = false };
         }
 
         var signInResult = await _signInManager.PasswordSignInAsync(
@@ -70,7 +70,7 @@ public class OnboardingService : IOnboardingService
             lockoutOnFailure: true
         );
 
-        return new OnboardingLoginResult
+        return new AccountLoginResult
         {
             Succeeded = signInResult.Succeeded
         };
@@ -126,12 +126,12 @@ public class OnboardingService : IOnboardingService
                            && x.ManagementCompany.Slug == normalizedSlug);
     }
 
-    public async Task<OnboardingCreateManagementCompanyResult> CreateManagementCompanyAsync(
-        OnboardingCreateManagementCompanyRequest request)
+    public async Task<CreateManagementCompanyResult> CreateManagementCompanyAsync(
+        CreateManagementCompanyRequest request)
     {
         if (_dbContext == null)
         {
-            return new OnboardingCreateManagementCompanyResult
+            return new CreateManagementCompanyResult
             {
                 Succeeded = false,
                 Errors = ["Onboarding service is not configured for data operations."]
@@ -141,7 +141,7 @@ public class OnboardingService : IOnboardingService
         var appUserExists = await _userManager.Users.AnyAsync(x => x.Id == request.AppUserId);
         if (!appUserExists)
         {
-            return new OnboardingCreateManagementCompanyResult
+            return new CreateManagementCompanyResult
             {
                 Succeeded = false,
                 Errors = ["Authenticated user was not found."]
@@ -154,7 +154,7 @@ public class OnboardingService : IOnboardingService
 
         if (registryCodeExists)
         {
-            return new OnboardingCreateManagementCompanyResult
+            return new CreateManagementCompanyResult
             {
                 Succeeded = false,
                 Errors = ["Management company with the same registry code already exists."]
@@ -170,7 +170,7 @@ public class OnboardingService : IOnboardingService
 
         if (initialRole == null)
         {
-            return new OnboardingCreateManagementCompanyResult
+            return new CreateManagementCompanyResult
             {
                 Succeeded = false,
                 Errors = [$"Initial management role '{initialRoleCode}' was not found."]
@@ -219,7 +219,7 @@ public class OnboardingService : IOnboardingService
 
             await transaction.CommitAsync();
 
-            return new OnboardingCreateManagementCompanyResult
+            return new CreateManagementCompanyResult
             {
                 Succeeded = true,
                 ManagementCompanyId = company.Id,
@@ -229,7 +229,7 @@ public class OnboardingService : IOnboardingService
         catch (DbUpdateException)
         {
             await transaction.RollbackAsync();
-            return new OnboardingCreateManagementCompanyResult
+            return new CreateManagementCompanyResult
             {
                 Succeeded = false,
                 Errors = ["Failed to create management company due to data conflict."]

@@ -1,13 +1,13 @@
 namespace App.BLL.Onboarding.ContextSelection;
 
-public sealed class OnboardingContextSelectionCookieState
+public sealed class WorkspaceRedirectCookieState
 {
     public string? ContextType { get; init; }
     public string? ManagementCompanySlug { get; init; }
     public string? CustomerId { get; init; }
 }
 
-public enum OnboardingContextRedirectDestination
+public enum WorkspaceRedirectDestination
 {
     Home,
     ManagementDashboard,
@@ -15,13 +15,13 @@ public enum OnboardingContextRedirectDestination
     ResidentDashboard
 }
 
-public sealed class OnboardingContextRedirectTarget
+public sealed class WorkspaceRedirectTarget
 {
-    public required OnboardingContextRedirectDestination Destination { get; init; }
+    public required WorkspaceRedirectDestination Destination { get; init; }
     public string? CompanySlug { get; init; }
 }
 
-public sealed class OnboardingContextSelectionAuthorizationResult
+public sealed class WorkspaceRedirectAuthorizationResult
 {
     public bool Authorized { get; init; }
     public string? NormalizedType { get; init; }

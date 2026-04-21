@@ -15,23 +15,23 @@ namespace WebApp.Controllers;
 
 public class OnboardingController : Controller
 {
-    private readonly IOnboardingService _onboardingService;
-    private readonly IOnboardingContextService _onboardingContextService;
-    private readonly IManagementCompanyJoinRequestService _joinRequestService;
+    private readonly IAccountOnboardingService _accountOnboardingService;
+    private readonly IWorkspaceRedirectService _workspaceRedirectService;
+    private readonly ICompanyJoinRequestService _joinRequestService;
     private readonly IManagementUserAdminService _managementUserAdminService;
     private readonly UserManager<AppUser> _userManager;
     private readonly ILogger<OnboardingController> _logger;
 
     public OnboardingController(
-        IOnboardingService onboardingService,
-        IOnboardingContextService onboardingContextService,
-        IManagementCompanyJoinRequestService joinRequestService,
+        IAccountOnboardingService accountOnboardingService,
+        IWorkspaceRedirectService workspaceRedirectService,
+        ICompanyJoinRequestService joinRequestService,
         IManagementUserAdminService managementUserAdminService,
         UserManager<AppUser> userManager,
         ILogger<OnboardingController> logger)
     {
-        _onboardingService = onboardingService;
-        _onboardingContextService = onboardingContextService;
+        _accountOnboardingService = accountOnboardingService;
+        _workspaceRedirectService = workspaceRedirectService;
         _joinRequestService = joinRequestService;
         _managementUserAdminService = managementUserAdminService;
         _userManager = userManager;
@@ -104,7 +104,7 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _onboardingService.RegisterAsync(new OnboardingRegisterRequest
+        var result = await _accountOnboardingService.RegisterAsync(new AccountRegisterRequest
         {
             Email = vm.Email,
             Password = vm.Password,
@@ -155,7 +155,7 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _onboardingService.LoginAsync(new OnboardingLoginRequest
+        var result = await _accountOnboardingService.LoginAsync(new AccountLoginRequest
         {
             Email = vm.Email,
             Password = vm.Password,
@@ -194,7 +194,7 @@ public class OnboardingController : Controller
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            await _onboardingService.LogoutAsync();
+            await _accountOnboardingService.LogoutAsync();
         }
 
         return RedirectToAction(nameof(Index));
@@ -219,7 +219,7 @@ public class OnboardingController : Controller
             SameSite = SameSiteMode.Lax
         };
 
-        var authorizationResult = await _onboardingContextService.AuthorizeContextSelectionAsync(
+        var authorizationResult = await _workspaceRedirectService.AuthorizeContextSelectionAsync(
             appUser.Id,
             type,
             id,
@@ -288,7 +288,7 @@ public class OnboardingController : Controller
             return RedirectToAction(nameof(Login));
         }
 
-        var result = await _onboardingService.CreateManagementCompanyAsync(new OnboardingCreateManagementCompanyRequest
+        var result = await _accountOnboardingService.CreateManagementCompanyAsync(new CreateManagementCompanyRequest
         {
             AppUserId = appUser.Id,
             Name = vm.Name,
@@ -352,7 +352,7 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _joinRequestService.CreateJoinRequestAsync(new CreateManagementCompanyJoinRequest
+        var result = await _joinRequestService.CreateJoinRequestAsync(new CompanyJoinRequest
         {
             AppUserId = appUser.Id,
             RegistryCode = vm.RegistryCode,
@@ -390,9 +390,9 @@ public class OnboardingController : Controller
             return RedirectToAction("Index", "Home");
         }
 
-        var redirectTarget = await _onboardingContextService.ResolveContextRedirectAsync(
+        var redirectTarget = await _workspaceRedirectService.ResolveContextRedirectAsync(
             appUserId,
-            new OnboardingContextSelectionCookieState
+            new WorkspaceRedirectCookieState
             {
                 ContextType = selectedContextType,
                 ManagementCompanySlug = Request.Cookies["ctx.management.slug"],
@@ -407,11 +407,11 @@ public class OnboardingController : Controller
 
         return redirectTarget.Destination switch
         {
-            OnboardingContextRedirectDestination.Home => RedirectToAction("Index", "Home"),
-            OnboardingContextRedirectDestination.ManagementDashboard when !string.IsNullOrWhiteSpace(redirectTarget.CompanySlug)
+            WorkspaceRedirectDestination.Home => RedirectToAction("Index", "Home"),
+            WorkspaceRedirectDestination.ManagementDashboard when !string.IsNullOrWhiteSpace(redirectTarget.CompanySlug)
                 => RedirectToManagementDashboard(redirectTarget.CompanySlug!),
-            OnboardingContextRedirectDestination.CustomerDashboard => RedirectToAction("Index", "Dashboard", new { area = "Customer" }),
-            OnboardingContextRedirectDestination.ResidentDashboard => RedirectToAction("Index", "Dashboard", new { area = "Resident" }),
+            WorkspaceRedirectDestination.CustomerDashboard => RedirectToAction("Index", "Dashboard", new { area = "Customer" }),
+            WorkspaceRedirectDestination.ResidentDashboard => RedirectToAction("Index", "Dashboard", new { area = "Resident" }),
             _ => null
         };
     }

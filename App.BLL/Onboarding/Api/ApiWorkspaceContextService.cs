@@ -27,21 +27,21 @@ public sealed class ApiOnboardingContextEntry
     public string? ResidentDisplayName { get; init; }
 }
 
-public sealed class ApiOnboardingContextService : IApiOnboardingContextService
+public sealed class ApiWorkspaceContextService : IApiOnboardingContextService
 {
     private readonly AppDbContext _dbContext;
-    private readonly IOnboardingService _onboardingService;
+    private readonly IAccountOnboardingService _accountOnboardingService;
 
-    public ApiOnboardingContextService(AppDbContext dbContext, IOnboardingService onboardingService)
+    public ApiWorkspaceContextService(AppDbContext dbContext, IAccountOnboardingService accountOnboardingService)
     {
         _dbContext = dbContext;
-        _onboardingService = onboardingService;
+        _accountOnboardingService = accountOnboardingService;
     }
 
     public async Task<ApiOnboardingContextCatalogResult> GetContextsAsync(Guid appUserId, CancellationToken cancellationToken = default)
     {
         var contexts = new List<ApiOnboardingContextEntry>();
-        var defaultManagementCompanySlug = await _onboardingService.GetDefaultManagementCompanySlugAsync(appUserId);
+        var defaultManagementCompanySlug = await _accountOnboardingService.GetDefaultManagementCompanySlugAsync(appUserId);
 
         var managementContexts = await _dbContext.ManagementCompanyUsers
             .Where(x => x.AppUserId == appUserId

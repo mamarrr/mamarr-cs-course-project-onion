@@ -26,7 +26,7 @@ public class ManagementUserAdminService :
     private const string ManagerRoleCode = "MANAGER";
 
     private readonly AppDbContext _dbContext;
-    private readonly IManagementCompanyJoinRequestService _joinRequestService;
+    private readonly ICompanyJoinRequestService _joinRequestService;
 
     private static readonly HashSet<string> AdminRoleCodes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -44,7 +44,7 @@ public class ManagementUserAdminService :
 
     public ManagementUserAdminService(
         AppDbContext dbContext,
-        IManagementCompanyJoinRequestService joinRequestService,
+        ICompanyJoinRequestService joinRequestService,
         ILogger<ManagementUserAdminService> logger)
     {
         _dbContext = dbContext;
