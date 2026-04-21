@@ -1,5 +1,16 @@
 using System.Security.Claims;
-using App.BLL.Management;
+using App.BLL.CustomerWorkspace.Access;
+using App.BLL.CustomerWorkspace.Profiles;
+using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.PropertyWorkspace.Profiles;
+using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.ResidentWorkspace.Access;
+using App.BLL.ResidentWorkspace.Profiles;
+using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.Shared.Profiles;
+using App.BLL.UnitWorkspace.Access;
+using App.BLL.UnitWorkspace.Profiles;
+using App.BLL.UnitWorkspace.Workspace;
 using App.DTO.v1.Customer;
 using App.DTO.v1.Property;
 using App.DTO.v1.Resident;

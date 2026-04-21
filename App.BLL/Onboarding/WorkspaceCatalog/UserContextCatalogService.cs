@@ -1,7 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using App.DAL.EF;
+using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Onboarding;
+namespace App.BLL.Onboarding.WorkspaceCatalog;
 
 public class UserContextCatalogService : IUserContextCatalogService
 {

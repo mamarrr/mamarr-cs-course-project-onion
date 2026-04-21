@@ -1,4 +1,4 @@
-namespace App.BLL.Onboarding;
+namespace App.BLL.Onboarding.WorkspaceCatalog;
 
 public class UserContextCatalogResult
 {

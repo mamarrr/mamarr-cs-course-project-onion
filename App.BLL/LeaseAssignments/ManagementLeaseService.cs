@@ -1,10 +1,12 @@
 using System.Globalization;
+using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.UnitWorkspace.Workspace;
 using App.DAL.EF;
 using App.Domain;
 using Base.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Management;
+namespace App.BLL.LeaseAssignments;
 
 public class ManagementLeaseService : IManagementLeaseService
 {

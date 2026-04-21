@@ -1,10 +1,13 @@
-using App.BLL.Routing;
+using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.Shared.Routing;
+using App.BLL.UnitWorkspace.Access;
+using App.BLL.UnitWorkspace.Units;
 using App.DAL.EF;
 using App.Domain;
 using Base.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Management;
+namespace App.BLL.UnitWorkspace.Workspace;
 
 public class ManagementPropertyUnitService :
     IManagementPropertyUnitService,

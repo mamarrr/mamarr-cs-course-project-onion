@@ -1,4 +1,13 @@
-using App.BLL.Management;
+using App.BLL.CustomerWorkspace.Profiles;
+using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.ManagementCompany.Membership;
+using App.BLL.ManagementCompany.Profiles;
+using App.BLL.PropertyWorkspace.Profiles;
+using App.BLL.ResidentWorkspace.Profiles;
+using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.Shared.Profiles;
+using App.BLL.UnitWorkspace.Profiles;
+using App.BLL.UnitWorkspace.Workspace;
 using App.DAL.EF;
 using App.Domain;
 using App.Domain.Identity;

@@ -1,7 +1,8 @@
+using App.BLL.Onboarding.Account;
 using App.DAL.EF;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Onboarding;
+namespace App.BLL.Onboarding.Api;
 
 public interface IApiOnboardingContextService
 {

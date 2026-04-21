@@ -1,9 +1,11 @@
-using App.BLL.Routing;
+using App.BLL.Shared.Deletion;
+using App.BLL.Shared.Profiles;
+using App.BLL.UnitWorkspace.Workspace;
 using App.DAL.EF;
 using Base.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Management;
+namespace App.BLL.UnitWorkspace.Profiles;
 
 public class ManagementUnitProfileService : IManagementUnitProfileService
 {

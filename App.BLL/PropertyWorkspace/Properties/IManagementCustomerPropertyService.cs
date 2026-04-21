@@ -1,4 +1,6 @@
-namespace App.BLL.Management;
+using App.BLL.CustomerWorkspace.Workspace;
+
+namespace App.BLL.PropertyWorkspace.Properties;
 
 public interface IManagementCustomerPropertyService
 {

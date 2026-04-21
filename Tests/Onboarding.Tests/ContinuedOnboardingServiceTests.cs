@@ -1,7 +1,10 @@
 using System.Security.Claims;
-using App.BLL.Management;
+using App.BLL.ManagementCompany.Membership;
 using App.BLL.Onboarding;
-using App.BLL.Routing;
+using App.BLL.Onboarding.Account;
+using App.BLL.Onboarding.CompanyJoinRequests;
+using App.BLL.Onboarding.ContextSelection;
+using App.BLL.Shared.Routing;
 using App.DAL.EF;
 using App.Domain;
 using App.Domain.Identity;

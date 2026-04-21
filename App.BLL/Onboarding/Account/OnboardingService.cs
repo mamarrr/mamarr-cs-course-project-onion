@@ -1,11 +1,11 @@
-using App.Domain.Identity;
+using App.BLL.Shared.Routing;
 using App.DAL.EF;
 using App.DAL.EF.Seeding;
-using App.BLL.Routing;
-using Microsoft.EntityFrameworkCore;
+using App.Domain.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Onboarding;
+namespace App.BLL.Onboarding.Account;
 
 public class OnboardingService : IOnboardingService
 {

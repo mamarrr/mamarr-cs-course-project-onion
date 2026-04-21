@@ -1,4 +1,7 @@
-namespace App.BLL.Management;
+using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.Shared.Profiles;
+
+namespace App.BLL.PropertyWorkspace.Profiles;
 
 public interface IManagementPropertyProfileService
 {

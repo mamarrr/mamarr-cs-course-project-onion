@@ -1,6 +1,4 @@
-using Base.Domain;
-
-namespace App.BLL.Management;
+namespace App.BLL.LeaseAssignments;
 
 public class ManagementResidentLeaseListResult
 {

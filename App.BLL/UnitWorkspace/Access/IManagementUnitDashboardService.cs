@@ -1,4 +1,7 @@
-namespace App.BLL.Management;
+using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.UnitWorkspace.Workspace;
+
+namespace App.BLL.UnitWorkspace.Access;
 
 public interface IManagementUnitDashboardService
 {

@@ -1,4 +1,4 @@
-namespace App.BLL.Management;
+namespace App.BLL.Shared.Profiles;
 
 public class ManagementCompanyProfileModel
 {

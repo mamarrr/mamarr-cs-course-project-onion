@@ -1,4 +1,7 @@
-namespace App.BLL.Management;
+using App.BLL.Shared.Profiles;
+using App.BLL.UnitWorkspace.Workspace;
+
+namespace App.BLL.UnitWorkspace.Profiles;
 
 public interface IManagementUnitProfileService
 {

@@ -1,5 +1,6 @@
-using App.BLL.Management;
+using App.BLL.ManagementCompany.Membership;
 using App.BLL.Onboarding;
+using App.BLL.Onboarding.CompanyJoinRequests;
 using App.DAL.EF;
 using App.Domain;
 using App.Domain.Identity;

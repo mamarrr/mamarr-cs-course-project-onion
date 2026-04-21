@@ -1,5 +1,8 @@
 using System.Net;
-using App.BLL.Management;
+using App.BLL.ResidentWorkspace.Access;
+using App.BLL.ResidentWorkspace.Profiles;
+using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.Shared.Profiles;
 using App.DTO.v1;
 using App.DTO.v1.Resident;
 using App.DTO.v1.Shared;

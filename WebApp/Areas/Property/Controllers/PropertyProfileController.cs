@@ -1,5 +1,9 @@
 using System.Security.Claims;
-using App.BLL.Management;
+using App.BLL.CustomerWorkspace.Access;
+using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.PropertyWorkspace.Profiles;
+using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Shared.Profiles;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,5 +1,7 @@
 using System.Net;
 using App.BLL.Onboarding;
+using App.BLL.Onboarding.Account;
+using App.BLL.Onboarding.Api;
 using App.DAL.EF;
 using App.Domain;
 using App.Domain.Identity;

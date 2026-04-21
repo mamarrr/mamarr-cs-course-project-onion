@@ -1,4 +1,7 @@
-namespace App.BLL.Management;
+using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.Shared.Profiles;
+
+namespace App.BLL.ResidentWorkspace.Profiles;
 
 public interface IManagementResidentProfileService
 {

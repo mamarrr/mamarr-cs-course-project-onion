@@ -1,5 +1,6 @@
 using System.Security.Claims;
-using App.BLL.Management;
+using App.BLL.ResidentWorkspace.Access;
+using App.BLL.ResidentWorkspace.Residents;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

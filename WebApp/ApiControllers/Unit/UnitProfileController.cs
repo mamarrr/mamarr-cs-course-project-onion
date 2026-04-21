@@ -1,5 +1,10 @@
 using System.Net;
-using App.BLL.Management;
+using App.BLL.CustomerWorkspace.Access;
+using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Shared.Profiles;
+using App.BLL.UnitWorkspace.Access;
+using App.BLL.UnitWorkspace.Profiles;
+using App.BLL.UnitWorkspace.Workspace;
 using App.DTO.v1;
 using App.DTO.v1.Shared;
 using App.DTO.v1.Unit;

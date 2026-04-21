@@ -1,5 +1,9 @@
 using System.Security.Claims;
-using App.BLL.Management;
+using App.BLL.CustomerWorkspace.Access;
+using App.BLL.LeaseAssignments;
+using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.UnitWorkspace.Access;
+using App.BLL.UnitWorkspace.Workspace;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

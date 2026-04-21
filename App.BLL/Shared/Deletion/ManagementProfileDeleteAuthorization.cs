@@ -1,7 +1,8 @@
+using App.BLL.Shared.Profiles;
 using App.DAL.EF;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Management;
+namespace App.BLL.Shared.Deletion;
 
 internal static class ManagementProfileDeleteAuthorization
 {

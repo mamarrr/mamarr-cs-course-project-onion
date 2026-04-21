@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using App.BLL.Onboarding;
+using App.BLL.Onboarding.WorkspaceCatalog;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
 using WebApp.ViewModels.Shared.Layout;

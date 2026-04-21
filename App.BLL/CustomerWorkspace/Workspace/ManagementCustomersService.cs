@@ -1,10 +1,13 @@
 using System.ComponentModel.DataAnnotations;
-using App.BLL.Routing;
+using App.BLL.CustomerWorkspace.Access;
+using App.BLL.CustomerWorkspace.Customers;
+using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Shared.Routing;
 using App.DAL.EF;
 using App.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Management;
+namespace App.BLL.CustomerWorkspace.Workspace;
 
 public class ManagementCustomersService :
     IManagementCustomersService,

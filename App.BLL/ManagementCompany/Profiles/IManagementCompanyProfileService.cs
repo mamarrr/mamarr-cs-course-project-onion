@@ -1,4 +1,6 @@
-namespace App.BLL.Management;
+using App.BLL.Shared.Profiles;
+
+namespace App.BLL.ManagementCompany.Profiles;
 
 public interface IManagementCompanyProfileService
 {

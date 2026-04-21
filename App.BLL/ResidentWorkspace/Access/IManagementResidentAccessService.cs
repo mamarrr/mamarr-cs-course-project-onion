@@ -1,4 +1,6 @@
-namespace App.BLL.Management;
+using App.BLL.ResidentWorkspace.Residents;
+
+namespace App.BLL.ResidentWorkspace.Access;
 
 public interface IManagementResidentAccessService
 {

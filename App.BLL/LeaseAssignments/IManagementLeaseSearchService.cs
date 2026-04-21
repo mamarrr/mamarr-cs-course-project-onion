@@ -1,4 +1,7 @@
-namespace App.BLL.Management;
+using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.UnitWorkspace.Workspace;
+
+namespace App.BLL.LeaseAssignments;
 
 public interface IManagementLeaseSearchService
 {

@@ -1,8 +1,9 @@
+using App.BLL.ManagementCompany.Membership;
 using App.DAL.EF;
 using App.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Management.Common;
+namespace App.BLL.Shared.Policies;
 
 public static class ManagementMembershipPolicy
 {

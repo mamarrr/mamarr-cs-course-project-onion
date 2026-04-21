@@ -1,6 +1,6 @@
 using App.Domain;
 
-namespace App.BLL.Management;
+namespace App.BLL.ManagementCompany.Membership;
 
 public interface IManagementUserRoleService
 {

@@ -2,7 +2,7 @@ using App.DAL.EF;
 using App.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Management;
+namespace App.BLL.ResidentWorkspace.Residents;
 
 public class ManagementResidentService : IManagementResidentService
 {

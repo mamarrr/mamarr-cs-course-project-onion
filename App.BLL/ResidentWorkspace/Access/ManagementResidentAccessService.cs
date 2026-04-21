@@ -1,7 +1,8 @@
+using App.BLL.ResidentWorkspace.Residents;
 using App.DAL.EF;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Management;
+namespace App.BLL.ResidentWorkspace.Access;
 
 public class ManagementResidentAccessService : IManagementResidentAccessService
 {

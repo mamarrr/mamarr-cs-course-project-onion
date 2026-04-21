@@ -1,8 +1,11 @@
 using App.BLL.Onboarding;
-using App.BLL.Management;
 using App.Domain.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using App.BLL.ManagementCompany.Membership;
+using App.BLL.Onboarding.Account;
+using App.BLL.Onboarding.CompanyJoinRequests;
+using App.BLL.Onboarding.ContextSelection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

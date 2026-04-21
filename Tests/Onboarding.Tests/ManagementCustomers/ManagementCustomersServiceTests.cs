@@ -1,4 +1,4 @@
-using App.BLL.Management;
+using App.BLL.CustomerWorkspace.Workspace;
 using App.DAL.EF;
 using App.Domain;
 using App.Domain.Identity;

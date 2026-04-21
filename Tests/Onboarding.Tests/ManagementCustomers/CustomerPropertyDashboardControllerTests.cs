@@ -1,5 +1,7 @@
 using System.Security.Claims;
-using App.BLL.Management;
+using App.BLL.CustomerWorkspace.Access;
+using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.PropertyWorkspace.Properties;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;

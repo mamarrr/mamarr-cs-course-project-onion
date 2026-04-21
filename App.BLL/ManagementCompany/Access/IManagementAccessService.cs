@@ -1,4 +1,6 @@
-namespace App.BLL.Management;
+using App.BLL.ManagementCompany.Membership;
+
+namespace App.BLL.ManagementCompany.Access;
 
 public interface IManagementAccessService
 {

@@ -1,8 +1,9 @@
+using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.UnitWorkspace.Workspace;
 using App.DAL.EF;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
-namespace App.BLL.Management;
+namespace App.BLL.LeaseAssignments;
 
 public class ManagementLeaseSearchService : IManagementLeaseSearchService
 {

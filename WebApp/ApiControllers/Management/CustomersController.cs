@@ -1,5 +1,7 @@
 using System.Net;
-using App.BLL.Management;
+using App.BLL.CustomerWorkspace.Access;
+using App.BLL.CustomerWorkspace.Customers;
+using App.BLL.CustomerWorkspace.Workspace;
 using App.DTO.v1;
 using App.DTO.v1.Management;
 using App.DTO.v1.Shared;

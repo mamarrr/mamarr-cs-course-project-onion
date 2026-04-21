@@ -1,4 +1,6 @@
-namespace App.BLL.Management;
+using App.BLL.CustomerWorkspace.Workspace;
+
+namespace App.BLL.CustomerWorkspace.Customers;
 
 public interface IManagementCustomerService
 {

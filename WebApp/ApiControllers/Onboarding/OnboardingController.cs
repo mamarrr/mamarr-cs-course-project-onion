@@ -1,5 +1,7 @@
 using System.Net;
 using App.BLL.Onboarding;
+using App.BLL.Onboarding.Account;
+using App.BLL.Onboarding.Api;
 using App.DTO.v1;
 using App.DTO.v1.Onboarding;
 using App.DTO.v1.Shared;

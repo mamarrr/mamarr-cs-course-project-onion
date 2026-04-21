@@ -1,11 +1,11 @@
-using App.DAL.EF;
-using App.Domain;
 using System.Globalization;
 using System.Text.Json;
+using App.DAL.EF;
+using App.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace App.BLL.Onboarding;
+namespace App.BLL.Onboarding.CompanyJoinRequests;
 
 public class ManagementCompanyJoinRequestService : IManagementCompanyJoinRequestService
 {

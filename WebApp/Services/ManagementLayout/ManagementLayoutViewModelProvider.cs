@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using App.BLL.Onboarding;
+using App.BLL.Onboarding.WorkspaceCatalog;
 using WebApp.Services.SharedLayout;
 using WebApp.ViewModels.Management.Layout;
 using WebApp.ViewModels.Shared.Layout;

@@ -1,7 +1,10 @@
+using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.Shared.Deletion;
+using App.BLL.Shared.Profiles;
 using App.DAL.EF;
 using Microsoft.EntityFrameworkCore;
 
-namespace App.BLL.Management;
+namespace App.BLL.ResidentWorkspace.Profiles;
 
 public class ManagementResidentProfileService : IManagementResidentProfileService
 {

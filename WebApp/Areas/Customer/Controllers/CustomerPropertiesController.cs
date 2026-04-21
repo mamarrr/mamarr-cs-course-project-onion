@@ -1,5 +1,7 @@
 using System.Security.Claims;
-using App.BLL.Management;
+using App.BLL.CustomerWorkspace.Access;
+using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.PropertyWorkspace.Properties;
 using App.DAL.EF;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;

@@ -1,14 +1,13 @@
-using App.BLL.Onboarding;
+using System.Text.Json;
+using App.BLL.ManagementCompany.Access;
+using App.BLL.Onboarding.CompanyJoinRequests;
 using App.DAL.EF;
 using App.Domain;
-using App.Domain.Identity;
 using Base.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
-using System.Text.Json;
 
-namespace App.BLL.Management;
+namespace App.BLL.ManagementCompany.Membership;
 
 /// <summary>
 /// Implementation of management user administration service with tenant isolation and role checks.

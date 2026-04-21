@@ -1,4 +1,4 @@
-namespace App.BLL.Management;
+namespace App.BLL.ManagementCompany.Membership;
 
 public interface IManagementAccessRequestService
 {

@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace App.BLL.Routing;
+namespace App.BLL.Shared.Routing;
 
 public static partial class SlugGenerator
 {

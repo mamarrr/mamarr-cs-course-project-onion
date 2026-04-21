@@ -1,7 +1,4 @@
-using App.Domain;
-using App.Domain.Identity;
-
-namespace App.BLL.Management;
+namespace App.BLL.ManagementCompany.Membership;
 
 public enum ManagementAuthorizationFailureReason
 {

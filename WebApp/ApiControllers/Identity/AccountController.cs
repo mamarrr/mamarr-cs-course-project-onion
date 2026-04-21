@@ -2,6 +2,7 @@ using App.DTO.v1;
 using App.DTO.v1.Identity;
 using App.DTO.v1.Onboarding;
 using App.BLL.Onboarding;
+using App.BLL.Onboarding.Api;
 using Base.Helpers;
 
 namespace WebApp.ApiControllers.Identity;
