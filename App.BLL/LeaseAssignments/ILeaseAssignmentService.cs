@@ -3,53 +3,53 @@ using App.BLL.UnitWorkspace.Workspace;
 
 namespace App.BLL.LeaseAssignments;
 
-public interface IManagementLeaseService
+public interface ILeaseAssignmentService
 {
-    Task<ManagementResidentLeaseListResult> ListForResidentAsync(
+    Task<ResidentLeaseListResult> ListForResidentAsync(
         ResidentDashboardContext context,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementUnitLeaseListResult> ListForUnitAsync(
+    Task<UnitLeaseListResult> ListForUnitAsync(
         UnitDashboardContext context,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseDetailsResult> GetForResidentAsync(
+    Task<LeaseDetailsResult> GetForResidentAsync(
         ResidentDashboardContext context,
         Guid leaseId,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseDetailsResult> GetForUnitAsync(
+    Task<LeaseDetailsResult> GetForUnitAsync(
         UnitDashboardContext context,
         Guid leaseId,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseCommandResult> CreateFromResidentAsync(
+    Task<LeaseCommandResult> CreateFromResidentAsync(
         ResidentDashboardContext context,
-        ManagementLeaseCreateRequest request,
+        LeaseCreateRequest request,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseCommandResult> CreateFromUnitAsync(
+    Task<LeaseCommandResult> CreateFromUnitAsync(
         UnitDashboardContext context,
-        ManagementLeaseCreateRequest request,
+        LeaseCreateRequest request,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseCommandResult> UpdateFromResidentAsync(
+    Task<LeaseCommandResult> UpdateFromResidentAsync(
         ResidentDashboardContext context,
-        ManagementLeaseUpdateRequest request,
+        LeaseUpdateRequest request,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseCommandResult> UpdateFromUnitAsync(
+    Task<LeaseCommandResult> UpdateFromUnitAsync(
         UnitDashboardContext context,
-        ManagementLeaseUpdateRequest request,
+        LeaseUpdateRequest request,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseCommandResult> DeleteFromResidentAsync(
+    Task<LeaseCommandResult> DeleteFromResidentAsync(
         ResidentDashboardContext context,
-        ManagementLeaseDeleteRequest request,
+        LeaseDeleteRequest request,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseCommandResult> DeleteFromUnitAsync(
+    Task<LeaseCommandResult> DeleteFromUnitAsync(
         UnitDashboardContext context,
-        ManagementLeaseDeleteRequest request,
+        LeaseDeleteRequest request,
         CancellationToken cancellationToken = default);
 }

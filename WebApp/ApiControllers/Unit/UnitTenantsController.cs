@@ -24,21 +24,21 @@ public class UnitTenantsController : ProfileApiControllerBase
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IUnitAccessService _unitAccessService;
-    private readonly IManagementLeaseService _managementLeaseService;
-    private readonly IManagementLeaseSearchService _managementLeaseSearchService;
+    private readonly ILeaseAssignmentService _leaseAssignmentService;
+    private readonly ILeaseLookupService _leaseLookupService;
 
     public UnitTenantsController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
         IUnitAccessService unitAccessService,
-        IManagementLeaseService managementLeaseService,
-        IManagementLeaseSearchService managementLeaseSearchService)
+        ILeaseAssignmentService leaseAssignmentService,
+        ILeaseLookupService leaseLookupService)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
-        _managementLeaseService = managementLeaseService;
-        _managementLeaseSearchService = managementLeaseSearchService;
+        _leaseAssignmentService = leaseAssignmentService;
+        _leaseLookupService = leaseLookupService;
     }
 
     [HttpGet("tenants")]
@@ -60,8 +60,8 @@ public class UnitTenantsController : ProfileApiControllerBase
             return access.ErrorResult;
         }
 
-        var leases = await _managementLeaseService.ListForUnitAsync(access.Context!, cancellationToken);
-        var leaseRoles = await _managementLeaseSearchService.ListLeaseRolesAsync(cancellationToken);
+        var leases = await _leaseAssignmentService.ListForUnitAsync(access.Context!, cancellationToken);
+        var leaseRoles = await _leaseLookupService.ListLeaseRolesAsync(cancellationToken);
 
         return Ok(new UnitTenantsBootstrapResponseDto
         {
@@ -91,7 +91,7 @@ public class UnitTenantsController : ProfileApiControllerBase
             return access.ErrorResult;
         }
 
-        var result = await _managementLeaseSearchService.SearchResidentsAsync(access.Context!, searchTerm, cancellationToken);
+        var result = await _leaseLookupService.SearchResidentsAsync(access.Context!, searchTerm, cancellationToken);
         return Ok(new UnitResidentSearchResponseDto
         {
             Residents = result.Residents.Select(x => new UnitResidentSearchResultDto
@@ -131,9 +131,9 @@ public class UnitTenantsController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _managementLeaseService.CreateFromUnitAsync(
+        var result = await _leaseAssignmentService.CreateFromUnitAsync(
             access.Context!,
-            new ManagementLeaseCreateRequest
+            new LeaseCreateRequest
             {
                 ResidentId = dto.ResidentId!.Value,
                 UnitId = access.Context!.UnitId,
@@ -184,9 +184,9 @@ public class UnitTenantsController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _managementLeaseService.UpdateFromUnitAsync(
+        var result = await _leaseAssignmentService.UpdateFromUnitAsync(
             access.Context!,
-            new ManagementLeaseUpdateRequest
+            new LeaseUpdateRequest
             {
                 LeaseId = leaseId,
                 LeaseRoleId = dto.LeaseRoleId!.Value,
@@ -230,9 +230,9 @@ public class UnitTenantsController : ProfileApiControllerBase
             return access.ErrorResult;
         }
 
-        var result = await _managementLeaseService.DeleteFromUnitAsync(
+        var result = await _leaseAssignmentService.DeleteFromUnitAsync(
             access.Context!,
-            new ManagementLeaseDeleteRequest { LeaseId = leaseId },
+            new LeaseDeleteRequest { LeaseId = leaseId },
             cancellationToken);
 
         if (result.LeaseNotFound)
@@ -310,7 +310,7 @@ public class UnitTenantsController : ProfileApiControllerBase
         return (unitAccess.Context, null);
     }
 
-    private RestApiErrorResponse CreateLeaseCommandError(ManagementLeaseCommandResult result, bool isCreate)
+    private RestApiErrorResponse CreateLeaseCommandError(LeaseCommandResult result, bool isCreate)
     {
         if (result.ResidentNotFound)
         {
@@ -345,7 +345,7 @@ public class UnitTenantsController : ProfileApiControllerBase
         return CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? (isCreate ? "Unable to create lease." : "Unable to update lease."), ApiErrorCodes.BusinessRuleViolation);
     }
 
-    private static UnitTenantLeaseDto MapLease(ManagementUnitLeaseListItem item)
+    private static UnitTenantLeaseDto MapLease(UnitLeaseListItem item)
     {
         return new UnitTenantLeaseDto
         {
@@ -365,7 +365,7 @@ public class UnitTenantsController : ProfileApiControllerBase
         };
     }
 
-    private static LookupOptionDto MapLeaseRole(ManagementLeaseRoleOption option)
+    private static LookupOptionDto MapLeaseRole(LeaseRoleOption option)
     {
         return new LookupOptionDto
         {

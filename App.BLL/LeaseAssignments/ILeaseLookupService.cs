@@ -3,23 +3,23 @@ using App.BLL.UnitWorkspace.Workspace;
 
 namespace App.BLL.LeaseAssignments;
 
-public interface IManagementLeaseSearchService
+public interface ILeaseLookupService
 {
-    Task<ManagementLeasePropertySearchResult> SearchPropertiesAsync(
+    Task<LeasePropertySearchResult> SearchPropertiesAsync(
         ResidentDashboardContext context,
         string? searchTerm,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseUnitOptionsResult> ListUnitsForPropertyAsync(
+    Task<LeaseUnitOptionsResult> ListUnitsForPropertyAsync(
         ResidentDashboardContext context,
         Guid propertyId,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseResidentSearchResult> SearchResidentsAsync(
+    Task<LeaseResidentSearchResult> SearchResidentsAsync(
         UnitDashboardContext context,
         string? searchTerm,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementLeaseRoleOptionsResult> ListLeaseRolesAsync(
+    Task<LeaseRoleOptionsResult> ListLeaseRolesAsync(
         CancellationToken cancellationToken = default);
 }

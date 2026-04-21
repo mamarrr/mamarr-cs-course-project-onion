@@ -8,16 +8,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.LeaseAssignments;
 
-public class ManagementLeaseService : IManagementLeaseService
+public class LeaseAssignmentService : ILeaseAssignmentService
 {
     private readonly AppDbContext _dbContext;
 
-    public ManagementLeaseService(AppDbContext dbContext)
+    public LeaseAssignmentService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<ManagementResidentLeaseListResult> ListForResidentAsync(
+    public async Task<ResidentLeaseListResult> ListForResidentAsync(
         ResidentDashboardContext context,
         CancellationToken cancellationToken = default)
     {
@@ -28,7 +28,7 @@ public class ManagementLeaseService : IManagementLeaseService
             .OrderByDescending(l => l.IsActive)
             .ThenByDescending(l => l.StartDate)
             .ThenBy(l => l.EndDate)
-            .Select(l => new ManagementResidentLeaseListItem
+            .Select(l => new ResidentLeaseListItem
             {
                 LeaseId = l.Id,
                 ResidentId = l.ResidentId,
@@ -48,13 +48,13 @@ public class ManagementLeaseService : IManagementLeaseService
             })
             .ToListAsync(cancellationToken);
 
-        return new ManagementResidentLeaseListResult
+        return new ResidentLeaseListResult
         {
             Leases = leases
         };
     }
 
-    public async Task<ManagementUnitLeaseListResult> ListForUnitAsync(
+    public async Task<UnitLeaseListResult> ListForUnitAsync(
         UnitDashboardContext context,
         CancellationToken cancellationToken = default)
     {
@@ -66,7 +66,7 @@ public class ManagementLeaseService : IManagementLeaseService
             .OrderByDescending(l => l.IsActive)
             .ThenByDescending(l => l.StartDate)
             .ThenBy(l => l.EndDate)
-            .Select(l => new ManagementUnitLeaseListItem
+            .Select(l => new UnitLeaseListItem
             {
                 LeaseId = l.Id,
                 ResidentId = l.ResidentId,
@@ -84,13 +84,13 @@ public class ManagementLeaseService : IManagementLeaseService
             })
             .ToListAsync(cancellationToken);
 
-        return new ManagementUnitLeaseListResult
+        return new UnitLeaseListResult
         {
             Leases = leases
         };
     }
 
-    public Task<ManagementLeaseDetailsResult> GetForResidentAsync(
+    public Task<LeaseDetailsResult> GetForResidentAsync(
         ResidentDashboardContext context,
         Guid leaseId,
         CancellationToken cancellationToken = default)
@@ -100,7 +100,7 @@ public class ManagementLeaseService : IManagementLeaseService
             cancellationToken);
     }
 
-    public Task<ManagementLeaseDetailsResult> GetForUnitAsync(
+    public Task<LeaseDetailsResult> GetForUnitAsync(
         UnitDashboardContext context,
         Guid leaseId,
         CancellationToken cancellationToken = default)
@@ -110,9 +110,9 @@ public class ManagementLeaseService : IManagementLeaseService
             cancellationToken);
     }
 
-    public async Task<ManagementLeaseCommandResult> CreateFromResidentAsync(
+    public async Task<LeaseCommandResult> CreateFromResidentAsync(
         ResidentDashboardContext context,
-        ManagementLeaseCreateRequest request,
+        LeaseCreateRequest request,
         CancellationToken cancellationToken = default)
     {
         var validation = await ValidateCreateFromResidentAsync(context, request, cancellationToken);
@@ -136,16 +136,16 @@ public class ManagementLeaseService : IManagementLeaseService
         _dbContext.Leases.Add(lease);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementLeaseCommandResult
+        return new LeaseCommandResult
         {
             Success = true,
             LeaseId = lease.Id
         };
     }
 
-    public async Task<ManagementLeaseCommandResult> CreateFromUnitAsync(
+    public async Task<LeaseCommandResult> CreateFromUnitAsync(
         UnitDashboardContext context,
-        ManagementLeaseCreateRequest request,
+        LeaseCreateRequest request,
         CancellationToken cancellationToken = default)
     {
         var validation = await ValidateCreateFromUnitAsync(context, request, cancellationToken);
@@ -169,16 +169,16 @@ public class ManagementLeaseService : IManagementLeaseService
         _dbContext.Leases.Add(lease);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementLeaseCommandResult
+        return new LeaseCommandResult
         {
             Success = true,
             LeaseId = lease.Id
         };
     }
 
-    public async Task<ManagementLeaseCommandResult> UpdateFromResidentAsync(
+    public async Task<LeaseCommandResult> UpdateFromResidentAsync(
         ResidentDashboardContext context,
-        ManagementLeaseUpdateRequest request,
+        LeaseUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
         var validation = await ValidateUpdateFromResidentAsync(context, request, cancellationToken);
@@ -190,16 +190,16 @@ public class ManagementLeaseService : IManagementLeaseService
         ApplyUpdate(validation.Lease, request);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementLeaseCommandResult
+        return new LeaseCommandResult
         {
             Success = true,
             LeaseId = validation.Lease.Id
         };
     }
 
-    public async Task<ManagementLeaseCommandResult> UpdateFromUnitAsync(
+    public async Task<LeaseCommandResult> UpdateFromUnitAsync(
         UnitDashboardContext context,
-        ManagementLeaseUpdateRequest request,
+        LeaseUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
         var validation = await ValidateUpdateFromUnitAsync(context, request, cancellationToken);
@@ -211,16 +211,16 @@ public class ManagementLeaseService : IManagementLeaseService
         ApplyUpdate(validation.Lease, request);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementLeaseCommandResult
+        return new LeaseCommandResult
         {
             Success = true,
             LeaseId = validation.Lease.Id
         };
     }
 
-    public async Task<ManagementLeaseCommandResult> DeleteFromResidentAsync(
+    public async Task<LeaseCommandResult> DeleteFromResidentAsync(
         ResidentDashboardContext context,
-        ManagementLeaseDeleteRequest request,
+        LeaseDeleteRequest request,
         CancellationToken cancellationToken = default)
     {
         var lease = await _dbContext.Leases
@@ -230,7 +230,7 @@ public class ManagementLeaseService : IManagementLeaseService
 
         if (lease == null)
         {
-            return new ManagementLeaseCommandResult
+            return new LeaseCommandResult
             {
                 LeaseNotFound = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("LeaseWasNotFound") ?? "Lease was not found."
@@ -240,16 +240,16 @@ public class ManagementLeaseService : IManagementLeaseService
         _dbContext.Leases.Remove(lease);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementLeaseCommandResult
+        return new LeaseCommandResult
         {
             Success = true,
             LeaseId = lease.Id
         };
     }
 
-    public async Task<ManagementLeaseCommandResult> DeleteFromUnitAsync(
+    public async Task<LeaseCommandResult> DeleteFromUnitAsync(
         UnitDashboardContext context,
-        ManagementLeaseDeleteRequest request,
+        LeaseDeleteRequest request,
         CancellationToken cancellationToken = default)
     {
         var lease = await _dbContext.Leases
@@ -259,7 +259,7 @@ public class ManagementLeaseService : IManagementLeaseService
 
         if (lease == null)
         {
-            return new ManagementLeaseCommandResult
+            return new LeaseCommandResult
             {
                 LeaseNotFound = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("LeaseWasNotFound") ?? "Lease was not found."
@@ -269,19 +269,19 @@ public class ManagementLeaseService : IManagementLeaseService
         _dbContext.Leases.Remove(lease);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ManagementLeaseCommandResult
+        return new LeaseCommandResult
         {
             Success = true,
             LeaseId = lease.Id
         };
     }
 
-    private async Task<ManagementLeaseDetailsResult> GetLeaseAsync(
+    private async Task<LeaseDetailsResult> GetLeaseAsync(
         Func<IQueryable<Lease>, IQueryable<Lease>> scope,
         CancellationToken cancellationToken)
     {
         var lease = await scope(_dbContext.Leases.AsNoTracking())
-            .Select(l => new ManagementLeaseDetails
+            .Select(l => new LeaseDetails
             {
                 LeaseId = l.Id,
                 LeaseRoleId = l.LeaseRoleId,
@@ -296,14 +296,14 @@ public class ManagementLeaseService : IManagementLeaseService
 
         if (lease == null)
         {
-            return new ManagementLeaseDetailsResult
+            return new LeaseDetailsResult
             {
                 LeaseNotFound = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("LeaseWasNotFound") ?? "Lease was not found."
             };
         }
 
-        return new ManagementLeaseDetailsResult
+        return new LeaseDetailsResult
         {
             Success = true,
             Lease = lease
@@ -312,7 +312,7 @@ public class ManagementLeaseService : IManagementLeaseService
 
     private async Task<CreateValidationResult> ValidateCreateFromResidentAsync(
         ResidentDashboardContext context,
-        ManagementLeaseCreateRequest request,
+        LeaseCreateRequest request,
         CancellationToken cancellationToken)
     {
         var basicValidation = await ValidateSharedFieldsAsync(
@@ -332,7 +332,7 @@ public class ManagementLeaseService : IManagementLeaseService
         {
             return new CreateValidationResult
             {
-                Result = new ManagementLeaseCommandResult
+                Result = new LeaseCommandResult
                 {
                     ResidentNotFound = true,
                     ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("ResidentWasNotFound") ?? "Resident was not found."
@@ -350,7 +350,7 @@ public class ManagementLeaseService : IManagementLeaseService
         {
             return new CreateValidationResult
             {
-                Result = new ManagementLeaseCommandResult
+                Result = new LeaseCommandResult
                 {
                     UnitNotFound = true,
                     ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("UnitWasNotFound") ?? "Unit was not found."
@@ -371,13 +371,13 @@ public class ManagementLeaseService : IManagementLeaseService
         {
             Success = true,
             UnitId = unitMatch.Id,
-            Result = new ManagementLeaseCommandResult { Success = true }
+            Result = new LeaseCommandResult { Success = true }
         };
     }
 
     private async Task<CreateValidationResult> ValidateCreateFromUnitAsync(
         UnitDashboardContext context,
-        ManagementLeaseCreateRequest request,
+        LeaseCreateRequest request,
         CancellationToken cancellationToken)
     {
         var basicValidation = await ValidateSharedFieldsAsync(
@@ -397,7 +397,7 @@ public class ManagementLeaseService : IManagementLeaseService
         {
             return new CreateValidationResult
             {
-                Result = new ManagementLeaseCommandResult
+                Result = new LeaseCommandResult
                 {
                     UnitNotFound = true,
                     ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("UnitWasNotFound") ?? "Unit was not found."
@@ -415,7 +415,7 @@ public class ManagementLeaseService : IManagementLeaseService
         {
             return new CreateValidationResult
             {
-                Result = new ManagementLeaseCommandResult
+                Result = new LeaseCommandResult
                 {
                     ResidentNotFound = true,
                     ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("ResidentWasNotFound") ?? "Resident was not found."
@@ -436,13 +436,13 @@ public class ManagementLeaseService : IManagementLeaseService
         {
             Success = true,
             ResidentId = residentMatch.Id,
-            Result = new ManagementLeaseCommandResult { Success = true }
+            Result = new LeaseCommandResult { Success = true }
         };
     }
 
     private async Task<UpdateValidationResult> ValidateUpdateFromResidentAsync(
         ResidentDashboardContext context,
-        ManagementLeaseUpdateRequest request,
+        LeaseUpdateRequest request,
         CancellationToken cancellationToken)
     {
         var basicValidation = await ValidateSharedFieldsAsync(
@@ -469,7 +469,7 @@ public class ManagementLeaseService : IManagementLeaseService
         {
             return new UpdateValidationResult
             {
-                Result = new ManagementLeaseCommandResult
+                Result = new LeaseCommandResult
                 {
                     LeaseNotFound = true,
                     ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("LeaseWasNotFound") ?? "Lease was not found."
@@ -490,13 +490,13 @@ public class ManagementLeaseService : IManagementLeaseService
         {
             Success = true,
             Lease = lease,
-            Result = new ManagementLeaseCommandResult { Success = true }
+            Result = new LeaseCommandResult { Success = true }
         };
     }
 
     private async Task<UpdateValidationResult> ValidateUpdateFromUnitAsync(
         UnitDashboardContext context,
-        ManagementLeaseUpdateRequest request,
+        LeaseUpdateRequest request,
         CancellationToken cancellationToken)
     {
         var basicValidation = await ValidateSharedFieldsAsync(
@@ -523,7 +523,7 @@ public class ManagementLeaseService : IManagementLeaseService
         {
             return new UpdateValidationResult
             {
-                Result = new ManagementLeaseCommandResult
+                Result = new LeaseCommandResult
                 {
                     LeaseNotFound = true,
                     ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("LeaseWasNotFound") ?? "Lease was not found."
@@ -544,11 +544,11 @@ public class ManagementLeaseService : IManagementLeaseService
         {
             Success = true,
             Lease = lease,
-            Result = new ManagementLeaseCommandResult { Success = true }
+            Result = new LeaseCommandResult { Success = true }
         };
     }
 
-    private async Task<ManagementLeaseCommandResult> ValidateSharedFieldsAsync(
+    private async Task<LeaseCommandResult> ValidateSharedFieldsAsync(
         Guid leaseRoleId,
         DateOnly startDate,
         DateOnly? endDate,
@@ -560,7 +560,7 @@ public class ManagementLeaseService : IManagementLeaseService
     {
         if (startDate == default)
         {
-            return new ManagementLeaseCommandResult
+            return new LeaseCommandResult
             {
                 InvalidStartDate = true,
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace(
@@ -571,7 +571,7 @@ public class ManagementLeaseService : IManagementLeaseService
 
         if (endDate.HasValue && endDate.Value < startDate)
         {
-            return new ManagementLeaseCommandResult
+            return new LeaseCommandResult
             {
                 InvalidEndDate = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("InvalidDateRange") ?? "End date must be on or after start date."
@@ -580,7 +580,7 @@ public class ManagementLeaseService : IManagementLeaseService
 
         if (leaseRoleId == Guid.Empty)
         {
-            return new ManagementLeaseCommandResult
+            return new LeaseCommandResult
             {
                 InvalidLeaseRole = true,
                 ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace(
@@ -595,7 +595,7 @@ public class ManagementLeaseService : IManagementLeaseService
 
         if (!leaseRoleExists)
         {
-            return new ManagementLeaseCommandResult
+            return new LeaseCommandResult
             {
                 InvalidLeaseRole = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("InvalidData") ?? "Invalid data."
@@ -604,7 +604,7 @@ public class ManagementLeaseService : IManagementLeaseService
 
         if (!skipResidentValidation && residentId == Guid.Empty)
         {
-            return new ManagementLeaseCommandResult
+            return new LeaseCommandResult
             {
                 ResidentNotFound = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("ResidentWasNotFound") ?? "Resident was not found."
@@ -613,20 +613,20 @@ public class ManagementLeaseService : IManagementLeaseService
 
         if (!skipUnitValidation && unitId == Guid.Empty)
         {
-            return new ManagementLeaseCommandResult
+            return new LeaseCommandResult
             {
                 UnitNotFound = true,
                 ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("UnitWasNotFound") ?? "Unit was not found."
             };
         }
 
-        return new ManagementLeaseCommandResult
+        return new LeaseCommandResult
         {
             Success = true
         };
     }
 
-    private void ApplyUpdate(Lease lease, ManagementLeaseUpdateRequest request)
+    private void ApplyUpdate(Lease lease, LeaseUpdateRequest request)
     {
         lease.LeaseRoleId = request.LeaseRoleId;
         lease.StartDate = request.StartDate;
@@ -666,9 +666,9 @@ public class ManagementLeaseService : IManagementLeaseService
             .ConfigureAwait(false);
     }
 
-    private static ManagementLeaseCommandResult BuildDuplicateLeaseResult()
+    private static LeaseCommandResult BuildDuplicateLeaseResult()
     {
-        return new ManagementLeaseCommandResult
+        return new LeaseCommandResult
         {
             DuplicateActiveLease = true,
             ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("ActiveLeaseAlreadyExists")
@@ -681,13 +681,13 @@ public class ManagementLeaseService : IManagementLeaseService
         public bool Success { get; set; }
         public Guid? ResidentId { get; set; }
         public Guid? UnitId { get; set; }
-        public ManagementLeaseCommandResult Result { get; set; } = new();
+        public LeaseCommandResult Result { get; set; } = new();
     }
 
     private sealed class UpdateValidationResult
     {
         public bool Success { get; set; }
         public Lease? Lease { get; set; }
-        public ManagementLeaseCommandResult Result { get; set; } = new();
+        public LeaseCommandResult Result { get; set; } = new();
     }
 }

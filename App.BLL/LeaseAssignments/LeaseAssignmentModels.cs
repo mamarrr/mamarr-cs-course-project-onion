@@ -1,11 +1,11 @@
 namespace App.BLL.LeaseAssignments;
 
-public class ManagementResidentLeaseListResult
+public class ResidentLeaseListResult
 {
-    public IReadOnlyList<ManagementResidentLeaseListItem> Leases { get; set; } = Array.Empty<ManagementResidentLeaseListItem>();
+    public IReadOnlyList<ResidentLeaseListItem> Leases { get; set; } = Array.Empty<ResidentLeaseListItem>();
 }
 
-public class ManagementResidentLeaseListItem
+public class ResidentLeaseListItem
 {
     public Guid LeaseId { get; set; }
     public Guid ResidentId { get; set; }
@@ -24,12 +24,12 @@ public class ManagementResidentLeaseListItem
     public string? Notes { get; set; }
 }
 
-public class ManagementUnitLeaseListResult
+public class UnitLeaseListResult
 {
-    public IReadOnlyList<ManagementUnitLeaseListItem> Leases { get; set; } = Array.Empty<ManagementUnitLeaseListItem>();
+    public IReadOnlyList<UnitLeaseListItem> Leases { get; set; } = Array.Empty<UnitLeaseListItem>();
 }
 
-public class ManagementUnitLeaseListItem
+public class UnitLeaseListItem
 {
     public Guid LeaseId { get; set; }
     public Guid ResidentId { get; set; }
@@ -46,15 +46,15 @@ public class ManagementUnitLeaseListItem
     public string? Notes { get; set; }
 }
 
-public class ManagementLeaseDetailsResult
+public class LeaseDetailsResult
 {
     public bool Success { get; set; }
     public bool LeaseNotFound { get; set; }
     public string? ErrorMessage { get; set; }
-    public ManagementLeaseDetails? Lease { get; set; }
+    public LeaseDetails? Lease { get; set; }
 }
 
-public class ManagementLeaseDetails
+public class LeaseDetails
 {
     public Guid LeaseId { get; set; }
     public Guid LeaseRoleId { get; set; }
@@ -66,7 +66,7 @@ public class ManagementLeaseDetails
     public string? Notes { get; set; }
 }
 
-public class ManagementLeaseCreateRequest
+public class LeaseCreateRequest
 {
     public Guid LeaseRoleId { get; set; }
     public Guid UnitId { get; set; }
@@ -77,7 +77,7 @@ public class ManagementLeaseCreateRequest
     public string? Notes { get; set; }
 }
 
-public class ManagementLeaseUpdateRequest
+public class LeaseUpdateRequest
 {
     public Guid LeaseId { get; set; }
     public Guid LeaseRoleId { get; set; }
@@ -87,12 +87,12 @@ public class ManagementLeaseUpdateRequest
     public string? Notes { get; set; }
 }
 
-public class ManagementLeaseDeleteRequest
+public class LeaseDeleteRequest
 {
     public Guid LeaseId { get; set; }
 }
 
-public class ManagementLeaseCommandResult
+public class LeaseCommandResult
 {
     public bool Success { get; set; }
     public bool LeaseNotFound { get; set; }
@@ -107,12 +107,12 @@ public class ManagementLeaseCommandResult
     public string? ErrorMessage { get; set; }
 }
 
-public class ManagementLeasePropertySearchResult
+public class LeasePropertySearchResult
 {
-    public IReadOnlyList<ManagementLeasePropertySearchItem> Properties { get; set; } = Array.Empty<ManagementLeasePropertySearchItem>();
+    public IReadOnlyList<LeasePropertySearchItem> Properties { get; set; } = Array.Empty<LeasePropertySearchItem>();
 }
 
-public class ManagementLeasePropertySearchItem
+public class LeasePropertySearchItem
 {
     public Guid PropertyId { get; set; }
     public Guid CustomerId { get; set; }
@@ -125,15 +125,15 @@ public class ManagementLeasePropertySearchItem
     public string PostalCode { get; set; } = default!;
 }
 
-public class ManagementLeaseUnitOptionsResult
+public class LeaseUnitOptionsResult
 {
     public bool Success { get; set; }
     public bool PropertyNotFound { get; set; }
     public string? ErrorMessage { get; set; }
-    public IReadOnlyList<ManagementLeaseUnitOption> Units { get; set; } = Array.Empty<ManagementLeaseUnitOption>();
+    public IReadOnlyList<LeaseUnitOption> Units { get; set; } = Array.Empty<LeaseUnitOption>();
 }
 
-public class ManagementLeaseUnitOption
+public class LeaseUnitOption
 {
     public Guid UnitId { get; set; }
     public string UnitSlug { get; set; } = default!;
@@ -142,12 +142,12 @@ public class ManagementLeaseUnitOption
     public bool IsActive { get; set; }
 }
 
-public class ManagementLeaseResidentSearchResult
+public class LeaseResidentSearchResult
 {
-    public IReadOnlyList<ManagementLeaseResidentSearchItem> Residents { get; set; } = Array.Empty<ManagementLeaseResidentSearchItem>();
+    public IReadOnlyList<LeaseResidentSearchItem> Residents { get; set; } = Array.Empty<LeaseResidentSearchItem>();
 }
 
-public class ManagementLeaseResidentSearchItem
+public class LeaseResidentSearchItem
 {
     public Guid ResidentId { get; set; }
     public string FullName { get; set; } = default!;
@@ -155,12 +155,12 @@ public class ManagementLeaseResidentSearchItem
     public bool IsActive { get; set; }
 }
 
-public class ManagementLeaseRoleOptionsResult
+public class LeaseRoleOptionsResult
 {
-    public IReadOnlyList<ManagementLeaseRoleOption> Roles { get; set; } = Array.Empty<ManagementLeaseRoleOption>();
+    public IReadOnlyList<LeaseRoleOption> Roles { get; set; } = Array.Empty<LeaseRoleOption>();
 }
 
-public class ManagementLeaseRoleOption
+public class LeaseRoleOption
 {
     public Guid LeaseRoleId { get; set; }
     public string Code { get; set; } = default!;

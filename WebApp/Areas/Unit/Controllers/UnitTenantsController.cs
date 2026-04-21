@@ -25,23 +25,23 @@ public class UnitTenantsController : Controller
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IUnitAccessService _unitAccessService;
-    private readonly IManagementLeaseService _managementLeaseService;
-    private readonly IManagementLeaseSearchService _managementLeaseSearchService;
+    private readonly ILeaseAssignmentService _leaseAssignmentService;
+    private readonly ILeaseLookupService _leaseLookupService;
     private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
 
     public UnitTenantsController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
         IUnitAccessService unitAccessService,
-        IManagementLeaseService managementLeaseService,
-        IManagementLeaseSearchService managementLeaseSearchService,
+        ILeaseAssignmentService leaseAssignmentService,
+        ILeaseLookupService leaseLookupService,
         IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
-        _managementLeaseService = managementLeaseService;
-        _managementLeaseSearchService = managementLeaseSearchService;
+        _leaseAssignmentService = leaseAssignmentService;
+        _leaseLookupService = leaseLookupService;
         _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
     }
 
@@ -79,7 +79,7 @@ public class UnitTenantsController : Controller
             return access.response;
         }
 
-        var result = await _managementLeaseSearchService.SearchResidentsAsync(access.context!, searchTerm, cancellationToken);
+        var result = await _leaseLookupService.SearchResidentsAsync(access.context!, searchTerm, cancellationToken);
 
         return Json(result.Residents.Select(x => new UnitLeaseResidentSearchResultViewModel
         {
@@ -119,9 +119,9 @@ public class UnitTenantsController : Controller
             return View("~/Areas/Unit/Views/UnitTenants/Index.cshtml", invalidVm);
         }
 
-        var result = await _managementLeaseService.CreateFromUnitAsync(
+        var result = await _leaseAssignmentService.CreateFromUnitAsync(
             access.context!,
-            new ManagementLeaseCreateRequest
+            new LeaseCreateRequest
             {
                 ResidentId = vm.AddLease.ResidentId!.Value,
                 UnitId = access.context!.UnitId,
@@ -178,9 +178,9 @@ public class UnitTenantsController : Controller
             return View("~/Areas/Unit/Views/UnitTenants/Index.cshtml", invalidVm);
         }
 
-        var result = await _managementLeaseService.UpdateFromUnitAsync(
+        var result = await _leaseAssignmentService.UpdateFromUnitAsync(
             access.context!,
-            new ManagementLeaseUpdateRequest
+            new LeaseUpdateRequest
             {
                 LeaseId = leaseId,
                 LeaseRoleId = editVm.LeaseRoleId!.Value,
@@ -219,9 +219,9 @@ public class UnitTenantsController : Controller
             return access.response;
         }
 
-        var result = await _managementLeaseService.DeleteFromUnitAsync(
+        var result = await _leaseAssignmentService.DeleteFromUnitAsync(
             access.context!,
-            new ManagementLeaseDeleteRequest
+            new LeaseDeleteRequest
             {
                 LeaseId = leaseId
             },
@@ -306,12 +306,12 @@ public class UnitTenantsController : Controller
         EditUnitLeaseViewModel? editOverride = null,
         Guid? requestedEditLeaseId = null)
     {
-        var leaseList = await _managementLeaseService.ListForUnitAsync(context, cancellationToken);
-        var roleOptions = await _managementLeaseSearchService.ListLeaseRolesAsync(cancellationToken);
+        var leaseList = await _leaseAssignmentService.ListForUnitAsync(context, cancellationToken);
+        var roleOptions = await _leaseLookupService.ListLeaseRolesAsync(cancellationToken);
         var residentSearchTerm = addOverride?.ResidentSearchTerm;
         var residentResults = string.IsNullOrWhiteSpace(residentSearchTerm)
-            ? Array.Empty<ManagementLeaseResidentSearchItem>()
-            : (await _managementLeaseSearchService.SearchResidentsAsync(context, residentSearchTerm, cancellationToken)).Residents;
+            ? Array.Empty<LeaseResidentSearchItem>()
+            : (await _leaseLookupService.SearchResidentsAsync(context, residentSearchTerm, cancellationToken)).Residents;
 
         var unitLayout = new UnitLayoutViewModel
         {
@@ -436,7 +436,7 @@ public class UnitTenantsController : Controller
         return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
     }
 
-    private static void ApplyCreateErrors(ManagementLeaseCommandResult result, ModelStateDictionary modelState)
+    private static void ApplyCreateErrors(LeaseCommandResult result, ModelStateDictionary modelState)
     {
         if (result.ResidentNotFound)
         {
@@ -477,7 +477,7 @@ public class UnitTenantsController : Controller
         modelState.AddModelError(string.Empty, result.ErrorMessage ?? T("UnableToAddLease", "Unable to add lease."));
     }
 
-    private static void ApplyEditErrors(ManagementLeaseCommandResult result, ModelStateDictionary modelState)
+    private static void ApplyEditErrors(LeaseCommandResult result, ModelStateDictionary modelState)
     {
         if (result.LeaseNotFound)
         {

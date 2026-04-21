@@ -5,18 +5,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.LeaseAssignments;
 
-public class ManagementLeaseSearchService : IManagementLeaseSearchService
+public class LeaseLookupService : ILeaseLookupService
 {
     private const int MaxResults = 20;
 
     private readonly AppDbContext _dbContext;
 
-    public ManagementLeaseSearchService(AppDbContext dbContext)
+    public LeaseLookupService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }
 
-    public async Task<ManagementLeasePropertySearchResult> SearchPropertiesAsync(
+    public async Task<LeasePropertySearchResult> SearchPropertiesAsync(
         ResidentDashboardContext context,
         string? searchTerm,
         CancellationToken cancellationToken = default)
@@ -24,7 +24,7 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
         var normalizedSearch = searchTerm?.Trim();
         if (string.IsNullOrWhiteSpace(normalizedSearch))
         {
-            return new ManagementLeasePropertySearchResult();
+            return new LeasePropertySearchResult();
         }
 
         var candidates = await _dbContext.Properties
@@ -59,7 +59,7 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
                 ContainsCI(p.CustomerName, normalizedSearch) ||
                 ContainsCI(p.PropertySlug, normalizedSearch))
             .Take(MaxResults)
-            .Select(p => new ManagementLeasePropertySearchItem
+            .Select(p => new LeasePropertySearchItem
             {
                 PropertyId = p.PropertyId,
                 CustomerId = p.CustomerId,
@@ -73,13 +73,13 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
             })
             .ToList();
 
-        return new ManagementLeasePropertySearchResult
+        return new LeasePropertySearchResult
         {
             Properties = properties
         };
     }
 
-    public async Task<ManagementLeaseUnitOptionsResult> ListUnitsForPropertyAsync(
+    public async Task<LeaseUnitOptionsResult> ListUnitsForPropertyAsync(
         ResidentDashboardContext context,
         Guid propertyId,
         CancellationToken cancellationToken = default)
@@ -92,7 +92,7 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
 
         if (property == null)
         {
-            return new ManagementLeaseUnitOptionsResult
+            return new LeaseUnitOptionsResult
             {
                 PropertyNotFound = true,
                 
@@ -106,7 +106,7 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
             .OrderBy(u => u.UnitNr)
             .ThenBy(u => u.FloorNr)
             .ThenBy(u => u.Id)
-            .Select(u => new ManagementLeaseUnitOption
+            .Select(u => new LeaseUnitOption
             {
                 UnitId = u.Id,
                 UnitSlug = u.Slug,
@@ -116,14 +116,14 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
             })
             .ToListAsync(cancellationToken);
 
-        return new ManagementLeaseUnitOptionsResult
+        return new LeaseUnitOptionsResult
         {
             Success = true,
             Units = units
         };
     }
 
-    public async Task<ManagementLeaseResidentSearchResult> SearchResidentsAsync(
+    public async Task<LeaseResidentSearchResult> SearchResidentsAsync(
         UnitDashboardContext context,
         string? searchTerm,
         CancellationToken cancellationToken = default)
@@ -131,7 +131,7 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
         var normalizedSearch = searchTerm?.Trim();
         if (string.IsNullOrWhiteSpace(normalizedSearch))
         {
-            return new ManagementLeaseResidentSearchResult();
+            return new LeaseResidentSearchResult();
         }
 
         var pattern = $"%{normalizedSearch}%";
@@ -148,7 +148,7 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
             .ThenBy(r => r.LastName)
             .ThenBy(r => r.IdCode)
             .Take(MaxResults)
-            .Select(r => new ManagementLeaseResidentSearchItem
+            .Select(r => new LeaseResidentSearchItem
             {
                 ResidentId = r.Id,
                 FullName = string.Join(" ", new[] { r.FirstName, r.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))),
@@ -157,20 +157,20 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
             })
             .ToListAsync(cancellationToken);
 
-        return new ManagementLeaseResidentSearchResult
+        return new LeaseResidentSearchResult
         {
             Residents = residents
         };
     }
 
-    public async Task<ManagementLeaseRoleOptionsResult> ListLeaseRolesAsync(
+    public async Task<LeaseRoleOptionsResult> ListLeaseRolesAsync(
         CancellationToken cancellationToken = default)
     {
         var roles = await _dbContext.LeaseRoles
             .AsNoTracking()
             .OrderBy(r => r.Label)
             .ThenBy(r => r.Code)
-            .Select(r => new ManagementLeaseRoleOption
+            .Select(r => new LeaseRoleOption
             {
                 LeaseRoleId = r.Id,
                 Code = r.Code,
@@ -178,7 +178,7 @@ public class ManagementLeaseSearchService : IManagementLeaseSearchService
             })
             .ToListAsync(cancellationToken);
 
-        return new ManagementLeaseRoleOptionsResult
+        return new LeaseRoleOptionsResult
         {
             Roles = roles
         };
