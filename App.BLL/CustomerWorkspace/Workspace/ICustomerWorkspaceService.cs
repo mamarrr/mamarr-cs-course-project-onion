@@ -7,24 +7,24 @@ public interface ICustomerWorkspaceService
         string companySlug,
         CancellationToken cancellationToken = default);
 
-    Task<CustomerWorkspaceDashboardAccessResult> AuthorizeCustomerContextAsync(
+    Task<CustomerDashboardAccessResult> AuthorizeCustomerContextAsync(
         Guid appUserId,
         string companySlug,
         string customerSlug,
         CancellationToken cancellationToken = default);
 
-    Task<CustomerWorkspaceDashboardAccessResult> ResolveDashboardAccessAsync(
+    Task<CustomerDashboardAccessResult> ResolveDashboardAccessAsync(
         Guid appUserId,
         string companySlug,
         string customerSlug,
         CancellationToken cancellationToken = default);
 
     Task<CompanyCustomerListResult> ListAsync(
-        CustomerWorkspaceAuthorizedContext context,
+        CustomerWorkspaceContext context,
         CancellationToken cancellationToken = default);
 
     Task<CustomerCreateResult> CreateAsync(
-        CustomerWorkspaceAuthorizedContext context,
+        CustomerWorkspaceContext context,
         CustomerCreateRequest request,
         CancellationToken cancellationToken = default);
 

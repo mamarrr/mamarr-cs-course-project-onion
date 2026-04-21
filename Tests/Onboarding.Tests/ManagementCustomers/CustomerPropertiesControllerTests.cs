@@ -38,7 +38,7 @@ public class CustomerPropertiesControllerTests
         var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult
+            .ReturnsAsync(new CustomerDashboardAccessResult
             {
                 CompanyNotFound = true
             });
@@ -56,7 +56,7 @@ public class CustomerPropertiesControllerTests
         var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult
+            .ReturnsAsync(new CustomerDashboardAccessResult
             {
                 IsForbidden = true
             });
@@ -138,7 +138,7 @@ public class CustomerPropertiesControllerTests
         var serviceMock = new Mock<ICustomerWorkspaceService>();
         serviceMock
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "acme", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult
+            .ReturnsAsync(new CustomerDashboardAccessResult
             {
                 IsAuthorized = true,
                 Context = context

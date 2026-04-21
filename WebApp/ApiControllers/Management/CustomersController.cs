@@ -131,7 +131,7 @@ public class CustomersController : ControllerBase
             response);
     }
 
-    private async Task<(CustomerWorkspaceAuthorizedContext? Context, ActionResult? ErrorResult)> AuthorizeCompanyAsync(
+    private async Task<(CustomerWorkspaceContext? Context, ActionResult? ErrorResult)> AuthorizeCompanyAsync(
         string companySlug,
         CancellationToken cancellationToken)
     {
@@ -162,7 +162,7 @@ public class CustomersController : ControllerBase
     }
 
     private ApiRouteContextDto CreateCustomerRouteContext(
-        CustomerWorkspaceAuthorizedContext context,
+        CustomerWorkspaceContext context,
         string customerSlug,
         string customerName)
     {

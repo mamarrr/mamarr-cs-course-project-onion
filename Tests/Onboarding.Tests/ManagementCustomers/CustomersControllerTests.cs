@@ -66,7 +66,7 @@ public class CustomersControllerTests
     [Fact]
     public async Task Add_SuccessfulCreate_RedirectsToIndex_AndSetsTempDataSuccess()
     {
-        var context = new CustomerWorkspaceAuthorizedContext
+        var context = new CustomerWorkspaceContext
         {
             AppUserId = Guid.NewGuid(),
             ManagementCompanyId = Guid.NewGuid(),
@@ -112,7 +112,7 @@ public class CustomersControllerTests
     [Fact]
     public async Task Add_InvalidModel_ReturnsIndexView_WithValidationErrors()
     {
-        var context = new CustomerWorkspaceAuthorizedContext
+        var context = new CustomerWorkspaceContext
         {
             AppUserId = Guid.NewGuid(),
             ManagementCompanyId = Guid.NewGuid(),
@@ -176,12 +176,12 @@ public class CustomersControllerTests
 
         var customerService = new Mock<ICompanyCustomerService>();
         customerService
-            .Setup(x => x.ListAsync(It.IsAny<CustomerWorkspaceAuthorizedContext>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((CustomerWorkspaceAuthorizedContext context, CancellationToken _) =>
+            .Setup(x => x.ListAsync(It.IsAny<CustomerWorkspaceContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CustomerWorkspaceContext context, CancellationToken _) =>
                 service.ListAsync(context, CancellationToken.None).GetAwaiter().GetResult());
         customerService
-            .Setup(x => x.CreateAsync(It.IsAny<CustomerWorkspaceAuthorizedContext>(), It.IsAny<CustomerCreateRequest>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((CustomerWorkspaceAuthorizedContext context, CustomerCreateRequest request, CancellationToken _) =>
+            .Setup(x => x.CreateAsync(It.IsAny<CustomerWorkspaceContext>(), It.IsAny<CustomerCreateRequest>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CustomerWorkspaceContext context, CustomerCreateRequest request, CancellationToken _) =>
                 service.CreateAsync(context, request, CancellationToken.None).GetAwaiter().GetResult());
 
         var controller = new CustomersController(

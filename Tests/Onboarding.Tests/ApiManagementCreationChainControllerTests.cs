@@ -231,7 +231,7 @@ public class ApiManagementCreationChainControllerTests
         Assert.Equal((int)HttpStatusCode.BadRequest, badRequest.StatusCode);
     }
 
-    private static CustomersController CreateManagementCustomersController(CustomerWorkspaceWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
+    private static CustomersController CreateManagementCustomersController(CustomerWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
     {
         return new CustomersController(workspaceService, workspaceService)
         {
@@ -242,7 +242,7 @@ public class ApiManagementCreationChainControllerTests
         };
     }
 
-    private static CustomerDashboardControllerApi CreateCustomerDashboardController(CustomerWorkspaceWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
+    private static CustomerDashboardControllerApi CreateCustomerDashboardController(CustomerWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
     {
         return new CustomerDashboardControllerApi(workspaceService)
         {
@@ -253,7 +253,7 @@ public class ApiManagementCreationChainControllerTests
         };
     }
 
-    private static CustomerPropertiesController CreateCustomerPropertiesController(CustomerWorkspaceWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
+    private static CustomerPropertiesController CreateCustomerPropertiesController(CustomerWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
     {
         return new CustomerPropertiesController(workspaceService, workspaceService, dbContext)
         {
@@ -264,7 +264,7 @@ public class ApiManagementCreationChainControllerTests
         };
     }
 
-    private static PropertyDashboardControllerApi CreatePropertyDashboardController(CustomerWorkspaceWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
+    private static PropertyDashboardControllerApi CreatePropertyDashboardController(CustomerWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
     {
         return new PropertyDashboardControllerApi(workspaceService, workspaceService)
         {
@@ -275,7 +275,7 @@ public class ApiManagementCreationChainControllerTests
         };
     }
 
-    private static PropertyUnitsControllerApi CreatePropertyUnitsController(CustomerWorkspaceWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
+    private static PropertyUnitsControllerApi CreatePropertyUnitsController(CustomerWorkspaceService workspaceService, AppDbContext dbContext, Guid? user)
     {
         var unitService = new UnitWorkspaceService(dbContext);
         return new PropertyUnitsControllerApi(workspaceService, workspaceService, unitService)
@@ -301,9 +301,9 @@ public class ApiManagementCreationChainControllerTests
         return httpContext;
     }
 
-    private static CustomerWorkspaceWorkspaceService CreateManagementCustomersService(AppDbContext dbContext)
+    private static CustomerWorkspaceService CreateManagementCustomersService(AppDbContext dbContext)
     {
-        return new CustomerWorkspaceWorkspaceService(dbContext);
+        return new CustomerWorkspaceService(dbContext);
     }
 
     private static AppDbContext CreateDbContext(string databaseName)

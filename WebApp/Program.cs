@@ -93,10 +93,10 @@ builder.Services.AddScoped<IApiOnboardingRouteContextMapper, ApiOnboardingRouteC
 builder.Services.AddScoped<IUserWorkspaceCatalogService, UserWorkspaceCatalogService>();
 builder.Services.AddScoped<ICompanyJoinRequestService, CompanyJoinRequestService>();
 builder.Services.AddScoped<ICompanyMembershipAdminService, CompanyMembershipAdminService>();
-builder.Services.AddScoped<ICustomerWorkspaceService, CustomerWorkspaceWorkspaceService>();
-builder.Services.AddScoped<ICustomerAccessService, CustomerWorkspaceWorkspaceService>();
-builder.Services.AddScoped<ICompanyCustomerService, CustomerWorkspaceWorkspaceService>();
-builder.Services.AddScoped<IPropertyWorkspaceService, CustomerWorkspaceWorkspaceService>();
+builder.Services.AddScoped<ICustomerWorkspaceService, CustomerWorkspaceService>();
+builder.Services.AddScoped<ICustomerAccessService, CustomerWorkspaceService>();
+builder.Services.AddScoped<ICompanyCustomerService, CustomerWorkspaceService>();
+builder.Services.AddScoped<IPropertyWorkspaceService, CustomerWorkspaceService>();
 builder.Services.AddScoped<IResidentAccessService, ResidentAccessService>();
 builder.Services.AddScoped<ICompanyResidentService, CompanyResidentService>();
 builder.Services.AddScoped<IPropertyUnitService, UnitWorkspaceService>();

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.CustomerWorkspace.Workspace;
 
-public class CustomerWorkspaceWorkspaceService :
+public class CustomerWorkspaceService :
     ICustomerWorkspaceService,
     ICustomerAccessService,
     ICompanyCustomerService,
@@ -25,7 +25,7 @@ public class CustomerWorkspaceWorkspaceService :
 
     private readonly AppDbContext _dbContext;
 
-    public CustomerWorkspaceWorkspaceService(AppDbContext dbContext)
+    public CustomerWorkspaceService(AppDbContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -83,7 +83,7 @@ public class CustomerWorkspaceWorkspaceService :
         return new CustomerWorkspaceAuthorizationResult
         {
             IsAuthorized = true,
-            Context = new CustomerWorkspaceAuthorizedContext
+            Context = new CustomerWorkspaceContext
             {
                 AppUserId = appUserId,
                 ManagementCompanyId = company.Id,
@@ -93,7 +93,7 @@ public class CustomerWorkspaceWorkspaceService :
         };
     }
 
-    public async Task<CustomerWorkspaceDashboardAccessResult> ResolveDashboardAccessAsync(
+    public async Task<CustomerDashboardAccessResult> ResolveDashboardAccessAsync(
         Guid appUserId,
         string companySlug,
         string customerSlug,
@@ -102,7 +102,7 @@ public class CustomerWorkspaceWorkspaceService :
         return await AuthorizeCustomerContextAsync(appUserId, companySlug, customerSlug, cancellationToken);
     }
 
-    public async Task<CustomerWorkspaceDashboardAccessResult> AuthorizeCustomerContextAsync(
+    public async Task<CustomerDashboardAccessResult> AuthorizeCustomerContextAsync(
         Guid appUserId,
         string companySlug,
         string customerSlug,
@@ -111,7 +111,7 @@ public class CustomerWorkspaceWorkspaceService :
         var authResult = await AuthorizeAsync(appUserId, companySlug, cancellationToken);
         if (authResult.CompanyNotFound)
         {
-            return new CustomerWorkspaceDashboardAccessResult
+            return new CustomerDashboardAccessResult
             {
                 CompanyNotFound = true,
                 ErrorMessage = authResult.ErrorMessage
@@ -120,7 +120,7 @@ public class CustomerWorkspaceWorkspaceService :
 
         if (authResult.IsForbidden || authResult.Context == null)
         {
-            return new CustomerWorkspaceDashboardAccessResult
+            return new CustomerDashboardAccessResult
             {
                 IsForbidden = true,
                 ErrorMessage = authResult.ErrorMessage
@@ -130,7 +130,7 @@ public class CustomerWorkspaceWorkspaceService :
         var normalizedCustomerSlug = customerSlug.Trim();
         if (string.IsNullOrWhiteSpace(normalizedCustomerSlug))
         {
-            return new CustomerWorkspaceDashboardAccessResult
+            return new CustomerDashboardAccessResult
             {
                 CustomerNotFound = true
             };
@@ -144,13 +144,13 @@ public class CustomerWorkspaceWorkspaceService :
 
         if (customer == null)
         {
-            return new CustomerWorkspaceDashboardAccessResult
+            return new CustomerDashboardAccessResult
             {
                 CustomerNotFound = true
             };
         }
 
-        return new CustomerWorkspaceDashboardAccessResult
+        return new CustomerDashboardAccessResult
         {
             IsAuthorized = true,
             Context = new CustomerWorkspaceDashboardContext
@@ -341,7 +341,7 @@ public class CustomerWorkspaceWorkspaceService :
     }
 
     public async Task<CompanyCustomerListResult> ListAsync(
-        CustomerWorkspaceAuthorizedContext context,
+        CustomerWorkspaceContext context,
         CancellationToken cancellationToken = default)
     {
         var customers = await _dbContext.Customers
@@ -367,7 +367,7 @@ public class CustomerWorkspaceWorkspaceService :
     }
 
     public async Task<CustomerCreateResult> CreateAsync(
-        CustomerWorkspaceAuthorizedContext context,
+        CustomerWorkspaceContext context,
         CustomerCreateRequest request,
         CancellationToken cancellationToken = default)
     {

@@ -45,7 +45,7 @@ public class ApiProfileSliceControllerTests
         var accessService = new Mock<ICustomerAccessService>();
         accessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), "north-estate", "missing", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { CustomerNotFound = true });
+            .ReturnsAsync(new CustomerDashboardAccessResult { CustomerNotFound = true });
 
         var controller = CreateCustomerProfileController(BuildPrincipal(), accessService: accessService);
 
@@ -317,7 +317,7 @@ public class ApiProfileSliceControllerTests
         accessService ??= new Mock<ICustomerAccessService>();
         accessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), accessContext.CompanySlug, accessContext.CustomerSlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { IsAuthorized = true, Context = accessContext });
+            .ReturnsAsync(new CustomerDashboardAccessResult { IsAuthorized = true, Context = accessContext });
 
         profileService ??= new Mock<ICustomerProfileService>();
 
@@ -337,7 +337,7 @@ public class ApiProfileSliceControllerTests
         customerAccessService ??= new Mock<ICustomerAccessService>();
         customerAccessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), customerContext.CompanySlug, customerContext.CustomerSlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { IsAuthorized = true, Context = customerContext });
+            .ReturnsAsync(new CustomerDashboardAccessResult { IsAuthorized = true, Context = customerContext });
 
         propertyAccessService ??= new Mock<IPropertyWorkspaceService>();
         propertyAccessService
@@ -362,7 +362,7 @@ public class ApiProfileSliceControllerTests
         customerAccessService ??= new Mock<ICustomerAccessService>();
         customerAccessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), customerContext.CompanySlug, customerContext.CustomerSlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { IsAuthorized = true, Context = customerContext });
+            .ReturnsAsync(new CustomerDashboardAccessResult { IsAuthorized = true, Context = customerContext });
 
         propertyAccessService ??= new Mock<IPropertyWorkspaceService>();
         propertyAccessService
@@ -390,7 +390,7 @@ public class ApiProfileSliceControllerTests
         customerAccessService ??= new Mock<ICustomerAccessService>();
         customerAccessService
             .Setup(x => x.ResolveDashboardAccessAsync(It.IsAny<Guid>(), customerContext.CompanySlug, customerContext.CustomerSlug, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new CustomerWorkspaceDashboardAccessResult { IsAuthorized = true, Context = customerContext });
+            .ReturnsAsync(new CustomerDashboardAccessResult { IsAuthorized = true, Context = customerContext });
 
         propertyAccessService ??= new Mock<IPropertyWorkspaceService>();
         propertyAccessService

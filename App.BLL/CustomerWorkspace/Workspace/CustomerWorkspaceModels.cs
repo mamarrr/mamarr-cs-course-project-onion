@@ -6,10 +6,10 @@ public class CustomerWorkspaceAuthorizationResult
     public bool IsForbidden { get; set; }
     public bool CompanyNotFound { get; set; }
     public string? ErrorMessage { get; set; }
-    public CustomerWorkspaceAuthorizedContext? Context { get; set; }
+    public CustomerWorkspaceContext? Context { get; set; }
 }
 
-public class CustomerWorkspaceAuthorizedContext
+public class CustomerWorkspaceContext
 {
     public Guid AppUserId { get; set; }
     public Guid ManagementCompanyId { get; set; }
@@ -33,7 +33,7 @@ public class CompanyCustomerListItem
     public string? Phone { get; set; }
 }
 
-public class CustomerWorkspaceDashboardAccessResult
+public class CustomerDashboardAccessResult
 {
     public bool IsAuthorized { get; set; }
     public bool IsForbidden { get; set; }

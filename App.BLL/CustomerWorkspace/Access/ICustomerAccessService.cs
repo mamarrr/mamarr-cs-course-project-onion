@@ -9,13 +9,13 @@ public interface ICustomerAccessService
         string companySlug,
         CancellationToken cancellationToken = default);
 
-    Task<CustomerWorkspaceDashboardAccessResult> AuthorizeCustomerContextAsync(
+    Task<CustomerDashboardAccessResult> AuthorizeCustomerContextAsync(
         Guid appUserId,
         string companySlug,
         string customerSlug,
         CancellationToken cancellationToken = default);
 
-    Task<CustomerWorkspaceDashboardAccessResult> ResolveDashboardAccessAsync(
+    Task<CustomerDashboardAccessResult> ResolveDashboardAccessAsync(
         Guid appUserId,
         string companySlug,
         string customerSlug,

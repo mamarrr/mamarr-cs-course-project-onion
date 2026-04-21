@@ -135,7 +135,7 @@ public class CustomersController : ManagementPageShellController
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 
-    private async Task<(IActionResult? response, CustomerWorkspaceAuthorizedContext? context)> AuthorizeAsync(
+    private async Task<(IActionResult? response, CustomerWorkspaceContext? context)> AuthorizeAsync(
         string companySlug,
         CancellationToken cancellationToken)
     {
@@ -160,7 +160,7 @@ public class CustomersController : ManagementPageShellController
     }
 
     private async Task<ManagementCustomersPageViewModel> BuildPageViewModelAsync(
-        CustomerWorkspaceAuthorizedContext context,
+        CustomerWorkspaceContext context,
         CancellationToken cancellationToken,
         AddManagementCustomerViewModel? addCustomerOverride = null)
     {
