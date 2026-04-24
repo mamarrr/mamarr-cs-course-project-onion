@@ -7,9 +7,10 @@ using App.BLL.Shared.Profiles;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Services.SharedLayout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Property;
-using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Property.Controllers;
 
@@ -21,18 +22,18 @@ public class ProfileController : Controller
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IPropertyProfileService _propertyProfileService;
-    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
+    private readonly IAppChromeBuilder _appChromeBuilder;
 
     public ProfileController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
         IPropertyProfileService propertyProfileService,
-        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
+        IAppChromeBuilder appChromeBuilder)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _propertyProfileService = propertyProfileService;
-        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
+        _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
@@ -174,11 +175,9 @@ public class ProfileController : Controller
         PropertyProfileEditViewModel? edit,
         CancellationToken cancellationToken)
     {
-        var pageShell = await BuildPageShellAsync(context, cancellationToken);
-
         return new ProfilePageViewModel
         {
-            PageShell = pageShell,
+            AppChrome = await BuildAppChromeAsync(context, UiText.Profile, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CustomerSlug = context.CustomerSlug,
@@ -198,37 +197,27 @@ public class ProfileController : Controller
         };
     }
 
-    private async Task<PropertyPageShellViewModel> BuildPageShellAsync(
+    private Task<AppChromeViewModel> BuildAppChromeAsync(
         PropertyDashboardContext context,
+        string title,
         CancellationToken cancellationToken)
     {
-        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
-            User,
-            new WorkspaceLayoutRequestViewModel
+        return _appChromeBuilder.BuildAsync(
+            new AppChromeRequest
             {
-                CurrentController = ControllerContext.ActionDescriptor.ControllerName,
-                CompanySlug = context.CompanySlug,
-                CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
-                CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
-            },
-            cancellationToken);
-
-        return new PropertyPageShellViewModel
-        {
-            Title = UiText.Profile,
-            CurrentSectionLabel = UiText.Profile,
-            LayoutContext = layoutContext,
-            Property = new PropertyLayoutViewModel
-            {
-                CompanySlug = context.CompanySlug,
-                CompanyName = context.CompanyName,
+                User = User,
+                HttpContext = HttpContext,
+                PageTitle = title,
+                ActiveSection = Sections.Profile,
+                ManagementCompanySlug = context.CompanySlug,
+                ManagementCompanyName = context.CompanyName,
                 CustomerSlug = context.CustomerSlug,
                 CustomerName = context.CustomerName,
                 PropertySlug = context.PropertySlug,
                 PropertyName = context.PropertyName,
-                CurrentSection = "Profile"
-            }
-        };
+                CurrentLevel = WorkspaceLevel.Property
+            },
+            cancellationToken);
     }
 
     private async Task<(IActionResult? response, PropertyDashboardContext? context)> ResolveAccessAsync(

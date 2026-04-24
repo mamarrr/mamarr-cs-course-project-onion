@@ -1,0 +1,47 @@
+@using WebApp.UI.Chrome
+@model IAppChromePage
+
+@{
+    var chrome = Model.AppChrome;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@chrome.PageTitle - @App.Resources.Views.UiText.Management</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/management-ui.css" asp-append-version="true" />
+</head>
+<body class="management-body">
+<div class="management-shell">
+    @await Html.PartialAsync("~/Views/Shared/Chrome/_TopBar.cshtml", chrome)
+
+    <div class="management-body-grid">
+        <aside class="management-sidebar">
+            <div class="management-company-name">@chrome.Workspace.DisplayName</div>
+            @await Html.PartialAsync("~/Views/Shared/Chrome/_Sidebar.cshtml", chrome.NavigationItems)
+
+            <div class="management-sidebar-footer">
+                <a class="management-btn management-sidebar-cta" asp-area="" asp-controller="Onboarding" asp-action="Index" asp-route-showChooser="true">@App.Resources.Views.UiText.NewContext</a>
+                @await Html.PartialAsync("~/Views/Shared/Chrome/_CultureSelector.cshtml", chrome)
+                <a class="management-sidebar-link" asp-area="" asp-controller="Home" asp-action="Privacy">@App.Resources.Views.UiText.Privacy</a>
+            </div>
+        </aside>
+
+        <main class="management-main">
+            @await Html.PartialAsync("~/Views/Shared/Chrome/_Breadcrumbs.cshtml", chrome.Breadcrumbs)
+            <h1 class="management-page-title">@chrome.PageTitle</h1>
+            @RenderBody()
+        </main>
+    </div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

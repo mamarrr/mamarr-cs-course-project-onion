@@ -6,10 +6,10 @@ using App.BLL.Shared.Profiles;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Services.SharedLayout;
-using WebApp.ViewModels.Customer.CustomerDashboard;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Customer.CustomerProfile;
-using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Customer.Controllers;
 
@@ -20,16 +20,16 @@ public class CustomerProfileController : Controller
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly ICustomerProfileService _customerProfileService;
-    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
+    private readonly IAppChromeBuilder _appChromeBuilder;
 
     public CustomerProfileController(
         ICustomerAccessService customerAccessService,
         ICustomerProfileService customerProfileService,
-        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
+        IAppChromeBuilder appChromeBuilder)
     {
         _customerAccessService = customerAccessService;
         _customerProfileService = customerProfileService;
-        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
+        _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
@@ -165,11 +165,9 @@ public class CustomerProfileController : Controller
         CustomerProfileEditViewModel? edit,
         CancellationToken cancellationToken)
     {
-        var pageShell = await BuildPageShellAsync(context, cancellationToken);
-
         return new ProfilePageViewModel
         {
-            PageShell = pageShell,
+            AppChrome = await BuildAppChromeAsync(context, UiText.Profile, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CustomerSlug = context.CustomerSlug,
@@ -187,35 +185,25 @@ public class CustomerProfileController : Controller
         };
     }
 
-    private async Task<CustomerPageShellViewModel> BuildPageShellAsync(
+    private Task<AppChromeViewModel> BuildAppChromeAsync(
         CustomerWorkspaceDashboardContext context,
+        string title,
         CancellationToken cancellationToken)
     {
-        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
-            User,
-            new WorkspaceLayoutRequestViewModel
+        return _appChromeBuilder.BuildAsync(
+            new AppChromeRequest
             {
-                CurrentController = ControllerContext.ActionDescriptor.ControllerName,
-                CompanySlug = context.CompanySlug,
-                CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
-                CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
-            },
-            cancellationToken);
-
-        return new CustomerPageShellViewModel
-        {
-            Title = UiText.Profile,
-            CurrentSectionLabel = UiText.Profile,
-            LayoutContext = layoutContext,
-            Customer = new CustomerLayoutViewModel
-            {
-                CompanySlug = context.CompanySlug,
-                CompanyName = context.CompanyName,
+                User = User,
+                HttpContext = HttpContext,
+                PageTitle = title,
+                ActiveSection = Sections.Profile,
+                ManagementCompanySlug = context.CompanySlug,
+                ManagementCompanyName = context.CompanyName,
                 CustomerSlug = context.CustomerSlug,
                 CustomerName = context.CustomerName,
-                CurrentSection = "Profile"
-            }
-        };
+                CurrentLevel = WorkspaceLevel.Customer
+            },
+            cancellationToken);
     }
 
     private async Task<(IActionResult? response, CustomerWorkspaceDashboardContext? context)> ResolveAccessAsync(

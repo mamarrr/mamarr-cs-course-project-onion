@@ -7,7 +7,9 @@ using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebApp.Services.ManagementLayout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Customers;
 
 namespace WebApp.Areas.Management.Controllers;
@@ -15,24 +17,25 @@ namespace WebApp.Areas.Management.Controllers;
 [Area("Management")]
 [Authorize]
 [Route("m/{companySlug}/customers")]
-public class CustomersController : ManagementPageShellController
+public class CustomersController : Controller
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly ICompanyCustomerService _companyCustomerService;
     private readonly AppDbContext _dbContext;
+    private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ILogger<CustomersController> _logger;
 
     public CustomersController(
         ICustomerAccessService customerAccessService,
         ICompanyCustomerService companyCustomerService,
         AppDbContext dbContext,
-        ILogger<CustomersController> logger,
-        IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
-        : base(managementLayoutViewModelProvider)
+        IAppChromeBuilder appChromeBuilder,
+        ILogger<CustomersController> logger)
     {
         _customerAccessService = customerAccessService;
         _companyCustomerService = companyCustomerService;
         _dbContext = dbContext;
+        _appChromeBuilder = appChromeBuilder;
         _logger = logger;
     }
 
@@ -195,7 +198,18 @@ public class CustomersController : ManagementPageShellController
 
         return new CustomersPageViewModel
         {
-            PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
+            AppChrome = await _appChromeBuilder.BuildAsync(
+                new AppChromeRequest
+                {
+                    User = User,
+                    HttpContext = HttpContext,
+                    PageTitle = title,
+                    ActiveSection = Sections.Customers,
+                    ManagementCompanySlug = context.CompanySlug,
+                    ManagementCompanyName = context.CompanyName,
+                    CurrentLevel = WorkspaceLevel.ManagementCompany
+                },
+                cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             Customers = listResult.Customers.Select(x => new ManagementCustomerListItemViewModel

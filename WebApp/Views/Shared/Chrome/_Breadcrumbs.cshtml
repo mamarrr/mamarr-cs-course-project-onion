@@ -1,0 +1,25 @@
+@model IReadOnlyList<WebApp.UI.Breadcrumbs.BreadcrumbLinkViewModel>
+
+@if (Model.Count > 1)
+{
+    <nav class="workspace-breadcrumbs management-muted mb-3" aria-label="Workspace hierarchy">
+        @for (var i = 0; i < Model.Count; i++)
+        {
+            var item = Model[i];
+
+            if (i > 0)
+            {
+                <span class="workspace-breadcrumbs__separator">/</span>
+            }
+
+            if (!item.IsCurrent && !string.IsNullOrWhiteSpace(item.Url))
+            {
+                <a href="@item.Url">@item.Label</a>
+            }
+            else
+            {
+                <span aria-current="page">@item.Label</span>
+            }
+        }
+    </nav>
+}

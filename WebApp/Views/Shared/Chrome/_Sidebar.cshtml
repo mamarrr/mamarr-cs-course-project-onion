@@ -1,0 +1,21 @@
+@model IReadOnlyList<WebApp.UI.Navigation.NavigationItemViewModel>
+
+<nav>
+    @foreach (var item in Model.Where(x => x.IsVisible))
+    {
+        if (item.IsDisabled)
+        {
+            <span class="management-sidebar-link disabled">@item.Label</span>
+        }
+        else
+        {
+            <a href="@item.Url" class="management-sidebar-link @(item.IsActive ? "active" : string.Empty)">
+                @if (!string.IsNullOrWhiteSpace(item.IconCssClass))
+                {
+                    <i class="@item.IconCssClass"></i>
+                }
+                <span>@item.Label</span>
+            </a>
+        }
+    }
+</nav>

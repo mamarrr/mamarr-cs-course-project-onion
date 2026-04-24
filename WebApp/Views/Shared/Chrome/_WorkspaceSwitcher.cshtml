@@ -1,0 +1,52 @@
+@model WebApp.UI.Chrome.AppChromeViewModel
+
+<div class="dropdown">
+    <button class="management-btn ghost dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        @App.Resources.Views.UiText.Context
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end">
+        <li><h6 class="dropdown-header">@App.Resources.Views.UiText.Companies</h6></li>
+        @if (Model.ManagementWorkspaceOptions.Count == 0)
+        {
+            <li><span class="dropdown-item-text text-muted">@App.Resources.Views.UiText.NoCompanyContexts</span></li>
+        }
+        else
+        {
+            foreach (var companyContext in Model.ManagementWorkspaceOptions)
+            {
+                <li>
+                    <a class="dropdown-item @(companyContext.IsCurrent ? "active" : string.Empty)" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="management" asp-route-id="@companyContext.Id" asp-route-returnUrl="@Model.CurrentPathAndQuery">@companyContext.Name</a>
+                </li>
+            }
+        }
+
+        <li><hr class="dropdown-divider" /></li>
+        <li><h6 class="dropdown-header">@App.Resources.Views.UiText.Customers</h6></li>
+        @if (Model.CustomerWorkspaceOptions.Count == 0)
+        {
+            <li><span class="dropdown-item-text text-muted">@App.Resources.Views.UiText.NoCustomerContexts</span></li>
+        }
+        else
+        {
+            foreach (var customerContext in Model.CustomerWorkspaceOptions)
+            {
+                <li>
+                    <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="customer" asp-route-id="@customerContext.Id" asp-route-returnUrl="@Model.CurrentPathAndQuery">@customerContext.Name</a>
+                </li>
+            }
+        }
+
+        <li><hr class="dropdown-divider" /></li>
+        <li><h6 class="dropdown-header">@App.Resources.Views.UiText.Resident</h6></li>
+        @if (Model.Workspace.HasResidentContext)
+        {
+            <li>
+                <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="resident" asp-route-returnUrl="@Model.CurrentPathAndQuery">@App.Resources.Views.UiText.ResidentDashboard</a>
+            </li>
+        }
+        else
+        {
+            <li><span class="dropdown-item-text text-muted">@App.Resources.Views.UiText.NoResidentContext</span></li>
+        }
+    </ul>
+</div>

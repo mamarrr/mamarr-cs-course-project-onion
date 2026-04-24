@@ -2,7 +2,9 @@ using System.Security.Claims;
 using App.BLL.ManagementCompany.Membership;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Services.ManagementLayout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Dashboard;
 
 namespace WebApp.Areas.Management.Controllers;
@@ -10,16 +12,17 @@ namespace WebApp.Areas.Management.Controllers;
 [Area("Management")]
 [Authorize]
 [Route("m/{companySlug}")]
-public class DashboardController : ManagementPageShellController
+public class DashboardController : Controller
 {
     private readonly ICompanyMembershipAdminService _companyMembershipAdminService;
+    private readonly IAppChromeBuilder _appChromeBuilder;
 
     public DashboardController(
         ICompanyMembershipAdminService companyMembershipAdminService,
-        IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
-        : base(managementLayoutViewModelProvider)
+        IAppChromeBuilder appChromeBuilder)
     {
         _companyMembershipAdminService = companyMembershipAdminService;
+        _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
@@ -46,7 +49,18 @@ public class DashboardController : ManagementPageShellController
         var title = App.Resources.Views.UiText.Dashboard;
         var vm = new DashboardPageViewModel
         {
-            PageShell = await BuildManagementPageShellAsync(title, title, auth.Context!.CompanySlug, cancellationToken),
+            AppChrome = await _appChromeBuilder.BuildAsync(
+                new AppChromeRequest
+                {
+                    User = User,
+                    HttpContext = HttpContext,
+                    PageTitle = title,
+                    ActiveSection = Sections.Dashboard,
+                    ManagementCompanySlug = auth.Context!.CompanySlug,
+                    ManagementCompanyName = auth.Context.CompanyName,
+                    CurrentLevel = WorkspaceLevel.ManagementCompany
+                },
+                cancellationToken),
             CompanySlug = auth.Context.CompanySlug,
             CompanyName = auth.Context.CompanyName
         };

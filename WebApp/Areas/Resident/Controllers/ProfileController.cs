@@ -6,9 +6,10 @@ using App.BLL.Shared.Profiles;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Services.SharedLayout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Resident;
-using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Resident.Controllers;
 
@@ -19,16 +20,16 @@ public class ProfileController : Controller
 {
     private readonly IResidentAccessService _residentAccessService;
     private readonly IResidentProfileService _residentProfileService;
-    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
+    private readonly IAppChromeBuilder _appChromeBuilder;
 
     public ProfileController(
         IResidentAccessService residentAccessService,
         IResidentProfileService residentProfileService,
-        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
+        IAppChromeBuilder appChromeBuilder)
     {
         _residentAccessService = residentAccessService;
         _residentProfileService = residentProfileService;
-        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
+        _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
@@ -163,14 +164,13 @@ public class ProfileController : Controller
         ResidentProfileEditViewModel? edit,
         CancellationToken cancellationToken)
     {
-        var pageShell = await BuildPageShellAsync(context, cancellationToken);
         var residentDisplayName = string.IsNullOrWhiteSpace(context.FullName)
             ? context.ResidentIdCode
             : context.FullName;
 
         return new ProfilePageViewModel
         {
-            PageShell = pageShell,
+            AppChrome = await BuildAppChromeAsync(context, UiText.Profile, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             SuccessMessage = TempData[nameof(UiText.ProfileUpdatedSuccessfully)] as string,
@@ -187,36 +187,30 @@ public class ProfileController : Controller
         };
     }
 
-    private async Task<ResidentPageShellViewModel> BuildPageShellAsync(
+    private Task<AppChromeViewModel> BuildAppChromeAsync(
         ResidentDashboardContext context,
+        string title,
         CancellationToken cancellationToken)
     {
-        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
-            User,
-            new WorkspaceLayoutRequestViewModel
+        var residentDisplayName = string.IsNullOrWhiteSpace(context.FullName)
+            ? context.ResidentIdCode
+            : context.FullName;
+
+        return _appChromeBuilder.BuildAsync(
+            new AppChromeRequest
             {
-                CurrentController = ControllerContext.ActionDescriptor.ControllerName,
-                CompanySlug = context.CompanySlug,
-                CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
-                CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
+                User = User,
+                HttpContext = HttpContext,
+                PageTitle = title,
+                ActiveSection = Sections.Profile,
+                ManagementCompanySlug = context.CompanySlug,
+                ManagementCompanyName = context.CompanyName,
+                ResidentIdCode = context.ResidentIdCode,
+                ResidentDisplayName = residentDisplayName,
+                ResidentSupportingText = string.IsNullOrWhiteSpace(context.FullName) ? null : context.ResidentIdCode,
+                CurrentLevel = WorkspaceLevel.Resident
             },
             cancellationToken);
-
-        return new ResidentPageShellViewModel
-        {
-            Title = UiText.Profile,
-            CurrentSectionLabel = UiText.Profile,
-            LayoutContext = layoutContext,
-            Resident = new LayoutViewModel
-            {
-                CompanySlug = context.CompanySlug,
-                CompanyName = context.CompanyName,
-                ResidentIdCode = context.ResidentIdCode,
-                ResidentDisplayName = string.IsNullOrWhiteSpace(context.FullName) ? context.ResidentIdCode : context.FullName,
-                ResidentSupportingText = string.IsNullOrWhiteSpace(context.FullName) ? null : context.ResidentIdCode,
-                CurrentSection = "Profile"
-            }
-        };
     }
 
     private async Task<(IActionResult? response, ResidentDashboardContext? context)> ResolveAccessAsync(

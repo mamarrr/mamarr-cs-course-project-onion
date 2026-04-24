@@ -40,8 +40,12 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApp;
 using WebApp.ApiControllers.Shared;
 using WebApp.Middleware;
-using WebApp.Services.ManagementLayout;
-using WebApp.Services.SharedLayout;
+using WebApp.UI.Breadcrumbs;
+using WebApp.UI.Chrome;
+using WebApp.UI.Culture;
+using WebApp.UI.Navigation;
+using WebApp.UI.UserMenu;
+using WebApp.UI.Workspace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -108,8 +112,12 @@ builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
 builder.Services.AddScoped<IPropertyProfileService, PropertyProfileService>();
 builder.Services.AddScoped<IUnitProfileService, UnitProfileService>();
 builder.Services.AddScoped<IResidentProfileService, ResidentProfileService>();
-builder.Services.AddScoped<IWorkspaceLayoutContextProvider, WorkspaceLayoutContextProvider>();
-builder.Services.AddScoped<IManagementLayoutViewModelProvider, ManagementLayoutViewModelProvider>();
+builder.Services.AddScoped<IAppChromeBuilder, AppChromeBuilder>();
+builder.Services.AddScoped<IWorkspaceResolver, WorkspaceResolver>();
+builder.Services.AddScoped<IBreadcrumbBuilder, BreadcrumbBuilder>();
+builder.Services.AddScoped<INavigationBuilder, NavigationBuilder>();
+builder.Services.AddScoped<ICultureOptionsBuilder, CultureOptionsBuilder>();
+builder.Services.AddScoped<IUserMenuBuilder, UserMenuBuilder>();
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
 builder.Services

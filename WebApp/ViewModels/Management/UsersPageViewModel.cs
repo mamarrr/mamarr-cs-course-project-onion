@@ -1,13 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using WebApp.ViewModels.Shared.Layout;
+using WebApp.UI.Chrome;
 
 namespace WebApp.ViewModels.Management.Users;
 
-public class UsersPageViewModel : IHasPageShell<ManagementPageShellViewModel>
+public class UsersPageViewModel : IAppChromePage
 {
-    public ManagementPageShellViewModel PageShell { get; init; } = new();
+    public AppChromeViewModel AppChrome { get; init; } = new();
     public string CompanySlug { get; set; } = default!;
     public string CompanyName { get; set; } = default!;
     public bool CurrentActorIsOwner { get; set; }
@@ -68,9 +68,9 @@ public class AddManagementUserViewModel
     public bool IsActive { get; set; } = true;
 }
 
-public class EditManagementUserViewModel : IHasPageShell<ManagementPageShellViewModel>
+public class EditManagementUserViewModel : IAppChromePage
 {
-    public ManagementPageShellViewModel PageShell { get; set; } = new();
+    public AppChromeViewModel AppChrome { get; set; } = new();
     public Guid MembershipId { get; set; }
     public string CompanySlug { get; set; } = default!;
     public string? CompanyName { get; set; }
@@ -113,9 +113,9 @@ public class EditManagementUserViewModel : IHasPageShell<ManagementPageShellView
     public IReadOnlyList<SelectListItem> AvailableRoles { get; set; } = Array.Empty<SelectListItem>();
 }
 
-public class TransferOwnershipPageViewModel : IHasPageShell<ManagementPageShellViewModel>
+public class TransferOwnershipPageViewModel : IAppChromePage
 {
-    public ManagementPageShellViewModel PageShell { get; init; } = new();
+    public AppChromeViewModel AppChrome { get; init; } = new();
     public string CompanySlug { get; set; } = default!;
     public string CompanyName { get; set; } = default!;
     public string CurrentOwnerName { get; set; } = default!;

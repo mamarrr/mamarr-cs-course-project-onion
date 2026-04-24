@@ -3,7 +3,9 @@ using App.BLL.ManagementCompany.Membership;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using WebApp.Services.ManagementLayout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Users;
 
 namespace WebApp.Areas.Management.Controllers;
@@ -11,17 +13,18 @@ namespace WebApp.Areas.Management.Controllers;
 [Area("Management")]
 [Authorize]
 [Route("m/{companySlug}/users")]
-public class UsersController : ManagementPageShellController
+public class UsersController : Controller
 {
     private readonly ICompanyMembershipAdminService _companyMembershipAdminService;
+    private readonly IAppChromeBuilder _appChromeBuilder;
 
     public UsersController(
         ICompanyMembershipAdminService companyMembershipAdminService,
-        ILogger<UsersController> logger,
-        IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
-        : base(managementLayoutViewModelProvider)
+        IAppChromeBuilder appChromeBuilder,
+        ILogger<UsersController> logger)
     {
         _companyMembershipAdminService = companyMembershipAdminService;
+        _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
@@ -349,7 +352,7 @@ public class UsersController : ManagementPageShellController
 
         return new UsersPageViewModel
         {
-            PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
+            AppChrome = await BuildManagementChromeAsync(title, context, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CurrentActorIsOwner = context.IsOwner,
@@ -402,7 +405,7 @@ public class UsersController : ManagementPageShellController
 
         return new TransferOwnershipPageViewModel
         {
-            PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
+            AppChrome = await BuildManagementChromeAsync(title, context, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CurrentOwnerName = currentOwner.FullName,
@@ -427,7 +430,7 @@ public class UsersController : ManagementPageShellController
     {
         return new EditManagementUserViewModel
         {
-            PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
+            AppChrome = await BuildManagementChromeAsync(title, context, cancellationToken),
             MembershipId = data.MembershipId,
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
@@ -478,7 +481,26 @@ public class UsersController : ManagementPageShellController
         vm.OwnershipTransferRequired = data.OwnershipTransferRequired;
         vm.ProtectedReason = data.ProtectedReason;
         vm.AvailableRoles = await BuildRoleSelectListAsync(data.AvailableRoleOptions, vm.RoleId);
-        vm.PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken);
+        vm.AppChrome = await BuildManagementChromeAsync(title, context, cancellationToken);
+    }
+
+    private Task<AppChromeViewModel> BuildManagementChromeAsync(
+        string title,
+        CompanyAdminAuthorizedContext context,
+        CancellationToken cancellationToken)
+    {
+        return _appChromeBuilder.BuildAsync(
+            new AppChromeRequest
+            {
+                User = User,
+                HttpContext = HttpContext,
+                PageTitle = title,
+                ActiveSection = Sections.CompanyUsers,
+                ManagementCompanySlug = context.CompanySlug,
+                ManagementCompanyName = context.CompanyName,
+                CurrentLevel = WorkspaceLevel.ManagementCompany
+            },
+            cancellationToken);
     }
 
     private static Task<IReadOnlyList<SelectListItem>> BuildRoleSelectListAsync(
