@@ -8,8 +8,9 @@ using App.BLL.UnitWorkspace.Workspace;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Services.SharedLayout;
-using WebApp.ViewModels.Shared.Layout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Unit;
 
 namespace WebApp.Areas.Unit.Controllers;
@@ -23,20 +24,20 @@ public class ProfileController : Controller
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IUnitAccessService _unitAccessService;
     private readonly IUnitProfileService _unitProfileService;
-    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
+    private readonly IAppChromeBuilder _appChromeBuilder;
 
     public ProfileController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
         IUnitAccessService unitAccessService,
         IUnitProfileService unitProfileService,
-        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
+        IAppChromeBuilder appChromeBuilder)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
         _unitProfileService = unitProfileService;
-        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
+        _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
@@ -180,11 +181,9 @@ public class ProfileController : Controller
         UnitProfileEditViewModel? edit,
         CancellationToken cancellationToken)
     {
-        var pageShell = await BuildPageShellAsync(context, cancellationToken);
-
         return new ProfilePageViewModel
         {
-            PageShell = pageShell,
+            AppChrome = await BuildAppChromeAsync(context, UiText.Profile, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CustomerSlug = context.CustomerSlug,
@@ -205,39 +204,29 @@ public class ProfileController : Controller
         };
     }
 
-    private async Task<UnitPageShellViewModel> BuildPageShellAsync(
+    private Task<AppChromeViewModel> BuildAppChromeAsync(
         UnitDashboardContext context,
+        string title,
         CancellationToken cancellationToken)
     {
-        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
-            User,
-            new WorkspaceLayoutRequestViewModel
+        return _appChromeBuilder.BuildAsync(
+            new AppChromeRequest
             {
-                CurrentController = ControllerContext.ActionDescriptor.ControllerName,
-                CompanySlug = context.CompanySlug,
-                CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
-                CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
-            },
-            cancellationToken);
-
-        return new UnitPageShellViewModel
-        {
-            Title = UiText.Profile,
-            CurrentSectionLabel = UiText.Profile,
-            LayoutContext = layoutContext,
-            Unit = new LayoutViewModel
-            {
-                CompanySlug = context.CompanySlug,
-                CompanyName = context.CompanyName,
+                User = User,
+                HttpContext = HttpContext,
+                PageTitle = title,
+                ActiveSection = Sections.Profile,
+                ManagementCompanySlug = context.CompanySlug,
+                ManagementCompanyName = context.CompanyName,
                 CustomerSlug = context.CustomerSlug,
                 CustomerName = context.CustomerName,
                 PropertySlug = context.PropertySlug,
                 PropertyName = context.PropertyName,
                 UnitSlug = context.UnitSlug,
                 UnitName = context.UnitNr,
-                CurrentSection = "Profile"
-            }
-        };
+                CurrentLevel = WorkspaceLevel.Unit
+            },
+            cancellationToken);
     }
 
     private async Task<(IActionResult? response, UnitDashboardContext? context)> ResolveAccessAsync(

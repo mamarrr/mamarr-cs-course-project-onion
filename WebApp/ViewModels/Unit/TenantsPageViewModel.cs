@@ -1,14 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using WebApp.ViewModels.Shared.Layout;
+using WebApp.UI.Chrome;
 
 namespace WebApp.ViewModels.Unit;
 
-public class TenantsPageViewModel : IHasPageShell<UnitPageShellViewModel>
+public class TenantsPageViewModel : IAppChromePage
 {
     [ValidateNever]
-    public UnitPageShellViewModel PageShell { get; init; } = new();
+    public AppChromeViewModel AppChrome { get; init; } = new();
 
     [ValidateNever]
     public string CompanySlug { get; set; } = string.Empty;

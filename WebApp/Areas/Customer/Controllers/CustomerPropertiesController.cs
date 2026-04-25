@@ -7,10 +7,10 @@ using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using WebApp.Services.SharedLayout;
-using WebApp.ViewModels.Customer.CustomerDashboard;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Customer.CustomerProperties;
-using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Customer.Controllers;
 
@@ -21,20 +21,20 @@ public class CustomerPropertiesController : Controller
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
+    private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly AppDbContext _dbContext;
     private readonly ILogger<CustomerPropertiesController> _logger;
 
     public CustomerPropertiesController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider,
+        IAppChromeBuilder appChromeBuilder,
         AppDbContext dbContext,
         ILogger<CustomerPropertiesController> logger)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
+        _appChromeBuilder = appChromeBuilder;
         _dbContext = dbContext;
         _logger = logger;
     }
@@ -152,25 +152,10 @@ public class CustomerPropertiesController : Controller
         AddPropertyViewModel? addPropertyOverride = null)
     {
         var listResult = await _propertyWorkspaceService.ListPropertiesAsync(context, cancellationToken);
-        var customerLayout = new CustomerLayoutViewModel
-        {
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerSlug = context.CustomerSlug,
-            CustomerName = context.CustomerName,
-            CurrentSection = "Properties"
-        };
-
-        var pageShell = await BuildPageShellAsync(
-            UiText.Properties,
-            UiText.Properties,
-            customerLayout.CompanySlug,
-            cancellationToken,
-            customerLayout);
 
         return new PropertiesPageViewModel
         {
-            PageShell = pageShell,
+            AppChrome = await BuildAppChromeAsync(context, UiText.Properties, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CustomerSlug = context.CustomerSlug,
@@ -199,36 +184,25 @@ public class CustomerPropertiesController : Controller
         };
     }
 
-    private async Task<CustomerPageShellViewModel> BuildPageShellAsync(
+    private Task<AppChromeViewModel> BuildAppChromeAsync(
+        CustomerWorkspaceDashboardContext context,
         string title,
-        string currentSectionLabel,
-        string companySlug,
-        CancellationToken cancellationToken,
-        CustomerLayoutViewModel customerLayout)
+        CancellationToken cancellationToken)
     {
-        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
-            User,
-            BuildWorkspaceRequest(companySlug),
+        return _appChromeBuilder.BuildAsync(
+            new AppChromeRequest
+            {
+                User = User,
+                HttpContext = HttpContext,
+                PageTitle = title,
+                ActiveSection = Sections.Properties,
+                ManagementCompanySlug = context.CompanySlug,
+                ManagementCompanyName = context.CompanyName,
+                CustomerSlug = context.CustomerSlug,
+                CustomerName = context.CustomerName,
+                CurrentLevel = WorkspaceLevel.Customer
+            },
             cancellationToken);
-
-        return new CustomerPageShellViewModel
-        {
-            Title = title,
-            CurrentSectionLabel = currentSectionLabel,
-            LayoutContext = layoutContext,
-            Customer = customerLayout
-        };
-    }
-
-    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
-    {
-        return new WorkspaceLayoutRequestViewModel
-        {
-            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
-            CompanySlug = companySlug,
-            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
-            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
-        };
     }
 
     private Guid? GetAppUserId()

@@ -1,0 +1,16 @@
+@model WebApp.UI.Chrome.AppChromeViewModel
+
+<header class="management-header">
+    <div>
+        <p class="management-eyebrow">@Model.WorkspaceEyebrow</p>
+        <strong>@Model.Workspace.DisplayName</strong>
+        @if (!string.IsNullOrWhiteSpace(Model.Workspace.ResidentSupportingText))
+        {
+            <div class="text-muted">@Model.Workspace.ResidentSupportingText</div>
+        }
+    </div>
+    <div class="management-header-actions">
+        @await Html.PartialAsync("~/Views/Shared/Chrome/_WorkspaceSwitcher.cshtml", Model)
+        @await Html.PartialAsync("~/Views/Shared/Chrome/_UserMenu.cshtml", Model.UserMenu)
+    </div>
+</header>

@@ -12,10 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WebApp.Areas.Management.Controllers;
-using WebApp.Services.ManagementLayout;
-using WebApp.ViewModels.Management.Layout;
 using WebApp.ViewModels.Management.Customers;
-using WebApp.ViewModels.Shared.Layout;
+using WebApp.UI.Chrome;
 using Xunit;
 
 namespace Onboarding.Tests.ManagementCustomers;
@@ -188,8 +186,8 @@ public class CustomersControllerTests
             accessService.Object,
             customerService.Object,
             dbContext,
-            Mock.Of<ILogger<CustomersController>>(),
-            Mock.Of<IManagementLayoutViewModelProvider>(x => x.BuildAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<ManagementLayoutRequestViewModel>(), It.IsAny<CancellationToken>()) == Task.FromResult(new ManagementLayoutViewModel())))
+            Mock.Of<IAppChromeBuilder>(x => x.BuildAsync(It.IsAny<AppChromeRequest>(), It.IsAny<CancellationToken>()) == Task.FromResult(new AppChromeViewModel())),
+            Mock.Of<ILogger<CustomersController>>())
         {
             ControllerContext = new ControllerContext
             {

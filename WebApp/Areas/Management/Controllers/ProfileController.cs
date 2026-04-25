@@ -4,7 +4,9 @@ using App.BLL.Shared.Profiles;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Services.ManagementLayout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Profile;
 
 namespace WebApp.Areas.Management.Controllers;
@@ -12,16 +14,17 @@ namespace WebApp.Areas.Management.Controllers;
 [Area("Management")]
 [Authorize]
 [Route("m/{companySlug}/profile")]
-public class ProfileController : ManagementPageShellController
+public class ProfileController : Controller
 {
     private readonly IManagementCompanyProfileService _managementCompanyProfileService;
+    private readonly IAppChromeBuilder _appChromeBuilder;
 
     public ProfileController(
         IManagementCompanyProfileService managementCompanyProfileService,
-        IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
-        : base(managementLayoutViewModelProvider)
+        IAppChromeBuilder appChromeBuilder)
     {
         _managementCompanyProfileService = managementCompanyProfileService;
+        _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
@@ -167,7 +170,18 @@ public class ProfileController : ManagementPageShellController
 
         return new ProfilePageViewModel
         {
-            PageShell = await BuildManagementPageShellAsync(title, title, profile.CompanySlug, cancellationToken),
+            AppChrome = await _appChromeBuilder.BuildAsync(
+                new AppChromeRequest
+                {
+                    User = User,
+                    HttpContext = HttpContext,
+                    PageTitle = title,
+                    ActiveSection = Sections.Profile,
+                    ManagementCompanySlug = profile.CompanySlug,
+                    ManagementCompanyName = profile.Name,
+                    CurrentLevel = WorkspaceLevel.ManagementCompany
+                },
+                cancellationToken),
             CompanySlug = profile.CompanySlug,
             CompanyName = profile.Name,
             SuccessMessage = TempData[nameof(UiText.ProfileUpdatedSuccessfully)] as string,

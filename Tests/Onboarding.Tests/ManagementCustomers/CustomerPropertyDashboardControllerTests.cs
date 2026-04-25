@@ -6,9 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using WebApp.Areas.Property.Controllers;
-using WebApp.Services.SharedLayout;
+using WebApp.UI.Chrome;
 using WebApp.ViewModels.Property;
-using WebApp.ViewModels.Shared.Layout;
 using Xunit;
 
 namespace Onboarding.Tests.ManagementCustomers;
@@ -170,7 +169,7 @@ public class CustomerPropertyDashboardControllerTests
         return new DashboardController(
             accessService.Object,
             propertyService.Object,
-            Mock.Of<IWorkspaceLayoutContextProvider>(x => x.BuildAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<WorkspaceLayoutRequestViewModel>(), It.IsAny<CancellationToken>()) == Task.FromResult(new WorkspaceLayoutContextViewModel())))
+            Mock.Of<IAppChromeBuilder>(x => x.BuildAsync(It.IsAny<AppChromeRequest>(), It.IsAny<CancellationToken>()) == Task.FromResult(new AppChromeViewModel())))
         {
             ControllerContext = new ControllerContext
             {

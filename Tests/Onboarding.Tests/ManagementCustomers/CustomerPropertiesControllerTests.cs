@@ -12,9 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using WebApp.Areas.Customer.Controllers;
-using WebApp.Services.SharedLayout;
+using WebApp.UI.Chrome;
 using WebApp.ViewModels.Customer.CustomerProperties;
-using WebApp.ViewModels.Shared.Layout;
 using Xunit;
 
 namespace Onboarding.Tests.ManagementCustomers;
@@ -181,7 +180,7 @@ public class CustomerPropertiesControllerTests
         var controller = new CustomerPropertiesController(
             accessService.Object,
             propertyService.Object,
-            Mock.Of<IWorkspaceLayoutContextProvider>(x => x.BuildAsync(It.IsAny<ClaimsPrincipal>(), It.IsAny<WorkspaceLayoutRequestViewModel>(), It.IsAny<CancellationToken>()) == Task.FromResult(new WorkspaceLayoutContextViewModel())),
+            Mock.Of<IAppChromeBuilder>(x => x.BuildAsync(It.IsAny<AppChromeRequest>(), It.IsAny<CancellationToken>()) == Task.FromResult(new AppChromeViewModel())),
             CreateDbContext(),
             Mock.Of<ILogger<CustomerPropertiesController>>())
         {

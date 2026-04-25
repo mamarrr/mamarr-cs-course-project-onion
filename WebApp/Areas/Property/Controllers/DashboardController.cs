@@ -1,12 +1,14 @@
 using System.Security.Claims;
 using App.BLL.CustomerWorkspace.Access;
+using App.BLL.CustomerWorkspace.Workspace;
 using App.BLL.PropertyWorkspace.Properties;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Services.SharedLayout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Property;
-using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Property.Controllers;
 
@@ -17,16 +19,16 @@ public class DashboardController : Controller
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
+    private readonly IAppChromeBuilder _appChromeBuilder;
 
     public DashboardController(
         ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
+        IAppChromeBuilder appChromeBuilder)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
-        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
+        _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
@@ -111,27 +113,13 @@ public class DashboardController : Controller
             _ => UiText.Dashboard
         };
 
-        var propertyLayout = new PropertyLayoutViewModel
-        {
-            CompanySlug = propertyAccess.Context.CompanySlug,
-            CompanyName = propertyAccess.Context.CompanyName,
-            CustomerSlug = propertyAccess.Context.CustomerSlug,
-            CustomerName = propertyAccess.Context.CustomerName,
-            PropertySlug = propertyAccess.Context.PropertySlug,
-            PropertyName = propertyAccess.Context.PropertyName,
-            CurrentSection = currentSection
-        };
-
-        var pageShell = await BuildPageShellAsync(
-            T("PropertyDashboard", "Property dashboard"),
-            currentSectionLabel,
-            propertyLayout.CompanySlug,
-            cancellationToken,
-            propertyLayout);
+        var title = currentSection == Sections.Dashboard
+            ? T("PropertyDashboard", "Property dashboard")
+            : currentSectionLabel;
 
         var vm = new DashboardPageViewModel
         {
-            PageShell = pageShell,
+            AppChrome = await BuildAppChromeAsync(propertyAccess.Context, title, currentSection, cancellationToken),
             CompanySlug = propertyAccess.Context.CompanySlug,
             CompanyName = propertyAccess.Context.CompanyName,
             CustomerSlug = propertyAccess.Context.CustomerSlug,
@@ -144,36 +132,28 @@ public class DashboardController : Controller
         return View("Index", vm);
     }
 
-    private async Task<PropertyPageShellViewModel> BuildPageShellAsync(
+    private Task<AppChromeViewModel> BuildAppChromeAsync(
+        PropertyDashboardContext context,
         string title,
-        string currentSectionLabel,
-        string companySlug,
-        CancellationToken cancellationToken,
-        PropertyLayoutViewModel propertyLayout)
+        string activeSection,
+        CancellationToken cancellationToken)
     {
-        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
-            User,
-            BuildWorkspaceRequest(companySlug),
+        return _appChromeBuilder.BuildAsync(
+            new AppChromeRequest
+            {
+                User = User,
+                HttpContext = HttpContext,
+                PageTitle = title,
+                ActiveSection = activeSection,
+                ManagementCompanySlug = context.CompanySlug,
+                ManagementCompanyName = context.CompanyName,
+                CustomerSlug = context.CustomerSlug,
+                CustomerName = context.CustomerName,
+                PropertySlug = context.PropertySlug,
+                PropertyName = context.PropertyName,
+                CurrentLevel = WorkspaceLevel.Property
+            },
             cancellationToken);
-
-        return new PropertyPageShellViewModel
-        {
-            Title = title,
-            CurrentSectionLabel = currentSectionLabel,
-            LayoutContext = layoutContext,
-            Property = propertyLayout
-        };
-    }
-
-    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
-    {
-        return new WorkspaceLayoutRequestViewModel
-        {
-            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
-            CompanySlug = companySlug,
-            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
-            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
-        };
     }
 
     private Guid? GetAppUserId()

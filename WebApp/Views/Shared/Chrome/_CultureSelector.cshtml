@@ -1,0 +1,16 @@
+@model WebApp.UI.Chrome.AppChromeViewModel
+
+<div class="management-language-title">@App.Resources.Views.UiText.Language (@Model.CurrentUiCultureName)</div>
+<div class="management-language-list">
+    @foreach (var item in Model.CultureOptions)
+    {
+        <a class="management-language-link @(item.IsCurrent ? "active" : string.Empty)"
+           asp-area=""
+           asp-controller="Home"
+           asp-action="SetLanguage"
+           asp-route-culture="@item.Value"
+           asp-route-returnUrl="@Model.CurrentPathAndQuery">
+            @item.Text
+        </a>
+    }
+</div>

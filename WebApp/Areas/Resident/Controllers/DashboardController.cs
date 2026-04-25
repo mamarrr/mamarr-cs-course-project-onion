@@ -1,11 +1,13 @@
 using System.Security.Claims;
 using App.BLL.ResidentWorkspace.Access;
+using App.BLL.ResidentWorkspace.Residents;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Services.SharedLayout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Resident;
-using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Resident.Controllers;
 
@@ -15,14 +17,14 @@ namespace WebApp.Areas.Resident.Controllers;
 public class DashboardController : Controller
 {
     private readonly IResidentAccessService _residentAccessService;
-    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
+    private readonly IAppChromeBuilder _appChromeBuilder;
 
     public DashboardController(
         IResidentAccessService residentAccessService,
-        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
+        IAppChromeBuilder appChromeBuilder)
     {
         _residentAccessService = residentAccessService;
-        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
+        _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
@@ -91,71 +93,52 @@ public class DashboardController : Controller
             ? T("ResidentDashboard", "Resident dashboard")
             : currentSectionLabel;
 
-        var residentLayout = new LayoutViewModel
-        {
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            ResidentIdCode = context.ResidentIdCode,
-            ResidentDisplayName = string.IsNullOrWhiteSpace(context.FullName)
-                ? context.ResidentIdCode
-                : context.FullName,
-            ResidentSupportingText = string.IsNullOrWhiteSpace(context.FullName)
-                ? null
-                : context.ResidentIdCode,
-            CurrentSection = currentSection
-        };
-
-        var pageShell = await BuildPageShellAsync(
-            title,
-            currentSectionLabel,
-            residentLayout.CompanySlug,
-            cancellationToken,
-            residentLayout);
+        var residentDisplayName = string.IsNullOrWhiteSpace(context.FullName)
+            ? context.ResidentIdCode
+            : context.FullName;
+        var residentSupportingText = string.IsNullOrWhiteSpace(context.FullName)
+            ? null
+            : context.ResidentIdCode;
 
         var vm = new DashboardPageViewModel
         {
-            PageShell = pageShell,
+            AppChrome = await BuildAppChromeAsync(context, title, currentSection, cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             ResidentIdCode = context.ResidentIdCode,
-            ResidentDisplayName = residentLayout.ResidentDisplayName,
-            ResidentSupportingText = residentLayout.ResidentSupportingText,
+            ResidentDisplayName = residentDisplayName,
+            ResidentSupportingText = residentSupportingText,
             CurrentSection = currentSection
         };
 
         return View("Index", vm);
     }
 
-    private async Task<ResidentPageShellViewModel> BuildPageShellAsync(
+    private Task<AppChromeViewModel> BuildAppChromeAsync(
+        ResidentDashboardContext context,
         string title,
-        string currentSectionLabel,
-        string companySlug,
-        CancellationToken cancellationToken,
-        LayoutViewModel layout)
+        string activeSection,
+        CancellationToken cancellationToken)
     {
-        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
-            User,
-            BuildWorkspaceRequest(companySlug),
+        var residentDisplayName = string.IsNullOrWhiteSpace(context.FullName)
+            ? context.ResidentIdCode
+            : context.FullName;
+
+        return _appChromeBuilder.BuildAsync(
+            new AppChromeRequest
+            {
+                User = User,
+                HttpContext = HttpContext,
+                PageTitle = title,
+                ActiveSection = activeSection,
+                ManagementCompanySlug = context.CompanySlug,
+                ManagementCompanyName = context.CompanyName,
+                ResidentIdCode = context.ResidentIdCode,
+                ResidentDisplayName = residentDisplayName,
+                ResidentSupportingText = string.IsNullOrWhiteSpace(context.FullName) ? null : context.ResidentIdCode,
+                CurrentLevel = WorkspaceLevel.Resident
+            },
             cancellationToken);
-
-        return new ResidentPageShellViewModel
-        {
-            Title = title,
-            CurrentSectionLabel = currentSectionLabel,
-            LayoutContext = layoutContext,
-            Resident = layout
-        };
-    }
-
-    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
-    {
-        return new WorkspaceLayoutRequestViewModel
-        {
-            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
-            CompanySlug = companySlug,
-            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
-            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
-        };
     }
 
     private Guid? GetAppUserId()

@@ -1,0 +1,6 @@
+@model WebApp.UI.UserMenu.UserMenuViewModel
+
+<form method="post" asp-area="" asp-controller="Onboarding" asp-action="Logout">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="management-btn ghost">@App.Resources.Views.UiText.Logout</button>
+</form>

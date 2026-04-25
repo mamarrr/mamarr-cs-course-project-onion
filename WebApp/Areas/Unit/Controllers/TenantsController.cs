@@ -8,8 +8,9 @@ using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using WebApp.Services.SharedLayout;
-using WebApp.ViewModels.Shared.Layout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Unit;
 
 namespace WebApp.Areas.Unit.Controllers;
@@ -27,7 +28,7 @@ public class TenantsController : Controller
     private readonly IUnitAccessService _unitAccessService;
     private readonly ILeaseAssignmentService _leaseAssignmentService;
     private readonly ILeaseLookupService _leaseLookupService;
-    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
+    private readonly IAppChromeBuilder _appChromeBuilder;
 
     public TenantsController(
         ICustomerAccessService customerAccessService,
@@ -35,14 +36,14 @@ public class TenantsController : Controller
         IUnitAccessService unitAccessService,
         ILeaseAssignmentService leaseAssignmentService,
         ILeaseLookupService leaseLookupService,
-        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider)
+        IAppChromeBuilder appChromeBuilder)
     {
         _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
         _leaseAssignmentService = leaseAssignmentService;
         _leaseLookupService = leaseLookupService;
-        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
+        _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
@@ -313,26 +314,6 @@ public class TenantsController : Controller
             ? Array.Empty<LeaseResidentSearchItem>()
             : (await _leaseLookupService.SearchResidentsAsync(context, residentSearchTerm, cancellationToken)).Residents;
 
-        var unitLayout = new LayoutViewModel
-        {
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerSlug = context.CustomerSlug,
-            CustomerName = context.CustomerName,
-            PropertySlug = context.PropertySlug,
-            PropertyName = context.PropertyName,
-            UnitSlug = context.UnitSlug,
-            UnitName = context.UnitNr,
-            CurrentSection = "Tenants"
-        };
-
-        var pageShell = await BuildPageShellAsync(
-            T("Tenants", "Tenants"),
-            T("Tenants", "Tenants"),
-            context.CompanySlug,
-            cancellationToken,
-            unitLayout);
-
         var leases = leaseList.Leases.Select(x => new UnitTenantLeaseListItemViewModel
         {
             LeaseId = x.LeaseId,
@@ -368,7 +349,7 @@ public class TenantsController : Controller
 
         return new TenantsPageViewModel
         {
-            PageShell = pageShell,
+            AppChrome = await BuildAppChromeAsync(context, T("Tenants", "Tenants"), cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CustomerSlug = context.CustomerSlug,
@@ -398,36 +379,29 @@ public class TenantsController : Controller
         };
     }
 
-    private async Task<UnitPageShellViewModel> BuildPageShellAsync(
+    private Task<AppChromeViewModel> BuildAppChromeAsync(
+        UnitDashboardContext context,
         string title,
-        string currentSectionLabel,
-        string companySlug,
-        CancellationToken cancellationToken,
-        LayoutViewModel layout)
+        CancellationToken cancellationToken)
     {
-        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
-            User,
-            BuildWorkspaceRequest(companySlug),
+        return _appChromeBuilder.BuildAsync(
+            new AppChromeRequest
+            {
+                User = User,
+                HttpContext = HttpContext,
+                PageTitle = title,
+                ActiveSection = Sections.Tenants,
+                ManagementCompanySlug = context.CompanySlug,
+                ManagementCompanyName = context.CompanyName,
+                CustomerSlug = context.CustomerSlug,
+                CustomerName = context.CustomerName,
+                PropertySlug = context.PropertySlug,
+                PropertyName = context.PropertyName,
+                UnitSlug = context.UnitSlug,
+                UnitName = context.UnitNr,
+                CurrentLevel = WorkspaceLevel.Unit
+            },
             cancellationToken);
-
-        return new UnitPageShellViewModel
-        {
-            Title = title,
-            CurrentSectionLabel = currentSectionLabel,
-            LayoutContext = layoutContext,
-            Unit = layout
-        };
-    }
-
-    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
-    {
-        return new WorkspaceLayoutRequestViewModel
-        {
-            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
-            CompanySlug = companySlug,
-            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
-            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
-        };
     }
 
     private Guid? GetAppUserId()

@@ -1,11 +1,13 @@
 using System.Security.Claims;
 using App.BLL.CustomerWorkspace.Access;
+using App.BLL.CustomerWorkspace.Workspace;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using WebApp.Services.SharedLayout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Customer.CustomerDashboard;
-using WebApp.ViewModels.Shared.Layout;
 
 namespace WebApp.Areas.Customer.Controllers;
 
@@ -15,18 +17,18 @@ namespace WebApp.Areas.Customer.Controllers;
 public class CustomerDashboardController : Controller
 {
     private readonly ICustomerAccessService _customerAccessService;
-    private readonly IWorkspaceLayoutContextProvider _workspaceLayoutContextProvider;
+    private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ILogger<CustomerDashboardController> _logger;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
     public CustomerDashboardController(
         ICustomerAccessService customerAccessService,
-        IWorkspaceLayoutContextProvider workspaceLayoutContextProvider,
+        IAppChromeBuilder appChromeBuilder,
         ILogger<CustomerDashboardController> logger,
         IWebHostEnvironment webHostEnvironment)
     {
         _customerAccessService = customerAccessService;
-        _workspaceLayoutContextProvider = workspaceLayoutContextProvider;
+        _appChromeBuilder = appChromeBuilder;
         _logger = logger;
         _webHostEnvironment = webHostEnvironment;
     }
@@ -98,25 +100,9 @@ public class CustomerDashboardController : Controller
             ? T("CustomerDashboard", "Customer dashboard")
             : sectionTitle;
 
-        var customerLayout = new CustomerLayoutViewModel
-        {
-            CompanySlug = access.Context.CompanySlug,
-            CompanyName = access.Context.CompanyName,
-            CustomerSlug = access.Context.CustomerSlug,
-            CustomerName = access.Context.CustomerName,
-            CurrentSection = currentSection
-        };
-
-        var pageShell = await BuildPageShellAsync(
-            title,
-            sectionTitle,
-            customerLayout.CompanySlug,
-            cancellationToken,
-            customerLayout);
-
         var vm = new DashboardPageViewModel
         {
-            PageShell = pageShell,
+            AppChrome = await BuildAppChromeAsync(access.Context, title, currentSection, cancellationToken),
             CompanySlug = access.Context.CompanySlug,
             CompanyName = access.Context.CompanyName,
             CustomerSlug = access.Context.CustomerSlug,
@@ -133,36 +119,26 @@ public class CustomerDashboardController : Controller
         return View("Index", vm);
     }
 
-    private async Task<CustomerPageShellViewModel> BuildPageShellAsync(
+    private Task<AppChromeViewModel> BuildAppChromeAsync(
+        CustomerWorkspaceDashboardContext context,
         string title,
-        string currentSectionLabel,
-        string companySlug,
-        CancellationToken cancellationToken,
-        CustomerLayoutViewModel customerLayout)
+        string activeSection,
+        CancellationToken cancellationToken)
     {
-        var layoutContext = await _workspaceLayoutContextProvider.BuildAsync(
-            User,
-            BuildWorkspaceRequest(companySlug),
+        return _appChromeBuilder.BuildAsync(
+            new AppChromeRequest
+            {
+                User = User,
+                HttpContext = HttpContext,
+                PageTitle = title,
+                ActiveSection = activeSection,
+                ManagementCompanySlug = context.CompanySlug,
+                ManagementCompanyName = context.CompanyName,
+                CustomerSlug = context.CustomerSlug,
+                CustomerName = context.CustomerName,
+                CurrentLevel = WorkspaceLevel.Customer
+            },
             cancellationToken);
-
-        return new CustomerPageShellViewModel
-        {
-            Title = title,
-            CurrentSectionLabel = currentSectionLabel,
-            LayoutContext = layoutContext,
-            Customer = customerLayout
-        };
-    }
-
-    private WorkspaceLayoutRequestViewModel BuildWorkspaceRequest(string companySlug)
-    {
-        return new WorkspaceLayoutRequestViewModel
-        {
-            CurrentController = ControllerContext.ActionDescriptor.ControllerName,
-            CompanySlug = companySlug,
-            CurrentPathAndQuery = $"{Request.Path}{Request.QueryString}",
-            CurrentUiCultureName = Thread.CurrentThread.CurrentUICulture.Name
-        };
     }
 
     private void LogViewCandidates(string currentSection)

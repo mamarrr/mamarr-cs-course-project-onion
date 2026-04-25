@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using App.Resources.Views;
-using WebApp.ViewModels.Shared.Layout;
+using WebApp.UI.Chrome;
 
 namespace WebApp.ViewModels.Resident;
 
-public class ProfilePageViewModel : IHasPageShell<ResidentPageShellViewModel>
+public class ProfilePageViewModel : IAppChromePage
 {
-    public ResidentPageShellViewModel PageShell { get; init; } = new();
+    public AppChromeViewModel AppChrome { get; init; } = new();
     public string CompanySlug { get; init; } = string.Empty;
     public string CompanyName { get; init; } = string.Empty;
     public string ResidentDisplayName { get; init; } = string.Empty;

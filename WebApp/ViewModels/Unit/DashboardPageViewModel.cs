@@ -1,10 +1,10 @@
-using WebApp.ViewModels.Shared.Layout;
+using WebApp.UI.Chrome;
 
 namespace WebApp.ViewModels.Unit;
 
-public class DashboardPageViewModel : IHasPageShell<UnitPageShellViewModel>
+public class DashboardPageViewModel : IAppChromePage
 {
-    public UnitPageShellViewModel PageShell { get; init; } = new();
+    public AppChromeViewModel AppChrome { get; init; } = new();
     public string CompanySlug { get; init; } = string.Empty;
     public string CompanyName { get; init; } = string.Empty;
     public string CustomerSlug { get; init; } = string.Empty;

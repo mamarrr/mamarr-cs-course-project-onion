@@ -1,6 +1,6 @@
 @model WebApp.ViewModels.Customer.CustomerProperties.PropertiesPageViewModel
 @{
-    Layout = "~/Areas/Customer/Views/Shared/_CustomerLayout.cshtml";
+    Layout = "~/Views/Shared/_AppChromeLayout.cshtml";
 }
 
 @if (TempData["CustomerPropertiesSuccess"] is string successMessage && !string.IsNullOrWhiteSpace(successMessage))

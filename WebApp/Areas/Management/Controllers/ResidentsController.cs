@@ -4,7 +4,9 @@ using App.BLL.ResidentWorkspace.Residents;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Services.ManagementLayout;
+using WebApp.UI.Chrome;
+using WebApp.UI.Navigation;
+using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Residents;
 
 namespace WebApp.Areas.Management.Controllers;
@@ -12,21 +14,22 @@ namespace WebApp.Areas.Management.Controllers;
 [Area("Management")]
 [Authorize]
 [Route("m/{companySlug}/residents")]
-public class ResidentsController : ManagementPageShellController
+public class ResidentsController : Controller
 {
     private readonly IResidentAccessService _residentAccessService;
     private readonly ICompanyResidentService _companyResidentService;
+    private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ILogger<ResidentsController> _logger;
 
     public ResidentsController(
         IResidentAccessService residentAccessService,
         ICompanyResidentService companyResidentService,
-        ILogger<ResidentsController> logger,
-        IManagementLayoutViewModelProvider managementLayoutViewModelProvider)
-        : base(managementLayoutViewModelProvider)
+        IAppChromeBuilder appChromeBuilder,
+        ILogger<ResidentsController> logger)
     {
         _residentAccessService = residentAccessService;
         _companyResidentService = companyResidentService;
+        _appChromeBuilder = appChromeBuilder;
         _logger = logger;
     }
 
@@ -158,7 +161,18 @@ public class ResidentsController : ManagementPageShellController
 
         return new ResidentsPageViewModel
         {
-            PageShell = await BuildManagementPageShellAsync(title, title, context.CompanySlug, cancellationToken),
+            AppChrome = await _appChromeBuilder.BuildAsync(
+                new AppChromeRequest
+                {
+                    User = User,
+                    HttpContext = HttpContext,
+                    PageTitle = title,
+                    ActiveSection = Sections.Residents,
+                    ManagementCompanySlug = context.CompanySlug,
+                    ManagementCompanyName = context.CompanyName,
+                    CurrentLevel = WorkspaceLevel.ManagementCompany
+                },
+                cancellationToken),
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             Residents = listResult.Residents
