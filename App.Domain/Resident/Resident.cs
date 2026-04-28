@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using Base.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class Resident : BaseEntity
+public class Resident : BaseEntity, IManagementCompanyId
 {
     [Required]
     [StringLength(100, MinimumLength = 1)]

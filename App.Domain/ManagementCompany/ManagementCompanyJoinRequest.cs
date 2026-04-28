@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using App.Domain.Identity;
+using Base.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class ManagementCompanyJoinRequest : BaseEntity
+public class ManagementCompanyJoinRequest : BaseEntity, IManagementCompanyId
 {
     public Guid AppUserId { get; set; }
     public AppUser? AppUser { get; set; }

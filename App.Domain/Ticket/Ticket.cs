@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Base.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class Ticket : BaseEntity
+public class Ticket : BaseEntity, IManagementCompanyId
 {
     [Required]
     [StringLength(20, MinimumLength = 1)]

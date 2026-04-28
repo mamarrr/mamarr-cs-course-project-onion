@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Base.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class CustomerRepresentative : BaseEntity
+public class CustomerRepresentative : BaseEntity, ICustomerId
 {
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }

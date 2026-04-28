@@ -2,10 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Base.Domain;
 using App.Domain.Identity;
+using Base.Contracts;
 
 namespace App.Domain;
 
-public class ManagementCompanyUser : BaseEntity
+public class ManagementCompanyUser : BaseEntity, IManagementCompanyId
 {
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }

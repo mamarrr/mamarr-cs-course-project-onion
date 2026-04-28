@@ -10,4 +10,8 @@
       <ProjectReference Include="..\Base.Domain\Base.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Implementations\" />
+  </ItemGroup>
+
 </Project>
