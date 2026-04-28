@@ -1,7 +1,7 @@
 ﻿using Base.Contracts;
 
 
-namespace Base.DAL.EF;
+namespace Base.DAL.Contracts;
 
 public interface IBaseRepository<TDalEntity> : IBaseRepository<Guid, TDalEntity>
 

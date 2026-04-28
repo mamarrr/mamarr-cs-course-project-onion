@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Base.DAL.Contracts;
+using Microsoft.EntityFrameworkCore;
 
 namespace Base.DAL.EF;
 
