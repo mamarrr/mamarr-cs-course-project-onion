@@ -41,6 +41,30 @@ Refactor only:
 
 Do not refactor resident or lease assignment workflows beyond read-only summaries already shown in unit dashboard.
 
+## Property-unit flows included in this slice
+
+The current codebase has some unit list/create flows under property controllers. These are part of the Unit slice, not the Property slice. Include these in this plan:
+
+- `WebApp/ApiControllers/Property/PropertyUnitsController.cs`
+- `WebApp/Areas/Property/Controllers/UnitsController.cs`, if present
+- Property-area unit ViewModels/views, if they currently depend on old unit workspace services
+- Unit list/create flows under a property
+
+These files should be refactored only for unit list/create behavior. Do not change unrelated property profile/workspace behavior that was completed in the Property slice.
+
+## Lease/resident workflow deferral
+
+`UnitTenantsController` may be located under `WebApp/ApiControllers/Unit/**`, but lease/resident assignment workflows are **not** part of this slice.
+
+For `UnitTenantsController`, only replace duplicated unit-context resolution with the new Unit BLL/access service if needed for compilation or consistency. Do **not** refactor or redesign:
+
+- `ILeaseAssignmentService`
+- `ILeaseLookupService`
+- lease create/update/delete commands
+- resident search/assignment workflows
+- lease business rules
+
+Those remain on the old implementation until the Lease Assignments slice.
 
 ## Repository inheritance rule
 
@@ -50,14 +74,20 @@ Use the existing `BaseRepository` wherever possible when implementing custom EF 
 
 Do not duplicate generic CRUD behavior in custom repositories unless the current `BaseRepository` cannot support the entity or use case. When a repository interface needs normal CRUD operations, it should inherit from the existing `IBaseRepository` using the project's current generic type signature. Match the actual generic parameters and mapper pattern already used in the codebase.
 
+The `UnitRepository` implementation should follow the same pattern as the current `CustomerRepository` and `PropertyRepository`: inherit from `BaseRepository`, inject the corresponding DAL mapper, pass the mapper to the base constructor, and add only custom query/workflow methods that are not already provided by the base repository. All Domain ↔ DAL DTO conversion must go through mapper classes, not inline repeated mapping logic spread across controllers or services.
+
 ## Files to inspect first
 
 - `WebApp/ApiControllers/Unit/**`
+- `WebApp/ApiControllers/Property/PropertyUnitsController.cs`
+- `WebApp/Areas/Property/Controllers/UnitsController.cs`, if present
 - Unit MVC controllers/views/ViewModels, if present
+- Property-area unit ViewModels/views, if present
 - Current unit DTOs in `App.DTO`
 - Current BLL services under:
   - `App.BLL/UnitWorkspace/**`
-  - `App.BLL/PropertyWorkspace/**`, if it handles unit listing/create
+  - `App.BLL/Properties/**`
+  - `App.BLL.Contracts/Properties/**`
 - `App.Domain/**/Unit.cs`
 - `App.Domain/**/Property.cs`
 - `App.Domain/**/Lease.cs`
@@ -78,17 +108,22 @@ Do not duplicate generic CRUD behavior in custom repositories unless the current
 - `WebApp/Mappers/Api/Units/**`
 - `WebApp/Mappers/Mvc/Units/**`, if MVC exists
 - `WebApp/ApiControllers/Unit/**`
+- `WebApp/ApiControllers/Property/PropertyUnitsController.cs`
+- `WebApp/Areas/Property/Controllers/UnitsController.cs`, if present
 - Unit MVC controllers/ViewModels, if present
+- Property-area unit ViewModels/views, if present
 - `WebApp/Helpers/DependencyInjectionHelpers.cs`
 
-Do not modify resident/lease/management/onboarding behavior except for compilation.
+Do not modify resident/lease/management/onboarding behavior except for compilation. Do not refactor property profile/workspace behavior outside the property-unit list/create flows listed above.
 
 ## Current behavior inventory
 
 Before editing, identify:
 
 - Unit API routes.
+- Property-unit API routes, especially routes in `PropertyUnitsController`.
 - Unit MVC routes, if present.
+- Property-area unit MVC routes, especially `Areas/Property/Controllers/UnitsController.cs` if present.
 - Existing request/response DTOs.
 - Existing ViewModels.
 - Existing unit dashboard response shape.
@@ -123,7 +158,7 @@ public sealed class UnitDalDto
     public Guid PropertyId { get; init; }
     public Guid CustomerId { get; init; }
     public Guid ManagementCompanyId { get; init; }
-    public string Name { get; init; } = default!;
+    public string UnitNr { get; init; } = default!;
     public string Slug { get; init; } = default!;
     public bool IsActive { get; init; }
 }
@@ -136,21 +171,33 @@ public sealed class UnitProfileDalDto
     public Guid PropertyId { get; init; }
     public Guid CustomerId { get; init; }
     public Guid ManagementCompanyId { get; init; }
-    public string Name { get; init; } = default!;
+    public string UnitNr { get; init; } = default!;
     public string Slug { get; init; } = default!;
-    public string? Number { get; init; }
-    public string? Floor { get; init; }
-    public decimal? Size { get; init; }
+    public int? FloorNr { get; init; }
+    public decimal? SizeM2 { get; init; }
+    public string? Notes { get; init; }
     public bool IsActive { get; init; }
+    public DateTime CreatedAt { get; init; }
 }
 ```
 
-Adjust fields to current domain.
+Adjust fields to current domain and existing API responses. In the current domain/API naming, prefer existing unit field names such as:
+
+- `UnitNr`
+- `FloorNr`
+- `SizeM2`
+- `Notes`
+- `Slug`
+- `IsActive`
+- `CreatedAt`
+- `PropertyId`
+
+Do not introduce new public names like `Name`, `Number`, `Floor`, or `Size` if the existing DTOs/controllers use `UnitNr`, `FloorNr`, or `SizeM2`.
 
 ## Repository interface
 
 ```csharp
-public interface IUnitRepository
+public interface IUnitRepository : IBaseRepository<UnitDalDto>
 {
     Task<UnitProfileDalDto?> FirstProfileAsync(
         string companySlug,
@@ -191,7 +238,7 @@ public interface IUnitRepository
 }
 ```
 
-Adjust for current behavior.
+Adjust for current behavior and the actual generic signature of `IBaseRepository` in this codebase.
 
 ## DAL implementation
 
@@ -204,6 +251,9 @@ App.DAL.EF/Mappers/Units/UnitDalMapper.cs
 
 Rules:
 
+- `UnitRepository` should inherit from `BaseRepository<UnitDalDto, Unit, AppDbContext>` or the exact generic signature used by the current base repository.
+- Inject `UnitDalMapper` and pass it to the `BaseRepository` constructor, following the same style as `CustomerRepository` and `PropertyRepository`.
+- Use mapper methods for Domain ↔ DAL DTO conversion. Do not duplicate mapping logic inline across methods.
 - Scope unit queries by company/customer/property/unit slugs.
 - Include only current dashboard data.
 - Return empty list for no units.
@@ -298,7 +348,7 @@ Rules:
 - Move controller-level context chains into BLL service/access service.
 - Convert missing company/customer/property/unit to `NotFoundError` where current behavior does.
 - Convert access failures to `ForbiddenError`.
-- Convert duplicate unit slug/number to `ConflictError` if current behavior does.
+- Convert duplicate unit slug/UnitNr to `ConflictError` if current behavior does.
 - Call `_uow.SaveChangesAsync` once for successful create/update/delete.
 - Do not introduce lease assignment changes.
 
@@ -309,6 +359,8 @@ Create:
 ```text
 WebApp/Mappers/Api/Units/UnitApiMapper.cs
 ```
+
+If property-unit list/create endpoints currently use property-specific response DTOs, either reuse `UnitApiMapper` for those endpoints or create a small mapper under `WebApp/Mappers/Api/Properties/` only for adapting property-unit responses. Do not create duplicate business mapping logic.
 
 Responsibilities:
 
@@ -322,6 +374,13 @@ Refactor:
 
 ```text
 WebApp/ApiControllers/Unit/*
+WebApp/ApiControllers/Property/PropertyUnitsController.cs
+```
+
+For MVC, also refactor property-area unit controllers if present:
+
+```text
+WebApp/Areas/Property/Controllers/UnitsController.cs
 ```
 
 Rules:
@@ -335,10 +394,12 @@ Rules:
   - map each failure manually
 - Use one BLL service call where possible.
 - Use `ToActionResult`.
+- For `PropertyUnitsController`, replace old `IPropertyUnitService` / old unit workspace dependencies with the new Unit BLL contracts while preserving existing property-unit routes and response shapes.
+- For `UnitTenantsController`, do not refactor lease assignment behavior in this slice. Only replace duplicated unit-context resolution if needed.
 
 ## MVC controllers, if present
 
-Refactor unit MVC controller/ViewModels using the same pattern.
+Refactor unit MVC controller/ViewModels using the same pattern. Include `WebApp/Areas/Property/Controllers/UnitsController.cs` and property-area unit ViewModels/views if they currently serve unit list/create flows under a property.
 
 ## DI registration
 
@@ -360,5 +421,14 @@ Fix compile errors caused by this slice.
 ## Stop condition
 
 Stop when unit profile/workspace is refactored and builds.
+
+This includes:
+
+- Unit profile/dashboard controllers.
+- Units listed under a property.
+- Create unit under a property, if currently implemented.
+- `PropertyUnitsController` API flow.
+- Property-area MVC unit list/create flow, if currently implemented.
+- No lease assignment/resident workflow redesign.
 
 Do not start Resident or Lease slice.
