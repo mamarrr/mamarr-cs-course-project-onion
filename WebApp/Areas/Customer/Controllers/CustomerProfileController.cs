@@ -1,11 +1,12 @@
-using System.Security.Claims;
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.CustomerWorkspace.Profiles;
-using App.BLL.CustomerWorkspace.Workspace;
-using App.BLL.Shared.Profiles;
+using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Customers.Errors;
+using App.BLL.Contracts.Customers.Models;
+using App.BLL.Contracts.Customers.Services;
 using App.Resources.Views;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Mvc.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -18,36 +19,33 @@ namespace WebApp.Areas.Customer.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/profile")]
 public class CustomerProfileController : Controller
 {
-    private readonly ICustomerAccessService _customerAccessService;
-    private readonly ICustomerProfileService _customerProfileService;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly CustomerProfileMvcMapper _mapper;
+    private readonly ICustomerProfileService _customerProfileService;
 
     public CustomerProfileController(
-        ICustomerAccessService customerAccessService,
-        ICustomerProfileService customerProfileService,
-        IAppChromeBuilder appChromeBuilder)
+        IAppChromeBuilder appChromeBuilder,
+        CustomerProfileMvcMapper mapper,
+        ICustomerProfileService customerProfileService)
     {
-        _customerAccessService = customerAccessService;
-        _customerProfileService = customerProfileService;
         _appChromeBuilder = appChromeBuilder;
+        _mapper = mapper;
+        _customerProfileService = customerProfileService;
     }
 
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
-        var access = await ResolveAccessAsync(companySlug, customerSlug, cancellationToken);
-        if (access.response is not null)
+        var result = await _customerProfileService.GetAsync(
+            _mapper.ToQuery(companySlug, customerSlug, User),
+            cancellationToken);
+
+        if (result.IsFailed)
         {
-            return access.response;
+            return ToMvcErrorResult(result.Errors);
         }
 
-        var profile = await _customerProfileService.GetProfileAsync(access.context!, cancellationToken);
-        if (profile == null)
-        {
-            return NotFound();
-        }
-
-        return View(await BuildViewModelAsync(access.context!, profile, null, cancellationToken));
+        return View(await BuildViewModelAsync(result.Value, null, cancellationToken));
     }
 
     [HttpPost("edit")]
@@ -58,56 +56,39 @@ public class CustomerProfileController : Controller
         CustomerProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveAccessAsync(companySlug, customerSlug, cancellationToken);
-        if (access.response is not null)
-        {
-            return access.response;
-        }
+        var currentProfile = await _customerProfileService.GetAsync(
+            _mapper.ToQuery(companySlug, customerSlug, User),
+            cancellationToken);
 
-        var profile = await _customerProfileService.GetProfileAsync(access.context!, cancellationToken);
-        if (profile == null)
+        if (currentProfile.IsFailed)
         {
-            return NotFound();
+            return ToMvcErrorResult(currentProfile.Errors);
         }
 
         if (!ModelState.IsValid)
         {
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
-        var result = await _customerProfileService.UpdateProfileAsync(
-            access.context!,
-            new CustomerProfileUpdateRequest
-            {
-                Name = edit.Name,
-                RegistryCode = edit.RegistryCode,
-                BillingEmail = edit.BillingEmail,
-                BillingAddress = edit.BillingAddress,
-                Phone = edit.Phone,
-                IsActive = edit.IsActive
-            },
+        var result = await _customerProfileService.UpdateAsync(
+            _mapper.ToCommand(companySlug, customerSlug, edit, User),
             cancellationToken);
 
-        if (result.NotFound)
+        if (result.IsSuccess)
         {
-            return NotFound();
+            TempData[nameof(UiText.ProfileUpdatedSuccessfully)] = UiText.ProfileUpdatedSuccessfully;
+            return RedirectToAction(nameof(Index), new { companySlug, customerSlug });
         }
 
-        if (result.Forbidden)
+        if (HasNonValidationError(result.Errors))
         {
-            return Forbid();
+            return ToMvcErrorResult(result.Errors);
         }
 
-        if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToUpdateProfile);
-            Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
-        }
-
-        TempData[nameof(UiText.ProfileUpdatedSuccessfully)] = UiText.ProfileUpdatedSuccessfully;
-        return RedirectToAction(nameof(Index), new { companySlug, customerSlug });
+        AddModelErrors(result.Errors);
+        Response.StatusCode = StatusCodes.Status400BadRequest;
+        return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
     }
 
     [HttpPost("delete")]
@@ -118,75 +99,54 @@ public class CustomerProfileController : Controller
         CustomerProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveAccessAsync(companySlug, customerSlug, cancellationToken);
-        if (access.response is not null)
+        var currentProfile = await _customerProfileService.GetAsync(
+            _mapper.ToQuery(companySlug, customerSlug, User),
+            cancellationToken);
+
+        if (currentProfile.IsFailed)
         {
-            return access.response;
+            return ToMvcErrorResult(currentProfile.Errors);
         }
 
-        var profile = await _customerProfileService.GetProfileAsync(access.context!, cancellationToken);
-        if (profile == null)
+        var result = await _customerProfileService.DeleteAsync(
+            _mapper.ToDeleteCommand(companySlug, customerSlug, edit, User),
+            cancellationToken);
+
+        if (result.IsSuccess)
         {
-            return NotFound();
+            TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
+            return RedirectToAction("Index", "Dashboard", new { area = "Management", companySlug });
         }
 
-        if (!IsDeleteConfirmationValid(edit.DeleteConfirmation, profile.Name))
+        if (HasNonValidationError(result.Errors))
         {
-            ModelState.AddModelError(nameof(edit.DeleteConfirmation), UiText.DeleteConfirmationDoesNotMatch);
-            Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+            return ToMvcErrorResult(result.Errors);
         }
 
-        var result = await _customerProfileService.DeleteProfileAsync(access.context!, cancellationToken);
-        if (result.NotFound)
-        {
-            return NotFound();
-        }
-
-        if (result.Forbidden)
-        {
-            return Forbid();
-        }
-
-        if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToDeleteProfile);
-            Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
-        }
-
-        TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
-        return RedirectToAction("Index", "Dashboard", new { area = "Management", companySlug });
+        AddModelErrors(result.Errors);
+        Response.StatusCode = StatusCodes.Status400BadRequest;
+        return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
     }
 
     private async Task<ProfilePageViewModel> BuildViewModelAsync(
-        CustomerWorkspaceDashboardContext context,
         CustomerProfileModel profile,
         CustomerProfileEditViewModel? edit,
         CancellationToken cancellationToken)
     {
         return new ProfilePageViewModel
         {
-            AppChrome = await BuildAppChromeAsync(context, UiText.Profile, cancellationToken),
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerSlug = context.CustomerSlug,
-            CustomerName = context.CustomerName,
+            AppChrome = await BuildAppChromeAsync(profile, UiText.Profile, cancellationToken),
+            CompanySlug = profile.CompanySlug,
+            CompanyName = profile.CompanyName,
+            CustomerSlug = profile.Slug,
+            CustomerName = profile.Name,
             SuccessMessage = TempData[nameof(UiText.ProfileUpdatedSuccessfully)] as string,
-            Edit = edit ?? new CustomerProfileEditViewModel
-            {
-                Name = profile.Name,
-                RegistryCode = profile.RegistryCode,
-                BillingEmail = profile.BillingEmail,
-                BillingAddress = profile.BillingAddress,
-                Phone = profile.Phone,
-                IsActive = profile.IsActive
-            }
+            Edit = edit ?? _mapper.ToEditViewModel(profile)
         };
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        CustomerWorkspaceDashboardContext context,
+        CustomerProfileModel profile,
         string title,
         CancellationToken cancellationToken)
     {
@@ -197,53 +157,59 @@ public class CustomerProfileController : Controller
                 HttpContext = HttpContext,
                 PageTitle = title,
                 ActiveSection = Sections.Profile,
-                ManagementCompanySlug = context.CompanySlug,
-                ManagementCompanyName = context.CompanyName,
-                CustomerSlug = context.CustomerSlug,
-                CustomerName = context.CustomerName,
+                ManagementCompanySlug = profile.CompanySlug,
+                ManagementCompanyName = profile.CompanyName,
+                CustomerSlug = profile.Slug,
+                CustomerName = profile.Name,
                 CurrentLevel = WorkspaceLevel.Customer
             },
             cancellationToken);
     }
 
-    private async Task<(IActionResult? response, CustomerWorkspaceDashboardContext? context)> ResolveAccessAsync(
-        string companySlug,
-        string customerSlug,
-        CancellationToken cancellationToken)
+    private IActionResult ToMvcErrorResult(IReadOnlyList<IError> errors)
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
+        var error = errors.FirstOrDefault();
+        return error switch
         {
-            return (Challenge(), null);
-        }
-
-        var access = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            customerSlug,
-            cancellationToken);
-
-        if (access.CompanyNotFound || access.CustomerNotFound)
-        {
-            return (NotFound(), null);
-        }
-
-        if (access.IsForbidden || access.Context == null)
-        {
-            return (Forbid(), null);
-        }
-
-        return (null, access.Context);
+            UnauthorizedError => Challenge(),
+            NotFoundError => NotFound(),
+            ForbiddenError => Forbid(),
+            _ => BadRequest()
+        };
     }
 
-    private Guid? GetAppUserId()
+    private void AddModelErrors(IReadOnlyList<IError> errors)
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+        var validationError = errors.OfType<ValidationAppError>().FirstOrDefault();
+        if (validationError is not null)
+        {
+            foreach (var failure in validationError.Failures)
+            {
+                var key = failure.PropertyName == "ConfirmationName"
+                    ? nameof(CustomerProfileEditViewModel.DeleteConfirmation)
+                    : failure.PropertyName;
+
+                ModelState.AddModelError(key, failure.ErrorMessage);
+            }
+
+            return;
+        }
+
+        var duplicateError = errors.OfType<DuplicateRegistryCodeError>().FirstOrDefault();
+        if (duplicateError is not null)
+        {
+            ModelState.AddModelError(nameof(CustomerProfileEditViewModel.RegistryCode), duplicateError.Message);
+            return;
+        }
+
+        ModelState.AddModelError(string.Empty, errors.FirstOrDefault()?.Message ?? UiText.UnableToUpdateProfile);
     }
 
-    private static bool IsDeleteConfirmationValid(string? providedValue, string expectedValue)
+    private static bool HasNonValidationError(IReadOnlyList<IError> errors)
     {
-        return string.Equals(providedValue?.Trim(), expectedValue.Trim(), StringComparison.Ordinal);
+        return errors.Any(error =>
+            error is NotFoundError
+            || error is ForbiddenError
+            || error is UnauthorizedError);
     }
 }

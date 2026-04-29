@@ -1,7 +1,8 @@
 using App.BLL.CustomerWorkspace.Access;
 using App.BLL.CustomerWorkspace.Customers;
-using App.BLL.CustomerWorkspace.Profiles;
 using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.Customers;
+using App.BLL.Contracts.Customers.Services;
 using App.BLL.LeaseAssignments;
 using App.BLL.ManagementCompany.Membership;
 using App.BLL.ManagementCompany.Profiles;
@@ -24,6 +25,8 @@ using App.DAL.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using WebApp.ApiControllers.Shared;
+using WebApp.Mappers.Api.Customers;
+using WebApp.Mappers.Mvc.Customers;
 
 namespace WebApp.Helpers;
 
@@ -83,6 +86,8 @@ public static class DependencyInjectionHelpers
     public static IServiceCollection AddWebAppMappers(this IServiceCollection services)
     {
         services.AddScoped<IApiOnboardingRouteContextMapper, ApiOnboardingRouteContextMapper>();
+        services.AddScoped<CustomerProfileApiMapper>();
+        services.AddScoped<CustomerProfileMvcMapper>();
 
         return services;
     }

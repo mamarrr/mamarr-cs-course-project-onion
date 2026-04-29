@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Customers.Errors;
 using App.DTO.v1;
 using App.DTO.v1.Shared;
 using FluentResults;
@@ -42,6 +43,19 @@ public static class FluentResultHttpExtensions
                 validationError.Message,
                 ApiErrorCodes.ValidationFailed,
                 BuildValidationErrors(validationError));
+        }
+
+        var duplicateRegistryCodeError = errors.OfType<DuplicateRegistryCodeError>().FirstOrDefault();
+        if (duplicateRegistryCodeError is not null)
+        {
+            return CreateObjectResult(
+                HttpStatusCode.BadRequest,
+                duplicateRegistryCodeError.Message,
+                ApiErrorCodes.Duplicate,
+                new Dictionary<string, string[]>
+                {
+                    [duplicateRegistryCodeError.PropertyName] = [duplicateRegistryCodeError.Message]
+                });
         }
 
         var error = errors.FirstOrDefault();
