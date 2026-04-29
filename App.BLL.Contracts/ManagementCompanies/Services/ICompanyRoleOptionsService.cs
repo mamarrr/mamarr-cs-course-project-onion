@@ -1,6 +1,6 @@
-using App.Domain;
+using App.BLL.Contracts.ManagementCompanies.Models;
 
-namespace App.BLL.ManagementCompany.Membership;
+namespace App.BLL.Contracts.ManagementCompanies.Services;
 
 public interface ICompanyRoleOptionsService
 {
@@ -13,7 +13,7 @@ public interface ICompanyRoleOptionsService
         Guid membershipId,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<ManagementCompanyRole>> GetAvailableRolesAsync(
+    Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAvailableRolesAsync(
         CancellationToken cancellationToken = default);
 }
 

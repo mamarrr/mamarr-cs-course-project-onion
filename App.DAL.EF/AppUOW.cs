@@ -26,6 +26,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private readonly CustomerDalMapper _customerMapper = new();
     private readonly ContactDalMapper _contactMapper = new();
     private readonly ManagementCompanyDalMapper _managementCompanyMapper = new();
+    private readonly ManagementCompanyJoinRequestDalMapper _managementCompanyJoinRequestMapper = new();
     private readonly PropertyDalMapper _propertyMapper = new();
     private readonly ResidentDalMapper _residentMapper = new();
     private readonly UnitDalMapper _unitMapper = new();
@@ -33,6 +34,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private IContactRepository? _contacts;
     private ICustomerRepository? _customers;
     private IManagementCompanyRepository? _managementCompanies;
+    private IManagementCompanyJoinRequestRepository? _managementCompanyJoinRequests;
     private ILookupRepository? _lookups;
     private IPropertyRepository? _properties;
     private IResidentRepository? _residents;
@@ -48,6 +50,9 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     public IContactRepository Contacts => _contacts ??= new ContactRepository(UowDbContext, _contactMapper);
 
     public IManagementCompanyRepository ManagementCompanies => _managementCompanies ??= new ManagementCompanyRepository(UowDbContext, _managementCompanyMapper);
+
+    public IManagementCompanyJoinRequestRepository ManagementCompanyJoinRequests =>
+        _managementCompanyJoinRequests ??= new ManagementCompanyJoinRequestRepository(UowDbContext, _managementCompanyJoinRequestMapper);
 
     public ILookupRepository Lookups => _lookups ??= new LookupRepository(UowDbContext);
 

@@ -1,4 +1,6 @@
-namespace App.BLL.ManagementCompany.Membership;
+using App.BLL.Contracts.ManagementCompanies.Models;
+
+namespace App.BLL.Contracts.ManagementCompanies.Services;
 
 public interface ICompanyAccessRequestReviewService
 {

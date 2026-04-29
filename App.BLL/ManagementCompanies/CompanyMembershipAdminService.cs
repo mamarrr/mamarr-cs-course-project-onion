@@ -1,18 +1,15 @@
 using System.Text.Json;
-using App.BLL.ManagementCompany.Access;
-using App.BLL.Onboarding.CompanyJoinRequests;
-using App.DAL.EF;
-using App.Domain;
+using App.BLL.Contracts.ManagementCompanies;
+using App.BLL.Contracts.ManagementCompanies.Models;
+using App.BLL.Contracts.ManagementCompanies.Services;
+using App.Contracts;
+using App.Contracts.DAL.Lookups;
+using App.Contracts.DAL.ManagementCompanies;
 using Base.Domain;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
-namespace App.BLL.ManagementCompany.Membership;
+namespace App.BLL.ManagementCompanies;
 
-/// <summary>
-/// Implementation of management user administration service with tenant isolation and role checks.
-/// </summary>
-public class CompanyMembershipAdminService :
+public sealed class CompanyMembershipAdminService :
     ICompanyMembershipAdminService,
     IManagementCompanyAccessService,
     ICompanyMembershipAuthorizationService,
@@ -25,8 +22,7 @@ public class CompanyMembershipAdminService :
     private const string OwnerRoleCode = "OWNER";
     private const string ManagerRoleCode = "MANAGER";
 
-    private readonly AppDbContext _dbContext;
-    private readonly ICompanyJoinRequestService _joinRequestService;
+    private readonly IAppUOW _uow;
 
     private static readonly HashSet<string> AdminRoleCodes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -42,23 +38,18 @@ public class CompanyMembershipAdminService :
         "SUPPORT"
     };
 
-    public CompanyMembershipAdminService(
-        AppDbContext dbContext,
-        ICompanyJoinRequestService joinRequestService,
-        ILogger<CompanyMembershipAdminService> logger)
+    public CompanyMembershipAdminService(IAppUOW uow)
     {
-        _dbContext = dbContext;
-        _joinRequestService = joinRequestService;
+        _uow = uow;
     }
 
-    /// <inheritdoc />
     public async Task<CompanyAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
     {
         var resolution = await ResolveMembershipContextAsync(appUserId, companySlug, cancellationToken);
-        if (resolution.Result != null)
+        if (resolution.Result is not null)
         {
             return resolution.Result;
         }
@@ -80,14 +71,13 @@ public class CompanyMembershipAdminService :
         };
     }
 
-    /// <inheritdoc />
     public async Task<CompanyAdminAuthorizationResult> AuthorizeAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
     {
         var resolution = await ResolveMembershipContextAsync(appUserId, companySlug, cancellationToken);
-        if (resolution.Result != null)
+        if (resolution.Result is not null)
         {
             return ConvertToAdminAuthorizationResult(resolution.Result);
         }
@@ -124,78 +114,33 @@ public class CompanyMembershipAdminService :
         };
     }
 
-    /// <inheritdoc />
     public async Task<CompanyMembershipListResult> ListCompanyMembersAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        var members = await _dbContext.ManagementCompanyUsers
-            .AsNoTracking()
-            .Where(m => m.ManagementCompanyId == context.ManagementCompanyId)
-            .Include(m => m.AppUser)
-            .Include(m => m.ManagementCompanyRole)
-            .OrderBy(m => m.AppUser!.LastName)
-            .ThenBy(m => m.AppUser!.FirstName)
-            .ToListAsync(cancellationToken);
-
-        var items = members.Select(m =>
-        {
-            var roleCode = m.ManagementCompanyRole?.Code ?? string.Empty;
-            var isOwner = IsOwnerRole(roleCode);
-            var isActor = m.Id == context.ActorMembershipId;
-            var isEffective = IsMembershipEffective(m.IsActive, m.ValidFrom, m.ValidTo, today);
-            var capabilities = ResolveTargetCapabilities(context, m.Id, roleCode, m.IsActive, m.ValidFrom, m.ValidTo, today);
-
-            return new CompanyMembershipUserListItem
-            {
-                MembershipId = m.Id,
-                AppUserId = m.AppUserId,
-                FullName = $"{m.AppUser!.FirstName} {m.AppUser.LastName}",
-                Email = m.AppUser.Email ?? string.Empty,
-                RoleId = m.ManagementCompanyRoleId,
-                RoleCode = roleCode,
-                RoleLabel = m.ManagementCompanyRole!.Label.ToString(),
-                JobTitle = NormalizePossiblySerializedLangStr(m.JobTitle.ToString()),
-                IsActive = m.IsActive,
-                ValidFrom = m.ValidFrom,
-                ValidTo = m.ValidTo,
-                IsActor = isActor,
-                IsOwner = isOwner,
-                IsEffective = isEffective,
-                CanEdit = capabilities.CanEdit,
-                CanDelete = capabilities.CanDelete,
-                CanTransferOwnership = capabilities.CanTransferOwnership,
-                CanChangeRole = capabilities.CanChangeRole,
-                CanDeactivate = capabilities.CanDeactivate,
-                ProtectedReason = capabilities.ProtectedReason,
-                ProtectedReasonCode = capabilities.ProtectedReasonCode
-            };
-        }).ToList();
+        var members = await _uow.ManagementCompanies.MembersByCompanyAsync(
+            context.ManagementCompanyId,
+            cancellationToken);
 
         return new CompanyMembershipListResult
         {
-            Members = items
+            Members = members.Select(member => MapMemberListItem(context, member, today)).ToList()
         };
     }
 
-    /// <inheritdoc />
     public async Task<CompanyMembershipEditResult> GetMembershipForEditAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var membership = await _uow.ManagementCompanies.FindMemberByIdAndCompanyAsync(
+            membershipId,
+            context.ManagementCompanyId,
+            cancellationToken);
 
-        var membership = await _dbContext.ManagementCompanyUsers
-            .AsNoTracking()
-            .Where(m => m.Id == membershipId && m.ManagementCompanyId == context.ManagementCompanyId)
-            .Include(m => m.AppUser)
-            .Include(m => m.ManagementCompanyRole)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (membership == null)
+        if (membership is null)
         {
             return new CompanyMembershipEditResult
             {
@@ -207,7 +152,7 @@ public class CompanyMembershipAdminService :
         var capabilities = ResolveTargetCapabilities(
             context,
             membership.Id,
-            membership.ManagementCompanyRole?.Code ?? string.Empty,
+            membership.RoleCode,
             membership.IsActive,
             membership.ValidFrom,
             membership.ValidTo,
@@ -224,7 +169,6 @@ public class CompanyMembershipAdminService :
 
         var optionsResult = await GetEditRoleOptionsAsync(context, membershipId, cancellationToken);
         var options = optionsResult.Success ? optionsResult.Options : Array.Empty<CompanyMembershipRoleOption>();
-        var roleCode = membership.ManagementCompanyRole?.Code ?? string.Empty;
 
         return new CompanyMembershipEditResult
         {
@@ -233,16 +177,16 @@ public class CompanyMembershipAdminService :
             {
                 MembershipId = membership.Id,
                 AppUserId = membership.AppUserId,
-                FullName = $"{membership.AppUser!.FirstName} {membership.AppUser.LastName}",
-                Email = membership.AppUser.Email ?? string.Empty,
-                RoleId = membership.ManagementCompanyRoleId,
-                RoleCode = roleCode,
-                RoleLabel = membership.ManagementCompanyRole!.Label.ToString(),
-                JobTitle = NormalizePossiblySerializedLangStr(membership.JobTitle.ToString()),
+                FullName = FullName(membership),
+                Email = membership.Email,
+                RoleId = membership.RoleId,
+                RoleCode = membership.RoleCode,
+                RoleLabel = membership.RoleLabel,
+                JobTitle = NormalizePossiblySerializedLangStr(membership.JobTitle) ?? string.Empty,
                 IsActive = membership.IsActive,
                 ValidFrom = membership.ValidFrom,
                 ValidTo = membership.ValidTo,
-                IsOwner = IsOwnerRole(roleCode),
+                IsOwner = IsOwnerRole(membership.RoleCode),
                 IsActor = membership.Id == context.ActorMembershipId,
                 IsEffective = IsMembershipEffective(membership.IsActive, membership.ValidFrom, membership.ValidTo, today),
                 CanEdit = capabilities.CanEdit,
@@ -258,35 +202,28 @@ public class CompanyMembershipAdminService :
         };
     }
 
-    /// <inheritdoc />
     public async Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAddRoleOptionsAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
-        var roles = await _dbContext.ManagementCompanyRoles
-            .AsNoTracking()
-            .OrderBy(r => r.Code)
-            .ToListAsync(cancellationToken);
-
+        var roles = await _uow.ManagementCompanies.AllManagementCompanyRolesAsync(cancellationToken);
         return roles
             .Where(role => CanAssignRoleInGenericFlow(context, role.Code))
             .Select(MapRoleOption)
             .ToList();
     }
 
-    /// <inheritdoc />
     public async Task<CompanyMembershipOptionsResult> GetEditRoleOptionsAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default)
     {
-        var membership = await _dbContext.ManagementCompanyUsers
-            .AsNoTracking()
-            .Where(m => m.Id == membershipId && m.ManagementCompanyId == context.ManagementCompanyId)
-            .Include(m => m.ManagementCompanyRole)
-            .FirstOrDefaultAsync(cancellationToken);
+        var membership = await _uow.ManagementCompanies.FindMemberByIdAndCompanyAsync(
+            membershipId,
+            context.ManagementCompanyId,
+            cancellationToken);
 
-        if (membership == null)
+        if (membership is null)
         {
             return new CompanyMembershipOptionsResult
             {
@@ -295,8 +232,7 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var roleCode = membership.ManagementCompanyRole?.Code ?? string.Empty;
-        if (IsOwnerRole(roleCode))
+        if (IsOwnerRole(membership.RoleCode))
         {
             return new CompanyMembershipOptionsResult
             {
@@ -306,15 +242,13 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var roles = await GetAddRoleOptionsAsync(context, cancellationToken);
         return new CompanyMembershipOptionsResult
         {
             Success = true,
-            Options = roles
+            Options = await GetAddRoleOptionsAsync(context, cancellationToken)
         };
     }
 
-    /// <inheritdoc />
     public async Task<CompanyMembershipAddResult> AddUserByEmailAsync(
         CompanyAdminAuthorizedContext context,
         CompanyMembershipAddRequest request,
@@ -329,12 +263,11 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+        var appUserId = await _uow.ManagementCompanies.FindAppUserIdByEmailAsync(
+            request.Email.Trim().ToLowerInvariant(),
+            cancellationToken);
 
-        var appUser = await _dbContext.Users
-            .FirstOrDefaultAsync(u => u.Email != null && u.Email.ToLower() == normalizedEmail, cancellationToken);
-
-        if (appUser == null)
+        if (appUserId is null)
         {
             return new CompanyMembershipAddResult
             {
@@ -343,12 +276,12 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var existingMembership = await _dbContext.ManagementCompanyUsers
-            .FirstOrDefaultAsync(m => m.AppUserId == appUser.Id
-                                      && m.ManagementCompanyId == context.ManagementCompanyId,
-                cancellationToken);
+        var existingMembership = await _uow.ManagementCompanies.MembershipExistsAsync(
+            appUserId.Value,
+            context.ManagementCompanyId,
+            cancellationToken);
 
-        if (existingMembership != null)
+        if (existingMembership)
         {
             return new CompanyMembershipAddResult
             {
@@ -357,11 +290,8 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var role = await _dbContext.ManagementCompanyRoles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.Id == request.RoleId, cancellationToken);
-
-        if (role == null)
+        var role = await _uow.ManagementCompanies.FindManagementCompanyRoleByIdAsync(request.RoleId, cancellationToken);
+        if (role is null)
         {
             return new CompanyMembershipAddResult
             {
@@ -382,30 +312,29 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var membership = new ManagementCompanyUser
+        var membershipId = Guid.NewGuid();
+        _uow.ManagementCompanies.AddMembership(new ManagementCompanyMembershipCreateDalDto
         {
-            Id = Guid.NewGuid(),
+            Id = membershipId,
             ManagementCompanyId = context.ManagementCompanyId,
-            AppUserId = appUser.Id,
-            ManagementCompanyRoleId = request.RoleId,
-            JobTitle = new LangStr(request.JobTitle.Trim()),
+            AppUserId = appUserId.Value,
+            RoleId = request.RoleId,
+            JobTitle = request.JobTitle.Trim(),
             IsActive = request.IsActive,
             ValidFrom = request.ValidFrom,
             ValidTo = request.ValidTo,
             CreatedAt = DateTime.UtcNow
-        };
+        });
 
-        _dbContext.ManagementCompanyUsers.Add(membership);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
 
         return new CompanyMembershipAddResult
         {
             Success = true,
-            CreatedMembershipId = membership.Id
+            CreatedMembershipId = membershipId
         };
     }
 
-    /// <inheritdoc />
     public async Task<CompanyMembershipUpdateResult> UpdateMembershipAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
@@ -422,14 +351,12 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var membership = await _dbContext.ManagementCompanyUsers
-            .AsTracking()
-            .Include(m => m.ManagementCompanyRole)
-            .FirstOrDefaultAsync(m => m.Id == membershipId
-                                      && m.ManagementCompanyId == context.ManagementCompanyId,
-                cancellationToken);
+        var membership = await _uow.ManagementCompanies.FindMemberByIdAndCompanyAsync(
+            membershipId,
+            context.ManagementCompanyId,
+            cancellationToken);
 
-        if (membership == null)
+        if (membership is null)
         {
             return new CompanyMembershipUpdateResult
             {
@@ -438,12 +365,8 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var currentRoleCode = membership.ManagementCompanyRole?.Code ?? string.Empty;
-        var role = await _dbContext.ManagementCompanyRoles
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.Id == request.RoleId, cancellationToken);
-
-        if (role == null)
+        var role = await _uow.ManagementCompanies.FindManagementCompanyRoleByIdAsync(request.RoleId, cancellationToken);
+        if (role is null)
         {
             return new CompanyMembershipUpdateResult
             {
@@ -452,13 +375,9 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var requestedRoleCode = role.Code;
         var isSelf = membership.Id == context.ActorMembershipId;
-        var targetIsOwner = IsOwnerRole(currentRoleCode);
-
-        if (targetIsOwner)
+        if (IsOwnerRole(membership.RoleCode))
         {
-
             return new CompanyMembershipUpdateResult
             {
                 Forbidden = true,
@@ -469,7 +388,7 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        if (isSelf && !string.Equals(currentRoleCode, requestedRoleCode, StringComparison.OrdinalIgnoreCase))
+        if (isSelf && !string.Equals(membership.RoleCode, role.Code, StringComparison.OrdinalIgnoreCase))
         {
             return new CompanyMembershipUpdateResult
             {
@@ -491,7 +410,7 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        if (IsOwnerRole(requestedRoleCode))
+        if (IsOwnerRole(role.Code))
         {
             return new CompanyMembershipUpdateResult
             {
@@ -502,7 +421,7 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        if (!CanAssignRoleInGenericFlow(context, requestedRoleCode))
+        if (!CanAssignRoleInGenericFlow(context, role.Code))
         {
             return new CompanyMembershipUpdateResult
             {
@@ -513,67 +432,43 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var entry = _dbContext.Entry(membership);
-        var jobTitleProperty = entry.Property(nameof(ManagementCompanyUser.JobTitle));
-        var roleProperty = entry.Property(nameof(ManagementCompanyUser.ManagementCompanyRoleId));
-        var isActiveProperty = entry.Property(nameof(ManagementCompanyUser.IsActive));
-        var validFromProperty = entry.Property(nameof(ManagementCompanyUser.ValidFrom));
-        var validToProperty = entry.Property(nameof(ManagementCompanyUser.ValidTo));
-
-        membership.ManagementCompanyRoleId = request.RoleId;
-        if (membership.JobTitle.ToString() != request.JobTitle.ToString())
-        {
-            jobTitleProperty.IsModified = true;
-            membership.JobTitle.SetTranslation(request.JobTitle);
-        }
-        membership.IsActive = request.IsActive;
-        membership.ValidFrom = request.ValidFrom;
-        membership.ValidTo = request.ValidTo;
-
-        var affectedRows = await _dbContext.SaveChangesAsync(cancellationToken);
-
-        if (affectedRows == 0)
-        {
-            var noTrackedChanges = !roleProperty.IsModified
-                                   && !jobTitleProperty.IsModified
-                                   && !isActiveProperty.IsModified
-                                   && !validFromProperty.IsModified
-                                   && !validToProperty.IsModified;
-
-            if (noTrackedChanges)
+        var updated = await _uow.ManagementCompanies.ApplyMembershipUpdateAsync(
+            new ManagementCompanyMembershipUpdateDalDto
             {
-                return new CompanyMembershipUpdateResult
-                {
-                    Success = true
-                };
-            }
+                MembershipId = membershipId,
+                ManagementCompanyId = context.ManagementCompanyId,
+                RoleId = request.RoleId,
+                JobTitle = request.JobTitle,
+                IsActive = request.IsActive,
+                ValidFrom = request.ValidFrom,
+                ValidTo = request.ValidTo
+            },
+            cancellationToken);
 
+        if (!updated)
+        {
             return new CompanyMembershipUpdateResult
             {
-                Success = false,
-                ErrorMessage = App.Resources.Views.UiText.UnableToUpdateUser
+                NotFound = true,
+                ErrorMessage = "Membership not found."
             };
         }
 
-        return new CompanyMembershipUpdateResult
-        {
-            Success = true
-        };
+        await _uow.SaveChangesAsync(cancellationToken);
+        return new CompanyMembershipUpdateResult { Success = true };
     }
 
-    /// <inheritdoc />
     public async Task<CompanyMembershipDeleteResult> DeleteMembershipAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default)
     {
-        var membership = await _dbContext.ManagementCompanyUsers
-            .Include(m => m.ManagementCompanyRole)
-            .FirstOrDefaultAsync(m => m.Id == membershipId
-                                      && m.ManagementCompanyId == context.ManagementCompanyId,
-                cancellationToken);
+        var membership = await _uow.ManagementCompanies.FindMemberByIdAndCompanyAsync(
+            membershipId,
+            context.ManagementCompanyId,
+            cancellationToken);
 
-        if (membership == null)
+        if (membership is null)
         {
             return new CompanyMembershipDeleteResult
             {
@@ -584,7 +479,6 @@ public class CompanyMembershipAdminService :
 
         if (membership.Id == context.ActorMembershipId)
         {
-
             return new CompanyMembershipDeleteResult
             {
                 Forbidden = true,
@@ -594,10 +488,8 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var roleCode = membership.ManagementCompanyRole?.Code ?? string.Empty;
-        if (IsOwnerRole(roleCode))
+        if (IsOwnerRole(membership.RoleCode))
         {
-
             return new CompanyMembershipDeleteResult
             {
                 Forbidden = true,
@@ -607,16 +499,15 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        _dbContext.ManagementCompanyUsers.Remove(membership);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _uow.ManagementCompanies.RemoveMembershipAsync(
+            membershipId,
+            context.ManagementCompanyId,
+            cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
 
-        return new CompanyMembershipDeleteResult
-        {
-            Success = true
-        };
+        return new CompanyMembershipDeleteResult { Success = true };
     }
 
-    /// <inheritdoc />
     public async Task<OwnershipTransferCandidateListResult> GetOwnershipTransferCandidatesAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
@@ -631,40 +522,34 @@ public class CompanyMembershipAdminService :
         }
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        var candidates = await _dbContext.ManagementCompanyUsers
-            .AsNoTracking()
-            .Where(m => m.ManagementCompanyId == context.ManagementCompanyId && m.Id != context.ActorMembershipId)
-            .Include(m => m.AppUser)
-            .Include(m => m.ManagementCompanyRole)
-            .ToListAsync(cancellationToken);
-
-        var items = candidates
-            .Where(m => !IsOwnerRole(m.ManagementCompanyRole?.Code ?? string.Empty))
-            .Where(m => IsMembershipEffective(m.IsActive, m.ValidFrom, m.ValidTo, today))
-            .OrderBy(m => m.AppUser!.LastName)
-            .ThenBy(m => m.AppUser!.FirstName)
-            .Select(m => new OwnershipTransferCandidate
-            {
-                MembershipId = m.Id,
-                AppUserId = m.AppUserId,
-                FullName = $"{m.AppUser!.FirstName} {m.AppUser.LastName}",
-                Email = m.AppUser.Email ?? string.Empty,
-                RoleId = m.ManagementCompanyRoleId,
-                RoleCode = m.ManagementCompanyRole?.Code ?? string.Empty,
-                RoleLabel = m.ManagementCompanyRole?.Label.ToString() ?? string.Empty,
-                IsEffective = true
-            })
-            .ToList();
+        var members = await _uow.ManagementCompanies.MembersByCompanyAsync(
+            context.ManagementCompanyId,
+            cancellationToken);
 
         return new OwnershipTransferCandidateListResult
         {
             Success = true,
-            Candidates = items
+            Candidates = members
+                .Where(member => member.Id != context.ActorMembershipId)
+                .Where(member => !IsOwnerRole(member.RoleCode))
+                .Where(member => IsMembershipEffective(member.IsActive, member.ValidFrom, member.ValidTo, today))
+                .OrderBy(member => member.LastName)
+                .ThenBy(member => member.FirstName)
+                .Select(member => new OwnershipTransferCandidate
+                {
+                    MembershipId = member.Id,
+                    AppUserId = member.AppUserId,
+                    FullName = FullName(member),
+                    Email = member.Email,
+                    RoleId = member.RoleId,
+                    RoleCode = member.RoleCode,
+                    RoleLabel = member.RoleLabel,
+                    IsEffective = true
+                })
+                .ToList()
         };
     }
 
-    /// <inheritdoc />
     public async Task<OwnershipTransferResult> TransferOwnershipAsync(
         CompanyAdminAuthorizedContext context,
         TransferOwnershipRequest request,
@@ -672,7 +557,6 @@ public class CompanyMembershipAdminService :
     {
         if (!context.IsOwner)
         {
-
             return new OwnershipTransferResult
             {
                 Forbidden = true,
@@ -689,10 +573,8 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        var managerRole = await _dbContext.ManagementCompanyRoles
-            .FirstOrDefaultAsync(r => r.Code == ManagerRoleCode, cancellationToken);
-
-        if (managerRole == null)
+        var managerRole = await _uow.Lookups.FindManagementCompanyRoleByCodeAsync(ManagerRoleCode, cancellationToken);
+        if (managerRole is null)
         {
             return new OwnershipTransferResult
             {
@@ -702,21 +584,16 @@ public class CompanyMembershipAdminService :
         }
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var memberships = await _uow.ManagementCompanies.FindMembersByIdsAndCompanyAsync(
+            context.ManagementCompanyId,
+            [context.ActorMembershipId, request.TargetMembershipId],
+            cancellationToken);
 
-        var memberships = await _dbContext.ManagementCompanyUsers
-            .AsTracking()
-            .Where(m => m.ManagementCompanyId == context.ManagementCompanyId
-                        && (m.Id == context.ActorMembershipId || m.Id == request.TargetMembershipId))
-            .Include(m => m.ManagementCompanyRole)
-            .ToListAsync(cancellationToken);
+        var currentOwner = memberships.SingleOrDefault(member => member.Id == context.ActorMembershipId);
+        var target = memberships.SingleOrDefault(member => member.Id == request.TargetMembershipId);
 
-        var currentOwner = memberships.SingleOrDefault(m => m.Id == context.ActorMembershipId);
-        var target = memberships.SingleOrDefault(m => m.Id == request.TargetMembershipId);
-
-        if (currentOwner == null || target == null)
+        if (currentOwner is null || target is null)
         {
-            await transaction.RollbackAsync(cancellationToken);
             return new OwnershipTransferResult
             {
                 NotFound = true,
@@ -724,9 +601,8 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        if (!IsOwnerRole(currentOwner.ManagementCompanyRole?.Code ?? string.Empty))
+        if (!IsOwnerRole(currentOwner.RoleCode))
         {
-            await transaction.RollbackAsync(cancellationToken);
             return new OwnershipTransferResult
             {
                 Forbidden = true,
@@ -734,11 +610,9 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        if (IsOwnerRole(target.ManagementCompanyRole?.Code ?? string.Empty)
+        if (IsOwnerRole(target.RoleCode)
             || !IsMembershipEffective(target.IsActive, target.ValidFrom, target.ValidTo, today))
         {
-
-            await transaction.RollbackAsync(cancellationToken);
             return new OwnershipTransferResult
             {
                 TargetNotEligibleForOwnership = true,
@@ -746,25 +620,41 @@ public class CompanyMembershipAdminService :
             };
         }
 
-        currentOwner.ManagementCompanyRoleId = managerRole.Id;
-        currentOwner.ManagementCompanyRole = managerRole;
-        target.ManagementCompanyRoleId = context.ActorRoleId;
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        var ownerCount = await CountEffectiveOwnersAsync(context.ManagementCompanyId, cancellationToken);
-        if (ownerCount != 1)
+        await _uow.BeginTransactionAsync(cancellationToken);
+        try
         {
+            await _uow.ManagementCompanies.SetMembershipRoleAsync(
+                currentOwner.Id,
+                context.ManagementCompanyId,
+                managerRole.Id,
+                cancellationToken);
+            await _uow.ManagementCompanies.SetMembershipRoleAsync(
+                target.Id,
+                context.ManagementCompanyId,
+                context.ActorRoleId,
+                cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
-            await transaction.RollbackAsync(cancellationToken);
-            return new OwnershipTransferResult
+            var ownerCount = await _uow.ManagementCompanies.CountEffectiveOwnersAsync(
+                context.ManagementCompanyId,
+                cancellationToken);
+            if (ownerCount != 1)
             {
-                Forbidden = true,
-                ErrorMessage = "Ownership transfer failed because the single-owner invariant could not be preserved."
-            };
-        }
+                await _uow.RollbackTransactionAsync(cancellationToken);
+                return new OwnershipTransferResult
+                {
+                    Forbidden = true,
+                    ErrorMessage = "Ownership transfer failed because the single-owner invariant could not be preserved."
+                };
+            }
 
-        await transaction.CommitAsync(cancellationToken);
+            await _uow.CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
 
         return new OwnershipTransferResult
         {
@@ -774,108 +664,161 @@ public class CompanyMembershipAdminService :
         };
     }
 
-    private static string NormalizePossiblySerializedLangStr(string value)
-    {
-        var trimmed = value.Trim();
-        if (!trimmed.StartsWith("{", StringComparison.Ordinal))
-        {
-            return value;
-        }
-
-        try
-        {
-            var nested = JsonSerializer.Deserialize<LangStr>(trimmed, (JsonSerializerOptions?)null);
-            if (nested == null)
-            {
-                return value;
-            }
-
-            var localized = nested.ToString();
-            return string.IsNullOrWhiteSpace(localized) ? value : localized;
-        }
-        catch
-        {
-            return value;
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task<IReadOnlyList<ManagementCompanyRole>> GetAvailableRolesAsync(
+    public async Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAvailableRolesAsync(
         CancellationToken cancellationToken = default)
     {
-        return await _dbContext.ManagementCompanyRoles
-            .AsNoTracking()
-            .OrderBy(r => r.Code)
-            .ToListAsync(cancellationToken);
+        var roles = await _uow.ManagementCompanies.AllManagementCompanyRolesAsync(cancellationToken);
+        return roles.Select(MapRoleOption).ToList();
     }
 
-    /// <inheritdoc />
     public async Task<PendingAccessRequestListResult> GetPendingAccessRequestsAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
-        var requests = await _joinRequestService.ListPendingForCompanyAsync(context.ManagementCompanyId, cancellationToken);
+        var pendingStatus = await GetJoinRequestStatusAsync(
+            ManagementCompanyJoinRequestStatusCodes.Pending,
+            cancellationToken);
+        var requests = await _uow.ManagementCompanyJoinRequests.PendingByCompanyAsync(
+            context.ManagementCompanyId,
+            pendingStatus.Id,
+            cancellationToken);
 
         return new PendingAccessRequestListResult
         {
-            Requests = requests.Select(x => new PendingAccessRequestItem
+            Requests = requests.Select(request => new PendingAccessRequestItem
             {
-                RequestId = x.RequestId,
-                AppUserId = x.AppUserId,
-                RequesterName = x.RequesterName,
-                RequesterEmail = x.RequesterEmail,
-                RequestedRoleCode = x.RequestedRoleCode,
-                RequestedRoleLabel = x.RequestedRoleLabel,
-                Message = x.Message,
-                RequestedAt = x.CreatedAt
+                RequestId = request.Id,
+                AppUserId = request.AppUserId,
+                RequesterName = $"{request.RequesterFirstName} {request.RequesterLastName}".Trim(),
+                RequesterEmail = request.RequesterEmail,
+                RequestedRoleCode = request.RequestedRoleCode,
+                RequestedRoleLabel = request.RequestedRoleLabel,
+                Message = NormalizePossiblySerializedLangStr(request.Message),
+                RequestedAt = request.CreatedAt
             }).ToList()
         };
     }
 
-    /// <inheritdoc />
-    public async Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
+    public Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
         CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default)
     {
-        var result = await _joinRequestService.ApproveRequestAsync(
-            context.AppUserId,
-            context.ManagementCompanyId,
+        return ResolvePendingAccessRequestAsync(
+            context,
             requestId,
+            ManagementCompanyJoinRequestStatusCodes.Approved,
+            createMembership: true,
             cancellationToken);
-
-        return new PendingAccessRequestActionResult
-        {
-            Success = result.Success,
-            NotFound = result.NotFound,
-            Forbidden = result.Forbidden,
-            AlreadyResolved = result.AlreadyResolved,
-            AlreadyMember = result.AlreadyMember,
-            ErrorMessage = result.ErrorMessage
-        };
     }
 
-    /// <inheritdoc />
-    public async Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
+    public Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
         CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default)
     {
-        var result = await _joinRequestService.RejectRequestAsync(
-            context.AppUserId,
-            context.ManagementCompanyId,
+        return ResolvePendingAccessRequestAsync(
+            context,
             requestId,
+            ManagementCompanyJoinRequestStatusCodes.Rejected,
+            createMembership: false,
+            cancellationToken);
+    }
+
+    private async Task<PendingAccessRequestActionResult> ResolvePendingAccessRequestAsync(
+        CompanyAdminAuthorizedContext context,
+        Guid requestId,
+        string targetStatusCode,
+        bool createMembership,
+        CancellationToken cancellationToken)
+    {
+        if (!AdminRoleCodes.Contains(context.ActorRoleCode))
+        {
+            return new PendingAccessRequestActionResult
+            {
+                Forbidden = true,
+                ErrorMessage = L("NoPermissionToResolveAccessRequests", "You do not have permission to resolve access requests.")
+            };
+        }
+
+        var pendingStatus = await GetJoinRequestStatusAsync(
+            ManagementCompanyJoinRequestStatusCodes.Pending,
+            cancellationToken);
+        var targetStatus = await GetJoinRequestStatusAsync(targetStatusCode, cancellationToken);
+
+        var joinRequest = await _uow.ManagementCompanyJoinRequests.FindByIdAndCompanyAsync(
+            requestId,
+            context.ManagementCompanyId,
             cancellationToken);
 
-        return new PendingAccessRequestActionResult
+        if (joinRequest is null)
         {
-            Success = result.Success,
-            NotFound = result.NotFound,
-            Forbidden = result.Forbidden,
-            AlreadyResolved = result.AlreadyResolved,
-            AlreadyMember = result.AlreadyMember,
-            ErrorMessage = result.ErrorMessage
-        };
+            return new PendingAccessRequestActionResult
+            {
+                NotFound = true,
+                ErrorMessage = L("JoinRequestNotFound", "Join request not found.")
+            };
+        }
+
+        if (!string.Equals(joinRequest.StatusCode, ManagementCompanyJoinRequestStatusCodes.Pending, StringComparison.OrdinalIgnoreCase)
+            && joinRequest.StatusId != pendingStatus.Id)
+        {
+            return new PendingAccessRequestActionResult
+            {
+                AlreadyResolved = true,
+                ErrorMessage = L("JoinRequestAlreadyResolved", "Join request is already resolved.")
+            };
+        }
+
+        var requesterMembershipExists = await _uow.ManagementCompanies.MembershipExistsAsync(
+            joinRequest.AppUserId,
+            context.ManagementCompanyId,
+            cancellationToken);
+
+        if (requesterMembershipExists)
+        {
+            return new PendingAccessRequestActionResult
+            {
+                AlreadyMember = true,
+                ErrorMessage = L("RequesterAlreadyMemberOfThisCompany", "Requester is already a member of this company.")
+            };
+        }
+
+        await _uow.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            if (createMembership)
+            {
+                _uow.ManagementCompanies.AddMembership(new ManagementCompanyMembershipCreateDalDto
+                {
+                    Id = Guid.NewGuid(),
+                    ManagementCompanyId = context.ManagementCompanyId,
+                    AppUserId = joinRequest.AppUserId,
+                    RoleId = joinRequest.RequestedRoleId,
+                    JobTitle = "Employee",
+                    IsActive = true,
+                    ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow),
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            await _uow.ManagementCompanyJoinRequests.SetStatusAsync(
+                joinRequest.Id,
+                context.ManagementCompanyId,
+                targetStatus.Id,
+                context.AppUserId,
+                DateTime.UtcNow,
+                cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
+            await _uow.CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
+
+        return new PendingAccessRequestActionResult { Success = true };
     }
 
     private async Task<(CompanyAreaAuthorizationResult? Result, CompanyMembershipContext? MembershipContext)> ResolveMembershipContextAsync(
@@ -894,11 +837,8 @@ public class CompanyMembershipAdminService :
             }, null);
         }
 
-        var company = await _dbContext.ManagementCompanies
-            .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Slug == normalizedSlug, cancellationToken);
-
-        if (company == null)
+        var company = await _uow.ManagementCompanies.FirstBySlugAsync(normalizedSlug, cancellationToken);
+        if (company is null)
         {
             return (new CompanyAreaAuthorizationResult
             {
@@ -908,13 +848,12 @@ public class CompanyMembershipAdminService :
             }, null);
         }
 
-        var actorMembership = await _dbContext.ManagementCompanyUsers
-            .AsNoTracking()
-            .Include(m => m.ManagementCompanyRole)
-            .Where(m => m.AppUserId == appUserId && m.ManagementCompanyId == company.Id)
-            .FirstOrDefaultAsync(cancellationToken);
+        var actorMembership = await _uow.ManagementCompanies.FirstMembershipByUserAndCompanyAsync(
+            appUserId,
+            company.Id,
+            cancellationToken);
 
-        if (actorMembership == null)
+        if (actorMembership is null)
         {
             return (new CompanyAreaAuthorizationResult
             {
@@ -947,24 +886,69 @@ public class CompanyMembershipAdminService :
             }, null);
         }
 
-        var roleCode = actorMembership.ManagementCompanyRole?.Code ?? string.Empty;
-        var membershipContext = new CompanyMembershipContext
+        return (null, new CompanyMembershipContext
         {
             AppUserId = appUserId,
             ManagementCompanyId = company.Id,
             CompanySlug = company.Slug,
             CompanyName = company.Name,
             ActorMembershipId = actorMembership.Id,
-            ActorRoleId = actorMembership.ManagementCompanyRoleId,
-            ActorRoleCode = roleCode,
-            ActorRoleLabel = actorMembership.ManagementCompanyRole?.Label.ToString() ?? string.Empty,
-            IsOwner = IsOwnerRole(roleCode),
-            IsAdmin = AdminRoleCodes.Contains(roleCode),
+            ActorRoleId = actorMembership.RoleId,
+            ActorRoleCode = actorMembership.RoleCode,
+            ActorRoleLabel = actorMembership.RoleLabel,
+            IsOwner = IsOwnerRole(actorMembership.RoleCode),
+            IsAdmin = AdminRoleCodes.Contains(actorMembership.RoleCode),
             ValidFrom = actorMembership.ValidFrom,
             ValidTo = actorMembership.ValidTo
-        };
+        });
+    }
 
-        return (null, membershipContext);
+    private async Task<LookupDalDto> GetJoinRequestStatusAsync(
+        string code,
+        CancellationToken cancellationToken)
+    {
+        var status = await _uow.Lookups.FindManagementCompanyJoinRequestStatusByCodeAsync(code, cancellationToken);
+        return status ?? throw new InvalidOperationException($"Management company join request status '{code}' is not seeded.");
+    }
+
+    private static CompanyMembershipUserListItem MapMemberListItem(
+        CompanyAdminAuthorizedContext context,
+        ManagementCompanyMembershipDalDto member,
+        DateOnly today)
+    {
+        var capabilities = ResolveTargetCapabilities(
+            context,
+            member.Id,
+            member.RoleCode,
+            member.IsActive,
+            member.ValidFrom,
+            member.ValidTo,
+            today);
+
+        return new CompanyMembershipUserListItem
+        {
+            MembershipId = member.Id,
+            AppUserId = member.AppUserId,
+            FullName = FullName(member),
+            Email = member.Email,
+            RoleId = member.RoleId,
+            RoleCode = member.RoleCode,
+            RoleLabel = member.RoleLabel,
+            JobTitle = NormalizePossiblySerializedLangStr(member.JobTitle) ?? string.Empty,
+            IsActive = member.IsActive,
+            ValidFrom = member.ValidFrom,
+            ValidTo = member.ValidTo,
+            IsActor = member.Id == context.ActorMembershipId,
+            IsOwner = IsOwnerRole(member.RoleCode),
+            IsEffective = IsMembershipEffective(member.IsActive, member.ValidFrom, member.ValidTo, today),
+            CanEdit = capabilities.CanEdit,
+            CanDelete = capabilities.CanDelete,
+            CanTransferOwnership = capabilities.CanTransferOwnership,
+            CanChangeRole = capabilities.CanChangeRole,
+            CanDeactivate = capabilities.CanDeactivate,
+            ProtectedReason = capabilities.ProtectedReason,
+            ProtectedReasonCode = capabilities.ProtectedReasonCode
+        };
     }
 
     private static CompanyAdminAuthorizationResult ConvertToAdminAuthorizationResult(CompanyAreaAuthorizationResult result)
@@ -988,22 +972,9 @@ public class CompanyMembershipAdminService :
 
     private static bool IsMembershipEffective(bool isActive, DateOnly validFrom, DateOnly? validTo, DateOnly today)
     {
-        if (!isActive)
-        {
-            return false;
-        }
-
-        if (validFrom > today)
-        {
-            return false;
-        }
-
-        if (validTo.HasValue && validTo.Value < today)
-        {
-            return false;
-        }
-
-        return true;
+        return isActive
+               && validFrom <= today
+               && (!validTo.HasValue || validTo.Value >= today);
     }
 
     private static bool IsValidDateRange(DateOnly validFrom, DateOnly? validTo)
@@ -1021,17 +992,52 @@ public class CompanyMembershipAdminService :
         return context.IsOwner || string.Equals(context.ActorRoleCode, ManagerRoleCode, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static CompanyMembershipRoleOption MapRoleOption(ManagementCompanyRole role)
+    private static CompanyMembershipRoleOption MapRoleOption(LookupDalDto role)
     {
         return new CompanyMembershipRoleOption
         {
             RoleId = role.Id,
             RoleCode = role.Code,
-            RoleLabel = role.Label.ToString()
+            RoleLabel = role.Label
         };
     }
 
-    private MemberCapabilities ResolveTargetCapabilities(
+    private static string FullName(ManagementCompanyMembershipDalDto member)
+    {
+        return $"{member.FirstName} {member.LastName}".Trim();
+    }
+
+    private static string? NormalizePossiblySerializedLangStr(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return value;
+        }
+
+        var trimmed = value.Trim();
+        if (!trimmed.StartsWith("{", StringComparison.Ordinal))
+        {
+            return value;
+        }
+
+        try
+        {
+            var nested = JsonSerializer.Deserialize<LangStr>(trimmed, (JsonSerializerOptions?)null);
+            if (nested is null)
+            {
+                return value;
+            }
+
+            var localized = nested.ToString();
+            return string.IsNullOrWhiteSpace(localized) ? value : localized;
+        }
+        catch
+        {
+            return value;
+        }
+    }
+
+    private static MemberCapabilities ResolveTargetCapabilities(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         string roleCode,
@@ -1090,24 +1096,10 @@ public class CompanyMembershipAdminService :
             ProtectedReasonCode: !isEffective ? CompanyMembershipUserActionBlockReason.MembershipNotEffective : CompanyMembershipUserActionBlockReason.None);
     }
 
-    private async Task<int> CountEffectiveOwnersAsync(Guid companyId, CancellationToken cancellationToken)
+    private static string L(string resourceKey, string fallback)
     {
-        var ownerRoleIds = await _dbContext.ManagementCompanyRoles
-            .AsNoTracking()
-            .Where(r => r.Code == OwnerRoleCode)
-            .Select(r => r.Id)
-            .ToListAsync(cancellationToken);
-
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        return await _dbContext.ManagementCompanyUsers
-            .AsNoTracking()
-            .Where(m => m.ManagementCompanyId == companyId
-                        && ownerRoleIds.Contains(m.ManagementCompanyRoleId)
-                        && m.IsActive
-                        && m.ValidFrom <= today
-                        && (!m.ValidTo.HasValue || m.ValidTo >= today))
-            .CountAsync(cancellationToken);
+        return App.Resources.Views.UiText.ResourceManager.GetString(resourceKey, System.Globalization.CultureInfo.CurrentUICulture)
+               ?? fallback;
     }
 
     private sealed record MemberCapabilities(

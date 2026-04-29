@@ -1,6 +1,6 @@
-using App.Domain;
+using App.BLL.Contracts.ManagementCompanies.Models;
 
-namespace App.BLL.ManagementCompany.Membership;
+namespace App.BLL.Contracts.ManagementCompanies.Services;
 
 /// <summary>
 /// Service for managing company users within a management company scope.
@@ -100,7 +100,7 @@ public interface ICompanyMembershipAdminService
     /// Gets all management company roles.
     /// Kept temporarily for existing web-layer callers until they are migrated to actor-aware role option APIs.
     /// </summary>
-    Task<IReadOnlyList<ManagementCompanyRole>> GetAvailableRolesAsync(
+    Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAvailableRolesAsync(
         CancellationToken cancellationToken = default);
 
     /// <summary>

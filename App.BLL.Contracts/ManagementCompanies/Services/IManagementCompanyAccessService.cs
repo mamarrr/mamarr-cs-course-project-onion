@@ -1,6 +1,6 @@
-using App.BLL.ManagementCompany.Membership;
+using App.BLL.Contracts.ManagementCompanies.Models;
 
-namespace App.BLL.ManagementCompany.Access;
+namespace App.BLL.Contracts.ManagementCompanies.Services;
 
 public interface IManagementCompanyAccessService
 {

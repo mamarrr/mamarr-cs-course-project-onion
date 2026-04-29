@@ -16,6 +16,8 @@ public interface IAppUOW : IBaseUOW
 
     IManagementCompanyRepository ManagementCompanies { get; }
 
+    IManagementCompanyJoinRequestRepository ManagementCompanyJoinRequests { get; }
+
     ILookupRepository Lookups { get; }
 
     IPropertyRepository Properties { get; }

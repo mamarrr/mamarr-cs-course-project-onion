@@ -2,7 +2,8 @@ using App.BLL.Onboarding;
 using App.Domain.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using App.BLL.ManagementCompany.Membership;
+using App.BLL.Contracts.ManagementCompanies.Models;
+using App.BLL.Contracts.ManagementCompanies.Services;
 using App.BLL.Onboarding.Account;
 using App.BLL.Onboarding.CompanyJoinRequests;
 using App.BLL.Onboarding.ContextSelection;
@@ -441,9 +442,9 @@ public class OnboardingController : Controller
         return roles
             .Select(r => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
             {
-                Value = r.Id.ToString(),
-                Text = r.Label.ToString(),
-                Selected = selectedRoleId.HasValue && selectedRoleId.Value == r.Id
+                Value = r.RoleId.ToString(),
+                Text = r.RoleLabel,
+                Selected = selectedRoleId.HasValue && selectedRoleId.Value == r.RoleId
             })
             .ToList();
     }

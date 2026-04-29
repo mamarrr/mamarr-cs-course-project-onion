@@ -1,9 +1,9 @@
 using App.BLL.Contracts.Customers.Services;
 using App.BLL.Contracts.Leases.Services;
+using App.BLL.Contracts.ManagementCompanies.Services;
 using App.BLL.Customers;
 using App.BLL.Leases;
-using App.BLL.ManagementCompany.Membership;
-using App.BLL.ManagementCompany.Profiles;
+using App.BLL.ManagementCompanies;
 using App.BLL.Onboarding.Account;
 using App.BLL.Onboarding.Api;
 using App.BLL.Onboarding.CompanyJoinRequests;

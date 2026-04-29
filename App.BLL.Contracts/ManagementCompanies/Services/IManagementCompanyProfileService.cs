@@ -1,6 +1,6 @@
-using App.BLL.Shared.Profiles;
+using App.BLL.Contracts.ManagementCompanies.Models;
 
-namespace App.BLL.ManagementCompany.Profiles;
+namespace App.BLL.Contracts.ManagementCompanies.Services;
 
 public interface IManagementCompanyProfileService
 {

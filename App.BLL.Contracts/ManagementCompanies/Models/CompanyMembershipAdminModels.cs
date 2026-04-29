@@ -1,4 +1,4 @@
-namespace App.BLL.ManagementCompany.Membership;
+namespace App.BLL.Contracts.ManagementCompanies.Models;
 
 public enum CompanyMembershipAuthorizationFailureReason
 {

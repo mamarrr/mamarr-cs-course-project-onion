@@ -1,5 +1,6 @@
 using System.Security.Claims;
-using App.BLL.ManagementCompany.Membership;
+using App.BLL.Contracts.ManagementCompanies.Models;
+using App.BLL.Contracts.ManagementCompanies.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
