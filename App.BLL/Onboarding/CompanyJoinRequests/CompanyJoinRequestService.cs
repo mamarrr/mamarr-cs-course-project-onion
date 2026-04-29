@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using App.BLL.Contracts.ManagementCompanies;
 using App.DAL.EF;
 using App.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -9,10 +10,6 @@ namespace App.BLL.Onboarding.CompanyJoinRequests;
 
 public class CompanyJoinRequestService : ICompanyJoinRequestService
 {
-    private const string PendingStatusCode = "PENDING";
-    private const string ApprovedStatusCode = "APPROVED";
-    private const string RejectedStatusCode = "REJECTED";
-
     private static readonly HashSet<string> ApproverRoleCodes = new(StringComparer.OrdinalIgnoreCase)
     {
         "OWNER",
@@ -90,7 +87,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
             };
         }
 
-        var pendingStatusId = await GetStatusIdAsync(PendingStatusCode, cancellationToken);
+        var pendingStatusId = await GetStatusIdAsync(ManagementCompanyJoinRequestStatusCodes.Pending, cancellationToken);
 
         var duplicatePending = await _dbContext.ManagementCompanyJoinRequests
             .AsNoTracking()
@@ -147,7 +144,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var pendingStatusId = await GetStatusIdAsync(PendingStatusCode, cancellationToken);
+        var pendingStatusId = await GetStatusIdAsync(ManagementCompanyJoinRequestStatusCodes.Pending, cancellationToken);
 
         var requests = await _dbContext.ManagementCompanyJoinRequests
             .AsNoTracking()
@@ -215,7 +212,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
             actorAppUserId,
             managementCompanyId,
             requestId,
-            ApprovedStatusCode,
+            ManagementCompanyJoinRequestStatusCodes.Approved,
             createMembership: true,
             cancellationToken);
     }
@@ -230,7 +227,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
             actorAppUserId,
             managementCompanyId,
             requestId,
-            RejectedStatusCode,
+            ManagementCompanyJoinRequestStatusCodes.Rejected,
             createMembership: false,
             cancellationToken);
     }
@@ -264,7 +261,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
 
         await using var tx = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        var pendingStatusId = await GetStatusIdAsync(PendingStatusCode, cancellationToken);
+        var pendingStatusId = await GetStatusIdAsync(ManagementCompanyJoinRequestStatusCodes.Pending, cancellationToken);
         var targetStatusId = await GetStatusIdAsync(targetStatusCode, cancellationToken);
 
         var joinRequest = await _dbContext.ManagementCompanyJoinRequests

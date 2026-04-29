@@ -1,4 +1,6 @@
 using App.Contracts;
+using App.Contracts.DAL.Lookups;
+using App.DAL.EF.Repositories;
 using Base.DAL.EF;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -7,10 +9,13 @@ namespace App.DAL.EF;
 public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
 {
     private IDbContextTransaction? _transaction;
+    private ILookupRepository? _lookups;
 
     public AppUOW(AppDbContext dbContext) : base(dbContext)
     {
     }
+
+    public ILookupRepository Lookups => _lookups ??= new LookupRepository(UowDbContext);
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
