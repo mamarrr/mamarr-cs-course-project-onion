@@ -22,9 +22,11 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using WebApp.ApiControllers.Shared;
 using WebApp.Mappers.Api.Customers;
 using WebApp.Mappers.Api.Properties;
+using WebApp.Mappers.Api.Residents;
 using WebApp.Mappers.Api.Units;
 using WebApp.Mappers.Mvc.Customers;
 using WebApp.Mappers.Mvc.Properties;
+using WebApp.Mappers.Mvc.Residents;
 using WebApp.Mappers.Mvc.Units;
 
 namespace WebApp.Helpers;
@@ -67,6 +69,9 @@ public static class DependencyInjectionHelpers
         services.AddScoped<ICustomerAccessService, CustomerAccessService>();
         services.AddScoped<ICustomerWorkspaceService, CustomerWorkspaceService>();
         services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+        services.AddScoped<App.BLL.Contracts.Residents.Services.IResidentAccessService, App.BLL.Residents.ResidentAccessService>();
+        services.AddScoped<App.BLL.Contracts.Residents.Services.IResidentWorkspaceService, App.BLL.Residents.ResidentWorkspaceService>();
+        services.AddScoped<App.BLL.Contracts.Residents.Services.IResidentProfileService, App.BLL.Residents.ResidentProfileService>();
         services.AddScoped<IResidentAccessService, ResidentAccessService>();
         services.AddScoped<ICompanyResidentService, CompanyResidentService>();
         services.AddScoped<IUnitAccessService, UnitAccessService>();
@@ -90,10 +95,12 @@ public static class DependencyInjectionHelpers
         services.AddScoped<CompanyCustomerApiMapper>();
         services.AddScoped<PropertyApiMapper>();
         services.AddScoped<UnitApiMapper>();
+        services.AddScoped<ResidentApiMapper>();
         services.AddScoped<CustomerProfileMvcMapper>();
         services.AddScoped<CompanyCustomerMvcMapper>();
         services.AddScoped<PropertyMvcMapper>();
         services.AddScoped<UnitMvcMapper>();
+        services.AddScoped<ResidentMvcMapper>();
 
         return services;
     }

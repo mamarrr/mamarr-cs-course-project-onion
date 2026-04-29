@@ -1,9 +1,11 @@
-using System.Security.Claims;
-using App.BLL.ResidentWorkspace.Access;
-using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Residents.Models;
+using App.BLL.Contracts.Residents.Services;
 using App.Resources.Views;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Mvc.Residents;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -17,13 +19,16 @@ namespace WebApp.Areas.Resident.Controllers;
 public class DashboardController : Controller
 {
     private readonly IResidentAccessService _residentAccessService;
+    private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public DashboardController(
         IResidentAccessService residentAccessService,
+        ResidentMvcMapper residentMapper,
         IAppChromeBuilder appChromeBuilder)
     {
         _residentAccessService = residentAccessService;
+        _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
     }
 
@@ -57,29 +62,15 @@ public class DashboardController : Controller
         string currentSection,
         CancellationToken cancellationToken)
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return Challenge();
-        }
-
-        var access = await _residentAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            residentIdCode,
+        var workspace = await _residentAccessService.ResolveResidentWorkspaceAsync(
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
             cancellationToken);
-
-        if (access.CompanyNotFound || access.ResidentNotFound)
+        if (workspace.IsFailed)
         {
-            return NotFound();
+            return ToFailureResult(workspace.Errors);
         }
 
-        if (access.IsForbidden || access.Context == null)
-        {
-            return Forbid();
-        }
-
-        var context = access.Context;
+        var context = workspace.Value;
         var currentSectionLabel = currentSection switch
         {
             "Units" => T("Units", "Units"),
@@ -115,7 +106,7 @@ public class DashboardController : Controller
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        ResidentDashboardContext context,
+        ResidentWorkspaceModel context,
         string title,
         string activeSection,
         CancellationToken cancellationToken)
@@ -141,10 +132,16 @@ public class DashboardController : Controller
             cancellationToken);
     }
 
-    private Guid? GetAppUserId()
+    private IActionResult ToFailureResult(IReadOnlyList<IError> errors)
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+        var error = errors.FirstOrDefault();
+        return error switch
+        {
+            UnauthorizedError => Challenge(),
+            NotFoundError => NotFound(),
+            ForbiddenError => Forbid(),
+            _ => BadRequest()
+        };
     }
 
     private static string T(string key, string fallback)

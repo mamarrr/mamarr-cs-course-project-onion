@@ -1,11 +1,12 @@
-using System.Security.Claims;
-using App.BLL.ResidentWorkspace.Access;
-using App.BLL.ResidentWorkspace.Profiles;
-using App.BLL.ResidentWorkspace.Residents;
-using App.BLL.Shared.Profiles;
+using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Residents.Errors;
+using App.BLL.Contracts.Residents.Models;
+using App.BLL.Contracts.Residents.Services;
 using App.Resources.Views;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Mvc.Residents;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -18,36 +19,33 @@ namespace WebApp.Areas.Resident.Controllers;
 [Route("m/{companySlug}/r/{residentIdCode}/profile")]
 public class ProfileController : Controller
 {
-    private readonly IResidentAccessService _residentAccessService;
     private readonly IResidentProfileService _residentProfileService;
+    private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public ProfileController(
-        IResidentAccessService residentAccessService,
         IResidentProfileService residentProfileService,
+        ResidentMvcMapper residentMapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _residentAccessService = residentAccessService;
         _residentProfileService = residentProfileService;
+        _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
     }
 
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, string residentIdCode, CancellationToken cancellationToken)
     {
-        var access = await ResolveAccessAsync(companySlug, residentIdCode, cancellationToken);
-        if (access.response is not null)
+        var result = await _residentProfileService.GetAsync(
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
+            cancellationToken);
+
+        if (result.IsFailed)
         {
-            return access.response;
+            return ToFailureResult(result.Errors);
         }
 
-        var profile = await _residentProfileService.GetProfileAsync(access.context!, cancellationToken);
-        if (profile == null)
-        {
-            return NotFound();
-        }
-
-        return View(await BuildViewModelAsync(access.context!, profile, null, cancellationToken));
+        return View(await BuildViewModelAsync(result.Value, null, cancellationToken));
     }
 
     [HttpPost("edit")]
@@ -58,55 +56,38 @@ public class ProfileController : Controller
         ResidentProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveAccessAsync(companySlug, residentIdCode, cancellationToken);
-        if (access.response is not null)
+        var profile = await _residentProfileService.GetAsync(
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
+            cancellationToken);
+        if (profile.IsFailed)
         {
-            return access.response;
-        }
-
-        var profile = await _residentProfileService.GetProfileAsync(access.context!, cancellationToken);
-        if (profile == null)
-        {
-            return NotFound();
+            return ToFailureResult(profile.Errors);
         }
 
         if (!ModelState.IsValid)
         {
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(profile.Value, edit, cancellationToken));
         }
 
-        var result = await _residentProfileService.UpdateProfileAsync(
-            access.context!,
-            new ResidentProfileUpdateRequest
-            {
-                FirstName = edit.FirstName,
-                LastName = edit.LastName,
-                IdCode = edit.IdCode,
-                PreferredLanguage = edit.PreferredLanguage,
-                IsActive = edit.IsActive
-            },
+        var result = await _residentProfileService.UpdateAsync(
+            _residentMapper.ToUpdateCommand(companySlug, residentIdCode, edit, User),
             cancellationToken);
 
-        if (result.NotFound)
+        if (result.IsFailed)
         {
-            return NotFound();
-        }
+            if (HasAccessFailure(result.Errors))
+            {
+                return ToFailureResult(result.Errors);
+            }
 
-        if (result.Forbidden)
-        {
-            return Forbid();
-        }
-
-        if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToUpdateProfile);
+            ApplyProfileErrors(result.Errors, edit);
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(profile.Value, edit, cancellationToken));
         }
 
         TempData[nameof(UiText.ProfileUpdatedSuccessfully)] = UiText.ProfileUpdatedSuccessfully;
-        return RedirectToAction(nameof(Index), new { companySlug, residentIdCode = edit.IdCode.Trim() });
+        return RedirectToAction(nameof(Index), new { companySlug, residentIdCode = result.Value.ResidentIdCode });
     }
 
     [HttpPost("delete")]
@@ -117,41 +98,28 @@ public class ProfileController : Controller
         ResidentProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveAccessAsync(companySlug, residentIdCode, cancellationToken);
-        if (access.response is not null)
+        var profile = await _residentProfileService.GetAsync(
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
+            cancellationToken);
+        if (profile.IsFailed)
         {
-            return access.response;
+            return ToFailureResult(profile.Errors);
         }
 
-        var profile = await _residentProfileService.GetProfileAsync(access.context!, cancellationToken);
-        if (profile == null)
-        {
-            return NotFound();
-        }
+        var result = await _residentProfileService.DeleteAsync(
+            _residentMapper.ToDeleteCommand(companySlug, residentIdCode, edit, User),
+            cancellationToken);
 
-        if (!IsDeleteConfirmationValid(edit.DeleteConfirmation, profile.ResidentIdCode))
+        if (result.IsFailed)
         {
-            ModelState.AddModelError(nameof(edit.DeleteConfirmation), UiText.DeleteConfirmationDoesNotMatch);
+            if (HasAccessFailure(result.Errors))
+            {
+                return ToFailureResult(result.Errors);
+            }
+
+            ApplyDeleteErrors(result.Errors, edit);
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
-        }
-
-        var result = await _residentProfileService.DeleteProfileAsync(access.context!, cancellationToken);
-        if (result.NotFound)
-        {
-            return NotFound();
-        }
-
-        if (result.Forbidden)
-        {
-            return Forbid();
-        }
-
-        if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToDeleteProfile);
-            Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(profile.Value, edit, cancellationToken));
         }
 
         TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
@@ -159,42 +127,34 @@ public class ProfileController : Controller
     }
 
     private async Task<ProfilePageViewModel> BuildViewModelAsync(
-        ResidentDashboardContext context,
         ResidentProfileModel profile,
         ResidentProfileEditViewModel? edit,
         CancellationToken cancellationToken)
     {
-        var residentDisplayName = string.IsNullOrWhiteSpace(context.FullName)
-            ? context.ResidentIdCode
-            : context.FullName;
+        var residentDisplayName = string.IsNullOrWhiteSpace(profile.FullName)
+            ? profile.ResidentIdCode
+            : profile.FullName;
 
         return new ProfilePageViewModel
         {
-            AppChrome = await BuildAppChromeAsync(context, UiText.Profile, cancellationToken),
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
+            AppChrome = await BuildAppChromeAsync(profile, UiText.Profile, cancellationToken),
+            CompanySlug = profile.CompanySlug,
+            CompanyName = profile.CompanyName,
             SuccessMessage = TempData[nameof(UiText.ProfileUpdatedSuccessfully)] as string,
-            Edit = edit ?? new ResidentProfileEditViewModel
-            {
-                FirstName = profile.FirstName,
-                LastName = profile.LastName,
-                IdCode = profile.ResidentIdCode,
-                PreferredLanguage = profile.PreferredLanguage,
-                IsActive = profile.IsActive
-            },
+            Edit = edit ?? _residentMapper.ToEditViewModel(profile),
             ResidentDisplayName = residentDisplayName,
             ResidentIdCode = profile.ResidentIdCode
         };
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        ResidentDashboardContext context,
+        ResidentProfileModel profile,
         string title,
         CancellationToken cancellationToken)
     {
-        var residentDisplayName = string.IsNullOrWhiteSpace(context.FullName)
-            ? context.ResidentIdCode
-            : context.FullName;
+        var residentDisplayName = string.IsNullOrWhiteSpace(profile.FullName)
+            ? profile.ResidentIdCode
+            : profile.FullName;
 
         return _appChromeBuilder.BuildAsync(
             new AppChromeRequest
@@ -203,54 +163,99 @@ public class ProfileController : Controller
                 HttpContext = HttpContext,
                 PageTitle = title,
                 ActiveSection = Sections.Profile,
-                ManagementCompanySlug = context.CompanySlug,
-                ManagementCompanyName = context.CompanyName,
-                ResidentIdCode = context.ResidentIdCode,
+                ManagementCompanySlug = profile.CompanySlug,
+                ManagementCompanyName = profile.CompanyName,
+                ResidentIdCode = profile.ResidentIdCode,
                 ResidentDisplayName = residentDisplayName,
-                ResidentSupportingText = string.IsNullOrWhiteSpace(context.FullName) ? null : context.ResidentIdCode,
+                ResidentSupportingText = string.IsNullOrWhiteSpace(profile.FullName) ? null : profile.ResidentIdCode,
                 CurrentLevel = WorkspaceLevel.Resident
             },
             cancellationToken);
     }
 
-    private async Task<(IActionResult? response, ResidentDashboardContext? context)> ResolveAccessAsync(
-        string companySlug,
-        string residentIdCode,
-        CancellationToken cancellationToken)
+    private IActionResult ToFailureResult(IReadOnlyList<IError> errors)
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
+        var error = errors.FirstOrDefault();
+        return error switch
         {
-            return (Challenge(), null);
-        }
-
-        var access = await _residentAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            residentIdCode,
-            cancellationToken);
-
-        if (access.CompanyNotFound || access.ResidentNotFound)
-        {
-            return (NotFound(), null);
-        }
-
-        if (access.IsForbidden || access.Context == null)
-        {
-            return (Forbid(), null);
-        }
-
-        return (null, access.Context);
+            UnauthorizedError => Challenge(),
+            NotFoundError => NotFound(),
+            ForbiddenError => Forbid(),
+            _ => BadRequest()
+        };
     }
 
-    private Guid? GetAppUserId()
+    private static bool HasAccessFailure(IReadOnlyList<IError> errors)
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+        return errors.Any(error =>
+            error is UnauthorizedError
+                or NotFoundError
+                or ForbiddenError);
     }
 
-    private static bool IsDeleteConfirmationValid(string? providedValue, string expectedValue)
+    private void ApplyProfileErrors(IReadOnlyList<IError> errors, ResidentProfileEditViewModel edit)
     {
-        return string.Equals(providedValue?.Trim(), expectedValue.Trim(), StringComparison.Ordinal);
+        var duplicate = errors.OfType<DuplicateResidentIdCodeError>().FirstOrDefault();
+        if (duplicate is not null)
+        {
+            ModelState.AddModelError($"{nameof(ProfilePageViewModel.Edit)}.{nameof(edit.IdCode)}", duplicate.Message);
+            return;
+        }
+
+        ApplyValidationErrors(errors, PrefixEditProperty);
+        if (ModelState.ErrorCount == 0)
+        {
+            ModelState.AddModelError(string.Empty, errors.FirstOrDefault()?.Message ?? UiText.UnableToUpdateProfile);
+        }
+    }
+
+    private void ApplyDeleteErrors(IReadOnlyList<IError> errors, ResidentProfileEditViewModel edit)
+    {
+        ApplyValidationErrors(errors, PrefixEditProperty);
+        if (ModelState.ErrorCount == 0)
+        {
+            ModelState.AddModelError(string.Empty, errors.FirstOrDefault()?.Message ?? UiText.UnableToDeleteProfile);
+        }
+    }
+
+    private void ApplyValidationErrors(
+        IReadOnlyList<IError> errors,
+        Func<string?, string> mapPropertyName)
+    {
+        var validation = errors.OfType<ValidationAppError>().FirstOrDefault();
+        if (validation is not null)
+        {
+            foreach (var failure in validation.Failures)
+            {
+                ModelState.AddModelError(mapPropertyName(failure.PropertyName), failure.ErrorMessage);
+            }
+        }
+
+        var residentValidation = errors.OfType<ResidentValidationError>().FirstOrDefault();
+        if (residentValidation is null)
+        {
+            return;
+        }
+
+        foreach (var failure in residentValidation.Failures)
+        {
+            ModelState.AddModelError(mapPropertyName(failure.PropertyName), failure.ErrorMessage);
+        }
+    }
+
+    private static string PrefixEditProperty(string? propertyName)
+    {
+        return propertyName switch
+        {
+            "ConfirmationIdCode" =>
+                $"{nameof(ProfilePageViewModel.Edit)}.{nameof(ResidentProfileEditViewModel.DeleteConfirmation)}",
+            "FirstName" =>
+                $"{nameof(ProfilePageViewModel.Edit)}.{nameof(ResidentProfileEditViewModel.FirstName)}",
+            "LastName" =>
+                $"{nameof(ProfilePageViewModel.Edit)}.{nameof(ResidentProfileEditViewModel.LastName)}",
+            "IdCode" =>
+                $"{nameof(ProfilePageViewModel.Edit)}.{nameof(ResidentProfileEditViewModel.IdCode)}",
+            _ => string.Empty
+        };
     }
 }

@@ -1,9 +1,12 @@
-using System.Security.Claims;
-using App.BLL.ResidentWorkspace.Access;
-using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Residents.Errors;
+using App.BLL.Contracts.Residents.Models;
+using App.BLL.Contracts.Residents.Services;
 using App.Resources.Views;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Mvc.Residents;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -16,19 +19,19 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}/residents")]
 public class ResidentsController : Controller
 {
-    private readonly IResidentAccessService _residentAccessService;
-    private readonly ICompanyResidentService _companyResidentService;
+    private readonly IResidentWorkspaceService _residentWorkspaceService;
+    private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ILogger<ResidentsController> _logger;
 
     public ResidentsController(
-        IResidentAccessService residentAccessService,
-        ICompanyResidentService companyResidentService,
+        IResidentWorkspaceService residentWorkspaceService,
+        ResidentMvcMapper residentMapper,
         IAppChromeBuilder appChromeBuilder,
         ILogger<ResidentsController> logger)
     {
-        _residentAccessService = residentAccessService;
-        _companyResidentService = companyResidentService;
+        _residentWorkspaceService = residentWorkspaceService;
+        _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
         _logger = logger;
     }
@@ -36,13 +39,15 @@ public class ResidentsController : Controller
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, CancellationToken cancellationToken)
     {
-        var authResult = await AuthorizeAsync(companySlug, cancellationToken);
-        if (authResult.response is not null)
+        var result = await _residentWorkspaceService.GetResidentsAsync(
+            _residentMapper.ToResidentsQuery(companySlug, User),
+            cancellationToken);
+        if (result.IsFailed)
         {
-            return authResult.response;
+            return ToFailureResult(result.Errors);
         }
 
-        var pageVm = await BuildPageViewModelAsync(authResult.context!, cancellationToken);
+        var pageVm = await BuildPageViewModelAsync(result.Value, cancellationToken);
         return View(pageVm);
     }
 
@@ -60,66 +65,37 @@ public class ResidentsController : Controller
             !string.IsNullOrWhiteSpace(vm.AddResident.LastName),
             !string.IsNullOrWhiteSpace(vm.AddResident.IdCode));
 
-        var authResult = await AuthorizeAsync(companySlug, cancellationToken);
-        if (authResult.response is not null)
+        var residents = await _residentWorkspaceService.GetResidentsAsync(
+            _residentMapper.ToResidentsQuery(companySlug, User),
+            cancellationToken);
+        if (residents.IsFailed)
         {
             _logger.LogWarning(
-                "Management residents add authorization failed for companySlug={CompanySlug}, responseType={ResponseType}",
-                companySlug,
-                authResult.response.GetType().Name);
-            return authResult.response;
+                "Management residents add authorization failed for companySlug={CompanySlug}",
+                companySlug);
+            return ToFailureResult(residents.Errors);
         }
 
         if (!ModelState.IsValid)
         {
-            var invalidVm = await BuildPageViewModelAsync(authResult.context!, cancellationToken, vm.AddResident);
+            var invalidVm = await BuildPageViewModelAsync(residents.Value, cancellationToken, vm.AddResident);
             return View(nameof(Index), invalidVm);
         }
 
-        var createResult = await _companyResidentService.CreateAsync(
-            authResult.context!,
-            new ResidentCreateRequest
-            {
-                FirstName = vm.AddResident.FirstName,
-                LastName = vm.AddResident.LastName,
-                IdCode = vm.AddResident.IdCode,
-                PreferredLanguage = vm.AddResident.PreferredLanguage
-            },
+        var createResult = await _residentWorkspaceService.CreateAsync(
+            _residentMapper.ToCreateCommand(companySlug, vm.AddResident, User),
             cancellationToken);
 
-        if (!createResult.Success)
+        if (createResult.IsFailed)
         {
             _logger.LogWarning(
-                "Management residents add business validation failed for companySlug={CompanySlug}, duplicateIdCode={DuplicateIdCode}, invalidFirstName={InvalidFirstName}, invalidLastName={InvalidLastName}, invalidIdCode={InvalidIdCode}, errorMessage={ErrorMessage}",
+                "Management residents add business validation failed for companySlug={CompanySlug}, errors={Errors}",
                 companySlug,
-                createResult.DuplicateIdCode,
-                createResult.InvalidFirstName,
-                createResult.InvalidLastName,
-                createResult.InvalidIdCode,
-                createResult.ErrorMessage);
+                string.Join("; ", createResult.Errors.Select(error => error.Message)));
 
-            if (createResult.DuplicateIdCode)
-            {
-                ModelState.AddModelError("AddResident.IdCode", createResult.ErrorMessage ?? T("ResidentIdCodeAlreadyExists", "Resident with this ID code already exists in this company."));
-            }
-            else if (createResult.InvalidFirstName)
-            {
-                ModelState.AddModelError("AddResident.FirstName", createResult.ErrorMessage ?? UiText.RequiredField);
-            }
-            else if (createResult.InvalidLastName)
-            {
-                ModelState.AddModelError("AddResident.LastName", createResult.ErrorMessage ?? UiText.RequiredField);
-            }
-            else if (createResult.InvalidIdCode)
-            {
-                ModelState.AddModelError("AddResident.IdCode", createResult.ErrorMessage ?? UiText.RequiredField);
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, createResult.ErrorMessage ?? T("UnableToAddResident", "Unable to add resident."));
-            }
+            ApplyCreateErrors(createResult.Errors);
 
-            var invalidVm = await BuildPageViewModelAsync(authResult.context!, cancellationToken, vm.AddResident);
+            var invalidVm = await BuildPageViewModelAsync(residents.Value, cancellationToken, vm.AddResident);
             return View(nameof(Index), invalidVm);
         }
 
@@ -127,36 +103,11 @@ public class ResidentsController : Controller
         return RedirectToAction(nameof(Index), new { companySlug });
     }
 
-    private async Task<(IActionResult? response, CompanyResidentsAuthorizedContext? context)> AuthorizeAsync(
-        string companySlug,
-        CancellationToken cancellationToken)
-    {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return (Challenge(), null);
-        }
-
-        var auth = await _residentAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
-        if (auth.CompanyNotFound)
-        {
-            return (NotFound(), null);
-        }
-
-        if (auth.IsForbidden || auth.Context == null)
-        {
-            return (Forbid(), null);
-        }
-
-        return (null, auth.Context);
-    }
-
     private async Task<ResidentsPageViewModel> BuildPageViewModelAsync(
-        CompanyResidentsAuthorizedContext context,
+        CompanyResidentsModel model,
         CancellationToken cancellationToken,
         AddManagementResidentViewModel? addResidentOverride = null)
     {
-        var listResult = await _companyResidentService.ListAsync(context, cancellationToken);
         var title = T("Residents", "Residents");
 
         return new ResidentsPageViewModel
@@ -168,14 +119,14 @@ public class ResidentsController : Controller
                     HttpContext = HttpContext,
                     PageTitle = title,
                     ActiveSection = Sections.Residents,
-                    ManagementCompanySlug = context.CompanySlug,
-                    ManagementCompanyName = context.CompanyName,
+                    ManagementCompanySlug = model.CompanySlug,
+                    ManagementCompanyName = model.CompanyName,
                     CurrentLevel = WorkspaceLevel.ManagementCompany
                 },
                 cancellationToken),
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            Residents = listResult.Residents
+            CompanySlug = model.CompanySlug,
+            CompanyName = model.CompanyName,
+            Residents = model.Residents
                 .Select(x => new ManagementResidentListItemViewModel
                 {
                     ResidentId = x.ResidentId,
@@ -189,10 +140,50 @@ public class ResidentsController : Controller
         };
     }
 
-    private Guid? GetAppUserId()
+    private IActionResult ToFailureResult(IReadOnlyList<IError> errors)
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+        var error = errors.FirstOrDefault();
+        return error switch
+        {
+            UnauthorizedError => Challenge(),
+            NotFoundError => NotFound(),
+            ForbiddenError => Forbid(),
+            _ => BadRequest()
+        };
+    }
+
+    private void ApplyCreateErrors(IReadOnlyList<IError> errors)
+    {
+        var duplicate = errors.OfType<DuplicateResidentIdCodeError>().FirstOrDefault();
+        if (duplicate is not null)
+        {
+            ModelState.AddModelError("AddResident.IdCode", duplicate.Message);
+            return;
+        }
+
+        var validation = errors.OfType<ValidationAppError>().FirstOrDefault();
+        if (validation is not null)
+        {
+            foreach (var failure in validation.Failures)
+            {
+                ModelState.AddModelError($"AddResident.{failure.PropertyName}", failure.ErrorMessage);
+            }
+
+            return;
+        }
+
+        var residentValidation = errors.OfType<ResidentValidationError>().FirstOrDefault();
+        if (residentValidation is not null)
+        {
+            foreach (var failure in residentValidation.Failures)
+            {
+                ModelState.AddModelError($"AddResident.{failure.PropertyName}", failure.ErrorMessage);
+            }
+
+            return;
+        }
+
+        ModelState.AddModelError(string.Empty, errors.FirstOrDefault()?.Message ?? T("UnableToAddResident", "Unable to add resident."));
     }
 
     private static string T(string key, string fallback)

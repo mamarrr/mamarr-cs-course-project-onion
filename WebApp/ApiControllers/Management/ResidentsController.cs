@@ -1,6 +1,5 @@
 using System.Net;
-using App.BLL.ResidentWorkspace.Access;
-using App.BLL.ResidentWorkspace.Residents;
+using App.BLL.Contracts.Residents.Services;
 using App.DTO.v1;
 using App.DTO.v1.Management;
 using App.DTO.v1.Shared;
@@ -8,6 +7,8 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Infrastructure.Results;
+using WebApp.Mappers.Api.Residents;
 
 namespace WebApp.ApiControllers.Management;
 
@@ -17,15 +18,15 @@ namespace WebApp.ApiControllers.Management;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/re")]
 public class ResidentsController : ProfileApiControllerBase
 {
-    private readonly IResidentAccessService _residentAccessService;
-    private readonly ICompanyResidentService _companyResidentService;
+    private readonly IResidentWorkspaceService _residentWorkspaceService;
+    private readonly ResidentApiMapper _residentMapper;
 
     public ResidentsController(
-        IResidentAccessService residentAccessService,
-        ICompanyResidentService companyResidentService)
+        IResidentWorkspaceService residentWorkspaceService,
+        ResidentApiMapper residentMapper)
     {
-        _residentAccessService = residentAccessService;
-        _companyResidentService = companyResidentService;
+        _residentWorkspaceService = residentWorkspaceService;
+        _residentMapper = residentMapper;
     }
 
     [HttpGet]
@@ -38,27 +39,11 @@ public class ResidentsController : ProfileApiControllerBase
         string companySlug,
         CancellationToken cancellationToken)
     {
-        var authorization = await AuthorizeCompanyAsync(companySlug, cancellationToken);
-        if (authorization.ErrorResult != null)
-        {
-            return authorization.ErrorResult;
-        }
+        var result = await _residentWorkspaceService.GetResidentsAsync(
+            _residentMapper.ToResidentsQuery(companySlug, User),
+            cancellationToken);
 
-        var result = await _companyResidentService.ListAsync(authorization.Context!, cancellationToken);
-        return Ok(new ManagementResidentsResponseDto
-        {
-            Residents = result.Residents.Select(x => new ManagementResidentSummaryDto
-            {
-                ResidentId = x.ResidentId,
-                FirstName = x.FirstName,
-                LastName = x.LastName,
-                FullName = x.FullName,
-                IdCode = x.IdCode,
-                PreferredLanguage = x.PreferredLanguage,
-                IsActive = x.IsActive,
-                RouteContext = CreateResidentRouteContext(authorization.Context!, x.IdCode, x.FullName)
-            }).ToList()
-        });
+        return result.ToActionResult(_residentMapper.ToResidentsResponseDto);
     }
 
     [HttpPost]
@@ -74,10 +59,12 @@ public class ResidentsController : ProfileApiControllerBase
         [FromBody] CreateManagementResidentRequestDto dto,
         CancellationToken cancellationToken)
     {
-        var authorization = await AuthorizeCompanyAsync(companySlug, cancellationToken);
-        if (authorization.ErrorResult != null)
+        var access = await _residentWorkspaceService.GetResidentsAsync(
+            _residentMapper.ToResidentsQuery(companySlug, User),
+            cancellationToken);
+        if (access.IsFailed)
         {
-            return authorization.ErrorResult;
+            return access.ToActionResult(_ => new CreateManagementResidentResponseDto());
         }
 
         if (!ModelState.IsValid)
@@ -85,92 +72,34 @@ public class ResidentsController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _companyResidentService.CreateAsync(
-            authorization.Context!,
-            new ResidentCreateRequest
-            {
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                IdCode = dto.IdCode,
-                PreferredLanguage = dto.PreferredLanguage
-            },
+        var result = await _residentWorkspaceService.CreateAsync(
+            _residentMapper.ToCreateCommand(companySlug, dto, User),
             cancellationToken);
 
-        if (!result.Success || result.CreatedResidentId == null)
+        if (result.IsFailed)
         {
-            var detail = result.DuplicateIdCode
-                ? (nameof(dto.IdCode), result.ErrorMessage ?? "Resident ID code already exists.")
-                : result.InvalidFirstName
-                    ? (nameof(dto.FirstName), result.ErrorMessage ?? "First name is invalid.")
-                    : result.InvalidLastName
-                        ? (nameof(dto.LastName), result.ErrorMessage ?? "Last name is invalid.")
-                        : result.InvalidIdCode
-                            ? (nameof(dto.IdCode), result.ErrorMessage ?? "ID code is invalid.")
-                            : (string.Empty, result.ErrorMessage ?? "Unable to create resident.");
-
-            return BadRequest(CreateError(
-                HttpStatusCode.BadRequest,
-                result.ErrorMessage ?? "Unable to create resident.",
-                result.DuplicateIdCode ? ApiErrorCodes.Duplicate : ApiErrorCodes.BusinessRuleViolation,
-                detail));
+            return result.ToActionResult(_residentMapper.ToCreateResponseDto);
         }
-
-        var refreshedResidents = await _companyResidentService.ListAsync(authorization.Context!, cancellationToken);
-        var createdResident = refreshedResidents.Residents.FirstOrDefault(x => x.ResidentId == result.CreatedResidentId.Value);
-        if (createdResident == null)
-        {
-            return BadRequest(CreateError(HttpStatusCode.BadRequest, "Created resident could not be resolved.", ApiErrorCodes.BusinessRuleViolation));
-        }
-
-        var response = new CreateManagementResidentResponseDto
-        {
-            ResidentId = createdResident.ResidentId,
-            ResidentIdCode = createdResident.IdCode,
-            RouteContext = CreateResidentRouteContext(authorization.Context!, createdResident.IdCode, createdResident.FullName)
-        };
 
         return CreatedAtAction(
             nameof(GetResidents),
             new { version = "1.0", companySlug },
-            response);
+            _residentMapper.ToCreateResponseDto(result.Value));
     }
 
-    private async Task<(CompanyResidentsAuthorizedContext? Context, ActionResult? ErrorResult)> AuthorizeCompanyAsync(
-        string companySlug,
-        CancellationToken cancellationToken)
+    private RestApiErrorResponse CreateValidationError()
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
+        return new RestApiErrorResponse
         {
-            return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
-        }
-
-        var authorization = await _residentAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
-        if (authorization.CompanyNotFound)
-        {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Management company was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (authorization.IsForbidden || authorization.Context == null)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
-        }
-
-        return (authorization.Context, null);
-    }
-
-    private static ApiRouteContextDto CreateResidentRouteContext(
-        CompanyResidentsAuthorizedContext context,
-        string residentIdCode,
-        string residentDisplayName)
-    {
-        return new ApiRouteContextDto
-        {
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            ResidentIdCode = residentIdCode,
-            ResidentDisplayName = residentDisplayName,
-            CurrentSection = "resident-dashboard"
+            Status = HttpStatusCode.BadRequest,
+            Error = "Validation failed.",
+            ErrorCode = ApiErrorCodes.ValidationFailed,
+            Errors = ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.Value!.Errors.Select(e => string.IsNullOrWhiteSpace(e.ErrorMessage) ? "Invalid value." : e.ErrorMessage).ToArray()),
+            TraceId = HttpContext.TraceIdentifier
         };
     }
 }

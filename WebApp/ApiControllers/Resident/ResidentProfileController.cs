@@ -1,8 +1,5 @@
 using System.Net;
-using App.BLL.ResidentWorkspace.Access;
-using App.BLL.ResidentWorkspace.Profiles;
-using App.BLL.ResidentWorkspace.Residents;
-using App.BLL.Shared.Profiles;
+using App.BLL.Contracts.Residents.Services;
 using App.DTO.v1;
 using App.DTO.v1.Resident;
 using App.DTO.v1.Shared;
@@ -11,6 +8,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.ApiControllers.Management;
+using WebApp.Infrastructure.Results;
+using WebApp.Mappers.Api.Residents;
 
 namespace WebApp.ApiControllers.Resident;
 
@@ -20,15 +19,15 @@ namespace WebApp.ApiControllers.Resident;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/re/{residentIdCode}/profile")]
 public class ResidentProfileController : ProfileApiControllerBase
 {
-    private readonly IResidentAccessService _residentAccessService;
     private readonly IResidentProfileService _residentProfileService;
+    private readonly ResidentApiMapper _residentMapper;
 
     public ResidentProfileController(
-        IResidentAccessService residentAccessService,
-        IResidentProfileService residentProfileService)
+        IResidentProfileService residentProfileService,
+        ResidentApiMapper residentMapper)
     {
-        _residentAccessService = residentAccessService;
         _residentProfileService = residentProfileService;
+        _residentMapper = residentMapper;
     }
 
     [HttpGet]
@@ -42,22 +41,11 @@ public class ResidentProfileController : ProfileApiControllerBase
         string residentIdCode,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveDashboardAccessAsync(companySlug, residentIdCode, cancellationToken);
-        if (access.ErrorResult != null)
-        {
-            return access.ErrorResult;
-        }
+        var result = await _residentProfileService.GetAsync(
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
+            cancellationToken);
 
-        var profile = await _residentProfileService.GetProfileAsync(access.Context!, cancellationToken);
-        if (profile == null)
-        {
-            return NotFound(CreateError(HttpStatusCode.NotFound, "Resident profile was not found.", ApiErrorCodes.NotFound));
-        }
-
-        return Ok(new ResidentProfileResponseDto
-        {
-            Profile = MapProfile(profile, access.Context!)
-        });
+        return result.ToActionResult(_residentMapper.ToProfileResponseDto);
     }
 
     [HttpPut]
@@ -74,10 +62,12 @@ public class ResidentProfileController : ProfileApiControllerBase
         [FromBody] UpdateResidentProfileRequestDto dto,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveDashboardAccessAsync(companySlug, residentIdCode, cancellationToken);
-        if (access.ErrorResult != null)
+        var access = await _residentProfileService.GetAsync(
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
+            cancellationToken);
+        if (access.IsFailed)
         {
-            return access.ErrorResult;
+            return access.ToActionResult(_residentMapper.ToProfileResponseDto);
         }
 
         if (!ModelState.IsValid)
@@ -85,49 +75,11 @@ public class ResidentProfileController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _residentProfileService.UpdateProfileAsync(
-            access.Context!,
-            new ResidentProfileUpdateRequest
-            {
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                IdCode = dto.IdCode,
-                PreferredLanguage = dto.PreferredLanguage,
-                IsActive = dto.IsActive
-            },
+        var result = await _residentProfileService.UpdateAsync(
+            _residentMapper.ToUpdateCommand(companySlug, residentIdCode, dto, User),
             cancellationToken);
 
-        if (result.NotFound)
-        {
-            return NotFound(CreateError(HttpStatusCode.NotFound, "Resident profile was not found.", ApiErrorCodes.NotFound));
-        }
-
-        if (result.Forbidden)
-        {
-            return StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden));
-        }
-
-        if (!result.Success)
-        {
-            return BadRequest(CreateError(
-                HttpStatusCode.BadRequest,
-                result.ErrorMessage ?? "Unable to update resident profile.",
-                result.DuplicateIdCode ? ApiErrorCodes.Duplicate : ApiErrorCodes.BusinessRuleViolation,
-                result.DuplicateIdCode
-                    ? (nameof(dto.IdCode), result.ErrorMessage ?? "Unable to update resident profile.")
-                    : (string.Empty, result.ErrorMessage ?? "Unable to update resident profile.")));
-        }
-
-        var profile = await _residentProfileService.GetProfileAsync(access.Context!, cancellationToken);
-        if (profile == null)
-        {
-            return NotFound(CreateError(HttpStatusCode.NotFound, "Resident profile was not found.", ApiErrorCodes.NotFound));
-        }
-
-        return Ok(new ResidentProfileResponseDto
-        {
-            Profile = MapProfile(profile, access.Context!)
-        });
+        return result.ToActionResult(_residentMapper.ToProfileResponseDto);
     }
 
     [HttpDelete]
@@ -137,16 +89,18 @@ public class ResidentProfileController : ProfileApiControllerBase
     [ProducesResponseType<RestApiErrorResponse>((int)HttpStatusCode.Unauthorized)]
     [ProducesResponseType<RestApiErrorResponse>((int)HttpStatusCode.Forbidden)]
     [ProducesResponseType<RestApiErrorResponse>((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult> DeleteProfile(
+    public async Task<IActionResult> DeleteProfile(
         string companySlug,
         string residentIdCode,
         [FromBody] DeleteResidentProfileRequestDto dto,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveDashboardAccessAsync(companySlug, residentIdCode, cancellationToken);
-        if (access.ErrorResult != null)
+        var access = await _residentProfileService.GetAsync(
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
+            cancellationToken);
+        if (access.IsFailed)
         {
-            return access.ErrorResult;
+            return access.ToActionResult(_residentMapper.ToProfileResponseDto).Result!;
         }
 
         if (!ModelState.IsValid)
@@ -154,88 +108,26 @@ public class ResidentProfileController : ProfileApiControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var profile = await _residentProfileService.GetProfileAsync(access.Context!, cancellationToken);
-        if (profile == null)
-        {
-            return NotFound(CreateError(HttpStatusCode.NotFound, "Resident profile was not found.", ApiErrorCodes.NotFound));
-        }
-
-        if (!string.Equals(dto.ConfirmationIdCode?.Trim(), profile.ResidentIdCode.Trim(), StringComparison.Ordinal))
-        {
-            return BadRequest(CreateError(
-                HttpStatusCode.BadRequest,
-                "Delete confirmation does not match the current resident ID code.",
-                ApiErrorCodes.ValidationFailed,
-                (nameof(dto.ConfirmationIdCode), "Delete confirmation does not match the current resident ID code.")));
-        }
-
-        var result = await _residentProfileService.DeleteProfileAsync(access.Context!, cancellationToken);
-        if (result.NotFound)
-        {
-            return NotFound(CreateError(HttpStatusCode.NotFound, "Resident profile was not found.", ApiErrorCodes.NotFound));
-        }
-
-        if (result.Forbidden)
-        {
-            return StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden));
-        }
-
-        if (!result.Success)
-        {
-            return BadRequest(CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? "Unable to delete resident profile.", ApiErrorCodes.BusinessRuleViolation));
-        }
-
-        return NoContent();
-    }
-
-    private async Task<(ResidentDashboardContext? Context, ActionResult? ErrorResult)> ResolveDashboardAccessAsync(
-        string companySlug,
-        string residentIdCode,
-        CancellationToken cancellationToken)
-    {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
-        }
-
-        var access = await _residentAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            residentIdCode,
+        var result = await _residentProfileService.DeleteAsync(
+            _residentMapper.ToDeleteCommand(companySlug, residentIdCode, dto, User),
             cancellationToken);
 
-        if (access.CompanyNotFound || access.ResidentNotFound)
-        {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Resident context was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (access.IsForbidden || access.Context == null)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
-        }
-
-        return (access.Context, null);
+        return result.ToActionResult();
     }
 
-    private static ResidentProfileDto MapProfile(ResidentProfileModel profile, ResidentDashboardContext context)
+    private RestApiErrorResponse CreateValidationError()
     {
-        return new ResidentProfileDto
+        return new RestApiErrorResponse
         {
-            ResidentId = profile.ResidentId,
-            ResidentIdCode = profile.ResidentIdCode,
-            FirstName = profile.FirstName,
-            LastName = profile.LastName,
-            PreferredLanguage = profile.PreferredLanguage,
-            IsActive = profile.IsActive,
-            RouteContext = new ApiRouteContextDto
-            {
-                CompanySlug = context.CompanySlug,
-                CompanyName = context.CompanyName,
-                ResidentIdCode = profile.ResidentIdCode,
-                ResidentDisplayName = string.Join(' ', new[] { profile.FirstName, profile.LastName }.Where(x => !string.IsNullOrWhiteSpace(x))).Trim(),
-                CurrentSection = "resident-profile"
-            }
+            Status = HttpStatusCode.BadRequest,
+            Error = "Validation failed.",
+            ErrorCode = ApiErrorCodes.ValidationFailed,
+            Errors = ModelState
+                .Where(x => x.Value?.Errors.Count > 0)
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.Value!.Errors.Select(e => string.IsNullOrWhiteSpace(e.ErrorMessage) ? "Invalid value." : e.ErrorMessage).ToArray()),
+            TraceId = HttpContext.TraceIdentifier
         };
     }
 }

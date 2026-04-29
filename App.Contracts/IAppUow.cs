@@ -1,8 +1,10 @@
 using Base.DAL.Contracts;
+using App.Contracts.DAL.Contacts;
 using App.Contracts.DAL.Customers;
 using App.Contracts.DAL.Lookups;
 using App.Contracts.DAL.ManagementCompanies;
 using App.Contracts.DAL.Properties;
+using App.Contracts.DAL.Residents;
 using App.Contracts.DAL.Units;
 
 namespace App.Contracts;
@@ -16,6 +18,10 @@ public interface IAppUOW : IBaseUOW
     ILookupRepository Lookups { get; }
 
     IPropertyRepository Properties { get; }
+
+    IResidentRepository Residents { get; }
+
+    IContactRepository Contacts { get; }
 
     IUnitRepository Units { get; }
 

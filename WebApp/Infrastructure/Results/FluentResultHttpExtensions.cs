@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Net;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Customers.Errors;
+using App.BLL.Contracts.Residents.Errors;
 using App.DTO.v1;
 using App.DTO.v1.Shared;
 using FluentResults;
@@ -58,6 +59,29 @@ public static class FluentResultHttpExtensions
                 });
         }
 
+        var duplicateResidentIdCodeError = errors.OfType<DuplicateResidentIdCodeError>().FirstOrDefault();
+        if (duplicateResidentIdCodeError is not null)
+        {
+            return CreateObjectResult(
+                HttpStatusCode.BadRequest,
+                duplicateResidentIdCodeError.Message,
+                ApiErrorCodes.Duplicate,
+                new Dictionary<string, string[]>
+                {
+                    [duplicateResidentIdCodeError.PropertyName] = [duplicateResidentIdCodeError.Message]
+                });
+        }
+
+        var residentValidationError = errors.OfType<ResidentValidationError>().FirstOrDefault();
+        if (residentValidationError is not null)
+        {
+            return CreateObjectResult(
+                HttpStatusCode.BadRequest,
+                residentValidationError.Message,
+                ApiErrorCodes.BusinessRuleViolation,
+                BuildResidentValidationErrors(residentValidationError));
+        }
+
         var error = errors.FirstOrDefault();
 
         return error switch
@@ -95,6 +119,15 @@ public static class FluentResultHttpExtensions
     }
 
     private static Dictionary<string, string[]> BuildValidationErrors(ValidationAppError error)
+    {
+        return error.Failures
+            .GroupBy(failure => failure.PropertyName ?? string.Empty)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(failure => failure.ErrorMessage).ToArray());
+    }
+
+    private static Dictionary<string, string[]> BuildResidentValidationErrors(ResidentValidationError error)
     {
         return error.Failures
             .GroupBy(failure => failure.PropertyName ?? string.Empty)

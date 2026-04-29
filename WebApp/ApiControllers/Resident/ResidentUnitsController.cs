@@ -1,4 +1,5 @@
 using System.Net;
+using App.BLL.Contracts.Residents.Services;
 using App.BLL.LeaseAssignments;
 using App.BLL.ResidentWorkspace.Access;
 using App.BLL.ResidentWorkspace.Residents;
