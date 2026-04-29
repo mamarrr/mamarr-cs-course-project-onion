@@ -82,7 +82,7 @@ public class PropertyProfileController : ProfileApiControllerBase
     [ProducesResponseType<RestApiErrorResponse>((int)HttpStatusCode.Unauthorized)]
     [ProducesResponseType<RestApiErrorResponse>((int)HttpStatusCode.Forbidden)]
     [ProducesResponseType<RestApiErrorResponse>((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult> DeleteProfile(
+    public async Task<IActionResult> DeleteProfile(
         string companySlug,
         string customerSlug,
         string propertySlug,
