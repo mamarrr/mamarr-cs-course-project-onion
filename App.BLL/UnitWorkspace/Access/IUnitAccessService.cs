@@ -1,4 +1,4 @@
-using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.Contracts.Properties.Models;
 using App.BLL.UnitWorkspace.Workspace;
 
 namespace App.BLL.UnitWorkspace.Access;
@@ -6,7 +6,7 @@ namespace App.BLL.UnitWorkspace.Access;
 public interface IUnitAccessService
 {
     Task<UnitDashboardAccessResult> ResolveUnitDashboardContextAsync(
-        PropertyDashboardContext context,
+        PropertyWorkspaceModel context,
         string unitSlug,
         CancellationToken cancellationToken = default);
 }

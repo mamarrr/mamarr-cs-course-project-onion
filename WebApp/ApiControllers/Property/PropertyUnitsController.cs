@@ -1,8 +1,6 @@
 using System.Net;
-using App.BLL.Contracts.Customers.Services;
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.CustomerWorkspace.Workspace;
-using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Contracts.Properties.Models;
+using App.BLL.Contracts.Properties.Services;
 using App.BLL.UnitWorkspace.Units;
 using App.BLL.UnitWorkspace.Workspace;
 using App.DTO.v1;
@@ -12,6 +10,8 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Infrastructure.Results;
+using WebApp.Mappers.Api.Properties;
 
 namespace WebApp.ApiControllers.Property;
 
@@ -21,18 +21,18 @@ namespace WebApp.ApiControllers.Property;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un")]
 public class PropertyUnitsController : ControllerBase
 {
-    private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IPropertyUnitService _propertyUnitService;
+    private readonly PropertyApiMapper _propertyMapper;
 
     public PropertyUnitsController(
-        ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
-        IPropertyUnitService propertyUnitService)
+        IPropertyUnitService propertyUnitService,
+        PropertyApiMapper propertyMapper)
     {
-        _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _propertyUnitService = propertyUnitService;
+        _propertyMapper = propertyMapper;
     }
 
     [HttpGet]
@@ -137,60 +137,25 @@ public class PropertyUnitsController : ControllerBase
             response);
     }
 
-    private async Task<(PropertyDashboardContext? Context, ActionResult? ErrorResult)> ResolvePropertyContextAsync(
+    private async Task<(PropertyWorkspaceModel? Context, ActionResult? ErrorResult)> ResolvePropertyContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
         CancellationToken cancellationToken)
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
-        }
-
-        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            customerSlug,
+        var result = await _propertyWorkspaceService.GetWorkspaceAsync(
+            _propertyMapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
-
-        if (customerAccess.CompanyNotFound || customerAccess.CustomerNotFound || customerAccess.Context == null)
+        if (result.IsFailed)
         {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Customer context was not found.", ApiErrorCodes.NotFound)));
+            return (null, result.ToActionResult(_ => new PropertyUnitsResponseDto()).Result);
         }
 
-        if (customerAccess.IsForbidden)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
-        }
-
-        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
-            customerAccess.Context,
-            propertySlug,
-            cancellationToken);
-
-        if (propertyAccess.PropertyNotFound || propertyAccess.Context == null)
-        {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Property context was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (!propertyAccess.IsAuthorized)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
-        }
-
-        return (propertyAccess.Context, null);
-    }
-
-    private Guid? GetAppUserId()
-    {
-        var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+        return (result.Value, null);
     }
 
     private ApiRouteContextDto CreateUnitRouteContext(
-        PropertyDashboardContext context,
+        PropertyWorkspaceModel context,
         string unitSlug,
         string unitNr)
     {

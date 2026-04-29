@@ -1,6 +1,5 @@
 using System.Net;
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Contracts.Properties.Services;
 using App.BLL.Shared.Profiles;
 using App.BLL.UnitWorkspace.Access;
 using App.BLL.UnitWorkspace.Profiles;
@@ -13,6 +12,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.ApiControllers.Management;
+using WebApp.Infrastructure.Results;
+using WebApp.Mappers.Api.Properties;
 
 namespace WebApp.ApiControllers.Unit;
 
@@ -22,21 +23,21 @@ namespace WebApp.ApiControllers.Unit;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un/{unitSlug}/profile")]
 public class UnitProfileController : ProfileApiControllerBase
 {
-    private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IUnitAccessService _unitAccessService;
     private readonly IUnitProfileService _unitProfileService;
+    private readonly PropertyApiMapper _propertyMapper;
 
     public UnitProfileController(
-        ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
         IUnitAccessService unitAccessService,
-        IUnitProfileService unitProfileService)
+        IUnitProfileService unitProfileService,
+        PropertyApiMapper propertyMapper)
     {
-        _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
         _unitProfileService = unitProfileService;
+        _propertyMapper = propertyMapper;
     }
 
     [HttpGet]
@@ -203,45 +204,16 @@ public class UnitProfileController : ProfileApiControllerBase
         string unitSlug,
         CancellationToken cancellationToken)
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
-        }
-
-        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            customerSlug,
+        var propertyAccess = await _propertyWorkspaceService.GetWorkspaceAsync(
+            _propertyMapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
-
-        if (customerAccess.CompanyNotFound || customerAccess.CustomerNotFound || customerAccess.Context == null)
+        if (propertyAccess.IsFailed)
         {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Customer context was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (customerAccess.IsForbidden)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
-        }
-
-        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
-            customerAccess.Context,
-            propertySlug,
-            cancellationToken);
-
-        if (propertyAccess.PropertyNotFound || propertyAccess.Context == null)
-        {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Property context was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (!propertyAccess.IsAuthorized)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
+            return (null, propertyAccess.ToActionResult(_ => new UnitProfileResponseDto()).Result);
         }
 
         var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
-            propertyAccess.Context,
+            propertyAccess.Value,
             unitSlug,
             cancellationToken);
 

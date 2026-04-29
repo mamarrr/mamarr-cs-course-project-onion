@@ -1,4 +1,4 @@
-using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.Contracts.Properties.Models;
 using App.BLL.UnitWorkspace.Workspace;
 
 namespace App.BLL.UnitWorkspace.Units;
@@ -6,11 +6,11 @@ namespace App.BLL.UnitWorkspace.Units;
 public interface IPropertyUnitService
 {
     Task<PropertyUnitListResult> ListUnitsAsync(
-        PropertyDashboardContext context,
+        PropertyWorkspaceModel context,
         CancellationToken cancellationToken = default);
 
     Task<UnitCreateResult> CreateUnitAsync(
-        PropertyDashboardContext context,
+        PropertyWorkspaceModel context,
         UnitCreateRequest request,
         CancellationToken cancellationToken = default);
 }

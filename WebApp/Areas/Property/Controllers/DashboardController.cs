@@ -1,11 +1,11 @@
-using System.Security.Claims;
-using App.BLL.Contracts.Customers.Services;
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.CustomerWorkspace.Workspace;
-using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Properties.Models;
+using App.BLL.Contracts.Properties.Services;
 using App.Resources.Views;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -18,17 +18,17 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}")]
 public class DashboardController : Controller
 {
-    private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
+    private readonly PropertyMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public DashboardController(
-        ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
+        PropertyMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
+        _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
     }
 
@@ -69,41 +69,12 @@ public class DashboardController : Controller
         string currentSection,
         CancellationToken cancellationToken)
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return Challenge();
-        }
-
-        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            customerSlug,
+        var result = await _propertyWorkspaceService.GetWorkspaceAsync(
+            _mapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
-
-        if (customerAccess.CompanyNotFound || customerAccess.CustomerNotFound)
+        if (result.IsFailed)
         {
-            return NotFound();
-        }
-
-        if (customerAccess.IsForbidden || customerAccess.Context == null)
-        {
-            return Forbid();
-        }
-
-        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
-            customerAccess.Context,
-            propertySlug,
-            cancellationToken);
-
-        if (propertyAccess.PropertyNotFound)
-        {
-            return NotFound();
-        }
-
-        if (!propertyAccess.IsAuthorized || propertyAccess.Context == null)
-        {
-            return Forbid();
+            return ToMvcErrorResult(result.Errors);
         }
 
         var currentSectionLabel = currentSection switch
@@ -120,13 +91,13 @@ public class DashboardController : Controller
 
         var vm = new DashboardPageViewModel
         {
-            AppChrome = await BuildAppChromeAsync(propertyAccess.Context, title, currentSection, cancellationToken),
-            CompanySlug = propertyAccess.Context.CompanySlug,
-            CompanyName = propertyAccess.Context.CompanyName,
-            CustomerSlug = propertyAccess.Context.CustomerSlug,
-            CustomerName = propertyAccess.Context.CustomerName,
-            PropertySlug = propertyAccess.Context.PropertySlug,
-            PropertyName = propertyAccess.Context.PropertyName,
+            AppChrome = await BuildAppChromeAsync(result.Value, title, currentSection, cancellationToken),
+            CompanySlug = result.Value.CompanySlug,
+            CompanyName = result.Value.CompanyName,
+            CustomerSlug = result.Value.CustomerSlug,
+            CustomerName = result.Value.CustomerName,
+            PropertySlug = result.Value.PropertySlug,
+            PropertyName = result.Value.PropertyName,
             CurrentSection = currentSection
         };
 
@@ -134,7 +105,7 @@ public class DashboardController : Controller
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        PropertyDashboardContext context,
+        PropertyWorkspaceModel context,
         string title,
         string activeSection,
         CancellationToken cancellationToken)
@@ -157,10 +128,16 @@ public class DashboardController : Controller
             cancellationToken);
     }
 
-    private Guid? GetAppUserId()
+    private IActionResult ToMvcErrorResult(IReadOnlyList<IError> errors)
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+        var error = errors.FirstOrDefault();
+        return error switch
+        {
+            UnauthorizedError => Challenge(),
+            NotFoundError => NotFound(),
+            ForbiddenError => Forbid(),
+            _ => BadRequest()
+        };
     }
 
     private static string T(string key, string fallback)

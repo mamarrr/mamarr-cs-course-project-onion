@@ -1,13 +1,12 @@
-using System.Security.Claims;
-using App.BLL.Contracts.Customers.Services;
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.CustomerWorkspace.Workspace;
-using App.BLL.PropertyWorkspace.Profiles;
-using App.BLL.PropertyWorkspace.Properties;
-using App.BLL.Shared.Profiles;
+using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Properties.Models;
+using App.BLL.Contracts.Properties.Services;
 using App.Resources.Views;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -20,20 +19,17 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/profile")]
 public class ProfileController : Controller
 {
-    private readonly ICustomerAccessService _customerAccessService;
-    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IPropertyProfileService _propertyProfileService;
+    private readonly PropertyMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public ProfileController(
-        ICustomerAccessService customerAccessService,
-        IPropertyWorkspaceService propertyWorkspaceService,
         IPropertyProfileService propertyProfileService,
+        PropertyMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _customerAccessService = customerAccessService;
-        _propertyWorkspaceService = propertyWorkspaceService;
         _propertyProfileService = propertyProfileService;
+        _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
     }
 
@@ -44,19 +40,15 @@ public class ProfileController : Controller
         string propertySlug,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveAccessAsync(companySlug, customerSlug, propertySlug, cancellationToken);
-        if (access.response is not null)
+        var profile = await _propertyProfileService.GetAsync(
+            _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, User),
+            cancellationToken);
+        if (profile.IsFailed)
         {
-            return access.response;
+            return ToMvcErrorResult(profile.Errors);
         }
 
-        var profile = await _propertyProfileService.GetProfileAsync(access.context!, cancellationToken);
-        if (profile == null)
-        {
-            return NotFound();
-        }
-
-        return View(await BuildViewModelAsync(access.context!, profile, null, cancellationToken));
+        return View(await BuildViewModelAsync(profile.Value, null, cancellationToken));
     }
 
     [HttpPost("edit")]
@@ -68,56 +60,38 @@ public class ProfileController : Controller
         PropertyProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveAccessAsync(companySlug, customerSlug, propertySlug, cancellationToken);
-        if (access.response is not null)
+        var profile = await _propertyProfileService.GetAsync(
+            _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, User),
+            cancellationToken);
+        if (profile.IsFailed)
         {
-            return access.response;
-        }
-
-        var profile = await _propertyProfileService.GetProfileAsync(access.context!, cancellationToken);
-        if (profile == null)
-        {
-            return NotFound();
+            return ToMvcErrorResult(profile.Errors);
         }
 
         if (!ModelState.IsValid)
         {
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(profile.Value, edit, cancellationToken));
         }
 
-        var result = await _propertyProfileService.UpdateProfileAsync(
-            access.context!,
-            new PropertyProfileUpdateRequest
-            {
-                Name = edit.Name,
-                AddressLine = edit.AddressLine,
-                City = edit.City,
-                PostalCode = edit.PostalCode,
-                Notes = edit.Notes,
-                IsActive = edit.IsActive
-            },
+        var result = await _propertyProfileService.UpdateAsync(
+            _mapper.ToUpdateCommand(companySlug, customerSlug, propertySlug, edit, User),
             cancellationToken);
 
-        if (result.NotFound)
+        if (result.IsFailed)
         {
-            return NotFound();
-        }
+            if (IsAccessError(result.Errors))
+            {
+                return ToMvcErrorResult(result.Errors);
+            }
 
-        if (result.Forbidden)
-        {
-            return Forbid();
-        }
-
-        if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToUpdateProfile);
+            ApplyValidationErrors(result.Errors, ModelState);
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(profile.Value, edit, cancellationToken));
         }
 
         TempData[nameof(UiText.ProfileUpdatedSuccessfully)] = UiText.ProfileUpdatedSuccessfully;
-        return RedirectToAction(nameof(Index), new { companySlug, customerSlug, propertySlug });
+        return RedirectToAction(nameof(Index), new { companySlug, customerSlug, propertySlug = result.Value.PropertySlug });
     }
 
     [HttpPost("delete")]
@@ -129,41 +103,28 @@ public class ProfileController : Controller
         PropertyProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveAccessAsync(companySlug, customerSlug, propertySlug, cancellationToken);
-        if (access.response is not null)
+        var profile = await _propertyProfileService.GetAsync(
+            _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, User),
+            cancellationToken);
+        if (profile.IsFailed)
         {
-            return access.response;
+            return ToMvcErrorResult(profile.Errors);
         }
 
-        var profile = await _propertyProfileService.GetProfileAsync(access.context!, cancellationToken);
-        if (profile == null)
-        {
-            return NotFound();
-        }
+        var result = await _propertyProfileService.DeleteAsync(
+            _mapper.ToDeleteCommand(companySlug, customerSlug, propertySlug, edit, User),
+            cancellationToken);
 
-        if (!IsDeleteConfirmationValid(edit.DeleteConfirmation, profile.Name))
+        if (result.IsFailed)
         {
-            ModelState.AddModelError(nameof(edit.DeleteConfirmation), UiText.DeleteConfirmationDoesNotMatch);
+            if (IsAccessError(result.Errors))
+            {
+                return ToMvcErrorResult(result.Errors);
+            }
+
+            ApplyValidationErrors(result.Errors, ModelState);
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
-        }
-
-        var result = await _propertyProfileService.DeleteProfileAsync(access.context!, cancellationToken);
-        if (result.NotFound)
-        {
-            return NotFound();
-        }
-
-        if (result.Forbidden)
-        {
-            return Forbid();
-        }
-
-        if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToDeleteProfile);
-            Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(access.context!, profile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(profile.Value, edit, cancellationToken));
         }
 
         TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
@@ -171,35 +132,26 @@ public class ProfileController : Controller
     }
 
     private async Task<ProfilePageViewModel> BuildViewModelAsync(
-        PropertyDashboardContext context,
         PropertyProfileModel profile,
         PropertyProfileEditViewModel? edit,
         CancellationToken cancellationToken)
     {
         return new ProfilePageViewModel
         {
-            AppChrome = await BuildAppChromeAsync(context, UiText.Profile, cancellationToken),
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerSlug = context.CustomerSlug,
-            CustomerName = context.CustomerName,
-            PropertySlug = context.PropertySlug,
-            PropertyName = context.PropertyName,
+            AppChrome = await BuildAppChromeAsync(profile, UiText.Profile, cancellationToken),
+            CompanySlug = profile.CompanySlug,
+            CompanyName = profile.CompanyName,
+            CustomerSlug = profile.CustomerSlug,
+            CustomerName = profile.CustomerName,
+            PropertySlug = profile.PropertySlug,
+            PropertyName = profile.Name,
             SuccessMessage = TempData[nameof(UiText.ProfileUpdatedSuccessfully)] as string,
-            Edit = edit ?? new PropertyProfileEditViewModel
-            {
-                Name = profile.Name,
-                AddressLine = profile.AddressLine,
-                City = profile.City,
-                PostalCode = profile.PostalCode,
-                Notes = profile.Notes,
-                IsActive = profile.IsActive
-            }
+            Edit = edit ?? _mapper.ToEditViewModel(profile)
         };
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        PropertyDashboardContext context,
+        PropertyProfileModel profile,
         string title,
         CancellationToken cancellationToken)
     {
@@ -210,71 +162,47 @@ public class ProfileController : Controller
                 HttpContext = HttpContext,
                 PageTitle = title,
                 ActiveSection = Sections.Profile,
-                ManagementCompanySlug = context.CompanySlug,
-                ManagementCompanyName = context.CompanyName,
-                CustomerSlug = context.CustomerSlug,
-                CustomerName = context.CustomerName,
-                PropertySlug = context.PropertySlug,
-                PropertyName = context.PropertyName,
+                ManagementCompanySlug = profile.CompanySlug,
+                ManagementCompanyName = profile.CompanyName,
+                CustomerSlug = profile.CustomerSlug,
+                CustomerName = profile.CustomerName,
+                PropertySlug = profile.PropertySlug,
+                PropertyName = profile.Name,
                 CurrentLevel = WorkspaceLevel.Property
             },
             cancellationToken);
     }
 
-    private async Task<(IActionResult? response, PropertyDashboardContext? context)> ResolveAccessAsync(
-        string companySlug,
-        string customerSlug,
-        string propertySlug,
-        CancellationToken cancellationToken)
+    private IActionResult ToMvcErrorResult(IReadOnlyList<IError> errors)
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
+        var error = errors.FirstOrDefault();
+        return error switch
         {
-            return (Challenge(), null);
-        }
-
-        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            customerSlug,
-            cancellationToken);
-
-        if (customerAccess.CompanyNotFound || customerAccess.CustomerNotFound)
-        {
-            return (NotFound(), null);
-        }
-
-        if (customerAccess.IsForbidden || customerAccess.Context == null)
-        {
-            return (Forbid(), null);
-        }
-
-        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
-            customerAccess.Context,
-            propertySlug,
-            cancellationToken);
-
-        if (propertyAccess.PropertyNotFound)
-        {
-            return (NotFound(), null);
-        }
-
-        if (!propertyAccess.IsAuthorized || propertyAccess.Context == null)
-        {
-            return (Forbid(), null);
-        }
-
-        return (null, propertyAccess.Context);
+            UnauthorizedError => Challenge(),
+            NotFoundError => NotFound(),
+            ForbiddenError => Forbid(),
+            _ => BadRequest()
+        };
     }
 
-    private Guid? GetAppUserId()
+    private static bool IsAccessError(IReadOnlyList<IError> errors)
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+        return errors.Any(error => error is UnauthorizedError or NotFoundError or ForbiddenError);
     }
 
-    private static bool IsDeleteConfirmationValid(string? providedValue, string expectedValue)
+    private static void ApplyValidationErrors(IReadOnlyList<IError> errors, ModelStateDictionary modelState)
     {
-        return string.Equals(providedValue?.Trim(), expectedValue.Trim(), StringComparison.Ordinal);
+        var validation = errors.OfType<ValidationAppError>().FirstOrDefault();
+        if (validation is not null)
+        {
+            foreach (var failure in validation.Failures)
+            {
+                modelState.AddModelError(failure.PropertyName ?? string.Empty, failure.ErrorMessage);
+            }
+
+            return;
+        }
+
+        modelState.AddModelError(string.Empty, errors.FirstOrDefault()?.Message ?? UiText.UnableToUpdateProfile);
     }
 }

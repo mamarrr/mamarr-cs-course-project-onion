@@ -1,4 +1,4 @@
-using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.Contracts.Properties.Models;
 using App.BLL.Shared.Routing;
 using App.BLL.UnitWorkspace.Access;
 using App.BLL.UnitWorkspace.Units;
@@ -26,7 +26,7 @@ public class UnitWorkspaceService :
     }
 
     public async Task<PropertyUnitListResult> ListUnitsAsync(
-        PropertyDashboardContext context,
+        PropertyWorkspaceModel context,
         CancellationToken cancellationToken = default)
     {
         var units = await _dbContext.Units
@@ -52,7 +52,7 @@ public class UnitWorkspaceService :
     }
 
     public async Task<UnitCreateResult> CreateUnitAsync(
-        PropertyDashboardContext context,
+        PropertyWorkspaceModel context,
         UnitCreateRequest request,
         CancellationToken cancellationToken = default)
     {
@@ -127,7 +127,7 @@ public class UnitWorkspaceService :
     }
 
     public async Task<UnitDashboardAccessResult> ResolveUnitDashboardContextAsync(
-        PropertyDashboardContext context,
+        PropertyWorkspaceModel context,
         string unitSlug,
         CancellationToken cancellationToken = default)
     {

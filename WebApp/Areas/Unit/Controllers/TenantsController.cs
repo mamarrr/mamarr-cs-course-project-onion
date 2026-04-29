@@ -1,14 +1,14 @@
-using System.Security.Claims;
-using App.BLL.Contracts.Customers.Services;
-using App.BLL.CustomerWorkspace.Access;
+using App.BLL.Contracts.Common.Errors;
 using App.BLL.LeaseAssignments;
-using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Contracts.Properties.Services;
 using App.BLL.UnitWorkspace.Access;
 using App.BLL.UnitWorkspace.Workspace;
 using App.Resources.Views;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -24,26 +24,26 @@ public class TenantsController : Controller
     private const string SuccessTempDataKey = "UnitTenantsSuccess";
     private const string ErrorTempDataKey = "UnitTenantsError";
 
-    private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IUnitAccessService _unitAccessService;
     private readonly ILeaseAssignmentService _leaseAssignmentService;
     private readonly ILeaseLookupService _leaseLookupService;
+    private readonly PropertyMvcMapper _propertyMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public TenantsController(
-        ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
         IUnitAccessService unitAccessService,
         ILeaseAssignmentService leaseAssignmentService,
         ILeaseLookupService leaseLookupService,
+        PropertyMvcMapper propertyMapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
         _leaseAssignmentService = leaseAssignmentService;
         _leaseLookupService = leaseLookupService;
+        _propertyMapper = propertyMapper;
         _appChromeBuilder = appChromeBuilder;
     }
 
@@ -246,45 +246,16 @@ public class TenantsController : Controller
         string unitSlug,
         CancellationToken cancellationToken)
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return (Challenge(), null);
-        }
-
-        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            customerSlug,
+        var propertyAccess = await _propertyWorkspaceService.GetWorkspaceAsync(
+            _propertyMapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
-
-        if (customerAccess.CompanyNotFound || customerAccess.CustomerNotFound)
+        if (propertyAccess.IsFailed)
         {
-            return (NotFound(), null);
-        }
-
-        if (customerAccess.IsForbidden || customerAccess.Context == null)
-        {
-            return (Forbid(), null);
-        }
-
-        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
-            customerAccess.Context,
-            propertySlug,
-            cancellationToken);
-
-        if (propertyAccess.PropertyNotFound)
-        {
-            return (NotFound(), null);
-        }
-
-        if (!propertyAccess.IsAuthorized || propertyAccess.Context == null)
-        {
-            return (Forbid(), null);
+            return (ToMvcErrorResult(propertyAccess.Errors), null);
         }
 
         var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
-            propertyAccess.Context,
+            propertyAccess.Value,
             unitSlug,
             cancellationToken);
 
@@ -405,12 +376,6 @@ public class TenantsController : Controller
             cancellationToken);
     }
 
-    private Guid? GetAppUserId()
-    {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
-    }
-
     private static void ApplyCreateErrors(LeaseCommandResult result, ModelStateDictionary modelState)
     {
         if (result.ResidentNotFound)
@@ -490,5 +455,17 @@ public class TenantsController : Controller
     private static string T(string key, string fallback)
     {
         return UiText.ResourceManager.GetString(key) ?? fallback;
+    }
+
+    private IActionResult ToMvcErrorResult(IReadOnlyList<IError> errors)
+    {
+        var error = errors.FirstOrDefault();
+        return error switch
+        {
+            UnauthorizedError => Challenge(),
+            NotFoundError => NotFound(),
+            ForbiddenError => Forbid(),
+            _ => BadRequest()
+        };
     }
 }

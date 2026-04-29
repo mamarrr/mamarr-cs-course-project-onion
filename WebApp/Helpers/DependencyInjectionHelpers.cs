@@ -8,8 +8,8 @@ using App.BLL.Onboarding.Api;
 using App.BLL.Onboarding.CompanyJoinRequests;
 using App.BLL.Onboarding.ContextSelection;
 using App.BLL.Onboarding.WorkspaceCatalog;
-using App.BLL.PropertyWorkspace.Profiles;
-using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Properties;
+using App.BLL.Contracts.Properties.Services;
 using App.BLL.ResidentWorkspace.Access;
 using App.BLL.ResidentWorkspace.Profiles;
 using App.BLL.ResidentWorkspace.Residents;
@@ -23,7 +23,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using WebApp.ApiControllers.Shared;
 using WebApp.Mappers.Api.Customers;
+using WebApp.Mappers.Api.Properties;
 using WebApp.Mappers.Mvc.Customers;
+using WebApp.Mappers.Mvc.Properties;
 
 namespace WebApp.Helpers;
 
@@ -72,7 +74,7 @@ public static class DependencyInjectionHelpers
         services.AddScoped<ILeaseAssignmentService, LeaseAssignmentService>();
         services.AddScoped<ILeaseLookupService, LeaseLookupService>();
         services.AddScoped<IManagementCompanyProfileService, ManagementCompanyProfileService>();
-        
+        services.AddScoped<IPropertyWorkspaceService, PropertyWorkspaceService>();
         services.AddScoped<IPropertyProfileService, PropertyProfileService>();
         services.AddScoped<IUnitProfileService, UnitProfileService>();
         services.AddScoped<IResidentProfileService, ResidentProfileService>();
@@ -86,8 +88,10 @@ public static class DependencyInjectionHelpers
         services.AddScoped<CustomerProfileApiMapper>();
         services.AddScoped<CustomerWorkspaceApiMapper>();
         services.AddScoped<CompanyCustomerApiMapper>();
+        services.AddScoped<PropertyApiMapper>();
         services.AddScoped<CustomerProfileMvcMapper>();
         services.AddScoped<CompanyCustomerMvcMapper>();
+        services.AddScoped<PropertyMvcMapper>();
 
         return services;
     }

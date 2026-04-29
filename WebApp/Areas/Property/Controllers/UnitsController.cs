@@ -1,13 +1,13 @@
-using System.Security.Claims;
-using App.BLL.Contracts.Customers.Services;
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.CustomerWorkspace.Workspace;
-using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Properties.Models;
+using App.BLL.Contracts.Properties.Services;
 using App.BLL.UnitWorkspace.Units;
 using App.BLL.UnitWorkspace.Workspace;
 using App.Resources.Views;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -20,20 +20,20 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/units")]
 public class UnitsController : Controller
 {
-    private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IPropertyUnitService _propertyUnitService;
+    private readonly PropertyMvcMapper _propertyMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public UnitsController(
-        ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
         IPropertyUnitService propertyUnitService,
+        PropertyMvcMapper propertyMapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _propertyUnitService = propertyUnitService;
+        _propertyMapper = propertyMapper;
         _appChromeBuilder = appChromeBuilder;
     }
 
@@ -121,54 +121,23 @@ public class UnitsController : Controller
         return RedirectToAction(nameof(Units), new { companySlug, customerSlug, propertySlug });
     }
 
-    private async Task<(IActionResult? response, PropertyDashboardContext? context)> ResolvePropertyContextAsync(
+    private async Task<(IActionResult? response, PropertyWorkspaceModel? context)> ResolvePropertyContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
         CancellationToken cancellationToken)
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return (Challenge(), null);
-        }
-
-        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            customerSlug,
+        var result = await _propertyWorkspaceService.GetWorkspaceAsync(
+            _propertyMapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
 
-        if (customerAccess.CompanyNotFound || customerAccess.CustomerNotFound)
-        {
-            return (NotFound(), null);
-        }
-
-        if (customerAccess.IsForbidden || customerAccess.Context == null)
-        {
-            return (Forbid(), null);
-        }
-
-        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
-            customerAccess.Context,
-            propertySlug,
-            cancellationToken);
-
-        if (propertyAccess.PropertyNotFound)
-        {
-            return (NotFound(), null);
-        }
-
-        if (!propertyAccess.IsAuthorized || propertyAccess.Context == null)
-        {
-            return (Forbid(), null);
-        }
-
-        return (null, propertyAccess.Context);
+        return result.IsFailed
+            ? (ToMvcErrorResult(result.Errors), null)
+            : (null, result.Value);
     }
 
     private async Task<UnitsPageViewModel> BuildUnitsPageViewModelAsync(
-        PropertyDashboardContext context,
+        PropertyWorkspaceModel context,
         CancellationToken cancellationToken,
         AddUnitViewModel? addUnitOverride = null)
     {
@@ -196,7 +165,7 @@ public class UnitsController : Controller
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        PropertyDashboardContext context,
+        PropertyWorkspaceModel context,
         string title,
         CancellationToken cancellationToken)
     {
@@ -218,14 +187,20 @@ public class UnitsController : Controller
             cancellationToken);
     }
 
-    private Guid? GetAppUserId()
-    {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
-    }
-
     private static string T(string key, string fallback)
     {
         return UiText.ResourceManager.GetString(key) ?? fallback;
+    }
+
+    private IActionResult ToMvcErrorResult(IReadOnlyList<IError> errors)
+    {
+        var error = errors.FirstOrDefault();
+        return error switch
+        {
+            UnauthorizedError => Challenge(),
+            NotFoundError => NotFound(),
+            ForbiddenError => Forbid(),
+            _ => BadRequest()
+        };
     }
 }

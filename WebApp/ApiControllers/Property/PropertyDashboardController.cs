@@ -1,15 +1,13 @@
 using System.Net;
-using App.BLL.Contracts.Customers.Services;
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.CustomerWorkspace.Workspace;
-using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Contracts.Properties.Services;
 using App.DTO.v1;
 using App.DTO.v1.Property;
-using App.DTO.v1.Shared;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Infrastructure.Results;
+using WebApp.Mappers.Api.Properties;
 
 namespace WebApp.ApiControllers.Property;
 
@@ -19,15 +17,15 @@ namespace WebApp.ApiControllers.Property;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/dashboard")]
 public class PropertyDashboardController : ControllerBase
 {
-    private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
+    private readonly PropertyApiMapper _mapper;
 
     public PropertyDashboardController(
-        ICustomerAccessService customerAccessService,
-        IPropertyWorkspaceService propertyWorkspaceService)
+        IPropertyWorkspaceService propertyWorkspaceService,
+        PropertyApiMapper mapper)
     {
-        _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -42,95 +40,10 @@ public class PropertyDashboardController : ControllerBase
         string propertySlug,
         CancellationToken cancellationToken)
     {
-        var access = await ResolvePropertyContextAsync(companySlug, customerSlug, propertySlug, cancellationToken);
-        if (access.ErrorResult != null)
-        {
-            return access.ErrorResult;
-        }
-
-        var context = access.Context!;
-        return Ok(new PropertyDashboardResponseDto
-        {
-            Dashboard = new ApiDashboardDto
-            {
-                RouteContext = new ApiRouteContextDto
-                {
-                    CompanySlug = context.CompanySlug,
-                    CompanyName = context.CompanyName,
-                    CustomerSlug = context.CustomerSlug,
-                    CustomerName = context.CustomerName,
-                    PropertySlug = context.PropertySlug,
-                    PropertyName = context.PropertyName,
-                    CurrentSection = "property-dashboard"
-                },
-                Title = "Property dashboard",
-                SectionLabel = "Dashboard",
-                Widgets = Array.Empty<string>()
-            }
-        });
-    }
-
-    private async Task<(PropertyDashboardContext? Context, ActionResult? ErrorResult)> ResolvePropertyContextAsync(
-        string companySlug,
-        string customerSlug,
-        string propertySlug,
-        CancellationToken cancellationToken)
-    {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
-        }
-
-        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            customerSlug,
+        var result = await _propertyWorkspaceService.GetDashboardAsync(
+            _mapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
 
-        if (customerAccess.CompanyNotFound || customerAccess.CustomerNotFound || customerAccess.Context == null)
-        {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Customer context was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (customerAccess.IsForbidden)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
-        }
-
-        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
-            customerAccess.Context,
-            propertySlug,
-            cancellationToken);
-
-        if (propertyAccess.PropertyNotFound || propertyAccess.Context == null)
-        {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Property context was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (!propertyAccess.IsAuthorized)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
-        }
-
-        return (propertyAccess.Context, null);
-    }
-
-    private Guid? GetAppUserId()
-    {
-        var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
-    }
-
-    private RestApiErrorResponse CreateError(HttpStatusCode status, string message, string code)
-    {
-        return new RestApiErrorResponse
-        {
-            Status = status,
-            Error = message,
-            ErrorCode = code,
-            Errors = new Dictionary<string, string[]>(),
-            TraceId = HttpContext.TraceIdentifier
-        };
+        return result.ToActionResult(_mapper.ToDashboardResponseDto);
     }
 }

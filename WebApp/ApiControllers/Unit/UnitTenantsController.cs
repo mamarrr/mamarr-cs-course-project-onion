@@ -1,7 +1,6 @@
 using System.Net;
-using App.BLL.CustomerWorkspace.Access;
 using App.BLL.LeaseAssignments;
-using App.BLL.PropertyWorkspace.Properties;
+using App.BLL.Contracts.Properties.Services;
 using App.BLL.UnitWorkspace.Access;
 using App.BLL.UnitWorkspace.Workspace;
 using App.DTO.v1;
@@ -12,6 +11,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.ApiControllers.Management;
+using WebApp.Infrastructure.Results;
+using WebApp.Mappers.Api.Properties;
 
 namespace WebApp.ApiControllers.Unit;
 
@@ -21,24 +22,24 @@ namespace WebApp.ApiControllers.Unit;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un/{unitSlug}")]
 public class UnitTenantsController : ProfileApiControllerBase
 {
-    private readonly ICustomerAccessService _customerAccessService;
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IUnitAccessService _unitAccessService;
     private readonly ILeaseAssignmentService _leaseAssignmentService;
     private readonly ILeaseLookupService _leaseLookupService;
+    private readonly PropertyApiMapper _propertyMapper;
 
     public UnitTenantsController(
-        ICustomerAccessService customerAccessService,
         IPropertyWorkspaceService propertyWorkspaceService,
         IUnitAccessService unitAccessService,
         ILeaseAssignmentService leaseAssignmentService,
-        ILeaseLookupService leaseLookupService)
+        ILeaseLookupService leaseLookupService,
+        PropertyApiMapper propertyMapper)
     {
-        _customerAccessService = customerAccessService;
         _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
         _leaseAssignmentService = leaseAssignmentService;
         _leaseLookupService = leaseLookupService;
+        _propertyMapper = propertyMapper;
     }
 
     [HttpGet("tenants")]
@@ -255,45 +256,16 @@ public class UnitTenantsController : ProfileApiControllerBase
         string unitSlug,
         CancellationToken cancellationToken)
     {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
-        }
-
-        var customerAccess = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            customerSlug,
+        var propertyAccess = await _propertyWorkspaceService.GetWorkspaceAsync(
+            _propertyMapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
-
-        if (customerAccess.CompanyNotFound || customerAccess.CustomerNotFound || customerAccess.Context == null)
+        if (propertyAccess.IsFailed)
         {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Customer context was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (customerAccess.IsForbidden)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
-        }
-
-        var propertyAccess = await _propertyWorkspaceService.ResolvePropertyDashboardContextAsync(
-            customerAccess.Context,
-            propertySlug,
-            cancellationToken);
-
-        if (propertyAccess.PropertyNotFound || propertyAccess.Context == null)
-        {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Property context was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (!propertyAccess.IsAuthorized)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
+            return (null, propertyAccess.ToActionResult(_ => new UnitTenantsBootstrapResponseDto()).Result);
         }
 
         var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
-            propertyAccess.Context,
+            propertyAccess.Value,
             unitSlug,
             cancellationToken);
 
