@@ -14,6 +14,8 @@ The refactor will be done one vertical slice at a time across these layers:
 
 Ticket, vendor, scheduled work, and work-log functionality are intentionally excluded from this plan because they are not fully implemented yet and this refactor should not introduce new features.
 
+Latest project note: `ManagementCompanyJoinRequestStatus` is now a database-backed lookup entity instead of a string/enum-like value. The refactor plan treats it as an existing lookup/reference entity and includes it only where join-request functionality already exists. This does **not** add user-facing functionality.
+
 ---
 
 # 1. Confirmed Architecture Decisions
@@ -864,8 +866,11 @@ ContactType
 CustomerRepresentativeRole
 LeaseRole
 ManagementCompanyRole
+ManagementCompanyJoinRequestStatus
 PropertyType
 ```
+
+`ManagementCompanyJoinRequestStatus` is included because join-request statuses are now stored in the database and seeded as lookup/reference data. It should be handled by the generic lookup pattern, not by a custom feature repository unless status-specific behavior appears later.
 
 If other lookup entities already exist in the codebase and are actively used by the currently implemented functionality, they can also use the same generic lookup pattern. Do not introduce lookup handling for features that are not currently implemented.
 
@@ -1590,7 +1595,10 @@ Company access
 ```text
 IManagementCompanyRepository
 IManagementCompanyJoinRequestRepository
+ILookupRepository<LookupDalDto> or equivalent lookup access for ManagementCompanyJoinRequestStatus
 ```
+
+`ManagementCompanyJoinRequestStatus` should not get a custom repository at this stage. It is reference data used by join-request workflows. The join-request repository should query/filter by status code or resolved status id internally through the lookup pattern.
 
 Optional:
 
@@ -1606,7 +1614,39 @@ ManagementCompanyProfileDalDto
 ManagementCompanyUserDalDto
 ManagementCompanyJoinRequestDalDto
 ManagementCompanyJoinRequestCreateDalDto
+ManagementCompanyJoinRequestStatusDalDto, or generic LookupDalDto for status
 ```
+
+Join-request repository methods should avoid returning raw domain entities and should include status data needed by the BLL:
+
+```csharp
+Task<IReadOnlyList<ManagementCompanyJoinRequestDalDto>> PendingByCompanyAsync(
+    Guid managementCompanyId,
+    CancellationToken cancellationToken = default);
+
+Task<ManagementCompanyJoinRequestDalDto?> FindByIdAndCompanyAsync(
+    Guid requestId,
+    Guid managementCompanyId,
+    CancellationToken cancellationToken = default);
+
+Task<bool> HasPendingRequestAsync(
+    Guid appUserId,
+    Guid managementCompanyId,
+    CancellationToken cancellationToken = default);
+
+Task<Guid> GetJoinRequestStatusIdByCodeAsync(
+    string statusCode,
+    CancellationToken cancellationToken = default);
+
+Task SetStatusAsync(
+    Guid requestId,
+    string statusCode,
+    Guid resolvedByAppUserId,
+    DateTime resolvedAt,
+    CancellationToken cancellationToken = default);
+```
+
+Status codes should remain stable constants in BLL or a shared contracts file, for example `PENDING`, `APPROVED`, and `REJECTED`. The BLL should not hardcode seeded GUIDs. Seeded GUIDs belong to DAL seeding/migrations only.
 
 ### BLL
 
@@ -1626,6 +1666,17 @@ CreateJoinRequestCommand
 ApproveJoinRequestCommand
 RejectJoinRequestCommand
 GetCompanyMembersQuery
+```
+
+BLL models for join requests should include both the status id/code needed internally and the user-facing status label where the UI/API already displays it. Prefer `StatusCode` for business decisions and `StatusLabel` for display.
+
+Expected status transitions stay in BLL:
+
+```text
+Create join request -> PENDING
+Approve join request -> APPROVED
+Reject join request -> REJECTED
+Only PENDING requests can be approved/rejected
 ```
 
 ### Controllers
@@ -1662,6 +1713,7 @@ Uses:
 ```text
 IManagementCompanyRepository
 IManagementCompanyJoinRequestRepository
+ILookupRepository<LookupDalDto> or equivalent lookup access for ManagementCompanyJoinRequestStatus
 ICustomerRepository
 IResidentRepository
 ```
@@ -1704,7 +1756,7 @@ This can be done early or alongside the slices that need lookup data.
 Purpose:
 
 ```text
-Provide roles, contact types, property types, and other lookup/reference data already used by currently implemented functionality.
+Provide roles, contact types, property types, management-company join-request statuses, and other lookup/reference data already used by currently implemented functionality.
 ```
 
 Do not add lookup APIs or lookup services for functionality that is not currently implemented.
@@ -1725,6 +1777,8 @@ public sealed class LookupDalDto
     public string Label { get; init; } = default!;
 }
 ```
+
+The lookup slice must include `ManagementCompanyJoinRequestStatus` because it is now part of the active join-request/onboarding flow. The generic lookup repository should support fetching by code so services can resolve `PENDING`, `APPROVED`, and `REJECTED` without knowing seeded database IDs.
 
 ## BLL
 
@@ -1909,6 +1963,7 @@ Create works.
 Update works.
 Delete works.
 Lookup queries work.
+ManagementCompanyJoinRequestStatus lookup by code works for PENDING, APPROVED, and REJECTED.
 ```
 
 ## 18.2 BLL tests
