@@ -1,28 +1,6 @@
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.CustomerWorkspace.Customers;
-using App.BLL.CustomerWorkspace.Profiles;
-using App.BLL.CustomerWorkspace.Workspace;
-using App.BLL.LeaseAssignments;
-using App.BLL.ManagementCompany.Membership;
-using App.BLL.ManagementCompany.Profiles;
-using App.BLL.Onboarding;
-using App.BLL.Onboarding.Account;
-using App.BLL.Onboarding.Api;
-using App.BLL.Onboarding.CompanyJoinRequests;
-using App.BLL.Onboarding.ContextSelection;
-using App.BLL.Onboarding.WorkspaceCatalog;
-using App.BLL.PropertyWorkspace.Profiles;
-using App.BLL.PropertyWorkspace.Properties;
-using App.BLL.ResidentWorkspace.Access;
-using App.BLL.ResidentWorkspace.Profiles;
-using App.BLL.ResidentWorkspace.Residents;
-using App.BLL.UnitWorkspace.Access;
-using App.BLL.UnitWorkspace.Profiles;
-using App.BLL.UnitWorkspace.Units;
-using App.BLL.UnitWorkspace.Workspace;
 using App.DAL.EF;
 using App.DAL.EF.Seeding;
 using App.Domain.Identity;
@@ -32,13 +10,12 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApp;
-using WebApp.ApiControllers.Shared;
+using WebApp.Helpers;
 using WebApp.Middleware;
 using WebApp.UI.Breadcrumbs;
 using WebApp.UI.Chrome;
@@ -59,22 +36,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 #pragma warning restore CS0618 // Type or member is obsolete
 
 
-builder.Services
-    .AddDbContext<AppDbContext>(options => options
-        .UseNpgsql(
-            connectionString,
-            o => { o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery); }
-        )
-        .ConfigureWarnings(w =>
-            w.Throw(RelationalEventId.MultipleCollectionIncludeWarning)
-        )
-        .EnableDetailedErrors()
-        .EnableSensitiveDataLogging()
-        .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution)
-    );
-
-
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+builder.Services.AddAppDalEf(connectionString);
 
 // using Microsoft.AspNetCore.DataProtection;
 builder.Services
@@ -90,28 +52,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Home/AccessDenied";
 });
 
-builder.Services.AddScoped<IAccountOnboardingService, AccountOnboardingService>();
-builder.Services.AddScoped<IWorkspaceRedirectService, WorkspaceRedirectService>();
-builder.Services.AddScoped<IApiOnboardingContextService, ApiWorkspaceContextService>();
-builder.Services.AddScoped<IApiOnboardingRouteContextMapper, ApiOnboardingRouteContextMapper>();
-builder.Services.AddScoped<IUserWorkspaceCatalogService, UserWorkspaceCatalogService>();
-builder.Services.AddScoped<ICompanyJoinRequestService, CompanyJoinRequestService>();
-builder.Services.AddScoped<ICompanyMembershipAdminService, CompanyMembershipAdminService>();
-builder.Services.AddScoped<ICustomerWorkspaceService, CustomerWorkspaceService>();
-builder.Services.AddScoped<ICustomerAccessService, CustomerWorkspaceService>();
-builder.Services.AddScoped<ICompanyCustomerService, CustomerWorkspaceService>();
-builder.Services.AddScoped<IPropertyWorkspaceService, CustomerWorkspaceService>();
-builder.Services.AddScoped<IResidentAccessService, ResidentAccessService>();
-builder.Services.AddScoped<ICompanyResidentService, CompanyResidentService>();
-builder.Services.AddScoped<IPropertyUnitService, UnitWorkspaceService>();
-builder.Services.AddScoped<IUnitAccessService, UnitWorkspaceService>();
-builder.Services.AddScoped<ILeaseAssignmentService, LeaseAssignmentService>();
-builder.Services.AddScoped<ILeaseLookupService, LeaseLookupService>();
-builder.Services.AddScoped<IManagementCompanyProfileService, ManagementCompanyProfileService>();
-builder.Services.AddScoped<ICustomerProfileService, CustomerProfileService>();
-builder.Services.AddScoped<IPropertyProfileService, PropertyProfileService>();
-builder.Services.AddScoped<IUnitProfileService, UnitProfileService>();
-builder.Services.AddScoped<IResidentProfileService, ResidentProfileService>();
+builder.Services.AddAppBll();
+builder.Services.AddWebAppMappers();
 builder.Services.AddScoped<IAppChromeBuilder, AppChromeBuilder>();
 builder.Services.AddScoped<IWorkspaceResolver, WorkspaceResolver>();
 builder.Services.AddScoped<IBreadcrumbBuilder, BreadcrumbBuilder>();

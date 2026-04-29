@@ -2,5 +2,5 @@
 
 public interface IBaseUOW
 {
-    Task<int> SaveChangesAsync();
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -13,8 +13,8 @@ public class BaseUOW<TDbContext> : IBaseUOW
         UowDbContext = dbContext;
     }
     
-    public async Task<int> SaveChangesAsync()
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await UowDbContext.SaveChangesAsync();
+        return await UowDbContext.SaveChangesAsync(cancellationToken);
     }
 }
