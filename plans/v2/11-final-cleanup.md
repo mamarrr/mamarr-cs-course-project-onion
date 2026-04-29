@@ -102,6 +102,26 @@ Expected result:
 
 - No BLL or BLL contracts reference `App.DTO`.
 
+## Check 2A: Old pre-refactor BLL namespaces are gone
+
+Search for old slice-era namespaces and folders that should no longer be referenced by production code:
+
+```bash
+grep -R "App.BLL.CustomerWorkspace" App.BLL WebApp -n
+grep -R "App.BLL.PropertyWorkspace" App.BLL WebApp -n
+grep -R "App.BLL.UnitWorkspace" App.BLL WebApp -n
+grep -R "App.BLL.ResidentWorkspace" App.BLL WebApp -n
+grep -R "App.BLL.LeaseAssignments" App.BLL WebApp -n
+grep -R "App.BLL.ManagementCompany" App.BLL WebApp -n
+```
+
+Expected result:
+
+- No active production code should reference old pre-refactor BLL namespaces.
+- WebApp should depend on service contracts from `App.BLL.Contracts`, not old implementation-local service interfaces.
+- If old folders still exist only as empty folders or non-compiled artifacts, remove them if safe.
+- If a reference remains because it belongs to excluded or not-yet-implemented functionality, document it in `plans/cleanup-report.md` with the reason and suggested follow-up.
+
 ## Check 3: Controllers do not use DAL directly
 
 Search:
@@ -141,9 +161,21 @@ Expected result:
 Expected:
 
 - `App.BLL.Contracts` references FluentResults.
-- BLL service methods return `Result` or `Result<T>`.
-- WebApp maps FluentResults to HTTP or MVC ModelState.
+- BLL service methods should return `Result` or `Result<T>` for the refactored service boundary.
+- WebApp maps FluentResults to HTTP or MVC ModelState where the called service returns FluentResults.
 - DAL does not use FluentResults in repository/UOW contracts.
+
+If any BLL service boundary does **not** return `Result` or `Result<T>`, do not silently leave it undocumented. Either refactor it to FluentResults if it is safe and behavior-preserving, or document it as a temporary/intentional legacy exception in `plans/cleanup-report.md`.
+
+The report entry must include:
+
+```text
+- File/interface name
+- Method(s) not returning Result/Result<T>
+- Reason it was not changed during cleanup
+- Whether it is safe to refactor later
+- Suggested follow-up, if any
+```
 
 ## Check 6: DI registration is centralized in WebApp helpers
 
@@ -180,6 +212,30 @@ Before deleting a file:
 4. Build after deletion.
 
 Do not delete domain entities, migrations, seed data, or DTOs used by currently active API responses.
+
+## Cleanup report
+
+Create or update this file during final cleanup:
+
+```text
+plans/cleanup-report.md
+```
+
+The report must be committed together with the cleanup changes. It should summarize the outcome of the cleanup checks, including:
+
+```text
+- Build result.
+- Whether BLL still references App.DAL.EF/AppDbContext.
+- Whether BLL/BLL.Contracts references App.DTO.
+- Whether controllers still use AppDbContext, repositories, or IAppUOW directly.
+- Whether repository interfaces return only DAL DTOs, nullable DAL DTOs, booleans, lists, IDs, or Task.
+- FluentResults compliance summary.
+- Any documented legacy exceptions, especially service methods that do not return Result/Result<T>.
+- Any old pre-refactor BLL namespace references that intentionally remain, with reason.
+- Any files intentionally left because they belong to excluded ticket/vendor/scheduled-work/work-log functionality.
+```
+
+If there are no exceptions, the report should explicitly say so.
 
 ## Build verification
 
