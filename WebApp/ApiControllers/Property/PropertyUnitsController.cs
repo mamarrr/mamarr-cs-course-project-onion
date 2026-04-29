@@ -1,8 +1,5 @@
 using System.Net;
-using App.BLL.Contracts.Properties.Models;
-using App.BLL.Contracts.Properties.Services;
-using App.BLL.UnitWorkspace.Units;
-using App.BLL.UnitWorkspace.Workspace;
+using App.BLL.Contracts.Units.Services;
 using App.DTO.v1;
 using App.DTO.v1.Property;
 using App.DTO.v1.Shared;
@@ -11,7 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Infrastructure.Results;
-using WebApp.Mappers.Api.Properties;
+using WebApp.Mappers.Api.Units;
 
 namespace WebApp.ApiControllers.Property;
 
@@ -21,18 +18,15 @@ namespace WebApp.ApiControllers.Property;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un")]
 public class PropertyUnitsController : ControllerBase
 {
-    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IPropertyUnitService _propertyUnitService;
-    private readonly PropertyApiMapper _propertyMapper;
+    private readonly IUnitWorkspaceService _unitWorkspaceService;
+    private readonly UnitApiMapper _unitMapper;
 
     public PropertyUnitsController(
-        IPropertyWorkspaceService propertyWorkspaceService,
-        IPropertyUnitService propertyUnitService,
-        PropertyApiMapper propertyMapper)
+        IUnitWorkspaceService unitWorkspaceService,
+        UnitApiMapper unitMapper)
     {
-        _propertyWorkspaceService = propertyWorkspaceService;
-        _propertyUnitService = propertyUnitService;
-        _propertyMapper = propertyMapper;
+        _unitWorkspaceService = unitWorkspaceService;
+        _unitMapper = unitMapper;
     }
 
     [HttpGet]
@@ -47,27 +41,11 @@ public class PropertyUnitsController : ControllerBase
         string propertySlug,
         CancellationToken cancellationToken)
     {
-        var access = await ResolvePropertyContextAsync(companySlug, customerSlug, propertySlug, cancellationToken);
-        if (access.ErrorResult != null)
-        {
-            return access.ErrorResult;
-        }
+        var result = await _unitWorkspaceService.GetPropertyUnitsAsync(
+            _unitMapper.ToPropertyUnitsQuery(companySlug, customerSlug, propertySlug, User),
+            cancellationToken);
 
-        var context = access.Context!;
-        var result = await _propertyUnitService.ListUnitsAsync(context, cancellationToken);
-
-        return Ok(new PropertyUnitsResponseDto
-        {
-            Units = result.Units.Select(x => new PropertyUnitSummaryDto
-            {
-                UnitId = x.UnitId,
-                UnitSlug = x.UnitSlug,
-                UnitNr = x.UnitNr,
-                FloorNr = x.FloorNr,
-                SizeM2 = x.SizeM2,
-                RouteContext = CreateUnitRouteContext(context, x.UnitSlug, x.UnitNr)
-            }).ToList()
-        });
+        return result.ToActionResult(_unitMapper.ToPropertyUnitsResponseDto);
     }
 
     [HttpPost]
@@ -85,92 +63,24 @@ public class PropertyUnitsController : ControllerBase
         [FromBody] CreatePropertyUnitRequestDto dto,
         CancellationToken cancellationToken)
     {
-        var access = await ResolvePropertyContextAsync(companySlug, customerSlug, propertySlug, cancellationToken);
-        if (access.ErrorResult != null)
-        {
-            return access.ErrorResult;
-        }
-
         if (!ModelState.IsValid)
         {
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _propertyUnitService.CreateUnitAsync(
-            access.Context!,
-            new UnitCreateRequest
-            {
-                UnitNr = dto.UnitNr,
-                FloorNr = dto.FloorNr,
-                SizeM2 = dto.SizeM2,
-                Notes = dto.Notes
-            },
+        var result = await _unitWorkspaceService.CreateAsync(
+            _unitMapper.ToCreateCommand(companySlug, customerSlug, propertySlug, dto, User),
             cancellationToken);
 
-        if (!result.Success || result.CreatedUnitId == null || string.IsNullOrWhiteSpace(result.CreatedUnitSlug))
+        if (result.IsFailed)
         {
-            var detail = result.InvalidUnitNr
-                ? (nameof(dto.UnitNr), result.ErrorMessage ?? "Unit number is invalid.")
-                : result.InvalidFloorNr
-                    ? (nameof(dto.FloorNr), result.ErrorMessage ?? "Floor number is invalid.")
-                    : result.InvalidSizeM2
-                        ? (nameof(dto.SizeM2), result.ErrorMessage ?? "Unit size is invalid.")
-                        : (string.Empty, result.ErrorMessage ?? "Unable to create unit.");
-
-            return BadRequest(CreateError(
-                HttpStatusCode.BadRequest,
-                result.ErrorMessage ?? "Unable to create unit.",
-                ApiErrorCodes.ValidationFailed,
-                detail));
+            return result.ToActionResult(_unitMapper.ToCreateResponseDto);
         }
-
-        var response = new CreatePropertyUnitResponseDto
-        {
-            UnitId = result.CreatedUnitId.Value,
-            UnitSlug = result.CreatedUnitSlug,
-            RouteContext = CreateUnitRouteContext(access.Context!, result.CreatedUnitSlug, dto.UnitNr.Trim())
-        };
 
         return CreatedAtAction(
             nameof(GetUnits),
             new { version = "1.0", companySlug, customerSlug, propertySlug },
-            response);
-    }
-
-    private async Task<(PropertyWorkspaceModel? Context, ActionResult? ErrorResult)> ResolvePropertyContextAsync(
-        string companySlug,
-        string customerSlug,
-        string propertySlug,
-        CancellationToken cancellationToken)
-    {
-        var result = await _propertyWorkspaceService.GetWorkspaceAsync(
-            _propertyMapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
-            cancellationToken);
-        if (result.IsFailed)
-        {
-            return (null, result.ToActionResult(_ => new PropertyUnitsResponseDto()).Result);
-        }
-
-        return (result.Value, null);
-    }
-
-    private ApiRouteContextDto CreateUnitRouteContext(
-        PropertyWorkspaceModel context,
-        string unitSlug,
-        string unitNr)
-    {
-        return new ApiRouteContextDto
-        {
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerSlug = context.CustomerSlug,
-            CustomerName = context.CustomerName,
-            PropertySlug = context.PropertySlug,
-            PropertyName = context.PropertyName,
-            UnitSlug = unitSlug,
-            UnitName = unitNr,
-            CurrentSection = "property-units"
-        };
+            _unitMapper.ToCreateResponseDto(result.Value));
     }
 
     private RestApiErrorResponse CreateValidationError()
@@ -185,23 +95,6 @@ public class PropertyUnitsController : ControllerBase
                 .ToDictionary(
                     x => x.Key,
                     x => x.Value!.Errors.Select(e => string.IsNullOrWhiteSpace(e.ErrorMessage) ? "Invalid value." : e.ErrorMessage).ToArray()),
-            TraceId = HttpContext.TraceIdentifier
-        };
-    }
-
-    private RestApiErrorResponse CreateError(HttpStatusCode status, string message, string code, params (string Key, string Message)[] details)
-    {
-        var errors = details
-            .Where(x => !string.IsNullOrWhiteSpace(x.Message))
-            .GroupBy(x => x.Key)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.Message).ToArray());
-
-        return new RestApiErrorResponse
-        {
-            Status = status,
-            Error = message,
-            ErrorCode = code,
-            Errors = errors,
             TraceId = HttpContext.TraceIdentifier
         };
     }

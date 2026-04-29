@@ -1,13 +1,11 @@
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Properties.Models;
-using App.BLL.Contracts.Properties.Services;
-using App.BLL.UnitWorkspace.Units;
-using App.BLL.UnitWorkspace.Workspace;
+using App.BLL.Contracts.Units.Models;
+using App.BLL.Contracts.Units.Services;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Properties;
+using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -20,20 +18,17 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/units")]
 public class UnitsController : Controller
 {
-    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IPropertyUnitService _propertyUnitService;
-    private readonly PropertyMvcMapper _propertyMapper;
+    private readonly IUnitWorkspaceService _unitWorkspaceService;
+    private readonly UnitMvcMapper _unitMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public UnitsController(
-        IPropertyWorkspaceService propertyWorkspaceService,
-        IPropertyUnitService propertyUnitService,
-        PropertyMvcMapper propertyMapper,
+        IUnitWorkspaceService unitWorkspaceService,
+        UnitMvcMapper unitMapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _propertyWorkspaceService = propertyWorkspaceService;
-        _propertyUnitService = propertyUnitService;
-        _propertyMapper = propertyMapper;
+        _unitWorkspaceService = unitWorkspaceService;
+        _unitMapper = unitMapper;
         _appChromeBuilder = appChromeBuilder;
     }
 
@@ -44,13 +39,15 @@ public class UnitsController : Controller
         string propertySlug,
         CancellationToken cancellationToken)
     {
-        var access = await ResolvePropertyContextAsync(companySlug, customerSlug, propertySlug, cancellationToken);
-        if (access.response is not null)
+        var result = await _unitWorkspaceService.GetPropertyUnitsAsync(
+            _unitMapper.ToPropertyUnitsQuery(companySlug, customerSlug, propertySlug, User),
+            cancellationToken);
+        if (result.IsFailed)
         {
-            return access.response;
+            return ToMvcErrorResult(result.Errors);
         }
 
-        var vm = await BuildUnitsPageViewModelAsync(access.context!, cancellationToken);
+        var vm = await BuildUnitsPageViewModelAsync(result.Value, cancellationToken);
         return View("~/Areas/Property/Views/Units/Index.cshtml", vm);
     }
 
@@ -63,57 +60,28 @@ public class UnitsController : Controller
         UnitsPageViewModel vm,
         CancellationToken cancellationToken)
     {
-        var access = await ResolvePropertyContextAsync(companySlug, customerSlug, propertySlug, cancellationToken);
-        if (access.response is not null)
+        var listResult = await _unitWorkspaceService.GetPropertyUnitsAsync(
+            _unitMapper.ToPropertyUnitsQuery(companySlug, customerSlug, propertySlug, User),
+            cancellationToken);
+        if (listResult.IsFailed)
         {
-            return access.response;
+            return ToMvcErrorResult(listResult.Errors);
         }
 
         if (!ModelState.IsValid)
         {
-            var invalidVm = await BuildUnitsPageViewModelAsync(access.context!, cancellationToken, vm.AddUnit);
+            var invalidVm = await BuildUnitsPageViewModelAsync(listResult.Value, cancellationToken, vm.AddUnit);
             return View("~/Areas/Property/Views/Units/Index.cshtml", invalidVm);
         }
 
-        var createResult = await _propertyUnitService.CreateUnitAsync(
-            access.context!,
-            new UnitCreateRequest
-            {
-                UnitNr = vm.AddUnit.UnitNr,
-                FloorNr = vm.AddUnit.FloorNr,
-                SizeM2 = vm.AddUnit.SizeM2,
-                Notes = vm.AddUnit.Notes
-            },
+        var createResult = await _unitWorkspaceService.CreateAsync(
+            _unitMapper.ToCreateCommand(companySlug, customerSlug, propertySlug, vm.AddUnit, User),
             cancellationToken);
 
-        if (!createResult.Success)
+        if (createResult.IsFailed)
         {
-            if (createResult.InvalidUnitNr)
-            {
-                ModelState.AddModelError(
-                    nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.UnitNr),
-                    createResult.ErrorMessage ?? T("RequiredField", "The {0} field is required.").Replace("{0}", T("UnitNr", "Unit number")));
-            }
-            else if (createResult.InvalidFloorNr)
-            {
-                ModelState.AddModelError(
-                    nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.FloorNr),
-                    createResult.ErrorMessage ?? T("InvalidData", "Invalid Data."));
-            }
-            else if (createResult.InvalidSizeM2)
-            {
-                ModelState.AddModelError(
-                    nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.SizeM2),
-                    createResult.ErrorMessage ?? T("InvalidData", "Invalid Data."));
-            }
-            else
-            {
-                ModelState.AddModelError(
-                    string.Empty,
-                    createResult.ErrorMessage ?? T("ErrorOccurred", "An error occurred while processing your request."));
-            }
-
-            var invalidVm = await BuildUnitsPageViewModelAsync(access.context!, cancellationToken, vm.AddUnit);
+            ApplyCreateErrors(createResult.Errors);
+            var invalidVm = await BuildUnitsPageViewModelAsync(listResult.Value, cancellationToken, vm.AddUnit);
             return View("~/Areas/Property/Views/Units/Index.cshtml", invalidVm);
         }
 
@@ -121,38 +89,21 @@ public class UnitsController : Controller
         return RedirectToAction(nameof(Units), new { companySlug, customerSlug, propertySlug });
     }
 
-    private async Task<(IActionResult? response, PropertyWorkspaceModel? context)> ResolvePropertyContextAsync(
-        string companySlug,
-        string customerSlug,
-        string propertySlug,
-        CancellationToken cancellationToken)
-    {
-        var result = await _propertyWorkspaceService.GetWorkspaceAsync(
-            _propertyMapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
-            cancellationToken);
-
-        return result.IsFailed
-            ? (ToMvcErrorResult(result.Errors), null)
-            : (null, result.Value);
-    }
-
     private async Task<UnitsPageViewModel> BuildUnitsPageViewModelAsync(
-        PropertyWorkspaceModel context,
+        PropertyUnitsModel model,
         CancellationToken cancellationToken,
         AddUnitViewModel? addUnitOverride = null)
     {
-        var listResult = await _propertyUnitService.ListUnitsAsync(context, cancellationToken);
-
         return new UnitsPageViewModel
         {
-            AppChrome = await BuildAppChromeAsync(context, UiText.Units, cancellationToken),
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerSlug = context.CustomerSlug,
-            CustomerName = context.CustomerName,
-            PropertySlug = context.PropertySlug,
-            PropertyName = context.PropertyName,
-            Units = listResult.Units.Select(x => new PropertyUnitListItemViewModel
+            AppChrome = await BuildAppChromeAsync(model, UiText.Units, cancellationToken),
+            CompanySlug = model.CompanySlug,
+            CompanyName = model.CompanyName,
+            CustomerSlug = model.CustomerSlug,
+            CustomerName = model.CustomerName,
+            PropertySlug = model.PropertySlug,
+            PropertyName = model.PropertyName,
+            Units = model.Units.Select(x => new PropertyUnitListItemViewModel
             {
                 UnitId = x.UnitId,
                 UnitSlug = x.UnitSlug,
@@ -165,7 +116,7 @@ public class UnitsController : Controller
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        PropertyWorkspaceModel context,
+        PropertyUnitsModel model,
         string title,
         CancellationToken cancellationToken)
     {
@@ -176,15 +127,43 @@ public class UnitsController : Controller
                 HttpContext = HttpContext,
                 PageTitle = title,
                 ActiveSection = Sections.Units,
-                ManagementCompanySlug = context.CompanySlug,
-                ManagementCompanyName = context.CompanyName,
-                CustomerSlug = context.CustomerSlug,
-                CustomerName = context.CustomerName,
-                PropertySlug = context.PropertySlug,
-                PropertyName = context.PropertyName,
+                ManagementCompanySlug = model.CompanySlug,
+                ManagementCompanyName = model.CompanyName,
+                CustomerSlug = model.CustomerSlug,
+                CustomerName = model.CustomerName,
+                PropertySlug = model.PropertySlug,
+                PropertyName = model.PropertyName,
                 CurrentLevel = WorkspaceLevel.Property
             },
             cancellationToken);
+    }
+
+    private void ApplyCreateErrors(IReadOnlyList<IError> errors)
+    {
+        var validation = errors.OfType<ValidationAppError>().FirstOrDefault();
+        if (validation is null)
+        {
+            ModelState.AddModelError(
+                string.Empty,
+                errors.FirstOrDefault()?.Message ?? T("ErrorOccurred", "An error occurred while processing your request."));
+            return;
+        }
+
+        foreach (var failure in validation.Failures)
+        {
+            var key = failure.PropertyName switch
+            {
+                nameof(App.BLL.Contracts.Units.Commands.CreateUnitCommand.UnitNr) =>
+                    nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.UnitNr),
+                nameof(App.BLL.Contracts.Units.Commands.CreateUnitCommand.FloorNr) =>
+                    nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.FloorNr),
+                nameof(App.BLL.Contracts.Units.Commands.CreateUnitCommand.SizeM2) =>
+                    nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.SizeM2),
+                _ => string.Empty
+            };
+
+            ModelState.AddModelError(key, failure.ErrorMessage);
+        }
     }
 
     private static string T(string key, string fallback)

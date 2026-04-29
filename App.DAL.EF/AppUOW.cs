@@ -3,9 +3,11 @@ using App.Contracts.DAL.Customers;
 using App.Contracts.DAL.Lookups;
 using App.Contracts.DAL.ManagementCompanies;
 using App.Contracts.DAL.Properties;
+using App.Contracts.DAL.Units;
 using App.DAL.EF.Mappers.Customers;
 using App.DAL.EF.Mappers.ManagementCompanies;
 using App.DAL.EF.Mappers.Properties;
+using App.DAL.EF.Mappers.Units;
 using App.DAL.EF.Repositories;
 using Base.DAL.EF;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -18,10 +20,12 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private readonly CustomerDalMapper _customerMapper = new();
     private readonly ManagementCompanyDalMapper _managementCompanyMapper = new();
     private readonly PropertyDalMapper _propertyMapper = new();
+    private readonly UnitDalMapper _unitMapper = new();
     private ICustomerRepository? _customers;
     private IManagementCompanyRepository? _managementCompanies;
     private ILookupRepository? _lookups;
     private IPropertyRepository? _properties;
+    private IUnitRepository? _units;
 
     public AppUOW(AppDbContext dbContext) : base(dbContext)
     {
@@ -34,6 +38,8 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     public ILookupRepository Lookups => _lookups ??= new LookupRepository(UowDbContext);
 
     public IPropertyRepository Properties => _properties ??= new PropertyRepository(UowDbContext, _propertyMapper);
+
+    public IUnitRepository Units => _units ??= new UnitRepository(UowDbContext, _unitMapper);
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

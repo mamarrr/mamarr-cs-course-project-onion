@@ -3,6 +3,7 @@ using App.Contracts.DAL.Customers;
 using App.Contracts.DAL.Lookups;
 using App.Contracts.DAL.ManagementCompanies;
 using App.Contracts.DAL.Properties;
+using App.Contracts.DAL.Units;
 
 namespace App.Contracts;
 
@@ -15,6 +16,8 @@ public interface IAppUOW : IBaseUOW
     ILookupRepository Lookups { get; }
 
     IPropertyRepository Properties { get; }
+
+    IUnitRepository Units { get; }
 
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 

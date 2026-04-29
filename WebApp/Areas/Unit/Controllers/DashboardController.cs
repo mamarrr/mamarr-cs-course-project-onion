@@ -1,13 +1,12 @@
 using System.Security.Claims;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Properties.Services;
-using App.BLL.UnitWorkspace.Access;
-using App.BLL.UnitWorkspace.Workspace;
+using App.BLL.Contracts.Units.Models;
+using App.BLL.Contracts.Units.Services;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Properties;
+using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -20,20 +19,17 @@ namespace WebApp.Areas.Unit.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}")]
 public class DashboardController : Controller
 {
-    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IUnitAccessService _unitAccessService;
-    private readonly PropertyMvcMapper _propertyMapper;
+    private readonly UnitMvcMapper _unitMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public DashboardController(
-        IPropertyWorkspaceService propertyWorkspaceService,
         IUnitAccessService unitAccessService,
-        PropertyMvcMapper propertyMapper,
+        UnitMvcMapper unitMapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
-        _propertyMapper = propertyMapper;
+        _unitMapper = unitMapper;
         _appChromeBuilder = appChromeBuilder;
     }
 
@@ -116,7 +112,7 @@ public class DashboardController : Controller
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        UnitDashboardContext context,
+        UnitWorkspaceModel context,
         string title,
         string activeSection,
         CancellationToken cancellationToken)
@@ -141,37 +137,22 @@ public class DashboardController : Controller
             cancellationToken);
     }
 
-    private async Task<(IActionResult? response, UnitDashboardContext? context)> ResolveUnitContextAsync(
+    private async Task<(IActionResult? response, UnitWorkspaceModel? context)> ResolveUnitContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
         string unitSlug,
         CancellationToken cancellationToken)
     {
-        var propertyAccess = await _propertyWorkspaceService.GetWorkspaceAsync(
-            _propertyMapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
+        var unitAccess = await _unitAccessService.ResolveUnitWorkspaceAsync(
+            _unitMapper.ToDashboardQuery(companySlug, customerSlug, propertySlug, unitSlug, User),
             cancellationToken);
-        if (propertyAccess.IsFailed)
+        if (unitAccess.IsFailed)
         {
-            return (ToMvcErrorResult(propertyAccess.Errors), null);
+            return (ToMvcErrorResult(unitAccess.Errors), null);
         }
 
-        var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
-            propertyAccess.Value,
-            unitSlug,
-            cancellationToken);
-
-        if (unitAccess.UnitNotFound)
-        {
-            return (NotFound(), null);
-        }
-
-        if (!unitAccess.IsAuthorized || unitAccess.Context == null)
-        {
-            return (Forbid(), null);
-        }
-
-        return (null, unitAccess.Context);
+        return (null, unitAccess.Value);
     }
 
     private static string T(string key, string fallback)

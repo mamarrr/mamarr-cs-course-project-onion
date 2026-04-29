@@ -13,10 +13,8 @@ using App.BLL.Contracts.Properties.Services;
 using App.BLL.ResidentWorkspace.Access;
 using App.BLL.ResidentWorkspace.Profiles;
 using App.BLL.ResidentWorkspace.Residents;
-using App.BLL.UnitWorkspace.Access;
-using App.BLL.UnitWorkspace.Profiles;
-using App.BLL.UnitWorkspace.Units;
-using App.BLL.UnitWorkspace.Workspace;
+using App.BLL.Units;
+using App.BLL.Contracts.Units.Services;
 using App.Contracts;
 using App.DAL.EF;
 using Microsoft.EntityFrameworkCore;
@@ -24,8 +22,10 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using WebApp.ApiControllers.Shared;
 using WebApp.Mappers.Api.Customers;
 using WebApp.Mappers.Api.Properties;
+using WebApp.Mappers.Api.Units;
 using WebApp.Mappers.Mvc.Customers;
 using WebApp.Mappers.Mvc.Properties;
+using WebApp.Mappers.Mvc.Units;
 
 namespace WebApp.Helpers;
 
@@ -69,8 +69,8 @@ public static class DependencyInjectionHelpers
         services.AddScoped<ICustomerProfileService, CustomerProfileService>();
         services.AddScoped<IResidentAccessService, ResidentAccessService>();
         services.AddScoped<ICompanyResidentService, CompanyResidentService>();
-        services.AddScoped<IPropertyUnitService, UnitWorkspaceService>();
-        services.AddScoped<IUnitAccessService, UnitWorkspaceService>();
+        services.AddScoped<IUnitAccessService, UnitAccessService>();
+        services.AddScoped<IUnitWorkspaceService, UnitWorkspaceService>();
         services.AddScoped<ILeaseAssignmentService, LeaseAssignmentService>();
         services.AddScoped<ILeaseLookupService, LeaseLookupService>();
         services.AddScoped<IManagementCompanyProfileService, ManagementCompanyProfileService>();
@@ -89,9 +89,11 @@ public static class DependencyInjectionHelpers
         services.AddScoped<CustomerWorkspaceApiMapper>();
         services.AddScoped<CompanyCustomerApiMapper>();
         services.AddScoped<PropertyApiMapper>();
+        services.AddScoped<UnitApiMapper>();
         services.AddScoped<CustomerProfileMvcMapper>();
         services.AddScoped<CompanyCustomerMvcMapper>();
         services.AddScoped<PropertyMvcMapper>();
+        services.AddScoped<UnitMvcMapper>();
 
         return services;
     }

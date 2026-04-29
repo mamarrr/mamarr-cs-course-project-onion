@@ -1,7 +1,7 @@
 using System.Net;
 using App.BLL.LeaseAssignments;
-using App.BLL.Contracts.Properties.Services;
-using App.BLL.UnitWorkspace.Access;
+using App.BLL.Contracts.Units.Models;
+using App.BLL.Contracts.Units.Services;
 using App.BLL.UnitWorkspace.Workspace;
 using App.DTO.v1;
 using App.DTO.v1.Shared;
@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.ApiControllers.Management;
 using WebApp.Infrastructure.Results;
-using WebApp.Mappers.Api.Properties;
+using WebApp.Mappers.Api.Units;
 
 namespace WebApp.ApiControllers.Unit;
 
@@ -22,24 +22,21 @@ namespace WebApp.ApiControllers.Unit;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu/{customerSlug}/pr/{propertySlug}/un/{unitSlug}")]
 public class UnitTenantsController : ProfileApiControllerBase
 {
-    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IUnitAccessService _unitAccessService;
     private readonly ILeaseAssignmentService _leaseAssignmentService;
     private readonly ILeaseLookupService _leaseLookupService;
-    private readonly PropertyApiMapper _propertyMapper;
+    private readonly UnitApiMapper _unitMapper;
 
     public UnitTenantsController(
-        IPropertyWorkspaceService propertyWorkspaceService,
         IUnitAccessService unitAccessService,
         ILeaseAssignmentService leaseAssignmentService,
         ILeaseLookupService leaseLookupService,
-        PropertyApiMapper propertyMapper)
+        UnitApiMapper unitMapper)
     {
-        _propertyWorkspaceService = propertyWorkspaceService;
         _unitAccessService = unitAccessService;
         _leaseAssignmentService = leaseAssignmentService;
         _leaseLookupService = leaseLookupService;
-        _propertyMapper = propertyMapper;
+        _unitMapper = unitMapper;
     }
 
     [HttpGet("tenants")]
@@ -256,30 +253,15 @@ public class UnitTenantsController : ProfileApiControllerBase
         string unitSlug,
         CancellationToken cancellationToken)
     {
-        var propertyAccess = await _propertyWorkspaceService.GetWorkspaceAsync(
-            _propertyMapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
+        var unitAccess = await _unitAccessService.ResolveUnitWorkspaceAsync(
+            _unitMapper.ToDashboardQuery(companySlug, customerSlug, propertySlug, unitSlug, User),
             cancellationToken);
-        if (propertyAccess.IsFailed)
+        if (unitAccess.IsFailed)
         {
-            return (null, propertyAccess.ToActionResult(_ => new UnitTenantsBootstrapResponseDto()).Result);
+            return (null, unitAccess.ToActionResult(_ => new UnitTenantsBootstrapResponseDto()).Result);
         }
 
-        var unitAccess = await _unitAccessService.ResolveUnitDashboardContextAsync(
-            propertyAccess.Value,
-            unitSlug,
-            cancellationToken);
-
-        if (unitAccess.UnitNotFound || unitAccess.Context == null)
-        {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Unit context was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (!unitAccess.IsAuthorized)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
-        }
-
-        return (unitAccess.Context, null);
+        return (ToLegacyContext(unitAccess.Value), null);
     }
 
     private RestApiErrorResponse CreateLeaseCommandError(LeaseCommandResult result, bool isCreate)
@@ -360,6 +342,26 @@ public class UnitTenantsController : ProfileApiControllerBase
             UnitSlug = context.UnitSlug,
             UnitName = context.UnitNr,
             CurrentSection = "unit-tenants"
+        };
+    }
+
+    private static UnitDashboardContext ToLegacyContext(UnitWorkspaceModel context)
+    {
+        return new UnitDashboardContext
+        {
+            AppUserId = context.AppUserId,
+            ManagementCompanyId = context.ManagementCompanyId,
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerId = context.CustomerId,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertyId = context.PropertyId,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
+            UnitId = context.UnitId,
+            UnitSlug = context.UnitSlug,
+            UnitNr = context.UnitNr
         };
     }
 }
