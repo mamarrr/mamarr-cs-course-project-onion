@@ -1,8 +1,5 @@
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.CustomerWorkspace.Customers;
-using App.BLL.CustomerWorkspace.Workspace;
-using App.BLL.Customers;
 using App.BLL.Contracts.Customers.Services;
+using App.BLL.Customers;
 using App.BLL.LeaseAssignments;
 using App.BLL.ManagementCompany.Membership;
 using App.BLL.ManagementCompany.Profiles;
@@ -64,10 +61,10 @@ public static class DependencyInjectionHelpers
         services.AddScoped<IUserWorkspaceCatalogService, UserWorkspaceCatalogService>();
         services.AddScoped<ICompanyJoinRequestService, CompanyJoinRequestService>();
         services.AddScoped<ICompanyMembershipAdminService, CompanyMembershipAdminService>();
+        services.AddScoped<ICompanyCustomerService, CompanyCustomerService>();
+        services.AddScoped<ICustomerAccessService, CustomerAccessService>();
         services.AddScoped<ICustomerWorkspaceService, CustomerWorkspaceService>();
-        services.AddScoped<ICustomerAccessService, CustomerWorkspaceService>();
-        services.AddScoped<ICompanyCustomerService, CustomerWorkspaceService>();
-        services.AddScoped<IPropertyWorkspaceService, CustomerWorkspaceService>();
+        services.AddScoped<ICustomerProfileService, CustomerProfileService>();
         services.AddScoped<IResidentAccessService, ResidentAccessService>();
         services.AddScoped<ICompanyResidentService, CompanyResidentService>();
         services.AddScoped<IPropertyUnitService, UnitWorkspaceService>();
@@ -75,7 +72,7 @@ public static class DependencyInjectionHelpers
         services.AddScoped<ILeaseAssignmentService, LeaseAssignmentService>();
         services.AddScoped<ILeaseLookupService, LeaseLookupService>();
         services.AddScoped<IManagementCompanyProfileService, ManagementCompanyProfileService>();
-        services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+        
         services.AddScoped<IPropertyProfileService, PropertyProfileService>();
         services.AddScoped<IUnitProfileService, UnitProfileService>();
         services.AddScoped<IResidentProfileService, ResidentProfileService>();
@@ -87,7 +84,10 @@ public static class DependencyInjectionHelpers
     {
         services.AddScoped<IApiOnboardingRouteContextMapper, ApiOnboardingRouteContextMapper>();
         services.AddScoped<CustomerProfileApiMapper>();
+        services.AddScoped<CustomerWorkspaceApiMapper>();
+        services.AddScoped<CompanyCustomerApiMapper>();
         services.AddScoped<CustomerProfileMvcMapper>();
+        services.AddScoped<CompanyCustomerMvcMapper>();
 
         return services;
     }

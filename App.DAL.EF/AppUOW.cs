@@ -1,6 +1,9 @@
 using App.Contracts;
 using App.Contracts.DAL.Customers;
 using App.Contracts.DAL.Lookups;
+using App.Contracts.DAL.ManagementCompanies;
+using App.DAL.EF.Mappers.Customers;
+using App.DAL.EF.Mappers.ManagementCompanies;
 using App.DAL.EF.Repositories;
 using Base.DAL.EF;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -10,14 +13,19 @@ namespace App.DAL.EF;
 public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
 {
     private IDbContextTransaction? _transaction;
+    private readonly CustomerDalMapper _customerMapper = new();
+    private readonly ManagementCompanyDalMapper _managementCompanyMapper = new();
     private ICustomerRepository? _customers;
+    private IManagementCompanyRepository? _managementCompanies;
     private ILookupRepository? _lookups;
 
     public AppUOW(AppDbContext dbContext) : base(dbContext)
     {
     }
 
-    public ICustomerRepository Customers => _customers ??= new CustomerRepository(UowDbContext);
+    public ICustomerRepository Customers => _customers ??= new CustomerRepository(UowDbContext, _customerMapper);
+
+    public IManagementCompanyRepository ManagementCompanies => _managementCompanies ??= new ManagementCompanyRepository(UowDbContext, _managementCompanyMapper);
 
     public ILookupRepository Lookups => _lookups ??= new LookupRepository(UowDbContext);
 

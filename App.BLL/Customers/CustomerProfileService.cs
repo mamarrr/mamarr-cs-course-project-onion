@@ -6,7 +6,6 @@ using App.BLL.Contracts.Customers.Errors;
 using App.BLL.Contracts.Customers.Models;
 using App.BLL.Contracts.Customers.Queries;
 using App.BLL.Contracts.Customers.Services;
-using App.BLL.CustomerWorkspace.Access;
 using App.BLL.Mappers.Customers;
 using App.Contracts;
 using App.Contracts.DAL.Customers;
@@ -14,7 +13,7 @@ using FluentResults;
 
 namespace App.BLL.Customers;
 
-public sealed class CustomerProfileService : ICustomerProfileService
+public class CustomerProfileService : ICustomerProfileService
 {
     private static readonly HashSet<string> DeleteAllowedRoleCodes =
     [
@@ -199,25 +198,23 @@ public sealed class CustomerProfileService : ICustomerProfileService
             return Result.Fail(new UnauthorizedError("Authentication is required."));
         }
 
-        var access = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId,
-            companySlug,
-            customerSlug,
+        var access = await _customerAccessService.ResolveCustomerWorkspaceAsync(
+            new GetCustomerWorkspaceQuery
+            {
+                UserId = appUserId,
+                CompanySlug = companySlug,
+                CustomerSlug = customerSlug
+            },
             cancellationToken);
 
-        if (access.CompanyNotFound || access.CustomerNotFound)
+        if (access.IsFailed)
         {
-            return Result.Fail(new NotFoundError("Customer context was not found."));
-        }
-
-        if (access.IsForbidden || access.Context is null)
-        {
-            return Result.Fail(new ForbiddenError("Access denied."));
+            return Result.Fail(access.Errors);
         }
 
         return Result.Ok(new CustomerAccessContext(
-            access.Context.ManagementCompanyId,
-            access.Context.CustomerId));
+            access.Value.ManagementCompanyId,
+            access.Value.CustomerId));
     }
 
     private static Result ValidateUpdate(UpdateCustomerProfileCommand command)
@@ -271,9 +268,9 @@ public sealed class CustomerProfileService : ICustomerProfileService
             string.IsNullOrWhiteSpace(command.Phone) ? null : command.Phone.Trim());
     }
 
-    private sealed record CustomerAccessContext(Guid ManagementCompanyId, Guid CustomerId);
+    private record CustomerAccessContext(Guid ManagementCompanyId, Guid CustomerId);
 
-    private sealed record NormalizedUpdate(
+    private record NormalizedUpdate(
         string Name,
         string RegistryCode,
         string? BillingEmail,

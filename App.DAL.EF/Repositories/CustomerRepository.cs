@@ -11,14 +11,109 @@ public sealed class CustomerRepository :
     ICustomerRepository
 {
     private readonly AppDbContext _dbContext;
+    private readonly CustomerDalMapper _mapper;
 
-    public CustomerRepository(AppDbContext dbContext)
-        : base(dbContext, new CustomerDalMapper())
+    public CustomerRepository(AppDbContext dbContext, CustomerDalMapper mapper)
+        : base(dbContext, mapper)
     {
         _dbContext = dbContext;
+        _mapper = mapper;
     }
 
-    public Task<CustomerProfileDalDto?> FirstProfileByCompanyAndSlugAsync(
+    public async Task<IReadOnlyList<CustomerListItemDalDto>> AllByCompanySlugAsync(
+        string companySlug,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedCompanySlug = companySlug.Trim();
+
+        var customers = await _dbContext.Customers
+            .AsNoTracking()
+            .Where(c => c.ManagementCompany!.Slug == normalizedCompanySlug)
+            .OrderBy(c => c.Name)
+            .ToListAsync(cancellationToken);
+
+        return customers.Select(_mapper.MapListItem).ToList();
+    }
+
+    public async Task<IReadOnlyList<CustomerListItemDalDto>> AllByCompanyIdAsync(
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        var customers = await _dbContext.Customers
+            .AsNoTracking()
+            .Where(c => c.ManagementCompanyId == managementCompanyId)
+            .OrderBy(c => c.Name)
+            .ToListAsync(cancellationToken);
+
+        return customers.Select(_mapper.MapListItem).ToList();
+    }
+
+    public async Task<IReadOnlyList<CustomerPropertyLinkDalDto>> AllPropertyLinksByCompanyIdAsync(
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        var properties = await _dbContext.Properties
+            .AsNoTracking()
+            .Where(p => p.Customer!.ManagementCompanyId == managementCompanyId)
+            .OrderBy(p => p.Label)
+            .ToListAsync(cancellationToken);
+
+        return properties.Select(_mapper.MapPropertyLink).ToList();
+    }
+
+    public Task<CustomerDalDto> AddAsync(
+        CustomerCreateDalDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var customer = new Customer
+        {
+            Id = Guid.NewGuid(),
+            ManagementCompanyId = dto.ManagementCompanyId,
+            Name = dto.Name,
+            Slug = dto.Slug,
+            RegistryCode = dto.RegistryCode,
+            BillingEmail = dto.BillingEmail,
+            BillingAddress = dto.BillingAddress,
+            Phone = dto.Phone,
+            IsActive = dto.IsActive,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.Customers.Add(customer);
+
+        return Task.FromResult(_mapper.Map(customer)!);
+    }
+
+    public async Task<bool> CustomerSlugExistsInCompanyAsync(
+        Guid managementCompanyId,
+        string slug,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedSlug = slug.Trim().ToLower();
+
+        return await _dbContext.Customers
+            .AsNoTracking()
+            .Where(c => c.ManagementCompanyId == managementCompanyId)
+            .AnyAsync(c => c.Slug.ToLower() == normalizedSlug, cancellationToken);
+    }
+
+    public async Task<CustomerWorkspaceDalDto?> FirstWorkspaceByCompanyAndSlugAsync(
+        Guid managementCompanyId,
+        string customerSlug,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedCustomerSlug = customerSlug.Trim();
+
+        var customer = await _dbContext.Customers
+            .AsNoTracking()
+            .Include(c => c.ManagementCompany)
+            .Where(c => c.ManagementCompanyId == managementCompanyId && c.Slug == normalizedCustomerSlug)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return customer is null ? null : _mapper.MapWorkspace(customer);
+    }
+
+    public async Task<CustomerProfileDalDto?> FirstProfileByCompanyAndSlugAsync(
         string companySlug,
         string customerSlug,
         CancellationToken cancellationToken = default)
@@ -26,49 +121,27 @@ public sealed class CustomerRepository :
         var normalizedCompanySlug = companySlug.Trim();
         var normalizedCustomerSlug = customerSlug.Trim();
 
-        return _dbContext.Customers
+        var customer = await _dbContext.Customers
             .AsNoTracking()
+            .Include(c => c.ManagementCompany)
             .Where(c => c.ManagementCompany!.Slug == normalizedCompanySlug && c.Slug == normalizedCustomerSlug)
-            .Select(c => new CustomerProfileDalDto
-            {
-                Id = c.Id,
-                ManagementCompanyId = c.ManagementCompanyId,
-                CompanySlug = c.ManagementCompany!.Slug,
-                CompanyName = c.ManagementCompany.Name,
-                Name = c.Name,
-                Slug = c.Slug,
-                RegistryCode = c.RegistryCode,
-                BillingEmail = c.BillingEmail,
-                BillingAddress = c.BillingAddress,
-                Phone = c.Phone,
-                IsActive = c.IsActive
-            })
             .FirstOrDefaultAsync(cancellationToken);
+
+        return customer is null ? null : _mapper.MapProfile(customer);
     }
 
-    public Task<CustomerProfileDalDto?> FindProfileAsync(
+    public async Task<CustomerProfileDalDto?> FindProfileAsync(
         Guid customerId,
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        return _dbContext.Customers
+        var customer = await _dbContext.Customers
             .AsNoTracking()
+            .Include(c => c.ManagementCompany)
             .Where(c => c.Id == customerId && c.ManagementCompanyId == managementCompanyId)
-            .Select(c => new CustomerProfileDalDto
-            {
-                Id = c.Id,
-                ManagementCompanyId = c.ManagementCompanyId,
-                CompanySlug = c.ManagementCompany!.Slug,
-                CompanyName = c.ManagementCompany.Name,
-                Name = c.Name,
-                Slug = c.Slug,
-                RegistryCode = c.RegistryCode,
-                BillingEmail = c.BillingEmail,
-                BillingAddress = c.BillingAddress,
-                Phone = c.Phone,
-                IsActive = c.IsActive
-            })
             .FirstOrDefaultAsync(cancellationToken);
+
+        return customer is null ? null : _mapper.MapProfile(customer);
     }
 
     public async Task<bool> RegistryCodeExistsInCompanyAsync(

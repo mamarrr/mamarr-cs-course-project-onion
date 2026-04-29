@@ -1,7 +1,5 @@
 using System.Net;
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.CustomerWorkspace.Customers;
-using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.Contracts.Customers.Services;
 using App.DTO.v1;
 using App.DTO.v1.Management;
 using App.DTO.v1.Shared;
@@ -9,6 +7,8 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Infrastructure.Results;
+using WebApp.Mappers.Api.Customers;
 
 namespace WebApp.ApiControllers.Management;
 
@@ -18,15 +18,15 @@ namespace WebApp.ApiControllers.Management;
 [Route("/api/v{version:apiVersion}/co/{companySlug}/cu")]
 public class CustomersController : ControllerBase
 {
-    private readonly ICustomerAccessService _customerAccessService;
     private readonly ICompanyCustomerService _companyCustomerService;
+    private readonly CompanyCustomerApiMapper _mapper;
 
     public CustomersController(
-        ICustomerAccessService customerAccessService,
-        ICompanyCustomerService companyCustomerService)
+        ICompanyCustomerService companyCustomerService,
+        CompanyCustomerApiMapper mapper)
     {
-        _customerAccessService = customerAccessService;
         _companyCustomerService = companyCustomerService;
+        _mapper = mapper;
     }
 
     [HttpGet]
@@ -39,27 +39,10 @@ public class CustomersController : ControllerBase
         string companySlug,
         CancellationToken cancellationToken)
     {
-        var authorization = await AuthorizeCompanyAsync(companySlug, cancellationToken);
-        if (authorization.ErrorResult != null)
-        {
-            return authorization.ErrorResult;
-        }
+        var query = _mapper.ToQuery(companySlug, User);
+        var result = await _companyCustomerService.GetCompanyCustomersAsync(query, cancellationToken);
 
-        var result = await _companyCustomerService.ListAsync(authorization.Context!, cancellationToken);
-        return Ok(new ManagementCustomersResponseDto
-        {
-            Customers = result.Customers.Select(x => new ManagementCustomerSummaryDto
-            {
-                CustomerId = x.CustomerId,
-                CustomerSlug = x.CustomerSlug,
-                Name = x.Name,
-                RegistryCode = x.RegistryCode,
-                BillingEmail = x.BillingEmail,
-                BillingAddress = x.BillingAddress,
-                Phone = x.Phone,
-                RouteContext = CreateCustomerRouteContext(authorization.Context!, x.CustomerSlug, x.Name)
-            }).ToList()
-        });
+        return result.ToActionResult(_mapper.ToResponseDto);
     }
 
     [HttpPost]
@@ -75,105 +58,22 @@ public class CustomersController : ControllerBase
         [FromBody] CreateManagementCustomerRequestDto dto,
         CancellationToken cancellationToken)
     {
-        var authorization = await AuthorizeCompanyAsync(companySlug, cancellationToken);
-        if (authorization.ErrorResult != null)
-        {
-            return authorization.ErrorResult;
-        }
-
         if (!ModelState.IsValid)
         {
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _companyCustomerService.CreateAsync(
-            authorization.Context!,
-            new CustomerCreateRequest
-            {
-                Name = dto.Name,
-                RegistryCode = dto.RegistryCode,
-                BillingEmail = dto.BillingEmail,
-                BillingAddress = dto.BillingAddress,
-                Phone = dto.Phone
-            },
-            cancellationToken);
-
-        if (!result.Success || result.CreatedCustomerId == null)
+        var command = _mapper.ToCommand(companySlug, dto, User);
+        var result = await _companyCustomerService.CreateCustomerAsync(command, cancellationToken);
+        if (result.IsFailed)
         {
-            return BadRequest(CreateError(
-                HttpStatusCode.BadRequest,
-                result.ErrorMessage ?? "Unable to create customer.",
-                result.DuplicateRegistryCode ? ApiErrorCodes.Duplicate : ApiErrorCodes.BusinessRuleViolation,
-                result.DuplicateRegistryCode
-                    ? (nameof(dto.RegistryCode), result.ErrorMessage ?? "Unable to create customer.")
-                    : result.InvalidBillingEmail
-                        ? (nameof(dto.BillingEmail), result.ErrorMessage ?? "Unable to create customer.")
-                        : (string.Empty, result.ErrorMessage ?? "Unable to create customer.")));
+            return result.ToActionResult(_mapper.ToCreateResponseDto);
         }
-
-        var refreshedCustomers = await _companyCustomerService.ListAsync(authorization.Context!, cancellationToken);
-        var createdCustomer = refreshedCustomers.Customers.FirstOrDefault(x => x.CustomerId == result.CreatedCustomerId.Value);
-        if (createdCustomer == null)
-        {
-            return BadRequest(CreateError(HttpStatusCode.BadRequest, "Created customer could not be resolved.", ApiErrorCodes.BusinessRuleViolation));
-        }
-
-        var response = new CreateManagementCustomerResponseDto
-        {
-            CustomerId = createdCustomer.CustomerId,
-            CustomerSlug = createdCustomer.CustomerSlug,
-            RouteContext = CreateCustomerRouteContext(authorization.Context!, createdCustomer.CustomerSlug, createdCustomer.Name)
-        };
 
         return CreatedAtAction(
             nameof(GetCustomers),
             new { version = "1.0", companySlug },
-            response);
-    }
-
-    private async Task<(CustomerWorkspaceContext? Context, ActionResult? ErrorResult)> AuthorizeCompanyAsync(
-        string companySlug,
-        CancellationToken cancellationToken)
-    {
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return (null, Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized)));
-        }
-
-        var authorization = await _customerAccessService.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
-        if (authorization.CompanyNotFound)
-        {
-            return (null, NotFound(CreateError(HttpStatusCode.NotFound, "Management company was not found.", ApiErrorCodes.NotFound)));
-        }
-
-        if (authorization.IsForbidden || authorization.Context == null)
-        {
-            return (null, StatusCode((int)HttpStatusCode.Forbidden, CreateError(HttpStatusCode.Forbidden, "Access denied.", ApiErrorCodes.Forbidden)));
-        }
-
-        return (authorization.Context, null);
-    }
-
-    private Guid? GetAppUserId()
-    {
-        var userIdValue = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
-    }
-
-    private ApiRouteContextDto CreateCustomerRouteContext(
-        CustomerWorkspaceContext context,
-        string customerSlug,
-        string customerName)
-    {
-        return new ApiRouteContextDto
-        {
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerSlug = customerSlug,
-            CustomerName = customerName,
-            CurrentSection = "customer-dashboard"
-        };
+            _mapper.ToCreateResponseDto(result.Value));
     }
 
     private RestApiErrorResponse CreateValidationError()
@@ -192,20 +92,4 @@ public class CustomersController : ControllerBase
         };
     }
 
-    private RestApiErrorResponse CreateError(HttpStatusCode status, string message, string code, params (string Key, string Message)[] details)
-    {
-        var errors = details
-            .Where(x => !string.IsNullOrWhiteSpace(x.Message))
-            .GroupBy(x => x.Key)
-            .ToDictionary(g => g.Key, g => g.Select(x => x.Message).ToArray());
-
-        return new RestApiErrorResponse
-        {
-            Status = status,
-            Error = message,
-            ErrorCode = code,
-            Errors = errors,
-            TraceId = HttpContext.TraceIdentifier
-        };
-    }
 }

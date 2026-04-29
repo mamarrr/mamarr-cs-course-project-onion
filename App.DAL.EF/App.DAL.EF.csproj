@@ -20,7 +20,6 @@
 
     <ItemGroup>
       <Folder Include="Mappers\" />
-      <Folder Include="Repositories\Contracts\" />
     </ItemGroup>
 
 </Project>

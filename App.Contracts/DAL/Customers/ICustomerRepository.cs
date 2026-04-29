@@ -4,6 +4,32 @@ namespace App.Contracts.DAL.Customers;
 
 public interface ICustomerRepository : IBaseRepository<CustomerDalDto>
 {
+    Task<IReadOnlyList<CustomerListItemDalDto>> AllByCompanySlugAsync(
+        string companySlug,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CustomerListItemDalDto>> AllByCompanyIdAsync(
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CustomerPropertyLinkDalDto>> AllPropertyLinksByCompanyIdAsync(
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<CustomerDalDto> AddAsync(
+        CustomerCreateDalDto dto,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> CustomerSlugExistsInCompanyAsync(
+        Guid managementCompanyId,
+        string slug,
+        CancellationToken cancellationToken = default);
+
+    Task<CustomerWorkspaceDalDto?> FirstWorkspaceByCompanyAndSlugAsync(
+        Guid managementCompanyId,
+        string customerSlug,
+        CancellationToken cancellationToken = default);
+
     Task<CustomerProfileDalDto?> FirstProfileByCompanyAndSlugAsync(
         string companySlug,
         string customerSlug,

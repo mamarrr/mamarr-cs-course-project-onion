@@ -1,9 +1,9 @@
-using System.Security.Claims;
-using App.BLL.CustomerWorkspace.Access;
-using App.BLL.CustomerWorkspace.Workspace;
+using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Customers.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using WebApp.Mappers.Api.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.Workspace;
@@ -16,18 +16,21 @@ namespace WebApp.Areas.Customer.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}")]
 public class CustomerDashboardController : Controller
 {
-    private readonly ICustomerAccessService _customerAccessService;
+    private readonly ICustomerWorkspaceService _customerWorkspaceService;
+    private readonly CustomerWorkspaceApiMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ILogger<CustomerDashboardController> _logger;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
     public CustomerDashboardController(
-        ICustomerAccessService customerAccessService,
+        ICustomerWorkspaceService customerWorkspaceService,
+        CustomerWorkspaceApiMapper mapper,
         IAppChromeBuilder appChromeBuilder,
         ILogger<CustomerDashboardController> logger,
         IWebHostEnvironment webHostEnvironment)
     {
-        _customerAccessService = customerAccessService;
+        _customerWorkspaceService = customerWorkspaceService;
+        _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
         _logger = logger;
         _webHostEnvironment = webHostEnvironment;
@@ -66,26 +69,12 @@ public class CustomerDashboardController : Controller
     {
         LogViewCandidates(currentSection);
 
-        var appUserId = GetAppUserId();
-        if (appUserId == null)
-        {
-            return Challenge();
-        }
-
-        var access = await _customerAccessService.ResolveDashboardAccessAsync(
-            appUserId.Value,
-            companySlug,
-            customerSlug,
+        var result = await _customerWorkspaceService.GetWorkspaceAsync(
+            _mapper.ToQuery(companySlug, customerSlug, User),
             cancellationToken);
-
-        if (access.CompanyNotFound || access.CustomerNotFound)
+        if (result.IsFailed)
         {
-            return NotFound();
-        }
-
-        if (access.IsForbidden || access.Context == null)
-        {
-            return Forbid();
+            return ToMvcErrorResult(result.Errors);
         }
 
         var sectionTitle = currentSection switch
@@ -102,11 +91,11 @@ public class CustomerDashboardController : Controller
 
         var vm = new DashboardPageViewModel
         {
-            AppChrome = await BuildAppChromeAsync(access.Context, title, currentSection, cancellationToken),
-            CompanySlug = access.Context.CompanySlug,
-            CompanyName = access.Context.CompanyName,
-            CustomerSlug = access.Context.CustomerSlug,
-            CustomerName = access.Context.CustomerName
+            AppChrome = await BuildAppChromeAsync(result.Value, title, currentSection, cancellationToken),
+            CompanySlug = result.Value.CompanySlug,
+            CompanyName = result.Value.CompanyName,
+            CustomerSlug = result.Value.CustomerSlug,
+            CustomerName = result.Value.CustomerName
         };
 
         _logger.LogInformation(
@@ -120,7 +109,7 @@ public class CustomerDashboardController : Controller
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        CustomerWorkspaceDashboardContext context,
+        App.BLL.Contracts.Customers.Models.CustomerWorkspaceModel context,
         string title,
         string activeSection,
         CancellationToken cancellationToken)
@@ -166,10 +155,16 @@ public class CustomerDashboardController : Controller
         }
     }
 
-    private Guid? GetAppUserId()
+    private IActionResult ToMvcErrorResult(IReadOnlyList<FluentResults.IError> errors)
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+        var error = errors.FirstOrDefault();
+        return error switch
+        {
+            UnauthorizedError => Challenge(),
+            NotFoundError => NotFound(),
+            ForbiddenError => Forbid(),
+            _ => BadRequest()
+        };
     }
 
     private static string T(string key, string fallback)
