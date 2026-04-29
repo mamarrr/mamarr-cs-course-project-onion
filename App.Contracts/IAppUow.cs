@@ -1,6 +1,7 @@
 using Base.DAL.Contracts;
 using App.Contracts.DAL.Contacts;
 using App.Contracts.DAL.Customers;
+using App.Contracts.DAL.Leases;
 using App.Contracts.DAL.Lookups;
 using App.Contracts.DAL.ManagementCompanies;
 using App.Contracts.DAL.Properties;
@@ -24,6 +25,8 @@ public interface IAppUOW : IBaseUOW
     IContactRepository Contacts { get; }
 
     IUnitRepository Units { get; }
+
+    ILeaseRepository Leases { get; }
 
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 

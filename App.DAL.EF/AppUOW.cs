@@ -1,6 +1,7 @@
 using App.Contracts;
 using App.Contracts.DAL.Contacts;
 using App.Contracts.DAL.Customers;
+using App.Contracts.DAL.Leases;
 using App.Contracts.DAL.Lookups;
 using App.Contracts.DAL.ManagementCompanies;
 using App.Contracts.DAL.Properties;
@@ -8,6 +9,7 @@ using App.Contracts.DAL.Residents;
 using App.Contracts.DAL.Units;
 using App.DAL.EF.Mappers.Contacts;
 using App.DAL.EF.Mappers.Customers;
+using App.DAL.EF.Mappers.Leases;
 using App.DAL.EF.Mappers.ManagementCompanies;
 using App.DAL.EF.Mappers.Properties;
 using App.DAL.EF.Mappers.Residents;
@@ -27,6 +29,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private readonly PropertyDalMapper _propertyMapper = new();
     private readonly ResidentDalMapper _residentMapper = new();
     private readonly UnitDalMapper _unitMapper = new();
+    private readonly LeaseDalMapper _leaseMapper = new();
     private IContactRepository? _contacts;
     private ICustomerRepository? _customers;
     private IManagementCompanyRepository? _managementCompanies;
@@ -34,6 +37,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private IPropertyRepository? _properties;
     private IResidentRepository? _residents;
     private IUnitRepository? _units;
+    private ILeaseRepository? _leases;
 
     public AppUOW(AppDbContext dbContext) : base(dbContext)
     {
@@ -52,6 +56,8 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     public IResidentRepository Residents => _residents ??= new ResidentRepository(UowDbContext, _residentMapper);
 
     public IUnitRepository Units => _units ??= new UnitRepository(UowDbContext, _unitMapper);
+
+    public ILeaseRepository Leases => _leases ??= new LeaseRepository(UowDbContext, _leaseMapper);
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

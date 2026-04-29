@@ -2,7 +2,6 @@ using System.Security.Claims;
 using App.BLL.Contracts.Units.Commands;
 using App.BLL.Contracts.Units.Models;
 using App.BLL.Contracts.Units.Queries;
-using App.BLL.UnitWorkspace.Workspace;
 using WebApp.ViewModels.Property;
 using WebApp.ViewModels.Unit;
 
@@ -118,26 +117,6 @@ public sealed class UnitMvcMapper
             UnitSlug = unitSlug,
             UserId = GetAppUserId(user),
             ConfirmationUnitNr = edit.DeleteConfirmation ?? string.Empty
-        };
-    }
-
-    public UnitDashboardContext ToLegacyContext(UnitWorkspaceModel context)
-    {
-        return new UnitDashboardContext
-        {
-            AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerId = context.CustomerId,
-            CustomerSlug = context.CustomerSlug,
-            CustomerName = context.CustomerName,
-            PropertyId = context.PropertyId,
-            PropertySlug = context.PropertySlug,
-            PropertyName = context.PropertyName,
-            UnitId = context.UnitId,
-            UnitSlug = context.UnitSlug,
-            UnitNr = context.UnitNr
         };
     }
 

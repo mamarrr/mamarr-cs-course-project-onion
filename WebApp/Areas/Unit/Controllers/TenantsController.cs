@@ -1,12 +1,17 @@
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.LeaseAssignments;
+using App.BLL.Contracts.Leases.Commands;
+using App.BLL.Contracts.Leases.Models;
+using App.BLL.Contracts.Leases.Queries;
+using App.BLL.Contracts.Leases.Services;
+using App.BLL.Contracts.Units.Models;
 using App.BLL.Contracts.Units.Services;
-using App.BLL.UnitWorkspace.Workspace;
+using App.BLL.Mappers.Leases;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using WebApp.Mappers.Mvc.Leases;
 using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
@@ -27,6 +32,7 @@ public class TenantsController : Controller
     private readonly ILeaseAssignmentService _leaseAssignmentService;
     private readonly ILeaseLookupService _leaseLookupService;
     private readonly UnitMvcMapper _unitMapper;
+    private readonly LeaseViewModelMapper _leaseMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public TenantsController(
@@ -34,12 +40,14 @@ public class TenantsController : Controller
         ILeaseAssignmentService leaseAssignmentService,
         ILeaseLookupService leaseLookupService,
         UnitMvcMapper unitMapper,
+        LeaseViewModelMapper leaseMapper,
         IAppChromeBuilder appChromeBuilder)
     {
         _unitAccessService = unitAccessService;
         _leaseAssignmentService = leaseAssignmentService;
         _leaseLookupService = leaseLookupService;
         _unitMapper = unitMapper;
+        _leaseMapper = leaseMapper;
         _appChromeBuilder = appChromeBuilder;
     }
 
@@ -77,9 +85,11 @@ public class TenantsController : Controller
             return access.response;
         }
 
-        var result = await _leaseLookupService.SearchResidentsAsync(access.context!, searchTerm, cancellationToken);
+        var result = await _leaseLookupService.SearchResidentsAsync(
+            ToSearchResidentsQuery(access.context!, searchTerm),
+            cancellationToken);
 
-        return Json(result.Residents.Select(x => new UnitLeaseResidentSearchResultViewModel
+        return Json(result.Value.Residents.Select(x => new UnitLeaseResidentSearchResultViewModel
         {
             ResidentId = x.ResidentId,
             FullName = x.FullName,
@@ -118,22 +128,12 @@ public class TenantsController : Controller
         }
 
         var result = await _leaseAssignmentService.CreateFromUnitAsync(
-            access.context!,
-            new LeaseCreateRequest
-            {
-                ResidentId = vm.AddLease.ResidentId!.Value,
-                UnitId = access.context!.UnitId,
-                LeaseRoleId = vm.AddLease.LeaseRoleId!.Value,
-                StartDate = DateOnly.FromDateTime(vm.AddLease.StartDate),
-                EndDate = vm.AddLease.EndDate.HasValue ? DateOnly.FromDateTime(vm.AddLease.EndDate.Value) : null,
-                IsActive = vm.AddLease.IsActive,
-                Notes = vm.AddLease.Notes
-            },
+            ToCreateCommand(access.context!, vm.AddLease),
             cancellationToken);
 
-        if (!result.Success)
+        if (result.IsFailed)
         {
-            ApplyCreateErrors(result, ModelState);
+            ApplyCreateErrors(result.Errors, ModelState);
             var invalidVm = await BuildPageViewModelAsync(access.context!, cancellationToken, addOverride: vm.AddLease);
             return View("~/Areas/Unit/Views/Tenants/Index.cshtml", invalidVm);
         }
@@ -177,21 +177,12 @@ public class TenantsController : Controller
         }
 
         var result = await _leaseAssignmentService.UpdateFromUnitAsync(
-            access.context!,
-            new LeaseUpdateRequest
-            {
-                LeaseId = leaseId,
-                LeaseRoleId = editVm.LeaseRoleId!.Value,
-                StartDate = DateOnly.FromDateTime(editVm.StartDate),
-                EndDate = editVm.EndDate.HasValue ? DateOnly.FromDateTime(editVm.EndDate.Value) : null,
-                IsActive = editVm.IsActive,
-                Notes = editVm.Notes
-            },
+            ToUpdateCommand(access.context!, leaseId, editVm),
             cancellationToken);
 
-        if (!result.Success)
+        if (result.IsFailed)
         {
-            ApplyEditErrors(result, ModelState);
+            ApplyEditErrors(result.Errors, ModelState);
             var invalidVm = await BuildPageViewModelAsync(access.context!, cancellationToken, editOverride: editVm, requestedEditLeaseId: leaseId);
             invalidVm.ActiveEditLeaseId = leaseId;
             return View("~/Areas/Unit/Views/Tenants/Index.cshtml", invalidVm);
@@ -218,16 +209,12 @@ public class TenantsController : Controller
         }
 
         var result = await _leaseAssignmentService.DeleteFromUnitAsync(
-            access.context!,
-            new LeaseDeleteRequest
-            {
-                LeaseId = leaseId
-            },
+            ToDeleteCommand(access.context!, leaseId),
             cancellationToken);
 
-        if (!result.Success)
+        if (result.IsFailed)
         {
-            TempData[ErrorTempDataKey] = result.ErrorMessage ?? T("UnableToDeleteLease", "Unable to delete lease.");
+            TempData[ErrorTempDataKey] = result.Errors.FirstOrDefault()?.Message ?? T("UnableToDeleteLease", "Unable to delete lease.");
             return RedirectToAction(nameof(Index), new { companySlug, customerSlug, propertySlug, unitSlug });
         }
 
@@ -235,7 +222,7 @@ public class TenantsController : Controller
         return RedirectToAction(nameof(Index), new { companySlug, customerSlug, propertySlug, unitSlug });
     }
 
-    private async Task<(IActionResult? response, UnitDashboardContext? context)> ResolveUnitContextAsync(
+    private async Task<(IActionResult? response, UnitWorkspaceModel? context)> ResolveUnitContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -250,36 +237,26 @@ public class TenantsController : Controller
             return (ToMvcErrorResult(unitAccess.Errors), null);
         }
 
-        return (null, _unitMapper.ToLegacyContext(unitAccess.Value));
+        return (null, unitAccess.Value);
     }
 
     private async Task<TenantsPageViewModel> BuildPageViewModelAsync(
-        UnitDashboardContext context,
+        UnitWorkspaceModel context,
         CancellationToken cancellationToken,
         AddUnitLeaseViewModel? addOverride = null,
         EditUnitLeaseViewModel? editOverride = null,
         Guid? requestedEditLeaseId = null)
     {
-        var leaseList = await _leaseAssignmentService.ListForUnitAsync(context, cancellationToken);
+        var leaseList = await _leaseAssignmentService.ListForUnitAsync(
+            LeaseBllMapper.ToUnitLeasesQuery(context),
+            cancellationToken);
         var roleOptions = await _leaseLookupService.ListLeaseRolesAsync(cancellationToken);
         var residentSearchTerm = addOverride?.ResidentSearchTerm;
         var residentResults = string.IsNullOrWhiteSpace(residentSearchTerm)
-            ? Array.Empty<LeaseResidentSearchItem>()
-            : (await _leaseLookupService.SearchResidentsAsync(context, residentSearchTerm, cancellationToken)).Residents;
+            ? Array.Empty<LeaseResidentSearchItemModel>()
+            : (await _leaseLookupService.SearchResidentsAsync(ToSearchResidentsQuery(context, residentSearchTerm), cancellationToken)).Value.Residents;
 
-        var leases = leaseList.Leases.Select(x => new UnitTenantLeaseListItemViewModel
-        {
-            LeaseId = x.LeaseId,
-            ResidentId = x.ResidentId,
-            ResidentFullName = x.ResidentFullName,
-            ResidentIdCode = x.ResidentIdCode,
-            LeaseRoleId = x.LeaseRoleId,
-            LeaseRoleLabel = x.LeaseRoleLabel,
-            StartDate = x.StartDate.ToDateTime(TimeOnly.MinValue),
-            EndDate = x.EndDate?.ToDateTime(TimeOnly.MinValue),
-            IsActive = x.IsActive,
-            Notes = x.Notes
-        }).ToList();
+        var leases = leaseList.Value.Leases.Select(_leaseMapper.ToUnitLeaseViewModel).ToList();
 
         var activeEditLeaseId = requestedEditLeaseId;
         var editLease = editOverride ?? new EditUnitLeaseViewModel();
@@ -315,7 +292,7 @@ public class TenantsController : Controller
             ErrorMessage = TempData[ErrorTempDataKey] as string,
             ActiveEditLeaseId = activeEditLeaseId,
             Leases = leases,
-            LeaseRoleOptions = roleOptions.Roles.Select(x => new UnitLeaseRoleOptionViewModel
+            LeaseRoleOptions = roleOptions.Value.Roles.Select(x => new UnitLeaseRoleOptionViewModel
             {
                 LeaseRoleId = x.LeaseRoleId,
                 Label = x.Label
@@ -333,7 +310,7 @@ public class TenantsController : Controller
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        UnitDashboardContext context,
+        UnitWorkspaceModel context,
         string title,
         CancellationToken cancellationToken)
     {
@@ -357,80 +334,165 @@ public class TenantsController : Controller
             cancellationToken);
     }
 
-    private static void ApplyCreateErrors(LeaseCommandResult result, ModelStateDictionary modelState)
+    private static void ApplyCreateErrors(IReadOnlyList<IError> errors, ModelStateDictionary modelState)
     {
-        if (result.ResidentNotFound)
+        var failure = errors.OfType<ValidationAppError>().FirstOrDefault()?.Failures.FirstOrDefault();
+        if (failure?.PropertyName == "ResidentId")
         {
-            modelState.AddModelError("AddLease.ResidentId", result.ErrorMessage ?? T("UnableToLoadResident", "Unable to load resident."));
+            modelState.AddModelError("AddLease.ResidentId", failure.ErrorMessage);
             return;
         }
 
-        if (result.UnitNotFound)
-        {
-            modelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToLoadUnit);
-            return;
-        }
-
-        if (result.InvalidLeaseRole)
-        {
-            modelState.AddModelError("AddLease.LeaseRoleId", result.ErrorMessage ?? T("InvalidLeaseRole", "Selected lease role is invalid."));
-            return;
-        }
-
-        if (result.InvalidStartDate)
-        {
-            modelState.AddModelError("AddLease.StartDate", result.ErrorMessage ?? UiText.RequiredField);
-            return;
-        }
-
-        if (result.InvalidEndDate)
-        {
-            modelState.AddModelError("AddLease.EndDate", result.ErrorMessage ?? T("InvalidEndDate", "End date must be on or after the start date."));
-            return;
-        }
-
-        if (result.DuplicateActiveLease)
-        {
-            modelState.AddModelError(string.Empty, result.ErrorMessage ?? T("DuplicateActiveLease", "An active lease for this resident already exists for the unit."));
-            return;
-        }
-
-        modelState.AddModelError(string.Empty, result.ErrorMessage ?? T("UnableToAddLease", "Unable to add lease."));
+        ApplySharedErrors(errors, modelState, "AddLease", T("UnableToAddLease", "Unable to add lease."));
     }
 
-    private static void ApplyEditErrors(LeaseCommandResult result, ModelStateDictionary modelState)
+    private static void ApplyEditErrors(IReadOnlyList<IError> errors, ModelStateDictionary modelState)
     {
-        if (result.LeaseNotFound)
+        if (errors.OfType<NotFoundError>().Any())
         {
-            modelState.AddModelError(string.Empty, result.ErrorMessage ?? T("UnableToLoadLease", "Unable to load lease."));
+            modelState.AddModelError(string.Empty, errors.First().Message);
             return;
         }
 
-        if (result.InvalidLeaseRole)
+        ApplySharedErrors(errors, modelState, "EditLease", T("UnableToUpdateLease", "Unable to update lease."));
+    }
+
+    private static void ApplySharedErrors(
+        IReadOnlyList<IError> errors,
+        ModelStateDictionary modelState,
+        string prefix,
+        string fallback)
+    {
+        var failure = errors.OfType<ValidationAppError>().FirstOrDefault()?.Failures.FirstOrDefault();
+        if (failure?.PropertyName == "LeaseRoleId")
         {
-            modelState.AddModelError("EditLease.LeaseRoleId", result.ErrorMessage ?? T("InvalidLeaseRole", "Selected lease role is invalid."));
+            modelState.AddModelError($"{prefix}.LeaseRoleId", failure.ErrorMessage);
             return;
         }
 
-        if (result.InvalidStartDate)
+        if (failure?.PropertyName == "StartDate")
         {
-            modelState.AddModelError("EditLease.StartDate", result.ErrorMessage ?? UiText.RequiredField);
+            modelState.AddModelError($"{prefix}.StartDate", failure.ErrorMessage);
             return;
         }
 
-        if (result.InvalidEndDate)
+        if (failure?.PropertyName == "EndDate")
         {
-            modelState.AddModelError("EditLease.EndDate", result.ErrorMessage ?? T("InvalidEndDate", "End date must be on or after the start date."));
+            modelState.AddModelError($"{prefix}.EndDate", failure.ErrorMessage);
             return;
         }
 
-        if (result.DuplicateActiveLease)
+        var conflict = errors.OfType<ConflictError>().FirstOrDefault();
+        if (conflict is not null)
         {
-            modelState.AddModelError(string.Empty, result.ErrorMessage ?? T("DuplicateActiveLease", "An active lease for this resident already exists for the unit."));
+            modelState.AddModelError(string.Empty, conflict.Message);
             return;
         }
 
-        modelState.AddModelError(string.Empty, result.ErrorMessage ?? T("UnableToUpdateLease", "Unable to update lease."));
+        modelState.AddModelError(string.Empty, errors.FirstOrDefault()?.Message ?? fallback);
+    }
+
+    private static CreateLeaseFromUnitCommand ToCreateCommand(
+        UnitWorkspaceModel context,
+        AddUnitLeaseViewModel vm)
+    {
+        return new CreateLeaseFromUnitCommand
+        {
+            AppUserId = context.AppUserId,
+            ManagementCompanyId = context.ManagementCompanyId,
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerId = context.CustomerId,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertyId = context.PropertyId,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
+            UnitId = context.UnitId,
+            UnitSlug = context.UnitSlug,
+            UnitNr = context.UnitNr,
+            ResidentId = vm.ResidentId!.Value,
+            LeaseRoleId = vm.LeaseRoleId!.Value,
+            StartDate = DateOnly.FromDateTime(vm.StartDate),
+            EndDate = vm.EndDate.HasValue ? DateOnly.FromDateTime(vm.EndDate.Value) : null,
+            IsActive = vm.IsActive,
+            Notes = vm.Notes
+        };
+    }
+
+    private static UpdateLeaseFromUnitCommand ToUpdateCommand(
+        UnitWorkspaceModel context,
+        Guid leaseId,
+        EditUnitLeaseViewModel vm)
+    {
+        return new UpdateLeaseFromUnitCommand
+        {
+            AppUserId = context.AppUserId,
+            ManagementCompanyId = context.ManagementCompanyId,
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerId = context.CustomerId,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertyId = context.PropertyId,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
+            UnitId = context.UnitId,
+            UnitSlug = context.UnitSlug,
+            UnitNr = context.UnitNr,
+            LeaseId = leaseId,
+            LeaseRoleId = vm.LeaseRoleId!.Value,
+            StartDate = DateOnly.FromDateTime(vm.StartDate),
+            EndDate = vm.EndDate.HasValue ? DateOnly.FromDateTime(vm.EndDate.Value) : null,
+            IsActive = vm.IsActive,
+            Notes = vm.Notes
+        };
+    }
+
+    private static DeleteLeaseFromUnitCommand ToDeleteCommand(
+        UnitWorkspaceModel context,
+        Guid leaseId)
+    {
+        return new DeleteLeaseFromUnitCommand
+        {
+            AppUserId = context.AppUserId,
+            ManagementCompanyId = context.ManagementCompanyId,
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerId = context.CustomerId,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertyId = context.PropertyId,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
+            UnitId = context.UnitId,
+            UnitSlug = context.UnitSlug,
+            UnitNr = context.UnitNr,
+            LeaseId = leaseId
+        };
+    }
+
+    private static SearchLeaseResidentsQuery ToSearchResidentsQuery(
+        UnitWorkspaceModel context,
+        string? searchTerm)
+    {
+        return new SearchLeaseResidentsQuery
+        {
+            AppUserId = context.AppUserId,
+            ManagementCompanyId = context.ManagementCompanyId,
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerId = context.CustomerId,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertyId = context.PropertyId,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
+            UnitId = context.UnitId,
+            UnitSlug = context.UnitSlug,
+            UnitNr = context.UnitNr,
+            SearchTerm = searchTerm
+        };
     }
 
     private static string T(string key, string fallback)

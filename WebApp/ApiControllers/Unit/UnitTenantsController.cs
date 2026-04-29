@@ -1,17 +1,22 @@
 using System.Net;
-using App.BLL.LeaseAssignments;
+using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Leases.Commands;
+using App.BLL.Contracts.Leases.Queries;
+using App.BLL.Contracts.Leases.Services;
 using App.BLL.Contracts.Units.Models;
 using App.BLL.Contracts.Units.Services;
-using App.BLL.UnitWorkspace.Workspace;
+using App.BLL.Mappers.Leases;
 using App.DTO.v1;
 using App.DTO.v1.Shared;
 using App.DTO.v1.Unit;
 using Asp.Versioning;
+using FluentResults;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.ApiControllers.Management;
 using WebApp.Infrastructure.Results;
+using WebApp.Mappers.Api.Leases;
 using WebApp.Mappers.Api.Units;
 
 namespace WebApp.ApiControllers.Unit;
@@ -26,17 +31,20 @@ public class UnitTenantsController : ProfileApiControllerBase
     private readonly ILeaseAssignmentService _leaseAssignmentService;
     private readonly ILeaseLookupService _leaseLookupService;
     private readonly UnitApiMapper _unitMapper;
+    private readonly LeaseApiMapper _leaseMapper;
 
     public UnitTenantsController(
         IUnitAccessService unitAccessService,
         ILeaseAssignmentService leaseAssignmentService,
         ILeaseLookupService leaseLookupService,
-        UnitApiMapper unitMapper)
+        UnitApiMapper unitMapper,
+        LeaseApiMapper leaseMapper)
     {
         _unitAccessService = unitAccessService;
         _leaseAssignmentService = leaseAssignmentService;
         _leaseLookupService = leaseLookupService;
         _unitMapper = unitMapper;
+        _leaseMapper = leaseMapper;
     }
 
     [HttpGet("tenants")]
@@ -58,14 +66,17 @@ public class UnitTenantsController : ProfileApiControllerBase
             return access.ErrorResult;
         }
 
-        var leases = await _leaseAssignmentService.ListForUnitAsync(access.Context!, cancellationToken);
+        var context = access.Context!;
+        var leases = await _leaseAssignmentService.ListForUnitAsync(
+            LeaseBllMapper.ToUnitLeasesQuery(context),
+            cancellationToken);
         var leaseRoles = await _leaseLookupService.ListLeaseRolesAsync(cancellationToken);
 
         return Ok(new UnitTenantsBootstrapResponseDto
         {
-            RouteContext = CreateRouteContext(access.Context!),
-            Leases = leases.Leases.Select(MapLease).ToList(),
-            LeaseRoles = leaseRoles.Roles.Select(MapLeaseRole).ToList()
+            RouteContext = CreateRouteContext(context),
+            Leases = leases.Value.Leases.Select(_leaseMapper.ToUnitLeaseDto).ToList(),
+            LeaseRoles = leaseRoles.Value.Roles.Select(_leaseMapper.ToLookupOptionDto).ToList()
         });
     }
 
@@ -89,10 +100,13 @@ public class UnitTenantsController : ProfileApiControllerBase
             return access.ErrorResult;
         }
 
-        var result = await _leaseLookupService.SearchResidentsAsync(access.Context!, searchTerm, cancellationToken);
+        var result = await _leaseLookupService.SearchResidentsAsync(
+            ToSearchResidentsQuery(access.Context!, searchTerm),
+            cancellationToken);
+
         return Ok(new UnitResidentSearchResponseDto
         {
-            Residents = result.Residents.Select(x => new UnitResidentSearchResultDto
+            Residents = result.Value.Residents.Select(x => new UnitResidentSearchResultDto
             {
                 ResidentId = x.ResidentId,
                 FullName = x.FullName,
@@ -130,28 +144,18 @@ public class UnitTenantsController : ProfileApiControllerBase
         }
 
         var result = await _leaseAssignmentService.CreateFromUnitAsync(
-            access.Context!,
-            new LeaseCreateRequest
-            {
-                ResidentId = dto.ResidentId!.Value,
-                UnitId = access.Context!.UnitId,
-                LeaseRoleId = dto.LeaseRoleId!.Value,
-                StartDate = dto.StartDate!.Value,
-                EndDate = dto.EndDate,
-                IsActive = dto.IsActive,
-                Notes = dto.Notes
-            },
+            ToCreateCommand(access.Context!, dto),
             cancellationToken);
 
-        if (!result.Success || result.LeaseId == null)
+        if (result.IsFailed)
         {
-            return BadRequest(CreateLeaseCommandError(result, true));
+            return BadRequest(CreateLeaseCommandError(result.Errors, true));
         }
 
         return CreatedAtAction(
             nameof(GetTenants),
             new { version = "1.0", companySlug, customerSlug, propertySlug, unitSlug },
-            new UnitLeaseCommandResponseDto { LeaseId = result.LeaseId.Value });
+            new UnitLeaseCommandResponseDto { LeaseId = result.Value.LeaseId });
     }
 
     [HttpPut("leases/{leaseId:guid}")]
@@ -183,29 +187,21 @@ public class UnitTenantsController : ProfileApiControllerBase
         }
 
         var result = await _leaseAssignmentService.UpdateFromUnitAsync(
-            access.Context!,
-            new LeaseUpdateRequest
-            {
-                LeaseId = leaseId,
-                LeaseRoleId = dto.LeaseRoleId!.Value,
-                StartDate = dto.StartDate!.Value,
-                EndDate = dto.EndDate,
-                IsActive = dto.IsActive,
-                Notes = dto.Notes
-            },
+            ToUpdateCommand(access.Context!, leaseId, dto),
             cancellationToken);
 
-        if (result.LeaseNotFound)
+        if (IsNotFound(result.Errors))
         {
-            return NotFound(CreateError(HttpStatusCode.NotFound, result.ErrorMessage ?? "Lease was not found.", ApiErrorCodes.NotFound));
+            var message = result.Errors.First().Message;
+            return NotFound(CreateError(HttpStatusCode.NotFound, message, ApiErrorCodes.NotFound));
         }
 
-        if (!result.Success || result.LeaseId == null)
+        if (result.IsFailed)
         {
-            return BadRequest(CreateLeaseCommandError(result, false));
+            return BadRequest(CreateLeaseCommandError(result.Errors, false));
         }
 
-        return Ok(new UnitLeaseCommandResponseDto { LeaseId = result.LeaseId.Value });
+        return Ok(new UnitLeaseCommandResponseDto { LeaseId = result.Value.LeaseId });
     }
 
     [HttpDelete("leases/{leaseId:guid}")]
@@ -229,24 +225,25 @@ public class UnitTenantsController : ProfileApiControllerBase
         }
 
         var result = await _leaseAssignmentService.DeleteFromUnitAsync(
-            access.Context!,
-            new LeaseDeleteRequest { LeaseId = leaseId },
+            ToDeleteCommand(access.Context!, leaseId),
             cancellationToken);
 
-        if (result.LeaseNotFound)
+        if (IsNotFound(result.Errors))
         {
-            return NotFound(CreateError(HttpStatusCode.NotFound, result.ErrorMessage ?? "Lease was not found.", ApiErrorCodes.NotFound));
+            var message = result.Errors.First().Message;
+            return NotFound(CreateError(HttpStatusCode.NotFound, message, ApiErrorCodes.NotFound));
         }
 
-        if (!result.Success)
+        if (result.IsFailed)
         {
-            return BadRequest(CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? "Unable to delete lease.", ApiErrorCodes.BusinessRuleViolation));
+            var message = result.Errors.FirstOrDefault()?.Message ?? "Unable to delete lease.";
+            return BadRequest(CreateError(HttpStatusCode.BadRequest, message, ApiErrorCodes.BusinessRuleViolation));
         }
 
         return NoContent();
     }
 
-    private async Task<(UnitDashboardContext? Context, ActionResult? ErrorResult)> ResolveUnitContextAsync(
+    private async Task<(UnitWorkspaceModel? Context, ActionResult? ErrorResult)> ResolveUnitContextAsync(
         string companySlug,
         string customerSlug,
         string propertySlug,
@@ -261,93 +258,51 @@ public class UnitTenantsController : ProfileApiControllerBase
             return (null, unitAccess.ToActionResult(_ => new UnitTenantsBootstrapResponseDto()).Result);
         }
 
-        return (ToLegacyContext(unitAccess.Value), null);
+        return (unitAccess.Value, null);
     }
 
-    private RestApiErrorResponse CreateLeaseCommandError(LeaseCommandResult result, bool isCreate)
+    private RestApiErrorResponse CreateLeaseCommandError(IReadOnlyList<IError> errors, bool isCreate)
     {
-        if (result.ResidentNotFound)
+        var validation = errors.OfType<ValidationAppError>().FirstOrDefault();
+        var failure = validation?.Failures.FirstOrDefault();
+        if (failure?.PropertyName == "ResidentId")
         {
-            return CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? "Resident was not found.", ApiErrorCodes.NotFound, (nameof(CreateUnitLeaseRequestDto.ResidentId), result.ErrorMessage ?? "Resident was not found."));
+            return CreateError(HttpStatusCode.BadRequest, failure.ErrorMessage, ApiErrorCodes.NotFound, (nameof(CreateUnitLeaseRequestDto.ResidentId), failure.ErrorMessage));
         }
 
-        if (result.UnitNotFound)
+        if (failure?.PropertyName == "LeaseRoleId")
         {
-            return CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? "Unit was not found.", ApiErrorCodes.NotFound, (string.Empty, result.ErrorMessage ?? "Unit was not found."));
+            return CreateError(HttpStatusCode.BadRequest, failure.ErrorMessage, ApiErrorCodes.ValidationFailed, ((isCreate ? nameof(CreateUnitLeaseRequestDto.LeaseRoleId) : nameof(UpdateUnitLeaseRequestDto.LeaseRoleId)), failure.ErrorMessage));
         }
 
-        if (result.InvalidLeaseRole)
+        if (failure?.PropertyName == "StartDate")
         {
-            return CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? "Lease role is invalid.", ApiErrorCodes.ValidationFailed, ((isCreate ? nameof(CreateUnitLeaseRequestDto.LeaseRoleId) : nameof(UpdateUnitLeaseRequestDto.LeaseRoleId)), result.ErrorMessage ?? "Lease role is invalid."));
+            return CreateError(HttpStatusCode.BadRequest, failure.ErrorMessage, ApiErrorCodes.ValidationFailed, ((isCreate ? nameof(CreateUnitLeaseRequestDto.StartDate) : nameof(UpdateUnitLeaseRequestDto.StartDate)), failure.ErrorMessage));
         }
 
-        if (result.InvalidStartDate)
+        if (failure?.PropertyName == "EndDate")
         {
-            return CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? "Start date is invalid.", ApiErrorCodes.ValidationFailed, ((isCreate ? nameof(CreateUnitLeaseRequestDto.StartDate) : nameof(UpdateUnitLeaseRequestDto.StartDate)), result.ErrorMessage ?? "Start date is invalid."));
+            return CreateError(HttpStatusCode.BadRequest, failure.ErrorMessage, ApiErrorCodes.ValidationFailed, ((isCreate ? nameof(CreateUnitLeaseRequestDto.EndDate) : nameof(UpdateUnitLeaseRequestDto.EndDate)), failure.ErrorMessage));
         }
 
-        if (result.InvalidEndDate)
+        var conflict = errors.OfType<ConflictError>().FirstOrDefault();
+        if (conflict is not null)
         {
-            return CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? "End date is invalid.", ApiErrorCodes.ValidationFailed, ((isCreate ? nameof(CreateUnitLeaseRequestDto.EndDate) : nameof(UpdateUnitLeaseRequestDto.EndDate)), result.ErrorMessage ?? "End date is invalid."));
+            return CreateError(HttpStatusCode.BadRequest, conflict.Message, ApiErrorCodes.Conflict);
         }
 
-        if (result.DuplicateActiveLease)
-        {
-            return CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? "An active lease for this resident already exists for the unit.", ApiErrorCodes.Conflict);
-        }
-
-        return CreateError(HttpStatusCode.BadRequest, result.ErrorMessage ?? (isCreate ? "Unable to create lease." : "Unable to update lease."), ApiErrorCodes.BusinessRuleViolation);
+        var message = errors.FirstOrDefault()?.Message ?? (isCreate ? "Unable to create lease." : "Unable to update lease.");
+        return CreateError(HttpStatusCode.BadRequest, message, ApiErrorCodes.BusinessRuleViolation);
     }
 
-    private static UnitTenantLeaseDto MapLease(UnitLeaseListItem item)
-    {
-        return new UnitTenantLeaseDto
-        {
-            LeaseId = item.LeaseId,
-            ResidentId = item.ResidentId,
-            UnitId = item.UnitId,
-            PropertyId = item.PropertyId,
-            ResidentFullName = item.ResidentFullName,
-            ResidentIdCode = item.ResidentIdCode,
-            LeaseRoleId = item.LeaseRoleId,
-            LeaseRoleCode = item.LeaseRoleCode,
-            LeaseRoleLabel = item.LeaseRoleLabel,
-            StartDate = item.StartDate,
-            EndDate = item.EndDate,
-            IsActive = item.IsActive,
-            Notes = item.Notes
-        };
-    }
+    private static bool IsNotFound(IReadOnlyList<IError> errors)
+        => errors.OfType<NotFoundError>().Any();
 
-    private static LookupOptionDto MapLeaseRole(LeaseRoleOption option)
+    private static CreateLeaseFromUnitCommand ToCreateCommand(
+        UnitWorkspaceModel context,
+        CreateUnitLeaseRequestDto dto)
     {
-        return new LookupOptionDto
-        {
-            Id = option.LeaseRoleId,
-            Code = option.Code,
-            Label = option.Label
-        };
-    }
-
-    private static ApiRouteContextDto CreateRouteContext(UnitDashboardContext context)
-    {
-        return new ApiRouteContextDto
-        {
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerSlug = context.CustomerSlug,
-            CustomerName = context.CustomerName,
-            PropertySlug = context.PropertySlug,
-            PropertyName = context.PropertyName,
-            UnitSlug = context.UnitSlug,
-            UnitName = context.UnitNr,
-            CurrentSection = "unit-tenants"
-        };
-    }
-
-    private static UnitDashboardContext ToLegacyContext(UnitWorkspaceModel context)
-    {
-        return new UnitDashboardContext
+        return new CreateLeaseFromUnitCommand
         {
             AppUserId = context.AppUserId,
             ManagementCompanyId = context.ManagementCompanyId,
@@ -361,7 +316,104 @@ public class UnitTenantsController : ProfileApiControllerBase
             PropertyName = context.PropertyName,
             UnitId = context.UnitId,
             UnitSlug = context.UnitSlug,
-            UnitNr = context.UnitNr
+            UnitNr = context.UnitNr,
+            ResidentId = dto.ResidentId!.Value,
+            LeaseRoleId = dto.LeaseRoleId!.Value,
+            StartDate = dto.StartDate!.Value,
+            EndDate = dto.EndDate,
+            IsActive = dto.IsActive,
+            Notes = dto.Notes
+        };
+    }
+
+    private static UpdateLeaseFromUnitCommand ToUpdateCommand(
+        UnitWorkspaceModel context,
+        Guid leaseId,
+        UpdateUnitLeaseRequestDto dto)
+    {
+        return new UpdateLeaseFromUnitCommand
+        {
+            AppUserId = context.AppUserId,
+            ManagementCompanyId = context.ManagementCompanyId,
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerId = context.CustomerId,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertyId = context.PropertyId,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
+            UnitId = context.UnitId,
+            UnitSlug = context.UnitSlug,
+            UnitNr = context.UnitNr,
+            LeaseId = leaseId,
+            LeaseRoleId = dto.LeaseRoleId!.Value,
+            StartDate = dto.StartDate!.Value,
+            EndDate = dto.EndDate,
+            IsActive = dto.IsActive,
+            Notes = dto.Notes
+        };
+    }
+
+    private static DeleteLeaseFromUnitCommand ToDeleteCommand(
+        UnitWorkspaceModel context,
+        Guid leaseId)
+    {
+        return new DeleteLeaseFromUnitCommand
+        {
+            AppUserId = context.AppUserId,
+            ManagementCompanyId = context.ManagementCompanyId,
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerId = context.CustomerId,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertyId = context.PropertyId,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
+            UnitId = context.UnitId,
+            UnitSlug = context.UnitSlug,
+            UnitNr = context.UnitNr,
+            LeaseId = leaseId
+        };
+    }
+
+    private static SearchLeaseResidentsQuery ToSearchResidentsQuery(
+        UnitWorkspaceModel context,
+        string? searchTerm)
+    {
+        return new SearchLeaseResidentsQuery
+        {
+            AppUserId = context.AppUserId,
+            ManagementCompanyId = context.ManagementCompanyId,
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerId = context.CustomerId,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertyId = context.PropertyId,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
+            UnitId = context.UnitId,
+            UnitSlug = context.UnitSlug,
+            UnitNr = context.UnitNr,
+            SearchTerm = searchTerm
+        };
+    }
+
+    private static ApiRouteContextDto CreateRouteContext(UnitWorkspaceModel context)
+    {
+        return new ApiRouteContextDto
+        {
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
+            UnitSlug = context.UnitSlug,
+            UnitName = context.UnitNr,
+            CurrentSection = "unit-tenants"
         };
     }
 }
