@@ -1,162 +1,101 @@
-using App.BLL.Onboarding.Account;
-using App.DAL.EF;
-using Microsoft.EntityFrameworkCore;
+using App.BLL.Contracts.Onboarding.Models;
+using App.BLL.Contracts.Onboarding.Services;
+using App.Contracts;
+using FluentResults;
 
 namespace App.BLL.Onboarding.Api;
 
-public interface IApiOnboardingContextService
-{
-    Task<ApiOnboardingContextCatalogResult> GetContextsAsync(Guid appUserId, CancellationToken cancellationToken = default);
-}
-
-public sealed class ApiOnboardingContextCatalogResult
-{
-    public IReadOnlyList<ApiOnboardingContextEntry> Contexts { get; init; } = Array.Empty<ApiOnboardingContextEntry>();
-    public ApiOnboardingContextEntry? DefaultContext { get; init; }
-}
-
-public sealed class ApiOnboardingContextEntry
-{
-    public string ContextType { get; init; } = string.Empty;
-    public string Label { get; init; } = string.Empty;
-    public bool IsDefault { get; init; }
-    public string? CompanySlug { get; init; }
-    public string? CompanyName { get; init; }
-    public Guid? CustomerId { get; init; }
-    public string? CustomerName { get; init; }
-    public string? ResidentDisplayName { get; init; }
-}
-
 public sealed class ApiWorkspaceContextService : IApiOnboardingContextService
 {
-    private readonly AppDbContext _dbContext;
+    private readonly IAppUOW _uow;
     private readonly IAccountOnboardingService _accountOnboardingService;
 
-    public ApiWorkspaceContextService(AppDbContext dbContext, IAccountOnboardingService accountOnboardingService)
+    public ApiWorkspaceContextService(IAppUOW uow, IAccountOnboardingService accountOnboardingService)
     {
-        _dbContext = dbContext;
+        _uow = uow;
         _accountOnboardingService = accountOnboardingService;
     }
 
-    public async Task<ApiOnboardingContextCatalogResult> GetContextsAsync(Guid appUserId, CancellationToken cancellationToken = default)
+    public async Task<Result<ApiOnboardingContextCatalogModel>> GetContextsAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
     {
-        var contexts = new List<ApiOnboardingContextEntry>();
-        var defaultManagementCompanySlug = await _accountOnboardingService.GetDefaultManagementCompanySlugAsync(appUserId);
+        var contexts = new List<ApiOnboardingContextModel>();
+        var defaultManagementCompanySlug = await _accountOnboardingService.GetDefaultManagementCompanySlugAsync(
+            appUserId,
+            cancellationToken);
 
-        var managementContexts = await _dbContext.ManagementCompanyUsers
-            .Where(x => x.AppUserId == appUserId
-                        && x.IsActive
-                        && x.ManagementCompany != null
-                        && x.ManagementCompany.IsActive)
-            .Select(x => new
-            {
-                x.ManagementCompanyId,
-                x.ManagementCompany!.Slug,
-                x.ManagementCompany.Name
-            })
-            .Distinct()
-            .OrderBy(x => x.Name)
-            .ToListAsync(cancellationToken);
-
-        contexts.AddRange(managementContexts.Select(company => new ApiOnboardingContextEntry
+        var managementContexts = await _uow.ManagementCompanies.ActiveUserManagementContextsAsync(
+            appUserId,
+            cancellationToken);
+        contexts.AddRange(managementContexts.Select(company => new ApiOnboardingContextModel
         {
             ContextType = "management",
-            Label = company.Name,
+            Label = company.CompanyName,
             IsDefault = string.Equals(company.Slug, defaultManagementCompanySlug, StringComparison.OrdinalIgnoreCase),
             CompanySlug = company.Slug,
-            CompanyName = company.Name
+            CompanyName = company.CompanyName
         }));
 
-        var customerContexts = await (
-                from residentUser in _dbContext.ResidentUsers
-                join customerRepresentative in _dbContext.CustomerRepresentatives
-                    on residentUser.ResidentId equals customerRepresentative.ResidentId
-                join customer in _dbContext.Customers
-                    on customerRepresentative.CustomerId equals customer.Id
-                where residentUser.AppUserId == appUserId
-                      && residentUser.IsActive
-                      && customerRepresentative.IsActive
-                      && customer.IsActive
-                select new
-                {
-                    customer.Id,
-                    customer.Name
-                })
-            .Distinct()
-            .OrderBy(x => x.Name)
-            .ToListAsync(cancellationToken);
-
-        contexts.AddRange(customerContexts.Select(customer => new ApiOnboardingContextEntry
+        var customerContexts = await _uow.Customers.ActiveUserCustomerContextsAsync(
+            appUserId,
+            cancellationToken);
+        contexts.AddRange(customerContexts.Select(customer => new ApiOnboardingContextModel
         {
             ContextType = "customer",
             Label = customer.Name,
-            CustomerId = customer.Id,
+            CustomerId = customer.CustomerId,
             CustomerName = customer.Name
         }));
 
-        var residentContext = await (
-                from residentUser in _dbContext.ResidentUsers
-                join resident in _dbContext.Residents on residentUser.ResidentId equals resident.Id
-                where residentUser.AppUserId == appUserId
-                      && residentUser.IsActive
-                      && resident.IsActive
-                select new
-                {
-                    resident.FirstName,
-                    resident.LastName,
-                    resident.IdCode
-                })
-            .FirstOrDefaultAsync(cancellationToken);
-
+        var residentContext = await _uow.Residents.FirstActiveUserResidentContextAsync(
+            appUserId,
+            cancellationToken);
         if (residentContext != null)
         {
-            var residentDisplayName = string.Join(" ", new[] { residentContext.FirstName, residentContext.LastName }
-                .Where(x => !string.IsNullOrWhiteSpace(x)));
-            if (string.IsNullOrWhiteSpace(residentDisplayName))
-            {
-                residentDisplayName = residentContext.IdCode;
-            }
-
-            contexts.Add(new ApiOnboardingContextEntry
+            contexts.Add(new ApiOnboardingContextModel
             {
                 ContextType = "resident",
-                Label = residentDisplayName,
-                ResidentDisplayName = residentDisplayName
+                Label = residentContext.DisplayName,
+                ResidentDisplayName = residentContext.DisplayName
             });
         }
 
-        var defaultContext = contexts.FirstOrDefault(x => x.IsDefault)
-                             ?? contexts.FirstOrDefault(x => x.ContextType == "resident")
-                             ?? contexts.FirstOrDefault(x => x.ContextType == "customer");
+        var defaultContext = contexts.FirstOrDefault(context => context.IsDefault)
+                             ?? contexts.FirstOrDefault(context => context.ContextType == "resident")
+                             ?? contexts.FirstOrDefault(context => context.ContextType == "customer");
 
         if (defaultContext != null)
         {
             contexts = contexts
-                .Select(x => new ApiOnboardingContextEntry
+                .Select(context => new ApiOnboardingContextModel
                 {
-                    ContextType = x.ContextType,
-                    Label = x.Label,
-                    IsDefault = AreSameContext(x, defaultContext),
-                    CompanySlug = x.CompanySlug,
-                    CompanyName = x.CompanyName,
-                    CustomerId = x.CustomerId,
-                    CustomerName = x.CustomerName,
-                    ResidentDisplayName = x.ResidentDisplayName
+                    ContextType = context.ContextType,
+                    Label = context.Label,
+                    IsDefault = AreSameContext(context, defaultContext),
+                    CompanySlug = context.CompanySlug,
+                    CompanyName = context.CompanyName,
+                    CustomerId = context.CustomerId,
+                    CustomerName = context.CustomerName,
+                    ResidentDisplayName = context.ResidentDisplayName
                 })
                 .ToList();
-            defaultContext = contexts.First(x => x.IsDefault);
+            defaultContext = contexts.First(context => context.IsDefault);
         }
 
-        return new ApiOnboardingContextCatalogResult
+        return Result.Ok(new ApiOnboardingContextCatalogModel
         {
             Contexts = contexts,
             DefaultContext = defaultContext
-        };
+        });
     }
 
-    private static bool AreSameContext(ApiOnboardingContextEntry left, ApiOnboardingContextEntry right)
+    private static bool AreSameContext(ApiOnboardingContextModel left, ApiOnboardingContextModel right)
     {
-        if (!string.Equals(left.ContextType, right.ContextType, StringComparison.Ordinal)) return false;
+        if (!string.Equals(left.ContextType, right.ContextType, StringComparison.Ordinal))
+        {
+            return false;
+        }
 
         return left.ContextType switch
         {

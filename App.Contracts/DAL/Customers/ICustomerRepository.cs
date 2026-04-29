@@ -30,6 +30,15 @@ public interface ICustomerRepository : IBaseRepository<CustomerDalDto>
         string customerSlug,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<CustomerUserContextDalDto>> ActiveUserCustomerContextsAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> ActiveUserCustomerContextExistsAsync(
+        Guid appUserId,
+        Guid customerId,
+        CancellationToken cancellationToken = default);
+
     Task<CustomerProfileDalDto?> FirstProfileByCompanyAndSlugAsync(
         string companySlug,
         string customerSlug,

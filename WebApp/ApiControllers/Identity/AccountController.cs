@@ -1,8 +1,7 @@
 using App.DTO.v1;
 using App.DTO.v1.Identity;
 using App.DTO.v1.Onboarding;
-using App.BLL.Onboarding;
-using App.BLL.Onboarding.Api;
+using App.BLL.Contracts.Onboarding.Services;
 using Base.Helpers;
 
 namespace WebApp.ApiControllers.Identity;
@@ -422,7 +421,7 @@ public class AccountController : ControllerBase
             RefreshToken = refreshToken,
             Email = appUser.Email ?? string.Empty,
             Roles = roles.ToArray(),
-            Onboarding = _routeContextMapper.MapCatalog(onboardingContexts)
+            Onboarding = _routeContextMapper.MapCatalog(onboardingContexts.Value)
         };
     }
 }

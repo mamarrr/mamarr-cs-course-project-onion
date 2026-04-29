@@ -1,15 +1,16 @@
-using App.BLL.Onboarding;
 using App.Domain.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using App.BLL.Contracts.ManagementCompanies.Models;
 using App.BLL.Contracts.ManagementCompanies.Services;
-using App.BLL.Onboarding.Account;
-using App.BLL.Onboarding.CompanyJoinRequests;
-using App.BLL.Onboarding.ContextSelection;
+using App.BLL.Contracts.Onboarding.Commands;
+using App.BLL.Contracts.Onboarding.Models;
+using App.BLL.Contracts.Onboarding.Queries;
+using App.BLL.Contracts.Onboarding.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Mvc.Onboarding;
 using WebApp.ViewModels.Onboarding;
 
 namespace WebApp.Controllers;
@@ -18,16 +19,18 @@ public class OnboardingController : Controller
 {
     private readonly IAccountOnboardingService _accountOnboardingService;
     private readonly IWorkspaceRedirectService _workspaceRedirectService;
-    private readonly ICompanyJoinRequestService _joinRequestService;
+    private readonly IOnboardingCompanyJoinRequestService _joinRequestService;
     private readonly ICompanyMembershipAdminService _companyMembershipAdminService;
+    private readonly OnboardingViewModelMapper _mapper;
     private readonly UserManager<AppUser> _userManager;
     private readonly ILogger<OnboardingController> _logger;
 
     public OnboardingController(
         IAccountOnboardingService accountOnboardingService,
         IWorkspaceRedirectService workspaceRedirectService,
-        ICompanyJoinRequestService joinRequestService,
+        IOnboardingCompanyJoinRequestService joinRequestService,
         ICompanyMembershipAdminService companyMembershipAdminService,
+        OnboardingViewModelMapper mapper,
         UserManager<AppUser> userManager,
         ILogger<OnboardingController> logger)
     {
@@ -35,6 +38,7 @@ public class OnboardingController : Controller
         _workspaceRedirectService = workspaceRedirectService;
         _joinRequestService = joinRequestService;
         _companyMembershipAdminService = companyMembershipAdminService;
+        _mapper = mapper;
         _userManager = userManager;
         _logger = logger;
     }
@@ -105,20 +109,13 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _accountOnboardingService.RegisterAsync(new AccountRegisterRequest
-        {
-            Email = vm.Email,
-            Password = vm.Password,
-            FirstName = vm.FirstName,
-            LastName = vm.LastName
-        });
+        var result = await _accountOnboardingService.RegisterAsync(
+            _mapper.Map(vm),
+            HttpContext.RequestAborted);
 
-        if (!result.Succeeded)
+        if (result.IsFailed)
         {
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error);
-            }
+            _mapper.AddErrors(ModelState, result);
 
             return View(vm);
         }
@@ -156,14 +153,11 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _accountOnboardingService.LoginAsync(new AccountLoginRequest
-        {
-            Email = vm.Email,
-            Password = vm.Password,
-            RememberMe = vm.RememberMe
-        });
+        var result = await _accountOnboardingService.LoginAsync(
+            _mapper.Map(vm),
+            HttpContext.RequestAborted);
 
-        if (!result.Succeeded)
+        if (result.IsFailed)
         {
             ModelState.AddModelError(string.Empty, App.Resources.Views.UiText.InvalidEmailOrPassword);
             return View(vm);
@@ -195,7 +189,9 @@ public class OnboardingController : Controller
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            await _accountOnboardingService.LogoutAsync();
+            await _accountOnboardingService.LogoutAsync(
+                new LogoutCommand(),
+                HttpContext.RequestAborted);
         }
 
         return RedirectToAction(nameof(Index));
@@ -221,24 +217,27 @@ public class OnboardingController : Controller
         };
 
         var authorizationResult = await _workspaceRedirectService.AuthorizeContextSelectionAsync(
-            appUser.Id,
-            type,
-            id,
+            new AuthorizeContextSelectionQuery
+            {
+                AppUserId = appUser.Id,
+                ContextType = type,
+                ContextId = id
+            },
             HttpContext.RequestAborted);
 
-        if (authorizationResult.Authorized)
+        if (authorizationResult.IsSuccess && authorizationResult.Value.Authorized)
         {
-            switch (authorizationResult.NormalizedType)
+            switch (authorizationResult.Value.NormalizedType)
             {
                 case "management":
                 Response.Cookies.Append("ctx.type", "management", cookieOptions);
-                Response.Cookies.Append("ctx.management.company", authorizationResult.ManagementCompanyId!.Value.ToString(), cookieOptions);
-                Response.Cookies.Append("ctx.management.slug", authorizationResult.ManagementCompanySlug!, cookieOptions);
-                return RedirectToManagementDashboard(authorizationResult.ManagementCompanySlug!);
+                Response.Cookies.Append("ctx.management.company", authorizationResult.Value.ManagementCompanyId!.Value.ToString(), cookieOptions);
+                Response.Cookies.Append("ctx.management.slug", authorizationResult.Value.ManagementCompanySlug!, cookieOptions);
+                return RedirectToManagementDashboard(authorizationResult.Value.ManagementCompanySlug!);
 
                 case "customer":
                 Response.Cookies.Append("ctx.type", "customer", cookieOptions);
-                Response.Cookies.Append("ctx.customer.id", authorizationResult.CustomerId!.Value.ToString(), cookieOptions);
+                Response.Cookies.Append("ctx.customer.id", authorizationResult.Value.CustomerId!.Value.ToString(), cookieOptions);
                 return RedirectToAction("Index", "Dashboard", new { area = "Customer" });
 
                 case "resident":
@@ -289,32 +288,22 @@ public class OnboardingController : Controller
             return RedirectToAction(nameof(Login));
         }
 
-        var result = await _accountOnboardingService.CreateManagementCompanyAsync(new CreateManagementCompanyRequest
-        {
-            AppUserId = appUser.Id,
-            Name = vm.Name,
-            RegistryCode = vm.RegistryCode,
-            VatNumber = vm.VatNumber,
-            Email = vm.Email,
-            Phone = vm.Phone,
-            Address = vm.Address
-        });
+        var result = await _accountOnboardingService.CreateManagementCompanyAsync(
+            _mapper.Map(appUser.Id, vm),
+            HttpContext.RequestAborted);
 
-        if (!result.Succeeded)
+        if (result.IsFailed)
         {
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error);
-            }
+            _mapper.AddErrors(ModelState, result);
 
             return View(vm);
         }
 
         Response.Cookies.Append("ctx.type", "management", CreateContextCookieOptions());
-        Response.Cookies.Append("ctx.management.company", result.ManagementCompanyId!.Value.ToString(), CreateContextCookieOptions());
-        Response.Cookies.Append("ctx.management.slug", result.ManagementCompanySlug!, CreateContextCookieOptions());
+        Response.Cookies.Append("ctx.management.company", result.Value.ManagementCompanyId.ToString(), CreateContextCookieOptions());
+        Response.Cookies.Append("ctx.management.slug", result.Value.ManagementCompanySlug, CreateContextCookieOptions());
 
-        return RedirectToManagementDashboard(result.ManagementCompanySlug!);
+        return RedirectToManagementDashboard(result.Value.ManagementCompanySlug);
     }
 
     [Authorize]
@@ -353,17 +342,15 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _joinRequestService.CreateJoinRequestAsync(new CompanyJoinRequest
-        {
-            AppUserId = appUser.Id,
-            RegistryCode = vm.RegistryCode,
-            RequestedRoleId = vm.RequestedRoleId.Value,
-            Message = vm.Message
-        }, cancellationToken);
+        var result = await _joinRequestService.CreateJoinRequestAsync(
+            _mapper.Map(appUser.Id, vm),
+            cancellationToken);
 
-        if (!result.Success)
+        if (result.IsFailed)
         {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? App.Resources.Views.UiText.UnableToSubmitJoinRequest);
+            ModelState.AddModelError(
+                string.Empty,
+                result.Errors.FirstOrDefault()?.Message ?? App.Resources.Views.UiText.UnableToSubmitJoinRequest);
             vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RequestedRoleId);
             ViewData["Title"] = vm.Title;
             return View(vm);
@@ -392,25 +379,28 @@ public class OnboardingController : Controller
         }
 
         var redirectTarget = await _workspaceRedirectService.ResolveContextRedirectAsync(
-            appUserId,
-            new WorkspaceRedirectCookieState
+            new ResolveWorkspaceRedirectQuery
             {
-                ContextType = selectedContextType,
-                ManagementCompanySlug = Request.Cookies["ctx.management.slug"],
-                CustomerId = Request.Cookies["ctx.customer.id"]
+                AppUserId = appUserId,
+                CookieState = new WorkspaceRedirectCookieState
+                {
+                    ContextType = selectedContextType,
+                    ManagementCompanySlug = Request.Cookies["ctx.management.slug"],
+                    CustomerId = Request.Cookies["ctx.customer.id"]
+                }
             },
             cancellationToken);
 
-        if (redirectTarget == null)
+        if (redirectTarget.IsFailed || redirectTarget.Value == null)
         {
             return null;
         }
 
-        return redirectTarget.Destination switch
+        return redirectTarget.Value.Destination switch
         {
             WorkspaceRedirectDestination.Home => RedirectToAction("Index", "Home"),
-            WorkspaceRedirectDestination.ManagementDashboard when !string.IsNullOrWhiteSpace(redirectTarget.CompanySlug)
-                => RedirectToManagementDashboard(redirectTarget.CompanySlug!),
+            WorkspaceRedirectDestination.ManagementDashboard when !string.IsNullOrWhiteSpace(redirectTarget.Value.CompanySlug)
+                => RedirectToManagementDashboard(redirectTarget.Value.CompanySlug!),
             WorkspaceRedirectDestination.CustomerDashboard => RedirectToAction("Index", "Dashboard", new { area = "Customer" }),
             WorkspaceRedirectDestination.ResidentDashboard => RedirectToAction("Index", "Dashboard", new { area = "Resident" }),
             _ => null

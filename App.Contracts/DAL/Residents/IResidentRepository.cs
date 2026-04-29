@@ -18,6 +18,14 @@ public interface IResidentRepository : IBaseRepository<ResidentDalDto>
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
+    Task<ResidentUserContextDalDto?> FirstActiveUserResidentContextAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> HasActiveUserResidentContextAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default);
+
     Task<bool> IdCodeExistsForCompanyAsync(
         Guid managementCompanyId,
         string idCode,

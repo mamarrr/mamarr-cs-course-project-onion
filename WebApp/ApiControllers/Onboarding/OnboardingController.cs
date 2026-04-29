@@ -1,7 +1,6 @@
 using System.Net;
-using App.BLL.Onboarding;
-using App.BLL.Onboarding.Account;
-using App.BLL.Onboarding.Api;
+using App.BLL.Contracts.Onboarding.Commands;
+using App.BLL.Contracts.Onboarding.Services;
 using App.DTO.v1;
 using App.DTO.v1.Onboarding;
 using App.DTO.v1.Shared;
@@ -51,7 +50,7 @@ public class OnboardingController : ControllerBase
         }
 
         var catalog = await _apiOnboardingContextService.GetContextsAsync(appUser.Id, cancellationToken);
-        var response = _routeContextMapper.MapCatalog(catalog);
+        var response = _routeContextMapper.MapCatalog(catalog.Value);
 
         return Ok(response);
     }
@@ -76,7 +75,7 @@ public class OnboardingController : ControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _accountOnboardingService.CreateManagementCompanyAsync(new CreateManagementCompanyRequest
+        var result = await _accountOnboardingService.CreateManagementCompanyAsync(new CreateManagementCompanyCommand
         {
             AppUserId = appUser.Id,
             Name = dto.Name,
@@ -87,22 +86,22 @@ public class OnboardingController : ControllerBase
             Address = dto.Address
         });
 
-        if (!result.Succeeded || result.ManagementCompanyId == null || string.IsNullOrWhiteSpace(result.ManagementCompanySlug))
+        if (result.IsFailed)
         {
             return BadRequest(CreateError(
                 HttpStatusCode.BadRequest,
-                result.Errors.FirstOrDefault() ?? "Unable to create management company.",
-                result.Errors.Any(x => x.Contains("already exists", StringComparison.OrdinalIgnoreCase))
+                result.Errors.FirstOrDefault()?.Message ?? "Unable to create management company.",
+                result.Errors.Any(x => x.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase))
                     ? ApiErrorCodes.Duplicate
                     : ApiErrorCodes.BusinessRuleViolation,
-                result.Errors));
+                result.Errors.Select(error => error.Message)));
         }
 
         var response = new CreateManagementCompanyResponseDto
         {
-            ManagementCompanyId = result.ManagementCompanyId.Value,
-            ManagementCompanySlug = result.ManagementCompanySlug,
-            RouteContext = _routeContextMapper.CreateManagementCompanyRouteContext(result.ManagementCompanySlug, dto.Name.Trim())
+            ManagementCompanyId = result.Value.ManagementCompanyId,
+            ManagementCompanySlug = result.Value.ManagementCompanySlug,
+            RouteContext = _routeContextMapper.CreateManagementCompanyRouteContext(result.Value.ManagementCompanySlug, dto.Name.Trim())
         };
 
         return CreatedAtAction(nameof(GetContexts), new { version = "1.0" }, response);

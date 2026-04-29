@@ -1,188 +1,220 @@
-using App.BLL.Onboarding.Account;
-using App.DAL.EF;
-using Microsoft.EntityFrameworkCore;
+using App.BLL.Contracts.Onboarding.Commands;
+using App.BLL.Contracts.Onboarding.Models;
+using App.BLL.Contracts.Onboarding.Queries;
+using App.BLL.Contracts.Onboarding.Services;
+using App.Contracts;
+using FluentResults;
 
 namespace App.BLL.Onboarding.ContextSelection;
 
-public class WorkspaceRedirectService : IWorkspaceRedirectService
+public sealed class WorkspaceRedirectService : IWorkspaceRedirectService, IContextSelectionService
 {
-    private readonly AppDbContext _dbContext;
+    private readonly IAppUOW _uow;
     private readonly IAccountOnboardingService _accountOnboardingService;
+    private readonly IWorkspaceCatalogService _workspaceCatalogService;
 
-    public WorkspaceRedirectService(AppDbContext dbContext, IAccountOnboardingService accountOnboardingService)
+    public WorkspaceRedirectService(
+        IAppUOW uow,
+        IAccountOnboardingService accountOnboardingService,
+        IWorkspaceCatalogService workspaceCatalogService)
     {
-        _dbContext = dbContext;
+        _uow = uow;
         _accountOnboardingService = accountOnboardingService;
+        _workspaceCatalogService = workspaceCatalogService;
     }
 
-    public async Task<WorkspaceRedirectTarget?> ResolveContextRedirectAsync(
-        Guid appUserId,
-        WorkspaceRedirectCookieState cookieState,
+    public async Task<Result<WorkspaceRedirectModel?>> ResolveContextRedirectAsync(
+        ResolveWorkspaceRedirectQuery query,
         CancellationToken cancellationToken = default)
     {
+        var cookieState = query.CookieState;
+
         if (cookieState.ContextType == "management" && !string.IsNullOrWhiteSpace(cookieState.ManagementCompanySlug))
         {
             var hasSelectedManagementAccess = await _accountOnboardingService.UserHasManagementCompanyAccessAsync(
-                appUserId,
-                cookieState.ManagementCompanySlug);
+                query.AppUserId,
+                cookieState.ManagementCompanySlug,
+                cancellationToken);
             if (hasSelectedManagementAccess)
             {
-                return new WorkspaceRedirectTarget
+                return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
                 {
                     Destination = WorkspaceRedirectDestination.ManagementDashboard,
                     CompanySlug = cookieState.ManagementCompanySlug
-                };
+                });
             }
         }
 
         if (cookieState.ContextType == "resident")
         {
-            var hasSelectedResidentContext = await _dbContext.ResidentUsers
-                .AnyAsync(x => x.AppUserId == appUserId && x.IsActive, cancellationToken);
+            var hasSelectedResidentContext = await _uow.Residents.HasActiveUserResidentContextAsync(
+                query.AppUserId,
+                cancellationToken);
             if (hasSelectedResidentContext)
             {
-                return new WorkspaceRedirectTarget
+                return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
                 {
                     Destination = WorkspaceRedirectDestination.ResidentDashboard
-                };
+                });
             }
         }
 
         if (cookieState.ContextType == "customer" && Guid.TryParse(cookieState.CustomerId, out var selectedCustomerId))
         {
-            var hasSelectedCustomerContext = await (
-                    from residentUser in _dbContext.ResidentUsers
-                    join customerRepresentative in _dbContext.CustomerRepresentatives
-                        on residentUser.ResidentId equals customerRepresentative.ResidentId
-                    where residentUser.AppUserId == appUserId
-                          && residentUser.IsActive
-                          && customerRepresentative.IsActive
-                          && customerRepresentative.CustomerId == selectedCustomerId
-                    select customerRepresentative.Id)
-                .AnyAsync(cancellationToken);
+            var hasSelectedCustomerContext = await _uow.Customers.ActiveUserCustomerContextExistsAsync(
+                query.AppUserId,
+                selectedCustomerId,
+                cancellationToken);
             if (hasSelectedCustomerContext)
             {
-                return new WorkspaceRedirectTarget
+                return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
                 {
                     Destination = WorkspaceRedirectDestination.CustomerDashboard
-                };
+                });
             }
         }
 
-        var defaultManagementCompanySlug = await _accountOnboardingService.GetDefaultManagementCompanySlugAsync(appUserId);
+        var defaultManagementCompanySlug = await _accountOnboardingService.GetDefaultManagementCompanySlugAsync(
+            query.AppUserId,
+            cancellationToken);
         if (!string.IsNullOrWhiteSpace(defaultManagementCompanySlug))
         {
-            return new WorkspaceRedirectTarget
+            return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
             {
                 Destination = WorkspaceRedirectDestination.ManagementDashboard,
                 CompanySlug = defaultManagementCompanySlug
-            };
+            });
         }
 
-        var hasResidentContext = await _dbContext.ResidentUsers
-            .AnyAsync(x => x.AppUserId == appUserId && x.IsActive, cancellationToken);
+        var hasResidentContext = await _uow.Residents.HasActiveUserResidentContextAsync(
+            query.AppUserId,
+            cancellationToken);
         if (hasResidentContext)
         {
-            return new WorkspaceRedirectTarget
+            return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
             {
                 Destination = WorkspaceRedirectDestination.ResidentDashboard
-            };
+            });
         }
 
-        var hasCustomerContext = await (
-                from residentUser in _dbContext.ResidentUsers
-                join customerRepresentative in _dbContext.CustomerRepresentatives
-                    on residentUser.ResidentId equals customerRepresentative.ResidentId
-                where residentUser.AppUserId == appUserId
-                      && residentUser.IsActive
-                      && customerRepresentative.IsActive
-                select customerRepresentative.Id)
-            .AnyAsync(cancellationToken);
+        var hasCustomerContext = (await _uow.Customers.ActiveUserCustomerContextsAsync(
+            query.AppUserId,
+            cancellationToken)).Count > 0;
         if (hasCustomerContext)
         {
-            return new WorkspaceRedirectTarget
+            return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
             {
                 Destination = WorkspaceRedirectDestination.CustomerDashboard
-            };
+            });
         }
 
-        return null;
+        return Result.Ok<WorkspaceRedirectModel?>(null);
     }
 
-    public async Task<WorkspaceRedirectAuthorizationResult> AuthorizeContextSelectionAsync(
-        Guid appUserId,
-        string contextType,
-        Guid? contextId,
+    public async Task<Result<WorkspaceSelectionAuthorizationModel>> AuthorizeContextSelectionAsync(
+        AuthorizeContextSelectionQuery query,
         CancellationToken cancellationToken = default)
     {
-        var normalizedType = contextType.Trim().ToLowerInvariant();
+        var normalizedType = query.ContextType.Trim().ToLowerInvariant();
 
         switch (normalizedType)
         {
             case "management":
-                if (!contextId.HasValue)
+                if (!query.ContextId.HasValue)
                 {
-                    return new WorkspaceRedirectAuthorizationResult { Authorized = false, NormalizedType = normalizedType };
+                    return Result.Ok(new WorkspaceSelectionAuthorizationModel
+                    {
+                        Authorized = false,
+                        NormalizedType = normalizedType
+                    });
                 }
 
-                var managementCompany = await _dbContext.ManagementCompanyUsers
-                    .Where(x => x.AppUserId == appUserId && x.IsActive && x.ManagementCompanyId == contextId.Value)
-                    .Select(x => new { x.ManagementCompanyId, x.ManagementCompany!.Slug })
-                    .FirstOrDefaultAsync(cancellationToken);
+                var managementCompany = await _uow.ManagementCompanies.ActiveUserManagementContextByCompanyIdAsync(
+                    query.AppUserId,
+                    query.ContextId.Value,
+                    cancellationToken);
 
                 if (managementCompany == null)
                 {
-                    return new WorkspaceRedirectAuthorizationResult { Authorized = false, NormalizedType = normalizedType };
+                    return Result.Ok(new WorkspaceSelectionAuthorizationModel
+                    {
+                        Authorized = false,
+                        NormalizedType = normalizedType
+                    });
                 }
 
-                return new WorkspaceRedirectAuthorizationResult
+                return Result.Ok(new WorkspaceSelectionAuthorizationModel
                 {
                     Authorized = true,
                     NormalizedType = normalizedType,
                     ManagementCompanyId = managementCompany.ManagementCompanyId,
                     ManagementCompanySlug = managementCompany.Slug
-                };
+                });
 
             case "customer":
-                if (!contextId.HasValue)
+                if (!query.ContextId.HasValue)
                 {
-                    return new WorkspaceRedirectAuthorizationResult { Authorized = false, NormalizedType = normalizedType };
+                    return Result.Ok(new WorkspaceSelectionAuthorizationModel
+                    {
+                        Authorized = false,
+                        NormalizedType = normalizedType
+                    });
                 }
 
-                var hasCustomerContext = await (
-                        from residentUser in _dbContext.ResidentUsers
-                        join customerRepresentative in _dbContext.CustomerRepresentatives
-                            on residentUser.ResidentId equals customerRepresentative.ResidentId
-                        where residentUser.AppUserId == appUserId
-                              && residentUser.IsActive
-                              && customerRepresentative.IsActive
-                              && customerRepresentative.CustomerId == contextId.Value
-                        select customerRepresentative.Id)
-                    .AnyAsync(cancellationToken);
+                var hasCustomerContext = await _uow.Customers.ActiveUserCustomerContextExistsAsync(
+                    query.AppUserId,
+                    query.ContextId.Value,
+                    cancellationToken);
 
-                return new WorkspaceRedirectAuthorizationResult
+                return Result.Ok(new WorkspaceSelectionAuthorizationModel
                 {
                     Authorized = hasCustomerContext,
                     NormalizedType = normalizedType,
-                    CustomerId = hasCustomerContext ? contextId : null
-                };
+                    CustomerId = hasCustomerContext ? query.ContextId : null
+                });
 
             case "resident":
-                var hasResidentContext = await _dbContext.ResidentUsers
-                    .AnyAsync(x => x.AppUserId == appUserId && x.IsActive, cancellationToken);
+                var hasResidentContext = await _uow.Residents.HasActiveUserResidentContextAsync(
+                    query.AppUserId,
+                    cancellationToken);
 
-                return new WorkspaceRedirectAuthorizationResult
+                return Result.Ok(new WorkspaceSelectionAuthorizationModel
                 {
                     Authorized = hasResidentContext,
                     NormalizedType = normalizedType
-                };
+                });
 
             default:
-                return new WorkspaceRedirectAuthorizationResult
+                return Result.Ok(new WorkspaceSelectionAuthorizationModel
                 {
                     Authorized = false,
                     NormalizedType = normalizedType
-                };
+                });
         }
+    }
+
+    public Task<Result<WorkspaceCatalogModel>> GetWorkspaceCatalogAsync(
+        GetWorkspaceCatalogQuery query,
+        CancellationToken cancellationToken = default)
+    {
+        return _workspaceCatalogService.GetWorkspaceCatalogAsync(query, cancellationToken);
+    }
+
+    public async Task<Result> SelectWorkspaceAsync(
+        SelectWorkspaceCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var authorization = await AuthorizeContextSelectionAsync(
+            new AuthorizeContextSelectionQuery
+            {
+                AppUserId = command.AppUserId,
+                ContextType = command.ContextType,
+                ContextId = command.ContextId
+            },
+            cancellationToken);
+
+        return authorization.IsSuccess && authorization.Value.Authorized
+            ? Result.Ok()
+            : Result.Fail("Workspace context is not available.");
     }
 }

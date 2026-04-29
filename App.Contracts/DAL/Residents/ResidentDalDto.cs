@@ -12,3 +12,12 @@ public sealed class ResidentDalDto : IBaseEntity
     public string? PreferredLanguage { get; init; }
     public bool IsActive { get; init; }
 }
+
+public sealed class ResidentUserContextDalDto
+{
+    public Guid ResidentId { get; init; }
+    public string FirstName { get; init; } = default!;
+    public string LastName { get; init; } = default!;
+    public string IdCode { get; init; } = default!;
+    public string DisplayName { get; init; } = default!;
+}

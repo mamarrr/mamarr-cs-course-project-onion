@@ -26,6 +26,31 @@ public interface IManagementCompanyRepository : IBaseRepository<ManagementCompan
         string registryCode,
         CancellationToken cancellationToken = default);
 
+    Task<bool> RegistryCodeExistsAsync(
+        string registryCode,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<string>> AllSlugsAsync(
+        CancellationToken cancellationToken = default);
+
+    Task<ManagementCompanyDalDto> AddManagementCompanyAsync(
+        ManagementCompanyCreateDalDto dto,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ManagementCompanyContextDalDto>> ActiveUserManagementContextsAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default);
+
+    Task<ManagementCompanyContextDalDto?> ActiveUserManagementContextByCompanyIdAsync(
+        Guid appUserId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> ActiveUserManagementContextExistsBySlugAsync(
+        Guid appUserId,
+        string companySlug,
+        CancellationToken cancellationToken = default);
+
     Task<ManagementCompanyMembershipDalDto?> FirstMembershipByUserAndCompanyAsync(
         Guid appUserId,
         Guid managementCompanyId,

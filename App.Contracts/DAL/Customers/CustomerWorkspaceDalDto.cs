@@ -10,3 +10,9 @@ public sealed class CustomerWorkspaceDalDto
     public string Slug { get; init; } = default!;
     public bool IsActive { get; init; }
 }
+
+public sealed class CustomerUserContextDalDto
+{
+    public Guid CustomerId { get; init; }
+    public string Name { get; init; } = default!;
+}

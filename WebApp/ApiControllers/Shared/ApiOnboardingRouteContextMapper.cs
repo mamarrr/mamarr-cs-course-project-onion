@@ -1,5 +1,4 @@
-using App.BLL.Onboarding;
-using App.BLL.Onboarding.Api;
+using App.BLL.Contracts.Onboarding.Models;
 using App.DTO.v1.Onboarding;
 using App.DTO.v1.Shared;
 
@@ -7,14 +6,14 @@ namespace WebApp.ApiControllers.Shared;
 
 public interface IApiOnboardingRouteContextMapper
 {
-    OnboardingContextSummaryDto MapContext(ApiOnboardingContextEntry entry);
-    OnboardingContextsResponseDto MapCatalog(ApiOnboardingContextCatalogResult catalog);
+    OnboardingContextSummaryDto MapContext(ApiOnboardingContextModel entry);
+    OnboardingContextsResponseDto MapCatalog(ApiOnboardingContextCatalogModel catalog);
     ApiRouteContextDto CreateManagementCompanyRouteContext(string companySlug, string companyName);
 }
 
 public sealed class ApiOnboardingRouteContextMapper : IApiOnboardingRouteContextMapper
 {
-    public OnboardingContextSummaryDto MapContext(ApiOnboardingContextEntry entry)
+    public OnboardingContextSummaryDto MapContext(ApiOnboardingContextModel entry)
     {
         return new OnboardingContextSummaryDto
         {
@@ -32,7 +31,7 @@ public sealed class ApiOnboardingRouteContextMapper : IApiOnboardingRouteContext
         };
     }
 
-    public OnboardingContextsResponseDto MapCatalog(ApiOnboardingContextCatalogResult catalog)
+    public OnboardingContextsResponseDto MapCatalog(ApiOnboardingContextCatalogModel catalog)
     {
         return new OnboardingContextsResponseDto
         {

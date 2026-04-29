@@ -1,0 +1,8 @@
+namespace App.BLL.Contracts.Onboarding.Models;
+
+public sealed class CreateManagementCompanyModel
+{
+    public Guid ManagementCompanyId { get; init; }
+    public string ManagementCompanySlug { get; init; } = default!;
+    public string Name { get; init; } = default!;
+}

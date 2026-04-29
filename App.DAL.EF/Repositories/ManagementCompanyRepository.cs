@@ -91,6 +91,128 @@ public sealed class ManagementCompanyRepository :
         return _mapper.Map(company);
     }
 
+    public async Task<bool> RegistryCodeExistsAsync(
+        string registryCode,
+        CancellationToken cancellationToken = default)
+    {
+        var normalized = registryCode.Trim();
+
+        return await _dbContext.ManagementCompanies
+            .AsNoTracking()
+            .AnyAsync(company => company.RegistryCode == normalized, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<string>> AllSlugsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.ManagementCompanies
+            .AsNoTracking()
+            .Select(company => company.Slug)
+            .ToListAsync(cancellationToken);
+    }
+
+    public Task<ManagementCompanyDalDto> AddManagementCompanyAsync(
+        ManagementCompanyCreateDalDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var company = new ManagementCompany
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Slug = dto.Slug,
+            RegistryCode = dto.RegistryCode,
+            VatNumber = dto.VatNumber,
+            Email = dto.Email,
+            Phone = dto.Phone,
+            Address = dto.Address,
+            CreatedAt = dto.CreatedAt,
+            IsActive = dto.IsActive
+        };
+
+        _dbContext.ManagementCompanies.Add(company);
+        return Task.FromResult(_mapper.Map(company)!);
+    }
+
+    public async Task<IReadOnlyList<ManagementCompanyContextDalDto>> ActiveUserManagementContextsAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        return await _dbContext.ManagementCompanyUsers
+            .AsNoTracking()
+            .Where(membership => membership.AppUserId == appUserId)
+            .Where(membership => membership.IsActive)
+            .Where(membership => membership.ValidFrom <= today)
+            .Where(membership => !membership.ValidTo.HasValue || membership.ValidTo.Value >= today)
+            .Where(membership => membership.ManagementCompany != null && membership.ManagementCompany.IsActive)
+            .OrderBy(membership => membership.ManagementCompany!.Name)
+            .Select(membership => new ManagementCompanyContextDalDto
+            {
+                ManagementCompanyId = membership.ManagementCompanyId,
+                Slug = membership.ManagementCompany!.Slug,
+                CompanyName = membership.ManagementCompany.Name,
+                MembershipId = membership.Id,
+                RoleId = membership.ManagementCompanyRoleId,
+                RoleCode = membership.ManagementCompanyRole!.Code,
+                IsActive = membership.IsActive,
+                ValidFrom = membership.ValidFrom,
+                ValidTo = membership.ValidTo
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<ManagementCompanyContextDalDto?> ActiveUserManagementContextByCompanyIdAsync(
+        Guid appUserId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        return await _dbContext.ManagementCompanyUsers
+            .AsNoTracking()
+            .Where(membership => membership.AppUserId == appUserId)
+            .Where(membership => membership.ManagementCompanyId == managementCompanyId)
+            .Where(membership => membership.IsActive)
+            .Where(membership => membership.ValidFrom <= today)
+            .Where(membership => !membership.ValidTo.HasValue || membership.ValidTo.Value >= today)
+            .Where(membership => membership.ManagementCompany != null && membership.ManagementCompany.IsActive)
+            .Select(membership => new ManagementCompanyContextDalDto
+            {
+                ManagementCompanyId = membership.ManagementCompanyId,
+                Slug = membership.ManagementCompany!.Slug,
+                CompanyName = membership.ManagementCompany.Name,
+                MembershipId = membership.Id,
+                RoleId = membership.ManagementCompanyRoleId,
+                RoleCode = membership.ManagementCompanyRole!.Code,
+                IsActive = membership.IsActive,
+                ValidFrom = membership.ValidFrom,
+                ValidTo = membership.ValidTo
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<bool> ActiveUserManagementContextExistsBySlugAsync(
+        Guid appUserId,
+        string companySlug,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedSlug = companySlug.Trim();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        return await _dbContext.ManagementCompanyUsers
+            .AsNoTracking()
+            .Where(membership => membership.AppUserId == appUserId)
+            .Where(membership => membership.IsActive)
+            .Where(membership => membership.ValidFrom <= today)
+            .Where(membership => !membership.ValidTo.HasValue || membership.ValidTo.Value >= today)
+            .AnyAsync(
+                membership => membership.ManagementCompany != null
+                              && membership.ManagementCompany.IsActive
+                              && membership.ManagementCompany.Slug == normalizedSlug,
+                cancellationToken);
+    }
+
     public async Task<ManagementCompanyMembershipDalDto?> FirstMembershipByUserAndCompanyAsync(
         Guid appUserId,
         Guid managementCompanyId,

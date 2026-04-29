@@ -67,6 +67,55 @@ public sealed class ResidentRepository :
         return residents.Select(_mapper.MapListItem).ToList();
     }
 
+    public async Task<ResidentUserContextDalDto?> FirstActiveUserResidentContextAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var residentContext = await (
+                from residentUser in _dbContext.ResidentUsers.AsNoTracking()
+                join resident in _dbContext.Residents.AsNoTracking()
+                    on residentUser.ResidentId equals resident.Id
+                where residentUser.AppUserId == appUserId
+                      && residentUser.IsActive
+                      && resident.IsActive
+                orderby resident.LastName, resident.FirstName, resident.IdCode
+                select new ResidentUserContextDalDto
+                {
+                    ResidentId = resident.Id,
+                    FirstName = resident.FirstName,
+                    LastName = resident.LastName,
+                    IdCode = resident.IdCode,
+                    DisplayName = string.Empty
+                })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (residentContext is null)
+        {
+            return null;
+        }
+
+        var displayName = $"{residentContext.FirstName} {residentContext.LastName}".Trim();
+        return new ResidentUserContextDalDto
+        {
+            ResidentId = residentContext.ResidentId,
+            FirstName = residentContext.FirstName,
+            LastName = residentContext.LastName,
+            IdCode = residentContext.IdCode,
+            DisplayName = string.IsNullOrWhiteSpace(displayName) ? residentContext.IdCode : displayName
+        };
+    }
+
+    public async Task<bool> HasActiveUserResidentContextAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.ResidentUsers
+            .AsNoTracking()
+            .AnyAsync(
+                residentUser => residentUser.AppUserId == appUserId && residentUser.IsActive,
+                cancellationToken);
+    }
+
     public async Task<bool> IdCodeExistsForCompanyAsync(
         Guid managementCompanyId,
         string idCode,

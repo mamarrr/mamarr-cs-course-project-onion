@@ -1,76 +1,94 @@
-using App.DAL.EF;
-using Microsoft.EntityFrameworkCore;
+using App.BLL.Contracts.Onboarding.Models;
+using App.BLL.Contracts.Onboarding.Queries;
+using App.BLL.Contracts.Onboarding.Services;
+using App.Contracts;
+using FluentResults;
 
 namespace App.BLL.Onboarding.WorkspaceCatalog;
 
-public class UserWorkspaceCatalogService : IUserWorkspaceCatalogService
+public sealed class UserWorkspaceCatalogService : IWorkspaceCatalogService
 {
-    private readonly AppDbContext _dbContext;
-
-    public UserWorkspaceCatalogService(AppDbContext dbContext)
+    private static readonly HashSet<string> CompanyUserManagerRoles = new(StringComparer.OrdinalIgnoreCase)
     {
-        _dbContext = dbContext;
+        "OWNER",
+        "MANAGER"
+    };
+
+    private readonly IAppUOW _uow;
+
+    public UserWorkspaceCatalogService(IAppUOW uow)
+    {
+        _uow = uow;
     }
 
-    public async Task<UserWorkspaceCatalogResult> GetUserContextCatalogAsync(
-        Guid appUserId,
-        string companySlug,
+    public async Task<Result<WorkspaceCatalogModel>> GetWorkspaceCatalogAsync(
+        GetWorkspaceCatalogQuery query,
         CancellationToken cancellationToken = default)
     {
-        var normalizedSlug = companySlug.Trim();
+        var normalizedSlug = query.CompanySlug.Trim();
 
-        var managementContexts = await _dbContext.ManagementCompanyUsers
-            .Where(x => x.AppUserId == appUserId && x.IsActive)
-            .Select(x => new UserWorkspaceCatalogCompany
+        var managementContexts = await _uow.ManagementCompanies.ActiveUserManagementContextsAsync(
+            query.AppUserId,
+            cancellationToken);
+
+        var managementOptions = managementContexts
+            .Select(context => new WorkspaceOptionModel
             {
-                ManagementCompanyId = x.ManagementCompanyId,
-                Slug = x.ManagementCompany!.Slug,
-                CompanyName = x.ManagementCompany.Name
+                Id = context.ManagementCompanyId,
+                ContextType = "management",
+                Name = context.CompanyName,
+                Slug = context.Slug,
+                IsDefault = string.Equals(context.Slug, managementContexts.FirstOrDefault()?.Slug, StringComparison.OrdinalIgnoreCase)
             })
-            .ToListAsync(cancellationToken);
-
-        var canManageCompanyUsers = await _dbContext.ManagementCompanyUsers
-            .Where(x => x.AppUserId == appUserId
-                        && x.IsActive
-                        && x.ManagementCompany != null
-                        && x.ManagementCompany.Slug == normalizedSlug
-                        && x.ManagementCompanyRole != null)
-            .AnyAsync(x => x.ManagementCompanyRole!.Code == "OWNER" || x.ManagementCompanyRole.Code == "MANAGER", cancellationToken);
+            .ToList();
 
         var selectedManagementContext = managementContexts
-            .FirstOrDefault(x => string.Equals(x.Slug, normalizedSlug, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(context => string.Equals(context.Slug, normalizedSlug, StringComparison.OrdinalIgnoreCase));
 
         var managementCompanyName = selectedManagementContext?.CompanyName
-            ?? managementContexts.Select(x => x.CompanyName).FirstOrDefault()
-            ?? "Management Workspace";
+                                    ?? managementContexts.Select(context => context.CompanyName).FirstOrDefault()
+                                    ?? "Management Workspace";
 
-        var customerContexts = await (
-                from residentUser in _dbContext.ResidentUsers
-                join customerRepresentative in _dbContext.CustomerRepresentatives
-                    on residentUser.ResidentId equals customerRepresentative.ResidentId
-                join customer in _dbContext.Customers
-                    on customerRepresentative.CustomerId equals customer.Id
-                where residentUser.AppUserId == appUserId
-                      && residentUser.IsActive
-                      && customerRepresentative.IsActive
-                select new UserWorkspaceCatalogCustomer
-                {
-                    CustomerId = customer.Id,
-                    Name = customer.Name
-                })
-            .Distinct()
-            .ToListAsync(cancellationToken);
+        var canManageCompanyUsers = selectedManagementContext is not null
+                                    && CompanyUserManagerRoles.Contains(selectedManagementContext.RoleCode);
 
-        var hasResidentContext = await _dbContext.ResidentUsers
-            .AnyAsync(x => x.AppUserId == appUserId && x.IsActive, cancellationToken);
+        var customerOptions = (await _uow.Customers.ActiveUserCustomerContextsAsync(
+                query.AppUserId,
+                cancellationToken))
+            .Select(customer => new WorkspaceOptionModel
+            {
+                Id = customer.CustomerId,
+                ContextType = "customer",
+                Name = customer.Name
+            })
+            .ToList();
 
-        return new UserWorkspaceCatalogResult
+        var residentContext = await _uow.Residents.FirstActiveUserResidentContextAsync(
+            query.AppUserId,
+            cancellationToken);
+
+        var residentOption = residentContext is null
+            ? null
+            : new WorkspaceOptionModel
+            {
+                Id = residentContext.ResidentId,
+                ContextType = "resident",
+                Name = residentContext.DisplayName
+            };
+
+        var defaultContext = managementOptions.FirstOrDefault(option => option.IsDefault)
+                             ?? residentOption
+                             ?? customerOptions.FirstOrDefault();
+
+        return Result.Ok(new WorkspaceCatalogModel
         {
             ManagementCompanyName = managementCompanyName,
             CanManageCompanyUsers = canManageCompanyUsers,
-            HasResidentContext = hasResidentContext,
-            ManagementCompanies = managementContexts,
-            Customers = customerContexts
-        };
+            HasResidentContext = residentOption is not null,
+            ManagementCompanies = managementOptions,
+            Customers = customerOptions,
+            Resident = residentOption,
+            DefaultContext = defaultContext
+        });
     }
 }

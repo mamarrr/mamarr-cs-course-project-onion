@@ -1,14 +1,15 @@
 using System.Security.Claims;
-using App.BLL.Onboarding.WorkspaceCatalog;
+using App.BLL.Contracts.Onboarding.Queries;
+using App.BLL.Contracts.Onboarding.Services;
 using WebApp.UI.Chrome;
 
 namespace WebApp.UI.Workspace;
 
 public sealed class WorkspaceResolver : IWorkspaceResolver
 {
-    private readonly IUserWorkspaceCatalogService _userWorkspaceCatalogService;
+    private readonly IWorkspaceCatalogService _userWorkspaceCatalogService;
 
-    public WorkspaceResolver(IUserWorkspaceCatalogService userWorkspaceCatalogService)
+    public WorkspaceResolver(IWorkspaceCatalogService userWorkspaceCatalogService)
     {
         _userWorkspaceCatalogService = userWorkspaceCatalogService;
     }
@@ -27,17 +28,21 @@ public sealed class WorkspaceResolver : IWorkspaceResolver
             };
         }
 
-        var catalog = await _userWorkspaceCatalogService.GetUserContextCatalogAsync(
-            appUserId,
-            request.ManagementCompanySlug ?? string.Empty,
+        var catalogResult = await _userWorkspaceCatalogService.GetWorkspaceCatalogAsync(
+            new GetWorkspaceCatalogQuery
+            {
+                AppUserId = appUserId,
+                CompanySlug = request.ManagementCompanySlug ?? string.Empty
+            },
             cancellationToken);
+        var catalog = catalogResult.Value;
 
         var managementOptions = catalog.ManagementCompanies
             .Select(x => new WorkspaceSwitchOptionViewModel
             {
-                Id = x.ManagementCompanyId,
-                Slug = x.Slug,
-                Name = x.CompanyName,
+                Id = x.Id,
+                Slug = x.Slug ?? string.Empty,
+                Name = x.Name,
                 IsCurrent = string.Equals(x.Slug, request.ManagementCompanySlug, StringComparison.OrdinalIgnoreCase),
                 Url = $"/m/{x.Slug}"
             })
@@ -46,7 +51,7 @@ public sealed class WorkspaceResolver : IWorkspaceResolver
         var customerOptions = catalog.Customers
             .Select(x => new WorkspaceSwitchOptionViewModel
             {
-                Id = x.CustomerId,
+                Id = x.Id,
                 Name = x.Name
             })
             .ToList();

@@ -1,245 +1,239 @@
+using App.BLL.Contracts.Onboarding.Commands;
+using App.BLL.Contracts.Onboarding.Models;
+using App.BLL.Contracts.Onboarding.Queries;
+using App.BLL.Contracts.Onboarding.Services;
 using App.BLL.Shared.Routing;
-using App.DAL.EF;
-using App.DAL.EF.Seeding;
+using App.Contracts;
+using App.Contracts.DAL.ManagementCompanies;
 using App.Domain.Identity;
+using FluentResults;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace App.BLL.Onboarding.Account;
 
-public class AccountOnboardingService : IAccountOnboardingService
+public sealed class AccountOnboardingService : IAccountOnboardingService
 {
     private const string InitialManagementRoleCode = "OWNER";
 
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;
-    private readonly AppDbContext? _dbContext;
+    private readonly IAppUOW _uow;
 
     public AccountOnboardingService(
         UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
-        AppDbContext? dbContext = null)
+        IAppUOW uow)
     {
         _userManager = userManager;
         _signInManager = signInManager;
-        _dbContext = dbContext;
+        _uow = uow;
     }
 
-    public async Task<AccountRegisterResult> RegisterAsync(AccountRegisterRequest request)
+    public async Task<Result<AccountRegisterModel>> RegisterAsync(
+        RegisterAccountCommand command,
+        CancellationToken cancellationToken = default)
     {
-        var existingUser = await _userManager.FindByEmailAsync(request.Email);
+        var existingUser = await _userManager.FindByEmailAsync(command.Email);
         if (existingUser != null)
         {
-            return new AccountRegisterResult
-            {
-                Succeeded = false,
-                Errors = new[] { "A user with this email already exists." }
-            };
+            return Result.Fail("A user with this email already exists.");
         }
 
         var appUser = new AppUser
         {
-            Email = request.Email,
-            UserName = request.Email,
-            FirstName = request.FirstName,
-            LastName = request.LastName,
+            Email = command.Email,
+            UserName = command.Email,
+            FirstName = command.FirstName,
+            LastName = command.LastName,
             EmailConfirmed = true
         };
 
-        var createResult = await _userManager.CreateAsync(appUser, request.Password);
-
-        return new AccountRegisterResult
+        var createResult = await _userManager.CreateAsync(appUser, command.Password);
+        if (!createResult.Succeeded)
         {
-            Succeeded = createResult.Succeeded,
-            Errors = createResult.Errors.Select(e => e.Description).ToArray()
-        };
+            return Result.Fail(createResult.Errors.Select(error => error.Description));
+        }
+
+        return Result.Ok(new AccountRegisterModel
+        {
+            AppUserId = appUser.Id,
+            Email = appUser.Email ?? command.Email
+        });
     }
 
-    public async Task<AccountLoginResult> LoginAsync(AccountLoginRequest request)
+    public async Task<Result<AccountLoginModel>> LoginAsync(
+        LoginAccountCommand command,
+        CancellationToken cancellationToken = default)
     {
-        var appUser = await _userManager.FindByEmailAsync(request.Email);
+        var appUser = await _userManager.FindByEmailAsync(command.Email);
         if (appUser == null)
         {
-            return new AccountLoginResult { Succeeded = false };
+            return Result.Fail(App.Resources.Views.UiText.InvalidEmailOrPassword);
         }
 
         var signInResult = await _signInManager.PasswordSignInAsync(
             appUser,
-            request.Password,
-            request.RememberMe,
-            lockoutOnFailure: true
-        );
+            command.Password,
+            command.RememberMe,
+            lockoutOnFailure: true);
 
-        return new AccountLoginResult
-        {
-            Succeeded = signInResult.Succeeded
-        };
-    }
-
-    public async Task<bool> HasAnyContextAsync(Guid appUserId)
-    {
-        if (_dbContext == null) return false;
-
-        var hasManagementContext = await _dbContext.ManagementCompanyUsers
-            .AnyAsync(x => x.AppUserId == appUserId && x.IsActive);
-
-        if (hasManagementContext) return true;
-
-        var hasResidentContext = await _dbContext.ResidentUsers
-            .AnyAsync(x => x.AppUserId == appUserId && x.IsActive);
-
-        return hasResidentContext;
-    }
-
-    public async Task<string?> GetDefaultManagementCompanySlugAsync(Guid appUserId)
-    {
-        if (_dbContext == null)
-        {
-            return null;
-        }
-
-        return await _dbContext.ManagementCompanyUsers
-            .Where(x => x.AppUserId == appUserId && x.IsActive && x.ManagementCompany != null && x.ManagementCompany.IsActive)
-            .OrderBy(x => x.ManagementCompany!.Name)
-            .Select(x => x.ManagementCompany!.Slug)
-            .FirstOrDefaultAsync();
-    }
-
-    public async Task<bool> UserHasManagementCompanyAccessAsync(Guid appUserId, string companySlug)
-    {
-        if (_dbContext == null)
-        {
-            return false;
-        }
-
-        var normalizedSlug = companySlug.Trim();
-        if (normalizedSlug.Length == 0)
-        {
-            return false;
-        }
-
-        return await _dbContext.ManagementCompanyUsers
-            .AnyAsync(x => x.AppUserId == appUserId
-                           && x.IsActive
-                           && x.ManagementCompany != null
-                           && x.ManagementCompany.IsActive
-                           && x.ManagementCompany.Slug == normalizedSlug);
-    }
-
-    public async Task<CreateManagementCompanyResult> CreateManagementCompanyAsync(
-        CreateManagementCompanyRequest request)
-    {
-        if (_dbContext == null)
-        {
-            return new CreateManagementCompanyResult
+        return signInResult.Succeeded
+            ? Result.Ok(new AccountLoginModel
             {
-                Succeeded = false,
-                Errors = ["Onboarding service is not configured for data operations."]
-            };
-        }
+                AppUserId = appUser.Id,
+                Email = appUser.Email ?? command.Email
+            })
+            : Result.Fail(App.Resources.Views.UiText.InvalidEmailOrPassword);
+    }
 
-        var appUserExists = await _userManager.Users.AnyAsync(x => x.Id == request.AppUserId);
-        if (!appUserExists)
+    public async Task<Result> LogoutAsync(
+        LogoutCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        await _signInManager.SignOutAsync();
+        return Result.Ok();
+    }
+
+    public async Task<Result<CreateManagementCompanyModel>> CreateManagementCompanyAsync(
+        CreateManagementCompanyCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var appUser = await _userManager.FindByIdAsync(command.AppUserId.ToString());
+        if (appUser == null)
         {
-            return new CreateManagementCompanyResult
-            {
-                Succeeded = false,
-                Errors = ["Authenticated user was not found."]
-            };
+            return Result.Fail("Authenticated user was not found.");
         }
 
-        var registryCode = request.RegistryCode.Trim();
-        var registryCodeExists = await _dbContext.ManagementCompanies
-            .AnyAsync(x => x.RegistryCode == registryCode);
-
+        var registryCode = command.RegistryCode.Trim();
+        var registryCodeExists = await _uow.ManagementCompanies.RegistryCodeExistsAsync(
+            registryCode,
+            cancellationToken);
         if (registryCodeExists)
         {
-            return new CreateManagementCompanyResult
-            {
-                Succeeded = false,
-                Errors = ["Management company with the same registry code already exists."]
-            };
+            return Result.Fail("Management company with the same registry code already exists.");
         }
 
-        var initialRoleCode = InitialData.ManagementCompanyRoleSeeds
-            .Select(x => x.code)
-            .FirstOrDefault(x => x == InitialManagementRoleCode) ?? InitialManagementRoleCode;
-
-        var initialRole = await _dbContext.ManagementCompanyRoles
-            .SingleOrDefaultAsync(x => x.Code == initialRoleCode);
-
+        var initialRole = await _uow.Lookups.FindManagementCompanyRoleByCodeAsync(
+            InitialManagementRoleCode,
+            cancellationToken);
         if (initialRole == null)
         {
-            return new CreateManagementCompanyResult
-            {
-                Succeeded = false,
-                Errors = [$"Initial management role '{initialRoleCode}' was not found."]
-            };
+            return Result.Fail($"Initial management role '{InitialManagementRoleCode}' was not found.");
         }
 
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        await _uow.BeginTransactionAsync(cancellationToken);
         try
         {
             var now = DateTime.UtcNow;
-            var companyName = request.Name.Trim();
-            var existingCompanySlugs = await _dbContext.ManagementCompanies
-                .Select(x => x.Slug)
-                .ToListAsync();
-            var companySlug = SlugGenerator.EnsureUniqueSlug(companyName, existingCompanySlugs);
+            var companyName = command.Name.Trim();
+            var companySlug = SlugGenerator.EnsureUniqueSlug(
+                companyName,
+                await _uow.ManagementCompanies.AllSlugsAsync(cancellationToken));
 
-            var company = new App.Domain.ManagementCompany
+            var companyId = Guid.NewGuid();
+            var company = await _uow.ManagementCompanies.AddManagementCompanyAsync(
+                new ManagementCompanyCreateDalDto
+                {
+                    Id = companyId,
+                    Name = companyName,
+                    Slug = companySlug,
+                    RegistryCode = registryCode,
+                    VatNumber = command.VatNumber.Trim(),
+                    Email = command.Email.Trim(),
+                    Phone = command.Phone.Trim(),
+                    Address = command.Address.Trim(),
+                    CreatedAt = now,
+                    IsActive = true
+                },
+                cancellationToken);
+
+            _uow.ManagementCompanies.AddMembership(new ManagementCompanyMembershipCreateDalDto
             {
-                Name = companyName,
-                Slug = companySlug,
-                RegistryCode = registryCode,
-                VatNumber = request.VatNumber.Trim(),
-                Email = request.Email.Trim(),
-                Phone = request.Phone.Trim(),
-                Address = request.Address.Trim(),
-                CreatedAt = now,
-                IsActive = true
-            };
-
-            _dbContext.ManagementCompanies.Add(company);
-            await _dbContext.SaveChangesAsync();
-
-            var managementCompanyUser = new App.Domain.ManagementCompanyUser
-            {
+                Id = Guid.NewGuid(),
                 ManagementCompanyId = company.Id,
-                AppUserId = request.AppUserId,
-                ManagementCompanyRoleId = initialRole.Id,
+                AppUserId = command.AppUserId,
+                RoleId = initialRole.Id,
                 JobTitle = "Owner",
                 ValidFrom = DateOnly.FromDateTime(now),
                 IsActive = true,
                 CreatedAt = now
-            };
+            });
 
-            _dbContext.ManagementCompanyUsers.Add(managementCompanyUser);
-            await _dbContext.SaveChangesAsync();
+            await _uow.SaveChangesAsync(cancellationToken);
+            await _uow.CommitTransactionAsync(cancellationToken);
 
-            await transaction.CommitAsync();
-
-            return new CreateManagementCompanyResult
+            return Result.Ok(new CreateManagementCompanyModel
             {
-                Succeeded = true,
                 ManagementCompanyId = company.Id,
-                ManagementCompanySlug = company.Slug
-            };
+                ManagementCompanySlug = company.Slug,
+                Name = company.Name
+            });
         }
-        catch (DbUpdateException)
+        catch
         {
-            await transaction.RollbackAsync();
-            return new CreateManagementCompanyResult
-            {
-                Succeeded = false,
-                Errors = ["Failed to create management company due to data conflict."]
-            };
+            await _uow.RollbackTransactionAsync(cancellationToken);
+            return Result.Fail("Failed to create management company due to data conflict.");
         }
     }
 
-    public async Task LogoutAsync()
+    public async Task<Result<OnboardingStateModel>> GetStateAsync(
+        GetOnboardingStateQuery query,
+        CancellationToken cancellationToken = default)
     {
-        await _signInManager.SignOutAsync();
+        return Result.Ok(new OnboardingStateModel
+        {
+            HasAnyContext = await HasAnyContextAsync(query.AppUserId, cancellationToken),
+            DefaultManagementCompanySlug = await GetDefaultManagementCompanySlugAsync(query.AppUserId, cancellationToken)
+        });
+    }
+
+    public Task<Result> CompleteAsync(
+        CompleteAccountOnboardingCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(Result.Ok());
+    }
+
+    public async Task<bool> HasAnyContextAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var hasManagementContext = (await _uow.ManagementCompanies.ActiveUserManagementContextsAsync(
+            appUserId,
+            cancellationToken)).Count > 0;
+
+        if (hasManagementContext)
+        {
+            return true;
+        }
+
+        return await _uow.Residents.HasActiveUserResidentContextAsync(appUserId, cancellationToken);
+    }
+
+    public async Task<string?> GetDefaultManagementCompanySlugAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
+    {
+        return (await _uow.ManagementCompanies.ActiveUserManagementContextsAsync(
+                appUserId,
+                cancellationToken))
+            .Select(context => context.Slug)
+            .FirstOrDefault();
+    }
+
+    public Task<bool> UserHasManagementCompanyAccessAsync(
+        Guid appUserId,
+        string companySlug,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(companySlug))
+        {
+            return Task.FromResult(false);
+        }
+
+        return _uow.ManagementCompanies.ActiveUserManagementContextExistsBySlugAsync(
+            appUserId,
+            companySlug,
+            cancellationToken);
     }
 }
-

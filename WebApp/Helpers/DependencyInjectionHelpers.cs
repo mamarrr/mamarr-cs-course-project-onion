@@ -1,6 +1,7 @@
 using App.BLL.Contracts.Customers.Services;
 using App.BLL.Contracts.Leases.Services;
 using App.BLL.Contracts.ManagementCompanies.Services;
+using App.BLL.Contracts.Onboarding.Services;
 using App.BLL.Customers;
 using App.BLL.Leases;
 using App.BLL.ManagementCompanies;
@@ -27,6 +28,7 @@ using WebApp.Mappers.Api.Residents;
 using WebApp.Mappers.Api.Units;
 using WebApp.Mappers.Mvc.Customers;
 using WebApp.Mappers.Mvc.Leases;
+using WebApp.Mappers.Mvc.Onboarding;
 using WebApp.Mappers.Mvc.Properties;
 using WebApp.Mappers.Mvc.Residents;
 using WebApp.Mappers.Mvc.Units;
@@ -63,9 +65,10 @@ public static class DependencyInjectionHelpers
     {
         services.AddScoped<IAccountOnboardingService, AccountOnboardingService>();
         services.AddScoped<IWorkspaceRedirectService, WorkspaceRedirectService>();
+        services.AddScoped<IContextSelectionService, WorkspaceRedirectService>();
         services.AddScoped<IApiOnboardingContextService, ApiWorkspaceContextService>();
-        services.AddScoped<IUserWorkspaceCatalogService, UserWorkspaceCatalogService>();
-        services.AddScoped<ICompanyJoinRequestService, CompanyJoinRequestService>();
+        services.AddScoped<IWorkspaceCatalogService, UserWorkspaceCatalogService>();
+        services.AddScoped<IOnboardingCompanyJoinRequestService, OnboardingCompanyJoinRequestService>();
         services.AddScoped<ICompanyMembershipAdminService, CompanyMembershipAdminService>();
         services.AddScoped<ICompanyCustomerService, CompanyCustomerService>();
         services.AddScoped<ICustomerAccessService, CustomerAccessService>();
@@ -102,6 +105,7 @@ public static class DependencyInjectionHelpers
         services.AddScoped<UnitMvcMapper>();
         services.AddScoped<ResidentMvcMapper>();
         services.AddScoped<LeaseViewModelMapper>();
+        services.AddScoped<OnboardingViewModelMapper>();
 
         return services;
     }

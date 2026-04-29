@@ -1,0 +1,12 @@
+namespace App.BLL.Contracts.Onboarding.Commands;
+
+public sealed class CreateManagementCompanyCommand
+{
+    public Guid AppUserId { get; init; }
+    public string Name { get; init; } = default!;
+    public string RegistryCode { get; init; } = default!;
+    public string VatNumber { get; init; } = default!;
+    public string Email { get; init; } = default!;
+    public string Phone { get; init; } = default!;
+    public string Address { get; init; } = default!;
+}

@@ -10,6 +10,33 @@ public sealed class ManagementCompanyDalDto : IBaseEntity
     public bool IsActive { get; init; }
 }
 
+public sealed class ManagementCompanyCreateDalDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = default!;
+    public string Slug { get; init; } = default!;
+    public string RegistryCode { get; init; } = default!;
+    public string VatNumber { get; init; } = default!;
+    public string Email { get; init; } = default!;
+    public string Phone { get; init; } = default!;
+    public string Address { get; init; } = default!;
+    public DateTime CreatedAt { get; init; }
+    public bool IsActive { get; init; }
+}
+
+public sealed class ManagementCompanyContextDalDto
+{
+    public Guid ManagementCompanyId { get; init; }
+    public string Slug { get; init; } = default!;
+    public string CompanyName { get; init; } = default!;
+    public Guid MembershipId { get; init; }
+    public Guid RoleId { get; init; }
+    public string RoleCode { get; init; } = default!;
+    public bool IsActive { get; init; }
+    public DateOnly ValidFrom { get; init; }
+    public DateOnly? ValidTo { get; init; }
+}
+
 public sealed class ManagementCompanyProfileDalDto : IBaseEntity
 {
     public Guid Id { get; set; }

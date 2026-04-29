@@ -113,6 +113,47 @@ public sealed class CustomerRepository :
         return customer is null ? null : _mapper.MapWorkspace(customer);
     }
 
+    public async Task<IReadOnlyList<CustomerUserContextDalDto>> ActiveUserCustomerContextsAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
+    {
+        return await (
+                from residentUser in _dbContext.ResidentUsers.AsNoTracking()
+                join customerRepresentative in _dbContext.CustomerRepresentatives.AsNoTracking()
+                    on residentUser.ResidentId equals customerRepresentative.ResidentId
+                join customer in _dbContext.Customers.AsNoTracking()
+                    on customerRepresentative.CustomerId equals customer.Id
+                where residentUser.AppUserId == appUserId
+                      && residentUser.IsActive
+                      && customerRepresentative.IsActive
+                      && customer.IsActive
+                select new CustomerUserContextDalDto
+                {
+                    CustomerId = customer.Id,
+                    Name = customer.Name
+                })
+            .Distinct()
+            .OrderBy(customer => customer.Name)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> ActiveUserCustomerContextExistsAsync(
+        Guid appUserId,
+        Guid customerId,
+        CancellationToken cancellationToken = default)
+    {
+        return await (
+                from residentUser in _dbContext.ResidentUsers.AsNoTracking()
+                join customerRepresentative in _dbContext.CustomerRepresentatives.AsNoTracking()
+                    on residentUser.ResidentId equals customerRepresentative.ResidentId
+                where residentUser.AppUserId == appUserId
+                      && residentUser.IsActive
+                      && customerRepresentative.IsActive
+                      && customerRepresentative.CustomerId == customerId
+                select customerRepresentative.Id)
+            .AnyAsync(cancellationToken);
+    }
+
     public async Task<CustomerProfileDalDto?> FirstProfileByCompanyAndSlugAsync(
         string companySlug,
         string customerSlug,

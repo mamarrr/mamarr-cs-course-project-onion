@@ -1,5 +1,4 @@
-using App.BLL.Onboarding;
-using App.BLL.Onboarding.Account;
+using App.BLL.Contracts.Onboarding.Services;
 using App.Domain.Identity;
 using Microsoft.AspNetCore.Identity;
 
