@@ -1,9 +1,20 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using App.Contracts;
+using Base.Domain;
+
 namespace App.Domain;
 
-public static class ManagementCompanyJoinRequestStatus
+public class ManagementCompanyJoinRequestStatus : BaseEntity, ILookUpEntity
 {
-    public const string Pending = "PENDING";
-    public const string Approved = "APPROVED";
-    public const string Rejected = "REJECTED";
+    [Required]
+    [StringLength(100, MinimumLength = 1)]
+    public string Code { get; set; } = default!;
+
+    [Required]
+    [Column(TypeName = "jsonb")]
+    public LangStr Label { get; set; } = default!;
+
+    public ICollection<ManagementCompanyJoinRequest>? ManagementCompanyJoinRequests { get; set; }
 }
 

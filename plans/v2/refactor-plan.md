@@ -28,11 +28,11 @@ Repository -> DAL DTO -> BLL mapper -> BLL model -> Web mapper -> API DTO / View
 
 This keeps the BLL independent from EF/domain persistence details.
 
-## Decision 2: Transactions are exposed through Unit of Work
+## Decision 2: Transactions are owned by Unit of Work
 
-Transaction handling should live behind the Unit of Work abstraction.
+Transaction handling should be part of `IAppUOW` itself.
 
-BLL services can start and commit/rollback transactions through `IAppUOW`, but the EF-specific transaction implementation stays inside `App.DAL.EF`.
+Do **not** create a separate transaction type or interface. The BLL can ask `IAppUOW` to begin, commit, or roll back a transaction, while the EF-specific transaction object remains fully hidden inside `App.DAL.EF.AppUOW`.
 
 ## Decision 3: BLL returns FluentResults
 
@@ -146,7 +146,7 @@ Unit of Work interface
 DAL DTOs
 DAL create/update DTOs
 Lookup repository contracts
-Transaction abstraction
+UOW transaction methods
 ```
 
 Example structure:
@@ -171,7 +171,7 @@ Owns:
 AppDbContext
 EF repository implementations
 Domain <-> DAL DTO mappers
-EF transaction implementation
+EF transaction handling inside AppUOW
 Migrations
 Seeding
 ```
@@ -672,36 +672,22 @@ public interface IBaseUOW
 }
 ```
 
-## 7.2 Transaction abstraction
+## 7.2 UOW transaction methods
 
-Create the transaction abstraction in either:
+Do **not** create a separate transaction type or interface. Transaction handling belongs directly to `IAppUOW`.
 
-```text
-Base.DAL.Contracts/IAppTransaction.cs
-```
-
-or:
-
-```text
-App.Contracts/Common/IAppTransaction.cs
-```
-
-Recommended shape:
-
-```csharp
-public interface IAppTransaction : IAsyncDisposable
-{
-    Task CommitAsync(CancellationToken cancellationToken = default);
-    Task RollbackAsync(CancellationToken cancellationToken = default);
-}
-```
-
-Then extend `IAppUOW`:
+Extend `IAppUOW` with transaction boundary methods:
 
 ```csharp
 public interface IAppUOW : IBaseUOW
 {
-    Task<IAppTransaction> BeginTransactionAsync(
+    Task BeginTransactionAsync(
+        CancellationToken cancellationToken = default);
+
+    Task CommitTransactionAsync(
+        CancellationToken cancellationToken = default);
+
+    Task RollbackTransactionAsync(
         CancellationToken cancellationToken = default);
 
     IManagementCompanyRepository ManagementCompanies { get; }
@@ -716,24 +702,32 @@ public interface IAppUOW : IBaseUOW
 }
 ```
 
-## 7.3 EF implementation
-
-In `App.DAL.EF`, create:
+Recommended behavior:
 
 ```text
-EfAppTransaction.cs
+BeginTransactionAsync starts an EF Core transaction inside AppUOW.
+CommitTransactionAsync commits and clears the active transaction.
+RollbackTransactionAsync rolls back and clears the active transaction.
+AppUOW should not expose IDbContextTransaction outside App.DAL.EF.
+Nested transactions should not be supported unless explicitly added later.
+If BeginTransactionAsync is called while a transaction is already active, throw an InvalidOperationException.
+```
+
+## 7.3 EF implementation inside AppUOW
+
+In `App.DAL.EF`, update:
+
+```text
 AppUOW.cs
 ```
 
-`EfAppTransaction` should wrap EF Core's `IDbContextTransaction`.
+`AppUOW` should privately hold EF Core's `IDbContextTransaction` while a transaction is active. The EF transaction object should never leave `App.DAL.EF`.
 
-BLL services should use transactions only for workflows that need multiple repository operations to succeed or fail together.
+BLL services should use UOW transactions only for workflows that need multiple repository operations to succeed or fail together. Prefer doing read-only validation and not-found checks before starting a transaction where possible.
 
 Example:
 
 ```csharp
-await using var tx = await _uow.BeginTransactionAsync(cancellationToken);
-
 var customer = await _uow.Customers.FirstProfileByCompanyAndSlugAsync(
     command.CompanySlug,
     command.CustomerSlug,
@@ -744,13 +738,25 @@ if (customer is null)
     return Result.Fail(new NotFoundError("Customer was not found."));
 }
 
-await _uow.Customers.UpdateProfileAsync(updateDto, cancellationToken);
-await _uow.SaveChangesAsync(cancellationToken);
+await _uow.BeginTransactionAsync(cancellationToken);
 
-await tx.CommitAsync(cancellationToken);
+try
+{
+    await _uow.Customers.UpdateProfileAsync(updateDto, cancellationToken);
+    await _uow.SaveChangesAsync(cancellationToken);
+
+    await _uow.CommitTransactionAsync(cancellationToken);
+}
+catch
+{
+    await _uow.RollbackTransactionAsync(CancellationToken.None);
+    throw;
+}
 
 return Result.Ok(model);
 ```
+
+For expected business failures that happen after a transaction starts, roll back through `IAppUOW` and return the appropriate FluentResults failure.
 
 ---
 
@@ -768,8 +774,8 @@ It should not change application behavior.
 3. Add FluentResults package to App.BLL if needed.
 4. Fix Base.DAL.Contracts namespaces.
 5. Update IBaseUOW to support CancellationToken and return int.
-6. Add IAppTransaction.
-7. Expand IAppUOW with BeginTransactionAsync.
+6. Add transaction boundary methods directly to IAppUOW.
+7. Implement BeginTransactionAsync, CommitTransactionAsync, and RollbackTransactionAsync in AppUOW.
 8. Create FluentResults error classes in App.BLL.Contracts.
 9. Create WebApp FluentResults-to-HTTP extension.
 10. Create DAL/BLL/WebApp mapper base interfaces.
@@ -795,7 +801,6 @@ App.BLL.Contracts/
 
 Base.DAL.Contracts/
   IBaseUOW.cs
-  IAppTransaction.cs
 
 App.Contracts/
   Common/
@@ -817,7 +822,7 @@ No controllers are refactored yet except for harmless namespace/import changes.
 Old BLL services still work.
 App.BLL.Contracts exists.
 FluentResults types are available in BLL contracts.
-UOW transaction abstraction exists.
+UOW transaction methods exist directly on IAppUOW/AppUOW.
 ```
 
 ---
@@ -984,7 +989,7 @@ Deliverables:
 App.BLL.Contracts project
 FluentResults package
 Common BLL errors
-UOW transaction abstraction
+UOW transaction methods
 Fixed Base.DAL.Contracts namespace
 AddAppDalEf()
 AddAppBll()
@@ -1916,8 +1921,8 @@ Duplicate returns ConflictError.
 Validation failure returns ValidationAppError.
 Business rule violation returns BusinessRuleError.
 SaveChangesAsync called once for successful command.
-Transaction commits on success.
-Transaction rolls back/disposes on failure.
+UOW commits the transaction on success.
+UOW rolls back the transaction on failure.
 ```
 
 ## 18.3 Controller/API tests or manual checks
@@ -1951,7 +1956,7 @@ Recommended pattern:
 
 ```text
 refactor-foundation: add App.BLL.Contracts and FluentResults errors
-refactor-foundation: add UOW transaction abstraction
+refactor-foundation: add UOW transaction methods
 refactor-dal-customer: add customer repository and DAL DTOs
 refactor-bll-customer: move customer profile service to new contracts
 refactor-web-customer: thin customer profile API controller

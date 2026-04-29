@@ -17,9 +17,8 @@ public class ManagementCompanyJoinRequest : BaseEntity, IManagementCompanyId
     public Guid RequestedManagementCompanyRoleId { get; set; }
     public ManagementCompanyRole? RequestedManagementCompanyRole { get; set; }
 
-    [Required]
-    [StringLength(32, MinimumLength = 1)]
-    public string Status { get; set; } = ManagementCompanyJoinRequestStatus.Pending;
+    public Guid ManagementCompanyJoinRequestStatusId { get; set; }
+    public ManagementCompanyJoinRequestStatus? ManagementCompanyJoinRequestStatus { get; set; }
 
     [StringLength(2000)]
     [Display(ResourceType = typeof(App.Resources.Domain.ManagementCompanyJoinRequest), Name = nameof(App.Resources.Domain.ManagementCompanyJoinRequest.Message))]

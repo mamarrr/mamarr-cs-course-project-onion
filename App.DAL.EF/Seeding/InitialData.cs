@@ -19,6 +19,13 @@ public static class InitialData
         ("FINANCE", "Finance", "Finants")
     ];
 
+    public static readonly (Guid id, string code, string en, string ee)[] ManagementCompanyJoinRequestStatusSeeds =
+    [
+        (Guid.Parse("11111111-1111-1111-1111-111111111111"), "PENDING", "Pending", "Ootel"),
+        (Guid.Parse("22222222-2222-2222-2222-222222222222"), "APPROVED", "Approved", "Kinnitatud"),
+        (Guid.Parse("33333333-3333-3333-3333-333333333333"), "REJECTED", "Rejected", "Tagasi lükatud")
+    ];
+
     public static readonly (string code, string en, string ee)[] CustomerRepresentativeRoleSeeds =
     [
         ("PRIMARY", "Primary representative", "Peamine esindaja"),

@@ -5,6 +5,7 @@ using App.DAL.EF;
 using App.Domain;
 using App.Domain.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -12,6 +13,10 @@ namespace Onboarding.Tests;
 
 public class CompanyMembershipAdminServiceTests
 {
+    private static readonly Guid PendingStatusId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid ApprovedStatusId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+    private static readonly Guid RejectedStatusId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+
     [Fact]
     public async Task AuthorizeAsync_ReturnsAuthorized_ForOwnerInSameCompany()
     {
@@ -245,7 +250,7 @@ public class CompanyMembershipAdminServiceTests
                 AppUserId = requester.Id,
                 ManagementCompanyId = company.Id,
                 RequestedManagementCompanyRoleId = managerRole.Id,
-                Status = ManagementCompanyJoinRequestStatus.Pending,
+                ManagementCompanyJoinRequestStatusId = PendingStatusId,
                 Message = "Please approve",
                 CreatedAt = DateTime.UtcNow
             },
@@ -255,7 +260,7 @@ public class CompanyMembershipAdminServiceTests
                 AppUserId = otherRequester.Id,
                 ManagementCompanyId = otherCompany.Id,
                 RequestedManagementCompanyRoleId = managerRole.Id,
-                Status = ManagementCompanyJoinRequestStatus.Pending,
+                ManagementCompanyJoinRequestStatusId = PendingStatusId,
                 CreatedAt = DateTime.UtcNow
             });
         await dbContext.SaveChangesAsync();
@@ -289,7 +294,7 @@ public class CompanyMembershipAdminServiceTests
             AppUserId = requester.Id,
             ManagementCompanyId = company.Id,
             RequestedManagementCompanyRoleId = managerRole.Id,
-            Status = ManagementCompanyJoinRequestStatus.Pending,
+            ManagementCompanyJoinRequestStatusId = PendingStatusId,
             CreatedAt = DateTime.UtcNow
         };
         dbContext.ManagementCompanyJoinRequests.Add(request);
@@ -303,7 +308,7 @@ public class CompanyMembershipAdminServiceTests
         Assert.True(result.Success);
         Assert.True(await dbContext.ManagementCompanyUsers.AnyAsync(x => x.AppUserId == requester.Id && x.ManagementCompanyId == company.Id));
         var storedRequest = await dbContext.ManagementCompanyJoinRequests.SingleAsync(x => x.Id == request.Id);
-        Assert.Equal(ManagementCompanyJoinRequestStatus.Approved, storedRequest.Status);
+        Assert.Equal(ApprovedStatusId, storedRequest.ManagementCompanyJoinRequestStatusId);
     }
 
     [Fact]
@@ -326,7 +331,7 @@ public class CompanyMembershipAdminServiceTests
             AppUserId = requester.Id,
             ManagementCompanyId = company.Id,
             RequestedManagementCompanyRoleId = managerRole.Id,
-            Status = ManagementCompanyJoinRequestStatus.Pending,
+            ManagementCompanyJoinRequestStatusId = PendingStatusId,
             CreatedAt = DateTime.UtcNow
         };
         dbContext.ManagementCompanyJoinRequests.Add(request);
@@ -340,7 +345,7 @@ public class CompanyMembershipAdminServiceTests
         Assert.True(result.Success);
         Assert.False(await dbContext.ManagementCompanyUsers.AnyAsync(x => x.AppUserId == requester.Id && x.ManagementCompanyId == company.Id));
         var storedRequest = await dbContext.ManagementCompanyJoinRequests.SingleAsync(x => x.Id == request.Id);
-        Assert.Equal(ManagementCompanyJoinRequestStatus.Rejected, storedRequest.Status);
+        Assert.Equal(RejectedStatusId, storedRequest.ManagementCompanyJoinRequestStatusId);
     }
 
     private static CompanyMembershipAdminService CreateSut(AppDbContext dbContext)
@@ -353,9 +358,21 @@ public class CompanyMembershipAdminServiceTests
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        return new AppDbContext(options);
+        var dbContext = new AppDbContext(options);
+        SeedJoinRequestStatuses(dbContext);
+        return dbContext;
+    }
+
+    private static void SeedJoinRequestStatuses(AppDbContext dbContext)
+    {
+        dbContext.ManagementCompanyJoinRequestStatuses.AddRange(
+            new ManagementCompanyJoinRequestStatus { Id = PendingStatusId, Code = "PENDING", Label = "Pending" },
+            new ManagementCompanyJoinRequestStatus { Id = ApprovedStatusId, Code = "APPROVED", Label = "Approved" },
+            new ManagementCompanyJoinRequestStatus { Id = RejectedStatusId, Code = "REJECTED", Label = "Rejected" });
+        dbContext.SaveChanges();
     }
 
     private static AppUser CreateUser(string email, string firstName, string lastName)

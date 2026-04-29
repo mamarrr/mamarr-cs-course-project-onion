@@ -9,6 +9,10 @@ namespace App.BLL.Onboarding.CompanyJoinRequests;
 
 public class CompanyJoinRequestService : ICompanyJoinRequestService
 {
+    private const string PendingStatusCode = "PENDING";
+    private const string ApprovedStatusCode = "APPROVED";
+    private const string RejectedStatusCode = "REJECTED";
+
     private static readonly HashSet<string> ApproverRoleCodes = new(StringComparer.OrdinalIgnoreCase)
     {
         "OWNER",
@@ -86,11 +90,13 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
             };
         }
 
+        var pendingStatusId = await GetStatusIdAsync(PendingStatusCode, cancellationToken);
+
         var duplicatePending = await _dbContext.ManagementCompanyJoinRequests
             .AsNoTracking()
             .AnyAsync(x => x.AppUserId == request.AppUserId
                            && x.ManagementCompanyId == company.Id
-                           && x.Status == ManagementCompanyJoinRequestStatus.Pending,
+                           && x.ManagementCompanyJoinRequestStatusId == pendingStatusId,
                 cancellationToken);
 
         if (duplicatePending)
@@ -109,7 +115,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
             AppUserId = request.AppUserId,
             ManagementCompanyId = company.Id,
             RequestedManagementCompanyRoleId = request.RequestedRoleId,
-            Status = ManagementCompanyJoinRequestStatus.Pending,
+            ManagementCompanyJoinRequestStatusId = pendingStatusId,
             Message = string.IsNullOrWhiteSpace(request.Message) ? null : new Base.Domain.LangStr(request.Message.Trim()),
             CreatedAt = DateTime.UtcNow
         };
@@ -141,10 +147,12 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
+        var pendingStatusId = await GetStatusIdAsync(PendingStatusCode, cancellationToken);
+
         var requests = await _dbContext.ManagementCompanyJoinRequests
             .AsNoTracking()
             .Where(x => x.ManagementCompanyId == managementCompanyId
-                        && x.Status == ManagementCompanyJoinRequestStatus.Pending)
+                        && x.ManagementCompanyJoinRequestStatusId == pendingStatusId)
             .Include(x => x.AppUser)
             .Include(x => x.RequestedManagementCompanyRole)
             .OrderByDescending(x => x.CreatedAt)
@@ -207,7 +215,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
             actorAppUserId,
             managementCompanyId,
             requestId,
-            ManagementCompanyJoinRequestStatus.Approved,
+            ApprovedStatusCode,
             createMembership: true,
             cancellationToken);
     }
@@ -222,7 +230,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
             actorAppUserId,
             managementCompanyId,
             requestId,
-            ManagementCompanyJoinRequestStatus.Rejected,
+            RejectedStatusCode,
             createMembership: false,
             cancellationToken);
     }
@@ -231,7 +239,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
         Guid actorAppUserId,
         Guid managementCompanyId,
         Guid requestId,
-        string targetStatus,
+        string targetStatusCode,
         bool createMembership,
         CancellationToken cancellationToken)
     {
@@ -256,6 +264,9 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
 
         await using var tx = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
+        var pendingStatusId = await GetStatusIdAsync(PendingStatusCode, cancellationToken);
+        var targetStatusId = await GetStatusIdAsync(targetStatusCode, cancellationToken);
+
         var joinRequest = await _dbContext.ManagementCompanyJoinRequests
             .AsTracking()
             .SingleOrDefaultAsync(x => x.Id == requestId
@@ -271,7 +282,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
             };
         }
 
-        if (joinRequest.Status != ManagementCompanyJoinRequestStatus.Pending)
+        if (joinRequest.ManagementCompanyJoinRequestStatusId != pendingStatusId)
         {
             return new ResolveCompanyJoinRequestResult
             {
@@ -312,7 +323,7 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
             _dbContext.ManagementCompanyUsers.Add(membership);
         }
 
-        joinRequest.Status = targetStatus;
+        joinRequest.ManagementCompanyJoinRequestStatusId = targetStatusId;
         joinRequest.ResolvedAt = DateTime.UtcNow;
         joinRequest.ResolvedByAppUserId = actorAppUserId;
 
@@ -335,6 +346,17 @@ public class CompanyJoinRequestService : ICompanyJoinRequestService
         {
             Success = true
         };
+    }
+
+    private async Task<Guid> GetStatusIdAsync(string code, CancellationToken cancellationToken)
+    {
+        var statusId = await _dbContext.ManagementCompanyJoinRequestStatuses
+            .AsNoTracking()
+            .Where(x => x.Code == code)
+            .Select(x => (Guid?)x.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return statusId ?? throw new InvalidOperationException($"Management company join request status '{code}' is not seeded.");
     }
 
     private static string L(string resourceKey, string fallback)

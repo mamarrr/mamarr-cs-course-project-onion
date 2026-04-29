@@ -26,6 +26,10 @@ namespace Onboarding.Tests;
 
 public class ContinuedOnboardingServiceTests
 {
+    private static readonly Guid PendingStatusId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private static readonly Guid ApprovedStatusId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+    private static readonly Guid RejectedStatusId = Guid.Parse("33333333-3333-3333-3333-333333333333");
+
     [Fact]
     public async Task ManagementCompanyJoinRequestService_CreateJoinRequest_Succeeds_ForValidInput()
     {
@@ -70,7 +74,7 @@ public class ContinuedOnboardingServiceTests
             AppUserId = requester.Id,
             ManagementCompanyId = company.Id,
             RequestedManagementCompanyRoleId = managerRole.Id,
-            Status = ManagementCompanyJoinRequestStatus.Pending,
+            ManagementCompanyJoinRequestStatusId = PendingStatusId,
             CreatedAt = DateTime.UtcNow
         });
         await dbContext.SaveChangesAsync();
@@ -153,7 +157,7 @@ public class ContinuedOnboardingServiceTests
             AppUserId = requester.Id,
             ManagementCompanyId = company.Id,
             RequestedManagementCompanyRoleId = managerRole.Id,
-            Status = ManagementCompanyJoinRequestStatus.Pending,
+            ManagementCompanyJoinRequestStatusId = PendingStatusId,
             CreatedAt = DateTime.UtcNow
         };
         dbContext.ManagementCompanyJoinRequests.Add(request);
@@ -196,7 +200,7 @@ public class ContinuedOnboardingServiceTests
             AppUserId = requester.Id,
             ManagementCompanyId = company.Id,
             RequestedManagementCompanyRoleId = managerRole.Id,
-            Status = ManagementCompanyJoinRequestStatus.Pending,
+            ManagementCompanyJoinRequestStatusId = PendingStatusId,
             CreatedAt = DateTime.UtcNow
         };
         dbContext.ManagementCompanyJoinRequests.Add(request);
@@ -241,7 +245,7 @@ public class ContinuedOnboardingServiceTests
             AppUserId = requester.Id,
             ManagementCompanyId = companyB.Id,
             RequestedManagementCompanyRoleId = managerRole.Id,
-            Status = ManagementCompanyJoinRequestStatus.Pending,
+            ManagementCompanyJoinRequestStatusId = PendingStatusId,
             CreatedAt = DateTime.UtcNow
         };
         dbContext.ManagementCompanyJoinRequests.Add(requestInB);
@@ -733,7 +737,18 @@ public class ContinuedOnboardingServiceTests
             .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
 
-        return new AppDbContext(options);
+        var dbContext = new AppDbContext(options);
+        SeedJoinRequestStatuses(dbContext);
+        return dbContext;
+    }
+
+    private static void SeedJoinRequestStatuses(AppDbContext dbContext)
+    {
+        dbContext.ManagementCompanyJoinRequestStatuses.AddRange(
+            new ManagementCompanyJoinRequestStatus { Id = PendingStatusId, Code = "PENDING", Label = "Pending" },
+            new ManagementCompanyJoinRequestStatus { Id = ApprovedStatusId, Code = "APPROVED", Label = "Approved" },
+            new ManagementCompanyJoinRequestStatus { Id = RejectedStatusId, Code = "REJECTED", Label = "Rejected" });
+        dbContext.SaveChanges();
     }
 
     private static void AddManagementContext(AppDbContext dbContext, Guid appUserId, bool isActive, string? slug = null, string? companyName = null)

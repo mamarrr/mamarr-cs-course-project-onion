@@ -23,6 +23,7 @@ public static class AppDataInit
     public static void SeedAppData(AppDbContext context)
     {
         SeedLookUpTable(context.ManagementCompanyRoles, InitialData.ManagementCompanyRoleSeeds);
+        SeedLookUpTable(context.ManagementCompanyJoinRequestStatuses, InitialData.ManagementCompanyJoinRequestStatusSeeds);
         SeedLookUpTable(context.CustomerRepresentativeRoles, InitialData.CustomerRepresentativeRoleSeeds);
         SeedLookUpTable(context.ContactTypes, InitialData.ContactTypeSeeds);
         SeedLookUpTable(context.PropertyTypes, InitialData.PropertyTypeSeeds);
@@ -44,6 +45,28 @@ public static class AppDataInit
             
             var entity = new T
             {
+                Code = code,
+                Label = new LangStr
+                {
+                    ["en"] = en,
+                    ["et"] = et
+                }
+            };
+            table.Add(entity);
+        }
+        
+    }
+
+    public static void SeedLookUpTable<T> (DbSet<T> table, (Guid id, string code, string en, string et)[] seed)
+    where T : BaseEntity, ILookUpEntity, new()
+    {
+        foreach ((Guid id, string code, string en, string et) in seed)
+        {
+            if (table.Any(x => x.Code == code)) continue;
+            
+            var entity = new T
+            {
+                Id = id,
                 Code = code,
                 Label = new LangStr
                 {
