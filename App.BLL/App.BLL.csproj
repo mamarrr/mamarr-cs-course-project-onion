@@ -7,18 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="FluentResults" Version="4.0.0" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\App.BLL.Contracts\App.BLL.Contracts.csproj" />
         <ProjectReference Include="..\App.Contracts\App.Contracts.csproj" />
-        <ProjectReference Include="..\App.DAL.EF\App.DAL.EF.csproj" />
-        <ProjectReference Include="..\App.Domain\App.Domain.csproj" />
         <ProjectReference Include="..\App.Resources\App.Resources.csproj" />
     </ItemGroup>
 

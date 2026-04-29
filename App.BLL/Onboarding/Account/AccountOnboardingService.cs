@@ -5,9 +5,7 @@ using App.BLL.Contracts.Onboarding.Services;
 using App.BLL.Shared.Routing;
 using App.Contracts;
 using App.Contracts.DAL.ManagementCompanies;
-using App.Domain.Identity;
 using FluentResults;
-using Microsoft.AspNetCore.Identity;
 
 namespace App.BLL.Onboarding.Account;
 
@@ -15,17 +13,14 @@ public sealed class AccountOnboardingService : IAccountOnboardingService
 {
     private const string InitialManagementRoleCode = "OWNER";
 
-    private readonly UserManager<AppUser> _userManager;
-    private readonly SignInManager<AppUser> _signInManager;
+    private readonly IAccountIdentityService _identityService;
     private readonly IAppUOW _uow;
 
     public AccountOnboardingService(
-        UserManager<AppUser> userManager,
-        SignInManager<AppUser> signInManager,
+        IAccountIdentityService identityService,
         IAppUOW uow)
     {
-        _userManager = userManager;
-        _signInManager = signInManager;
+        _identityService = identityService;
         _uow = uow;
     }
 
@@ -33,64 +28,29 @@ public sealed class AccountOnboardingService : IAccountOnboardingService
         RegisterAccountCommand command,
         CancellationToken cancellationToken = default)
     {
-        var existingUser = await _userManager.FindByEmailAsync(command.Email);
-        if (existingUser != null)
+        var existingUserId = await _identityService.FindUserIdByEmailAsync(
+            command.Email,
+            cancellationToken);
+        if (existingUserId.HasValue)
         {
             return Result.Fail("A user with this email already exists.");
         }
 
-        var appUser = new AppUser
-        {
-            Email = command.Email,
-            UserName = command.Email,
-            FirstName = command.FirstName,
-            LastName = command.LastName,
-            EmailConfirmed = true
-        };
-
-        var createResult = await _userManager.CreateAsync(appUser, command.Password);
-        if (!createResult.Succeeded)
-        {
-            return Result.Fail(createResult.Errors.Select(error => error.Description));
-        }
-
-        return Result.Ok(new AccountRegisterModel
-        {
-            AppUserId = appUser.Id,
-            Email = appUser.Email ?? command.Email
-        });
+        return await _identityService.CreateUserAsync(command, cancellationToken);
     }
 
     public async Task<Result<AccountLoginModel>> LoginAsync(
         LoginAccountCommand command,
         CancellationToken cancellationToken = default)
     {
-        var appUser = await _userManager.FindByEmailAsync(command.Email);
-        if (appUser == null)
-        {
-            return Result.Fail(App.Resources.Views.UiText.InvalidEmailOrPassword);
-        }
-
-        var signInResult = await _signInManager.PasswordSignInAsync(
-            appUser,
-            command.Password,
-            command.RememberMe,
-            lockoutOnFailure: true);
-
-        return signInResult.Succeeded
-            ? Result.Ok(new AccountLoginModel
-            {
-                AppUserId = appUser.Id,
-                Email = appUser.Email ?? command.Email
-            })
-            : Result.Fail(App.Resources.Views.UiText.InvalidEmailOrPassword);
+        return await _identityService.PasswordSignInAsync(command, cancellationToken);
     }
 
     public async Task<Result> LogoutAsync(
         LogoutCommand command,
         CancellationToken cancellationToken = default)
     {
-        await _signInManager.SignOutAsync();
+        await _identityService.SignOutAsync(cancellationToken);
         return Result.Ok();
     }
 
@@ -98,8 +58,8 @@ public sealed class AccountOnboardingService : IAccountOnboardingService
         CreateManagementCompanyCommand command,
         CancellationToken cancellationToken = default)
     {
-        var appUser = await _userManager.FindByIdAsync(command.AppUserId.ToString());
-        if (appUser == null)
+        var userExists = await _identityService.UserExistsAsync(command.AppUserId, cancellationToken);
+        if (!userExists)
         {
             return Result.Fail("Authenticated user was not found.");
         }
