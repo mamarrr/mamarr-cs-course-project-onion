@@ -781,9 +781,8 @@ It should not change application behavior.
 8. Create FluentResults error classes in App.BLL.Contracts.
 9. Create WebApp FluentResults-to-HTTP extension.
 10. Create DAL/BLL/WebApp mapper base interfaces.
-11. Add AddAppDalEf() DI extension.
-12. Add AddAppBll() DI extension.
-13. Keep old services/controllers working during this foundation phase.
+11. Add AddAppDalEf() and AddAppBll() DI helper methods under WebApp/Helpers.
+12. Keep old services/controllers working during this foundation phase.
 ```
 
 ## 8.2 Suggested foundation folders
@@ -812,6 +811,8 @@ WebApp/
   Infrastructure/
     Results/
       FluentResultHttpExtensions.cs
+  Helpers/
+    DependencyInjectionHelpers.cs
 ```
 
 ## 8.3 Foundation definition of done
@@ -825,6 +826,7 @@ Old BLL services still work.
 App.BLL.Contracts exists.
 FluentResults types are available in BLL contracts.
 UOW transaction methods exist directly on IAppUOW/AppUOW.
+AddAppDalEf() and AddAppBll() exist as WebApp helper methods, not as extension classes inside App.DAL.EF or App.BLL.
 ```
 
 ---
@@ -950,8 +952,7 @@ Every vertical slice should follow the same order.
 15. Add/update MVC ViewModels if regular controller exists.
 16. Add WebApp MVC mapper.
 17. Refactor regular MVC controller.
-18. Add tests/manual regression checks.
-19. Remove old direct DbContext/service code for that slice.
+18. Remove old direct DbContext/service code for that slice.
 ```
 
 ---
@@ -985,7 +986,7 @@ No ticket/vendor/scheduled-work/work-log functionality is introduced.
 Purpose:
 
 ```text
-Prepare shared contracts, FluentResults, UOW transactions, DI extension methods, and mapper interfaces.
+Prepare shared contracts, FluentResults, UOW transactions, WebApp DI helper methods, and mapper interfaces.
 ```
 
 Deliverables:
@@ -996,8 +997,8 @@ FluentResults package
 Common BLL errors
 UOW transaction methods
 Fixed Base.DAL.Contracts namespace
-AddAppDalEf()
-AddAppBll()
+WebApp helper method AddAppDalEf()
+WebApp helper method AddAppBll()
 FluentResultHttpExtensions
 Mapper base interfaces
 ```
@@ -1879,18 +1880,36 @@ MVC ViewModels stay in `WebApp`, not `App.DTO` and not `App.BLL.Contracts`.
 
 # 17. DI Registration Plan
 
-## 17.1 App.DAL.EF
+Dependency registration helper methods should live in `WebApp`, not inside `App.DAL.EF` or `App.BLL`.
 
-Create:
+The reason is that `WebApp` is the composition root of the application. It is allowed to know about concrete implementations from `App.DAL.EF` and `App.BLL`, while the DAL and BLL projects should stay focused on their own responsibilities.
+
+## 17.1 WebApp helper location
+
+Create helper methods under:
 
 ```text
-App.DAL.EF/DependencyInjection.cs
+WebApp/Helpers/DependencyInjectionHelpers.cs
 ```
+
+The file can contain all application registration helpers, or it can be split later if it becomes too large.
+
+Recommended helper methods:
+
+```text
+AddAppDalEf()
+AddAppBll()
+AddWebAppMappers()
+```
+
+## 17.2 WebApp helper example
 
 Example:
 
 ```csharp
-public static class DependencyInjection
+namespace WebApp.Helpers;
+
+public static class DependencyInjectionHelpers
 {
     public static IServiceCollection AddAppDalEf(
         this IServiceCollection services,
@@ -1908,22 +1927,7 @@ public static class DependencyInjection
 
         return services;
     }
-}
-```
 
-## 17.2 App.BLL
-
-Create:
-
-```text
-App.BLL/DependencyInjection.cs
-```
-
-Example:
-
-```csharp
-public static class DependencyInjection
-{
     public static IServiceCollection AddAppBll(this IServiceCollection services)
     {
         services.AddScoped<ICustomerProfileService, CustomerProfileService>();
@@ -1935,10 +1939,25 @@ public static class DependencyInjection
 
         return services;
     }
+
+    public static IServiceCollection AddWebAppMappers(this IServiceCollection services)
+    {
+        // Register API DTO <-> BLL model mappers and MVC ViewModel mappers here.
+        return services;
+    }
 }
 ```
 
-## 17.3 WebApp
+`WebApp/Helpers/DependencyInjectionHelpers.cs` will need `using` statements for `App.DAL.EF`, `App.BLL`, `App.Contracts`, and the service contract namespaces. That is acceptable because `WebApp` is the composition root.
+
+Do not create these DI extension/helper files inside:
+
+```text
+App.DAL.EF/DependencyInjection.cs
+App.BLL/DependencyInjection.cs
+```
+
+## 17.3 Program.cs target shape
 
 Eventually `Program.cs` should move from many individual service registrations to:
 
@@ -1948,62 +1967,11 @@ builder.Services.AddAppBll();
 builder.Services.AddWebAppMappers();
 ```
 
----
-
-# 18. Testing Plan
-
-For each vertical slice, test at multiple levels.
-
-## 18.1 DAL tests
-
-```text
-Repository returns only tenant-scoped data.
-Repository does not leak data from another company/customer.
-Create works.
-Update works.
-Delete works.
-Lookup queries work.
-ManagementCompanyJoinRequestStatus lookup by code works for PENDING, APPROVED, and REJECTED.
-```
-
-## 18.2 BLL tests
-
-```text
-Success path.
-Not found returns NotFoundError.
-Forbidden returns ForbiddenError.
-Duplicate returns ConflictError.
-Validation failure returns ValidationAppError.
-Business rule violation returns BusinessRuleError.
-SaveChangesAsync called once for successful command.
-UOW commits the transaction on success.
-UOW rolls back the transaction on failure.
-```
-
-## 18.3 Controller/API tests or manual checks
-
-```text
-Same route.
-Same auth behavior.
-Same status codes.
-Same JSON response shape.
-Same validation response shape if possible.
-Same Swagger DTO shape.
-```
-
-## 18.4 MVC regression checks
-
-```text
-Page opens.
-Forms submit.
-Validation displays correctly.
-Redirects still work.
-Breadcrumbs/navigation still work.
-```
+This keeps `Program.cs` clean without making the DAL or BLL projects own application composition.
 
 ---
 
-# 19. Commit Strategy
+# 18. Commit Strategy
 
 Use small commits that match architecture layers and slices.
 
@@ -2029,7 +1997,7 @@ mass changes
 
 ---
 
-# 20. Recommended Split into Multiple Plans
+# 19. Recommended Split into Multiple Plans
 
 This master plan should be split into smaller implementation plans.
 
@@ -2043,7 +2011,7 @@ FluentResults
 Common error types
 UOW transactions
 Base namespace fixes
-DI extension methods
+WebApp DI helper methods
 Mapper base interfaces
 Result-to-HTTP mapping
 ```
@@ -2106,7 +2074,7 @@ Workspace selection
 
 ---
 
-# 21. Recommended Execution Order
+# 20. Recommended Execution Order
 
 ```text
 1. Plan A  — Foundation architecture
@@ -2123,7 +2091,7 @@ Workspace selection
 
 ---
 
-# 22. Explicit Out of Scope
+# 21. Explicit Out of Scope
 
 The following are out of scope for this refactor plan:
 
@@ -2141,7 +2109,7 @@ Large-scale redesign of the domain model.
 
 ---
 
-# 23. Final Guiding Principle
+# 22. Final Guiding Principle
 
 The final architecture should follow this rule:
 
