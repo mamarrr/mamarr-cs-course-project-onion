@@ -6,7 +6,7 @@ using Base.Domain;
 namespace App.DAL.EF.Mappers.ManagementCompanies;
 
 public sealed class ManagementCompanyJoinRequestDalMapper :
-    IBaseMapper<ManagementCompanyJoinRequestDalDto, ManagementCompanyJoinRequest>
+    IMapper<ManagementCompanyJoinRequestDalDto, ManagementCompanyJoinRequest>
 {
     public ManagementCompanyJoinRequestDalDto? Map(ManagementCompanyJoinRequest? entity)
     {

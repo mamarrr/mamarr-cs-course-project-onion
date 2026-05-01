@@ -4,7 +4,7 @@ using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.Properties;
 
-public sealed class PropertyDalMapper : IBaseMapper<PropertyDalDto, Property>
+public sealed class PropertyDalMapper : IMapper<PropertyDalDto, Property>
 {
     public PropertyDalDto? Map(Property? entity)
     {

@@ -4,7 +4,7 @@ using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.Contacts;
 
-public sealed class ContactDalMapper : IBaseMapper<ContactDalDto, Contact>
+public sealed class ContactDalMapper : IMapper<ContactDalDto, Contact>
 {
     public ContactDalDto? Map(Contact? entity)
     {

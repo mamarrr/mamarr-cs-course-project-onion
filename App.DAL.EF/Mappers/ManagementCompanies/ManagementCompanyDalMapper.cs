@@ -4,7 +4,7 @@ using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.ManagementCompanies;
 
-public sealed class ManagementCompanyDalMapper : IBaseMapper<ManagementCompanyDalDto, ManagementCompany>
+public sealed class ManagementCompanyDalMapper : IMapper<ManagementCompanyDalDto, ManagementCompany>
 {
     public ManagementCompanyDalDto? Map(ManagementCompany? entity)
     {

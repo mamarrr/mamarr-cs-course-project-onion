@@ -10,7 +10,7 @@ public class BaseRepository<TDALEntity, TDomainEntity, TDbContext> :
     where TDomainEntity : class, IBaseEntity<Guid>
     where TDbContext : DbContext
 {
-    public BaseRepository(TDbContext repositoryDbContext, IBaseMapper<TDALEntity, TDomainEntity> mapper)
+    public BaseRepository(TDbContext repositoryDbContext, IMapper<TDALEntity, TDomainEntity> mapper)
         : base(repositoryDbContext, mapper)
     {}
 }
@@ -26,9 +26,9 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> :
 
     protected readonly TDbContext RepositoryDbContext;
     protected readonly DbSet<TDomainEntity> RepositoryDbSet;
-    protected readonly IBaseMapper<TDALEntity, TDomainEntity> Mapper;
+    protected readonly IMapper<TDALEntity, TDomainEntity> Mapper;
 
-    public BaseRepository(TDbContext repositoryDbContext, IBaseMapper<TDALEntity, TDomainEntity> mapper)
+    public BaseRepository(TDbContext repositoryDbContext, IMapper<TDALEntity, TDomainEntity> mapper)
     {
         RepositoryDbContext = repositoryDbContext;
         RepositoryDbSet = RepositoryDbContext.Set<TDomainEntity>();

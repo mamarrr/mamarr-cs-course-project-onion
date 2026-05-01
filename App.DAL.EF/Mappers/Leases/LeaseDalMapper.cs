@@ -5,7 +5,7 @@ using Base.Domain;
 
 namespace App.DAL.EF.Mappers.Leases;
 
-public sealed class LeaseDalMapper : IBaseMapper<LeaseDalDto, Lease>
+public sealed class LeaseDalMapper : IMapper<LeaseDalDto, Lease>
 {
     public LeaseDalDto? Map(Lease? entity)
     {

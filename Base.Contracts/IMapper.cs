@@ -1,8 +1,10 @@
 namespace Base.Contracts;
 
-public interface IMapper<TLeft, TRight>
+public interface IMapper<TEntityOut, TEntityIn>
+    where TEntityOut : class
+    where TEntityIn : class
 {
-    TRight? Map(TLeft? source);
+    TEntityOut? Map(TEntityIn? source);
 
-    TLeft? Map(TRight? source);
+    TEntityIn? Map(TEntityOut? source);
 }

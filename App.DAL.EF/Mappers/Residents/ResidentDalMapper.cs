@@ -4,7 +4,7 @@ using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.Residents;
 
-public sealed class ResidentDalMapper : IBaseMapper<ResidentDalDto, Resident>
+public sealed class ResidentDalMapper : IMapper<ResidentDalDto, Resident>
 {
     public ResidentDalDto? Map(Resident? entity)
     {

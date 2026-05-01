@@ -4,7 +4,7 @@ using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.Units;
 
-public sealed class UnitDalMapper : IBaseMapper<UnitDalDto, Unit>
+public sealed class UnitDalMapper : IMapper<UnitDalDto, Unit>
 {
     public UnitDalDto? Map(Unit? entity)
     {
