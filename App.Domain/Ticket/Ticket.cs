@@ -39,7 +39,7 @@ public class Ticket : BaseEntity, IManagementCompanyId
     public Guid? UnitId { get; set; }
     public Unit? Unit { get; set; }
 
-    public Guid? TicketCategoryId { get; set; }
+    public Guid TicketCategoryId { get; set; }
     public TicketCategory? TicketCategory { get; set; }
 
     public Guid? VendorId { get; set; }
