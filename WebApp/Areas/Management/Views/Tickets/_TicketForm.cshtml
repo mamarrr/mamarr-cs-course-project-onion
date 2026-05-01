@@ -1,0 +1,119 @@
+@model WebApp.ViewModels.Management.Tickets.TicketFormPageViewModel
+@using App.Resources.Views
+@{
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+    var action = Model.IsEdit ? "Edit" : "Create";
+}
+
+<section class="management-card">
+    <form method="post"
+          asp-action="@action"
+          asp-route-companySlug="@Model.CompanySlug"
+          asp-route-ticketId="@Model.Form.TicketId"
+          class="row g-3">
+        @Html.AntiForgeryToken()
+        <input asp-for="Form.TicketId" type="hidden" />
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="col-md-3">
+            <label asp-for="Form.TicketNr" class="form-label"></label>
+            <input asp-for="Form.TicketNr" class="form-control" />
+            <span asp-validation-for="Form.TicketNr" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-9">
+            <label asp-for="Form.Title" class="form-label"></label>
+            <input asp-for="Form.Title" class="form-control" />
+            <span asp-validation-for="Form.Title" class="text-danger"></span>
+        </div>
+
+        <div class="col-12">
+            <label asp-for="Form.Description" class="form-label"></label>
+            <textarea asp-for="Form.Description" class="form-control" rows="5"></textarea>
+            <span asp-validation-for="Form.Description" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="Form.TicketCategoryId" class="form-label"></label>
+            <select asp-for="Form.TicketCategoryId" asp-items="Model.Options.Categories" class="form-select">
+                <option value="">@T("SelectTicketCategory", "Select category")</option>
+            </select>
+            <span asp-validation-for="Form.TicketCategoryId" class="text-danger"></span>
+        </div>
+
+        @if (Model.IsEdit)
+        {
+            <div class="col-md-4">
+                <label asp-for="Form.TicketStatusId" class="form-label"></label>
+                <select asp-for="Form.TicketStatusId" asp-items="Model.Options.Statuses" class="form-select">
+                    <option value="">@T("SelectTicketStatus", "Select status")</option>
+                </select>
+                <span asp-validation-for="Form.TicketStatusId" class="text-danger"></span>
+            </div>
+        }
+        else
+        {
+            <input asp-for="Form.TicketStatusId" type="hidden" />
+        }
+
+        <div class="col-md-4">
+            <label asp-for="Form.TicketPriorityId" class="form-label"></label>
+            <select asp-for="Form.TicketPriorityId" asp-items="Model.Options.Priorities" class="form-select">
+                <option value="">@T("SelectTicketPriority", "Select priority")</option>
+            </select>
+            <span asp-validation-for="Form.TicketPriorityId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="Form.CustomerId" class="form-label"></label>
+            <select asp-for="Form.CustomerId" asp-items="Model.Options.Customers" class="form-select">
+                <option value="">@T("SelectCustomer", "Select customer")</option>
+            </select>
+            <span asp-validation-for="Form.CustomerId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="Form.PropertyId" class="form-label"></label>
+            <select asp-for="Form.PropertyId" asp-items="Model.Options.Properties" class="form-select">
+                <option value="">@T("SelectProperty", "Select property")</option>
+            </select>
+            <span asp-validation-for="Form.PropertyId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="Form.UnitId" class="form-label"></label>
+            <select asp-for="Form.UnitId" asp-items="Model.Options.Units" class="form-select">
+                <option value="">@T("SelectUnit", "Select unit")</option>
+            </select>
+            <span asp-validation-for="Form.UnitId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="Form.ResidentId" class="form-label"></label>
+            <select asp-for="Form.ResidentId" asp-items="Model.Options.Residents" class="form-select">
+                <option value="">@T("SelectResident", "Select resident")</option>
+            </select>
+            <span asp-validation-for="Form.ResidentId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="Form.VendorId" class="form-label"></label>
+            <select asp-for="Form.VendorId" asp-items="Model.Options.Vendors" class="form-select">
+                <option value="">@T("SelectVendor", "Select vendor")</option>
+            </select>
+            <span asp-validation-for="Form.VendorId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="Form.DueAt" class="form-label"></label>
+            <input asp-for="Form.DueAt" class="form-control" type="datetime-local" />
+            <span asp-validation-for="Form.DueAt" class="text-danger"></span>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="management-btn">@(Model.IsEdit ? UiText.SaveChanges : T("CreateTicket", "Create ticket"))</button>
+            <a class="btn btn-outline-secondary" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">@T("Cancel", "Cancel")</a>
+        </div>
+    </form>
+</section>

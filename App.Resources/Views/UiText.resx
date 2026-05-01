@@ -310,4 +310,73 @@
   <data name="TypeValueToConfirmDelete" xml:space="preserve"><value>Type "{0}" to confirm deletion.</value></data>
   <data name="UnableToDeleteProfile" xml:space="preserve"><value>Unable to delete profile.</value></data>
   <data name="UnableToUpdateProfile" xml:space="preserve"><value>Unable to update profile.</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="TicketWorkspace" xml:space="preserve"><value>Ticket workspace</value></data>
+  <data name="TicketsPageIntro" xml:space="preserve"><value>Track and manage maintenance tickets for {0}.</value></data>
+  <data name="CreateTicket" xml:space="preserve"><value>Create ticket</value></data>
+  <data name="EditTicket" xml:space="preserve"><value>Edit ticket</value></data>
+  <data name="TicketNumber" xml:space="preserve"><value>Ticket number</value></data>
+  <data name="TicketTitle" xml:space="preserve"><value>Title</value></data>
+  <data name="TicketDescription" xml:space="preserve"><value>Description</value></data>
+  <data name="TicketCategory" xml:space="preserve"><value>Category</value></data>
+  <data name="TicketPriority" xml:space="preserve"><value>Priority</value></data>
+  <data name="DueAt" xml:space="preserve"><value>Due at</value></data>
+  <data name="DueFrom" xml:space="preserve"><value>Due from</value></data>
+  <data name="DueTo" xml:space="preserve"><value>Due to</value></data>
+  <data name="CreatedAt" xml:space="preserve"><value>Created</value></data>
+  <data name="ClosedAt" xml:space="preserve"><value>Closed</value></data>
+  <data name="CurrentTickets" xml:space="preserve"><value>Current tickets</value></data>
+  <data name="CurrentTicketsDescription" xml:space="preserve"><value>Only tickets in the current company scope are shown.</value></data>
+  <data name="NoTicketsFound" xml:space="preserve"><value>No tickets found</value></data>
+  <data name="NoTicketsFoundDescription" xml:space="preserve"><value>Create a ticket or adjust filters.</value></data>
+  <data name="AllStatuses" xml:space="preserve"><value>All statuses</value></data>
+  <data name="AllPriorities" xml:space="preserve"><value>All priorities</value></data>
+  <data name="AllCategories" xml:space="preserve"><value>All categories</value></data>
+  <data name="AllCustomers" xml:space="preserve"><value>All customers</value></data>
+  <data name="AllProperties" xml:space="preserve"><value>All properties</value></data>
+  <data name="AllUnits" xml:space="preserve"><value>All units</value></data>
+  <data name="AllVendors" xml:space="preserve"><value>All vendors</value></data>
+  <data name="ApplyFilters" xml:space="preserve"><value>Apply filters</value></data>
+  <data name="Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="SelectTicketCategory" xml:space="preserve"><value>Select category</value></data>
+  <data name="SelectTicketPriority" xml:space="preserve"><value>Select priority</value></data>
+  <data name="SelectTicketStatus" xml:space="preserve"><value>Select status</value></data>
+  <data name="SelectCustomer" xml:space="preserve"><value>Select customer</value></data>
+  <data name="SelectProperty" xml:space="preserve"><value>Select property</value></data>
+  <data name="SelectUnit" xml:space="preserve"><value>Select unit</value></data>
+  <data name="SelectResident" xml:space="preserve"><value>Select resident</value></data>
+  <data name="SelectVendor" xml:space="preserve"><value>Select vendor</value></data>
+  <data name="TicketContext" xml:space="preserve"><value>Context</value></data>
+  <data name="TicketDates" xml:space="preserve"><value>Dates</value></data>
+  <data name="DeleteTicketDescription" xml:space="preserve"><value>Deleting a ticket also removes its scheduled work and work logs.</value></data>
+  <data name="DeleteTicketConfirmation" xml:space="preserve"><value>Delete this ticket?</value></data>
+  <data name="AdvanceToStatus" xml:space="preserve"><value>Advance to {0}</value></data>
+  <data name="TicketCreatedSuccessfully" xml:space="preserve"><value>Ticket created successfully.</value></data>
+  <data name="TicketUpdatedSuccessfully" xml:space="preserve"><value>Ticket updated successfully.</value></data>
+  <data name="TicketDeletedSuccessfully" xml:space="preserve"><value>Ticket deleted successfully.</value></data>
+  <data name="TicketStatusAdvancedSuccessfully" xml:space="preserve"><value>Ticket status advanced successfully.</value></data>
+  <data name="UnableToDeleteTicket" xml:space="preserve"><value>Unable to delete ticket.</value></data>
+  <data name="UnableToAdvanceTicketStatus" xml:space="preserve"><value>Unable to advance ticket status.</value></data>
+  <data name="TicketNotFound" xml:space="preserve"><value>Ticket was not found.</value></data>
+  <data name="TicketNumberAlreadyExists" xml:space="preserve"><value>Ticket number already exists in this company.</value></data>
+  <data name="TicketScheduledRequiresVendor" xml:space="preserve"><value>Scheduled or later tickets require a vendor.</value></data>
+  <data name="TicketScheduledRequiresDueDate" xml:space="preserve"><value>Scheduled or later tickets require a due date.</value></data>
+  <data name="InvalidTicketCategory" xml:space="preserve"><value>Selected ticket category is invalid.</value></data>
+  <data name="InvalidTicketPriority" xml:space="preserve"><value>Selected ticket priority is invalid.</value></data>
+  <data name="InvalidTicketStatus" xml:space="preserve"><value>Selected ticket status is invalid.</value></data>
+  <data name="InvalidTicketCustomer" xml:space="preserve"><value>Selected customer is invalid.</value></data>
+  <data name="InvalidTicketProperty" xml:space="preserve"><value>Selected property is invalid for this customer.</value></data>
+  <data name="InvalidTicketUnit" xml:space="preserve"><value>Selected unit is invalid for this property.</value></data>
+  <data name="InvalidTicketResident" xml:space="preserve"><value>Selected resident is invalid for this unit.</value></data>
+  <data name="InvalidTicketVendor" xml:space="preserve"><value>Selected vendor is invalid.</value></data>
+  <data name="TicketCustomerRequiredForProperty" xml:space="preserve"><value>Select a customer before selecting a property.</value></data>
+  <data name="TicketPropertyRequiredForUnit" xml:space="preserve"><value>Select a property before selecting a unit.</value></data>
+  <data name="TicketNumberMaxLength" xml:space="preserve"><value>Ticket number must be 20 characters or fewer.</value></data>
+  <data name="TicketCategoryRequired" xml:space="preserve"><value>Ticket category is required.</value></data>
+  <data name="TicketPriorityRequired" xml:space="preserve"><value>Ticket priority is required.</value></data>
+  <data name="TicketStatusRequired" xml:space="preserve"><value>Ticket status is required.</value></data>
+  <data name="TicketCreatedStatusMissing" xml:space="preserve"><value>Created ticket status is not configured.</value></data>
+  <data name="TicketNextStatusMissing" xml:space="preserve"><value>Next ticket status is not configured.</value></data>
+  <data name="TicketAlreadyAtFinalStatus" xml:space="preserve"><value>Ticket is already at the final status.</value></data>
 </root>

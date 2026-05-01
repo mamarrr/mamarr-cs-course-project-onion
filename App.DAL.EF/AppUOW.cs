@@ -6,6 +6,7 @@ using App.Contracts.DAL.Lookups;
 using App.Contracts.DAL.ManagementCompanies;
 using App.Contracts.DAL.Properties;
 using App.Contracts.DAL.Residents;
+using App.Contracts.DAL.Tickets;
 using App.Contracts.DAL.Units;
 using App.DAL.EF.Mappers.Contacts;
 using App.DAL.EF.Mappers.Customers;
@@ -40,6 +41,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private IResidentRepository? _residents;
     private IUnitRepository? _units;
     private ILeaseRepository? _leases;
+    private ITicketRepository? _tickets;
 
     public AppUOW(AppDbContext dbContext) : base(dbContext)
     {
@@ -63,6 +65,8 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     public IUnitRepository Units => _units ??= new UnitRepository(UowDbContext, _unitMapper);
 
     public ILeaseRepository Leases => _leases ??= new LeaseRepository(UowDbContext, _leaseMapper);
+
+    public ITicketRepository Tickets => _tickets ??= new TicketRepository(UowDbContext);
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

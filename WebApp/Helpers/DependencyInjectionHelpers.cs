@@ -13,9 +13,11 @@ using App.BLL.Onboarding.WorkspaceCatalog;
 using App.BLL.Properties;
 using App.BLL.Contracts.Properties.Services;
 using App.BLL.Contracts.Residents.Services;
+using App.BLL.Contracts.Tickets.Services;
 using App.BLL.Units;
 using App.BLL.Contracts.Units.Services;
 using App.BLL.Residents;
+using App.BLL.Tickets;
 using App.Contracts;
 using App.DAL.EF;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +33,7 @@ using WebApp.Mappers.Mvc.Leases;
 using WebApp.Mappers.Mvc.Onboarding;
 using WebApp.Mappers.Mvc.Properties;
 using WebApp.Mappers.Mvc.Residents;
+using WebApp.Mappers.Mvc.Tickets;
 using WebApp.Mappers.Mvc.Units;
 using WebApp.Services;
 
@@ -87,6 +90,7 @@ public static class DependencyInjectionHelpers
         services.AddScoped<IPropertyWorkspaceService, PropertyWorkspaceService>();
         services.AddScoped<IPropertyProfileService, PropertyProfileService>();
         services.AddScoped<IUnitProfileService, UnitProfileService>();
+        services.AddScoped<IManagementTicketService, ManagementTicketService>();
 
         return services;
     }
@@ -107,6 +111,7 @@ public static class DependencyInjectionHelpers
         services.AddScoped<UnitMvcMapper>();
         services.AddScoped<ResidentMvcMapper>();
         services.AddScoped<LeaseViewModelMapper>();
+        services.AddScoped<ManagementTicketMvcMapper>();
         services.AddScoped<OnboardingViewModelMapper>();
 
         return services;

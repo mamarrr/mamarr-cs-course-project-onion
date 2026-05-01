@@ -31,7 +31,7 @@ public class NavigationBuilder : INavigationBuilder
         {
             Link(UiText.Dashboard, $"/m/{companySlug}", Sections.Dashboard, activeSection),
             Link(UiText.Profile, $"/m/{companySlug}/profile", Sections.Profile, activeSection),
-            Disabled(UiText.Tickets, Sections.Tickets, activeSection),
+            Link(UiText.Tickets, $"/m/{companySlug}/tickets", Sections.Tickets, activeSection),
             Disabled(UiText.Properties, Sections.Properties, activeSection),
             Link(UiText.Customers, $"/m/{companySlug}/customers", Sections.Customers, activeSection),
             Link(UiText.Residents, $"/m/{companySlug}/residents", Sections.Residents, activeSection),

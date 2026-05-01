@@ -2569,6 +2569,87 @@ namespace App.Resources.Views {
                 return ResourceManager.GetString("Vendors", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Search.
+        /// </summary>
+        public static string Search {
+            get {
+                return ResourceManager.GetString("Search", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Priority.
+        /// </summary>
+        public static string TicketPriority {
+            get {
+                return ResourceManager.GetString("TicketPriority", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Category.
+        /// </summary>
+        public static string TicketCategory {
+            get {
+                return ResourceManager.GetString("TicketCategory", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Due from.
+        /// </summary>
+        public static string DueFrom {
+            get {
+                return ResourceManager.GetString("DueFrom", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Due to.
+        /// </summary>
+        public static string DueTo {
+            get {
+                return ResourceManager.GetString("DueTo", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Ticket number.
+        /// </summary>
+        public static string TicketNumber {
+            get {
+                return ResourceManager.GetString("TicketNumber", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Title.
+        /// </summary>
+        public static string TicketTitle {
+            get {
+                return ResourceManager.GetString("TicketTitle", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        public static string TicketDescription {
+            get {
+                return ResourceManager.GetString("TicketDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Due at.
+        /// </summary>
+        public static string DueAt {
+            get {
+                return ResourceManager.GetString("DueAt", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to You.

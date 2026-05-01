@@ -6,6 +6,7 @@ using App.Contracts.DAL.Lookups;
 using App.Contracts.DAL.ManagementCompanies;
 using App.Contracts.DAL.Properties;
 using App.Contracts.DAL.Residents;
+using App.Contracts.DAL.Tickets;
 using App.Contracts.DAL.Units;
 
 namespace App.Contracts;
@@ -29,6 +30,8 @@ public interface IAppUOW : IBaseUOW
     IUnitRepository Units { get; }
 
     ILeaseRepository Leases { get; }
+
+    ITicketRepository Tickets { get; }
 
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 

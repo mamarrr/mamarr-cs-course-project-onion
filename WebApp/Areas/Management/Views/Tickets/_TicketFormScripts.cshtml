@@ -1,0 +1,67 @@
+@model WebApp.ViewModels.Management.Tickets.TicketFormPageViewModel
+@using App.Resources.Views
+@{
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<script>
+(() => {
+    const companySlug = '@Model.CompanySlug';
+    const selects = {
+        category: document.getElementById('Form_TicketCategoryId'),
+        customer: document.getElementById('Form_CustomerId'),
+        property: document.getElementById('Form_PropertyId'),
+        unit: document.getElementById('Form_UnitId'),
+        resident: document.getElementById('Form_ResidentId'),
+        vendor: document.getElementById('Form_VendorId')
+    };
+
+    const placeholders = {
+        property: '@T("SelectProperty", "Select property")',
+        unit: '@T("SelectUnit", "Select unit")',
+        resident: '@T("SelectResident", "Select resident")',
+        vendor: '@T("SelectVendor", "Select vendor")'
+    };
+
+    const reset = (select, placeholder) => {
+        if (!select) return;
+        select.innerHTML = '';
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = placeholder;
+        select.appendChild(option);
+    };
+
+    const load = async (url, select, placeholder) => {
+        reset(select, placeholder);
+        const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) return;
+        const options = await response.json();
+        for (const item of options) {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.label;
+            select.appendChild(option);
+        }
+    };
+
+    selects.customer?.addEventListener('change', async () => {
+        reset(selects.unit, placeholders.unit);
+        reset(selects.resident, placeholders.resident);
+        await load(`/m/${companySlug}/tickets/options/properties?customerId=${selects.customer.value}`, selects.property, placeholders.property);
+    });
+
+    selects.property?.addEventListener('change', async () => {
+        reset(selects.resident, placeholders.resident);
+        await load(`/m/${companySlug}/tickets/options/units?propertyId=${selects.property.value}`, selects.unit, placeholders.unit);
+    });
+
+    selects.unit?.addEventListener('change', async () => {
+        await load(`/m/${companySlug}/tickets/options/residents?unitId=${selects.unit.value}`, selects.resident, placeholders.resident);
+    });
+
+    selects.category?.addEventListener('change', async () => {
+        await load(`/m/${companySlug}/tickets/options/vendors?categoryId=${selects.category.value}`, selects.vendor, placeholders.vendor);
+    });
+})();
+</script>

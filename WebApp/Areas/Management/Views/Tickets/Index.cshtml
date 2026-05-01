@@ -1,0 +1,223 @@
+@model WebApp.ViewModels.Management.Tickets.TicketsPageViewModel
+@using App.Resources.Views
+@{
+    ViewData["Title"] = UiText.Tickets;
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+    string Empty(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+}
+
+<div class="management-grid">
+    <section class="management-card">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@T("TicketWorkspace", "Ticket workspace")</p>
+                <h2 class="mb-2">@UiText.Tickets</h2>
+                <p class="management-muted mb-0">@string.Format(T("TicketsPageIntro", "Track and manage maintenance tickets for {0}."), Model.CompanyName)</p>
+            </div>
+            <a class="management-btn" asp-action="Create" asp-route-companySlug="@Model.CompanySlug">@T("CreateTicket", "Create ticket")</a>
+        </div>
+    </section>
+
+    @if (TempData["ManagementTicketsSuccess"] is string successMessage)
+    {
+        <div class="alert alert-success" role="alert">@successMessage</div>
+    }
+
+    @if (TempData["ManagementTicketsError"] is string errorMessage)
+    {
+        <div class="alert alert-danger" role="alert">@errorMessage</div>
+    }
+
+    <section class="management-card">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label asp-for="Filter.Search" class="form-label"></label>
+                <input asp-for="Filter.Search" name="Search" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label asp-for="Filter.StatusId" class="form-label"></label>
+                <select asp-for="Filter.StatusId" name="StatusId" asp-items="Model.Options.Statuses" class="form-select">
+                    <option value="">@T("AllStatuses", "All statuses")</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label asp-for="Filter.PriorityId" class="form-label"></label>
+                <select asp-for="Filter.PriorityId" name="PriorityId" asp-items="Model.Options.Priorities" class="form-select">
+                    <option value="">@T("AllPriorities", "All priorities")</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label asp-for="Filter.CategoryId" class="form-label"></label>
+                <select asp-for="Filter.CategoryId" name="CategoryId" asp-items="Model.Options.Categories" class="form-select">
+                    <option value="">@T("AllCategories", "All categories")</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label asp-for="Filter.CustomerId" class="form-label"></label>
+                <select asp-for="Filter.CustomerId" name="CustomerId" asp-items="Model.Options.Customers" class="form-select">
+                    <option value="">@T("AllCustomers", "All customers")</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label asp-for="Filter.PropertyId" class="form-label"></label>
+                <select asp-for="Filter.PropertyId" name="PropertyId" asp-items="Model.Options.Properties" class="form-select">
+                    <option value="">@T("AllProperties", "All properties")</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label asp-for="Filter.UnitId" class="form-label"></label>
+                <select asp-for="Filter.UnitId" name="UnitId" asp-items="Model.Options.Units" class="form-select">
+                    <option value="">@T("AllUnits", "All units")</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label asp-for="Filter.VendorId" class="form-label"></label>
+                <select asp-for="Filter.VendorId" name="VendorId" asp-items="Model.Options.Vendors" class="form-select">
+                    <option value="">@T("AllVendors", "All vendors")</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label asp-for="Filter.DueFrom" class="form-label"></label>
+                <input asp-for="Filter.DueFrom" name="DueFrom" class="form-control" type="date" />
+            </div>
+            <div class="col-md-2">
+                <label asp-for="Filter.DueTo" class="form-label"></label>
+                <input asp-for="Filter.DueTo" name="DueTo" class="form-control" type="date" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="management-btn">@T("ApplyFilters", "Apply filters")</button>
+                <a class="btn btn-outline-secondary" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">@T("Clear", "Clear")</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="management-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="mb-1">@T("CurrentTickets", "Current tickets")</h2>
+                <p class="management-muted mb-0">@T("CurrentTicketsDescription", "Only tickets in the current company scope are shown.")</p>
+            </div>
+            <span class="management-badge @(Model.Tickets.Count > 0 ? "success" : "warning")">
+                @string.Format(UiText.ActiveRecords, Model.Tickets.Count)
+            </span>
+        </div>
+
+        @if (Model.Tickets.Count == 0)
+        {
+            <div class="border rounded p-3 bg-light-subtle">
+                <strong>@T("NoTicketsFound", "No tickets found")</strong>
+                <p class="management-muted mb-0">@T("NoTicketsFoundDescription", "Create a ticket or adjust filters.")</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>@T("TicketNumber", "Ticket number")</th>
+                        <th>@T("TicketTitle", "Title")</th>
+                        <th>@UiText.Status</th>
+                        <th>@T("TicketPriority", "Priority")</th>
+                        <th>@T("TicketCategory", "Category")</th>
+                        <th>@UiText.Customers</th>
+                        <th>@UiText.Property</th>
+                        <th>@UiText.Unit</th>
+                        <th>@UiText.Resident</th>
+                        <th>@UiText.Vendors</th>
+                        <th>@T("DueAt", "Due at")</th>
+                        <th>@T("CreatedAt", "Created")</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var ticket in Model.Tickets)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-action="Details"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-ticketId="@ticket.TicketId">@ticket.TicketNr</a>
+                            </td>
+                            <td>
+                                <a asp-action="Details"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-ticketId="@ticket.TicketId">@ticket.Title</a>
+                            </td>
+                            <td><span class="management-badge">@ticket.StatusLabel</span></td>
+                            <td>@ticket.PriorityLabel</td>
+                            <td>@ticket.CategoryLabel</td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(ticket.CustomerName) && !string.IsNullOrWhiteSpace(ticket.CustomerSlug))
+                                {
+                                    <a asp-area="Customer"
+                                       asp-controller="CustomerDashboard"
+                                       asp-action="Index"
+                                       asp-route-companySlug="@Model.CompanySlug"
+                                       asp-route-customerSlug="@ticket.CustomerSlug">@ticket.CustomerName</a>
+                                }
+                                else
+                                {
+                                    @Empty(ticket.CustomerName)
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(ticket.PropertyName)
+                                     && !string.IsNullOrWhiteSpace(ticket.CustomerSlug)
+                                     && !string.IsNullOrWhiteSpace(ticket.PropertySlug))
+                                {
+                                    <a asp-area="Property"
+                                       asp-controller="Dashboard"
+                                       asp-action="Index"
+                                       asp-route-companySlug="@Model.CompanySlug"
+                                       asp-route-customerSlug="@ticket.CustomerSlug"
+                                       asp-route-propertySlug="@ticket.PropertySlug">@ticket.PropertyName</a>
+                                }
+                                else
+                                {
+                                    @Empty(ticket.PropertyName)
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(ticket.UnitNr)
+                                     && !string.IsNullOrWhiteSpace(ticket.CustomerSlug)
+                                     && !string.IsNullOrWhiteSpace(ticket.PropertySlug)
+                                     && !string.IsNullOrWhiteSpace(ticket.UnitSlug))
+                                {
+                                    <a asp-area="Unit"
+                                       asp-controller="Dashboard"
+                                       asp-action="Index"
+                                       asp-route-companySlug="@Model.CompanySlug"
+                                       asp-route-customerSlug="@ticket.CustomerSlug"
+                                       asp-route-propertySlug="@ticket.PropertySlug"
+                                       asp-route-unitSlug="@ticket.UnitSlug">@ticket.UnitNr</a>
+                                }
+                                else
+                                {
+                                    @Empty(ticket.UnitNr)
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(ticket.ResidentName) && !string.IsNullOrWhiteSpace(ticket.ResidentIdCode))
+                                {
+                                    <a asp-area="Resident"
+                                       asp-controller="Dashboard"
+                                       asp-action="Index"
+                                       asp-route-companySlug="@Model.CompanySlug"
+                                       asp-route-residentIdCode="@ticket.ResidentIdCode">@ticket.ResidentName</a>
+                                }
+                                else
+                                {
+                                    @Empty(ticket.ResidentName)
+                                }
+                            </td>
+                            <td>@Empty(ticket.VendorName)</td>
+                            <td>@(ticket.DueAt?.ToString("g") ?? "-")</td>
+                            <td>@ticket.CreatedAt.ToString("g")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
