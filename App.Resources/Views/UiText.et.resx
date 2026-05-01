@@ -328,13 +328,11 @@
   <data name="AllVendors" xml:space="preserve"><value>Kõik tarnijad</value></data>
   <data name="ApplyFilters" xml:space="preserve"><value>Rakenda filtrid</value></data>
   <data name="Clear" xml:space="preserve"><value>Tühjenda</value></data>
-  <data name="Cancel" xml:space="preserve"><value>Loobu</value></data>
   <data name="SelectTicketCategory" xml:space="preserve"><value>Vali kategooria</value></data>
   <data name="SelectTicketPriority" xml:space="preserve"><value>Vali prioriteet</value></data>
   <data name="SelectTicketStatus" xml:space="preserve"><value>Vali staatus</value></data>
   <data name="SelectCustomer" xml:space="preserve"><value>Vali klient</value></data>
   <data name="SelectProperty" xml:space="preserve"><value>Vali kinnistu</value></data>
-  <data name="SelectUnit" xml:space="preserve"><value>Vali üksus</value></data>
   <data name="SelectResident" xml:space="preserve"><value>Vali elanik</value></data>
   <data name="SelectVendor" xml:space="preserve"><value>Vali tarnija</value></data>
   <data name="TicketContext" xml:space="preserve"><value>Kontekst</value></data>

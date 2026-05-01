@@ -338,13 +338,11 @@
   <data name="AllVendors" xml:space="preserve"><value>All vendors</value></data>
   <data name="ApplyFilters" xml:space="preserve"><value>Apply filters</value></data>
   <data name="Clear" xml:space="preserve"><value>Clear</value></data>
-  <data name="Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="SelectTicketCategory" xml:space="preserve"><value>Select category</value></data>
   <data name="SelectTicketPriority" xml:space="preserve"><value>Select priority</value></data>
   <data name="SelectTicketStatus" xml:space="preserve"><value>Select status</value></data>
   <data name="SelectCustomer" xml:space="preserve"><value>Select customer</value></data>
   <data name="SelectProperty" xml:space="preserve"><value>Select property</value></data>
-  <data name="SelectUnit" xml:space="preserve"><value>Select unit</value></data>
   <data name="SelectResident" xml:space="preserve"><value>Select resident</value></data>
   <data name="SelectVendor" xml:space="preserve"><value>Select vendor</value></data>
   <data name="TicketContext" xml:space="preserve"><value>Context</value></data>
