@@ -8,7 +8,7 @@ using FluentResults;
 
 namespace App.BLL.Customers;
 
-public sealed class CustomerAccessService : ICustomerAccessService
+public class CustomerAccessService : ICustomerAccessService
 {
     private static readonly HashSet<string> AllowedRoleCodes = new(StringComparer.OrdinalIgnoreCase)
     {

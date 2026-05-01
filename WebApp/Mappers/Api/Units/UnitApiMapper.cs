@@ -8,7 +8,7 @@ using App.DTO.v1.Unit;
 
 namespace WebApp.Mappers.Api.Units;
 
-public sealed class UnitApiMapper
+public class UnitApiMapper
 {
     public GetUnitDashboardQuery ToDashboardQuery(
         string companySlug,

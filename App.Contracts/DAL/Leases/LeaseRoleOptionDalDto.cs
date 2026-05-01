@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Leases;
 
-public sealed class LeaseRoleOptionDalDto
+public class LeaseRoleOptionDalDto
 {
     public Guid LeaseRoleId { get; init; }
     public string Code { get; init; } = default!;

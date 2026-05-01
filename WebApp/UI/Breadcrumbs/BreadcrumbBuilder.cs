@@ -2,7 +2,7 @@ using WebApp.UI.Workspace;
 
 namespace WebApp.UI.Breadcrumbs;
 
-public sealed class BreadcrumbBuilder : IBreadcrumbBuilder
+public class BreadcrumbBuilder : IBreadcrumbBuilder
 {
     public IReadOnlyList<BreadcrumbLinkViewModel> Build(WorkspaceIdentityViewModel workspace)
     {

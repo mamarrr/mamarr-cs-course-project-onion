@@ -6,7 +6,7 @@ using App.Contracts.DAL.ManagementCompanies;
 
 namespace App.BLL.ManagementCompanies;
 
-public sealed class ManagementCompanyProfileService : IManagementCompanyProfileService
+public class ManagementCompanyProfileService : IManagementCompanyProfileService
 {
     private readonly IAppUOW _uow;
     private readonly ICompanyMembershipAdminService _membershipService;

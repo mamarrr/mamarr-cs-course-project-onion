@@ -11,7 +11,7 @@ using FluentResults;
 
 namespace App.BLL.Units;
 
-public sealed class UnitProfileService : IUnitProfileService
+public class UnitProfileService : IUnitProfileService
 {
     private static readonly HashSet<string> DeleteAllowedRoleCodes =
     [

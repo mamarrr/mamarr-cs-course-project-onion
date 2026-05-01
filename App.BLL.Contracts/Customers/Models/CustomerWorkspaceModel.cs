@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Customers.Models;
 
-public sealed class CustomerWorkspaceModel
+public class CustomerWorkspaceModel
 {
     public Guid AppUserId { get; init; }
     public Guid ManagementCompanyId { get; init; }

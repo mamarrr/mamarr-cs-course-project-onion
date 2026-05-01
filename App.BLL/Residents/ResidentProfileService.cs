@@ -12,7 +12,7 @@ using FluentResults;
 
 namespace App.BLL.Residents;
 
-public sealed class ResidentProfileService : IResidentProfileService
+public class ResidentProfileService : IResidentProfileService
 {
     private static readonly HashSet<string> DeleteAllowedRoleCodes = new(StringComparer.OrdinalIgnoreCase)
     {

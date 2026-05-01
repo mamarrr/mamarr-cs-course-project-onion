@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Residents.Models;
 
-public sealed class ResidentLeaseSummaryModel
+public class ResidentLeaseSummaryModel
 {
     public Guid LeaseId { get; init; }
     public Guid ResidentId { get; init; }

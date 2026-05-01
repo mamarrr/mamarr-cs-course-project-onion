@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace App.BLL.Onboarding.CompanyJoinRequests;
 
-public sealed class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequestService
+public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequestService
 {
     private readonly IAppUOW _uow;
     private readonly ILogger<OnboardingCompanyJoinRequestService> _logger;

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 
 namespace WebApp.UI.Culture;
 
-public sealed class CultureOptionsBuilder : ICultureOptionsBuilder
+public class CultureOptionsBuilder : ICultureOptionsBuilder
 {
     private readonly IOptions<RequestLocalizationOptions> _localizationOptions;
 

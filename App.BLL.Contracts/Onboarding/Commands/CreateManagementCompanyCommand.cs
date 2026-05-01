@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Onboarding.Commands;
 
-public sealed class CreateManagementCompanyCommand
+public class CreateManagementCompanyCommand
 {
     public Guid AppUserId { get; init; }
     public string Name { get; init; } = default!;

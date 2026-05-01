@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Properties;
 
-public sealed class PropertyListItemDalDto
+public class PropertyListItemDalDto
 {
     public Guid Id { get; init; }
     public Guid CustomerId { get; init; }

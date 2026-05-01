@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Units.Commands;
 
-public sealed class CreateUnitCommand
+public class CreateUnitCommand
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

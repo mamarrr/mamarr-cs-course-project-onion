@@ -2,7 +2,7 @@ using FluentResults;
 
 namespace App.BLL.Contracts.Residents.Errors;
 
-public sealed class DuplicateResidentIdCodeError : Error
+public class DuplicateResidentIdCodeError : Error
 {
     public string PropertyName { get; }
 

@@ -9,7 +9,7 @@ using FluentResults;
 
 namespace App.BLL.Onboarding.Account;
 
-public sealed class AccountOnboardingService : IAccountOnboardingService
+public class AccountOnboardingService : IAccountOnboardingService
 {
     private const string InitialManagementRoleCode = "OWNER";
 

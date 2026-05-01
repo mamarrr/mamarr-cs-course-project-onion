@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Customers;
 
-public sealed class CustomerCreateDalDto
+public class CustomerCreateDalDto
 {
     public Guid ManagementCompanyId { get; init; }
     public string Name { get; init; } = default!;

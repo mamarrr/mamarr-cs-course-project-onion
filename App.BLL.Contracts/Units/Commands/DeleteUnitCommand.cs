@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Units.Commands;
 
-public sealed class DeleteUnitCommand
+public class DeleteUnitCommand
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

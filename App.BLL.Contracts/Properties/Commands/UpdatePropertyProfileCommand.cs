@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Properties.Commands;
 
-public sealed class UpdatePropertyProfileCommand
+public class UpdatePropertyProfileCommand
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

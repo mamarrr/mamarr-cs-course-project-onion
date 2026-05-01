@@ -6,7 +6,7 @@ using WebApp.UI.Workspace;
 
 namespace WebApp.UI.Chrome;
 
-public sealed class AppChromeViewModel
+public class AppChromeViewModel
 {
     public string PageTitle { get; init; } = string.Empty;
 

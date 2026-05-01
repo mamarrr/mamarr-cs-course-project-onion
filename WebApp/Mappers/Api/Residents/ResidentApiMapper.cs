@@ -8,7 +8,7 @@ using App.DTO.v1.Shared;
 
 namespace WebApp.Mappers.Api.Residents;
 
-public sealed class ResidentApiMapper
+public class ResidentApiMapper
 {
     public GetResidentsQuery ToResidentsQuery(
         string companySlug,

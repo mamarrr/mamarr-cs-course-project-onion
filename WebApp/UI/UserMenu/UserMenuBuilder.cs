@@ -2,7 +2,7 @@ using System.Security.Claims;
 
 namespace WebApp.UI.UserMenu;
 
-public sealed class UserMenuBuilder : IUserMenuBuilder
+public class UserMenuBuilder : IUserMenuBuilder
 {
     public UserMenuViewModel Build(ClaimsPrincipal user)
     {

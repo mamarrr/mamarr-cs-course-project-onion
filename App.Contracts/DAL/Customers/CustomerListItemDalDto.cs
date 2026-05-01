@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Customers;
 
-public sealed class CustomerListItemDalDto
+public class CustomerListItemDalDto
 {
     public Guid Id { get; init; }
     public Guid ManagementCompanyId { get; init; }

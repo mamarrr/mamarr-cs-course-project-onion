@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Residents.Commands;
 
-public sealed class CreateResidentCommand
+public class CreateResidentCommand
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

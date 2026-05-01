@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Customers.Commands;
 
-public sealed class CreateCustomerCommand
+public class CreateCustomerCommand
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

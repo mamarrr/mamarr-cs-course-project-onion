@@ -7,7 +7,7 @@ using WebApp.ViewModels.Resident;
 
 namespace WebApp.Mappers.Mvc.Residents;
 
-public sealed class ResidentMvcMapper
+public class ResidentMvcMapper
 {
     public GetResidentsQuery ToResidentsQuery(
         string companySlug,

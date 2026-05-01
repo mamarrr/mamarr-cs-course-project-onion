@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Onboarding.Models;
 
-public sealed class OnboardingJoinRequestModel
+public class OnboardingJoinRequestModel
 {
     public Guid RequestId { get; init; }
 }

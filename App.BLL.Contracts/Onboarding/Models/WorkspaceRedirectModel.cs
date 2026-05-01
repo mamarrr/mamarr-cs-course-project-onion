@@ -8,7 +8,7 @@ public enum WorkspaceRedirectDestination
     ResidentDashboard
 }
 
-public sealed class WorkspaceRedirectModel
+public class WorkspaceRedirectModel
 {
     public required WorkspaceRedirectDestination Destination { get; init; }
     public string? CompanySlug { get; init; }

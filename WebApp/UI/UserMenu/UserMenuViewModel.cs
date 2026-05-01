@@ -1,6 +1,6 @@
 namespace WebApp.UI.UserMenu;
 
-public sealed class UserMenuViewModel
+public class UserMenuViewModel
 {
     public string DisplayName { get; init; } = string.Empty;
 

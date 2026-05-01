@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Residents.Models;
 
-public sealed class ResidentContactModel
+public class ResidentContactModel
 {
     public Guid ResidentContactId { get; init; }
     public Guid ContactId { get; init; }

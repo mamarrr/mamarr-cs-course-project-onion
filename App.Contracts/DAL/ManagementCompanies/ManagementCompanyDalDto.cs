@@ -2,7 +2,7 @@ using Base.Contracts;
 
 namespace App.Contracts.DAL.ManagementCompanies;
 
-public sealed class ManagementCompanyDalDto : IBaseEntity
+public class ManagementCompanyDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public string Name { get; init; } = default!;
@@ -10,7 +10,7 @@ public sealed class ManagementCompanyDalDto : IBaseEntity
     public bool IsActive { get; init; }
 }
 
-public sealed class ManagementCompanyCreateDalDto
+public class ManagementCompanyCreateDalDto
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = default!;
@@ -24,7 +24,7 @@ public sealed class ManagementCompanyCreateDalDto
     public bool IsActive { get; init; }
 }
 
-public sealed class ManagementCompanyContextDalDto
+public class ManagementCompanyContextDalDto
 {
     public Guid ManagementCompanyId { get; init; }
     public string Slug { get; init; } = default!;
@@ -37,7 +37,7 @@ public sealed class ManagementCompanyContextDalDto
     public DateOnly? ValidTo { get; init; }
 }
 
-public sealed class ManagementCompanyProfileDalDto : IBaseEntity
+public class ManagementCompanyProfileDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public string Slug { get; init; } = default!;
@@ -50,7 +50,7 @@ public sealed class ManagementCompanyProfileDalDto : IBaseEntity
     public bool IsActive { get; init; }
 }
 
-public sealed class ManagementCompanyProfileUpdateDalDto : IBaseEntity
+public class ManagementCompanyProfileUpdateDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public string Name { get; init; } = default!;
@@ -62,7 +62,7 @@ public sealed class ManagementCompanyProfileUpdateDalDto : IBaseEntity
     public bool IsActive { get; init; }
 }
 
-public sealed class ManagementCompanyMembershipDalDto : IBaseEntity
+public class ManagementCompanyMembershipDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public Guid ManagementCompanyId { get; init; }
@@ -81,7 +81,7 @@ public sealed class ManagementCompanyMembershipDalDto : IBaseEntity
     public DateOnly? ValidTo { get; init; }
 }
 
-public sealed class ManagementCompanyMembershipCreateDalDto
+public class ManagementCompanyMembershipCreateDalDto
 {
     public Guid Id { get; init; }
     public Guid ManagementCompanyId { get; init; }
@@ -94,7 +94,7 @@ public sealed class ManagementCompanyMembershipCreateDalDto
     public DateTime CreatedAt { get; init; }
 }
 
-public sealed class ManagementCompanyMembershipUpdateDalDto
+public class ManagementCompanyMembershipUpdateDalDto
 {
     public Guid MembershipId { get; init; }
     public Guid ManagementCompanyId { get; init; }
@@ -105,7 +105,7 @@ public sealed class ManagementCompanyMembershipUpdateDalDto
     public DateOnly? ValidTo { get; init; }
 }
 
-public sealed class ManagementCompanyJoinRequestDalDto : IBaseEntity
+public class ManagementCompanyJoinRequestDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public Guid AppUserId { get; init; }
@@ -125,7 +125,7 @@ public sealed class ManagementCompanyJoinRequestDalDto : IBaseEntity
     public Guid? ResolvedByAppUserId { get; init; }
 }
 
-public sealed class ManagementCompanyJoinRequestCreateDalDto
+public class ManagementCompanyJoinRequestCreateDalDto
 {
     public Guid Id { get; init; }
     public Guid AppUserId { get; init; }

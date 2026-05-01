@@ -14,7 +14,7 @@ using FluentResults;
 
 namespace App.BLL.Units;
 
-public sealed class UnitWorkspaceService : IUnitWorkspaceService
+public class UnitWorkspaceService : IUnitWorkspaceService
 {
     private const int MinFloorNr = -200;
     private const int MaxFloorNr = 300;

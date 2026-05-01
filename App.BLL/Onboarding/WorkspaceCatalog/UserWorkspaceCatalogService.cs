@@ -6,7 +6,7 @@ using FluentResults;
 
 namespace App.BLL.Onboarding.WorkspaceCatalog;
 
-public sealed class UserWorkspaceCatalogService : IWorkspaceCatalogService
+public class UserWorkspaceCatalogService : IWorkspaceCatalogService
 {
     private static readonly HashSet<string> CompanyUserManagerRoles = new(StringComparer.OrdinalIgnoreCase)
     {

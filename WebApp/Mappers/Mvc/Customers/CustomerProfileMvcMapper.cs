@@ -6,7 +6,7 @@ using WebApp.ViewModels.Customer.CustomerProfile;
 
 namespace WebApp.Mappers.Mvc.Customers;
 
-public sealed class CustomerProfileMvcMapper
+public class CustomerProfileMvcMapper
 {
     public GetCustomerProfileQuery ToQuery(
         string companySlug,

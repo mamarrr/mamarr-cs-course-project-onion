@@ -1,11 +1,11 @@
 namespace App.BLL.Contracts.Leases.Models;
 
-public sealed class ResidentLeaseListModel
+public class ResidentLeaseListModel
 {
     public IReadOnlyList<ResidentLeaseModel> Leases { get; init; } = Array.Empty<ResidentLeaseModel>();
 }
 
-public sealed class ResidentLeaseModel
+public class ResidentLeaseModel
 {
     public Guid LeaseId { get; init; }
     public Guid ResidentId { get; init; }
@@ -24,12 +24,12 @@ public sealed class ResidentLeaseModel
     public string? Notes { get; init; }
 }
 
-public sealed class UnitLeaseListModel
+public class UnitLeaseListModel
 {
     public IReadOnlyList<UnitLeaseModel> Leases { get; init; } = Array.Empty<UnitLeaseModel>();
 }
 
-public sealed class UnitLeaseModel
+public class UnitLeaseModel
 {
     public Guid LeaseId { get; init; }
     public Guid ResidentId { get; init; }
@@ -46,7 +46,7 @@ public sealed class UnitLeaseModel
     public string? Notes { get; init; }
 }
 
-public sealed class LeaseModel
+public class LeaseModel
 {
     public Guid LeaseId { get; init; }
     public Guid LeaseRoleId { get; init; }
@@ -58,17 +58,17 @@ public sealed class LeaseModel
     public string? Notes { get; init; }
 }
 
-public sealed class LeaseCommandModel
+public class LeaseCommandModel
 {
     public Guid LeaseId { get; init; }
 }
 
-public sealed class LeasePropertySearchResultModel
+public class LeasePropertySearchResultModel
 {
     public IReadOnlyList<LeasePropertySearchItemModel> Properties { get; init; } = Array.Empty<LeasePropertySearchItemModel>();
 }
 
-public sealed class LeasePropertySearchItemModel
+public class LeasePropertySearchItemModel
 {
     public Guid PropertyId { get; init; }
     public Guid CustomerId { get; init; }
@@ -81,12 +81,12 @@ public sealed class LeasePropertySearchItemModel
     public string PostalCode { get; init; } = default!;
 }
 
-public sealed class LeaseUnitOptionsModel
+public class LeaseUnitOptionsModel
 {
     public IReadOnlyList<LeaseUnitOptionModel> Units { get; init; } = Array.Empty<LeaseUnitOptionModel>();
 }
 
-public sealed class LeaseUnitOptionModel
+public class LeaseUnitOptionModel
 {
     public Guid UnitId { get; init; }
     public string UnitSlug { get; init; } = default!;
@@ -95,12 +95,12 @@ public sealed class LeaseUnitOptionModel
     public bool IsActive { get; init; }
 }
 
-public sealed class LeaseResidentSearchResultModel
+public class LeaseResidentSearchResultModel
 {
     public IReadOnlyList<LeaseResidentSearchItemModel> Residents { get; init; } = Array.Empty<LeaseResidentSearchItemModel>();
 }
 
-public sealed class LeaseResidentSearchItemModel
+public class LeaseResidentSearchItemModel
 {
     public Guid ResidentId { get; init; }
     public string FullName { get; init; } = default!;
@@ -108,12 +108,12 @@ public sealed class LeaseResidentSearchItemModel
     public bool IsActive { get; init; }
 }
 
-public sealed class LeaseRoleOptionsModel
+public class LeaseRoleOptionsModel
 {
     public IReadOnlyList<LeaseRoleOptionModel> Roles { get; init; } = Array.Empty<LeaseRoleOptionModel>();
 }
 
-public sealed class LeaseRoleOptionModel
+public class LeaseRoleOptionModel
 {
     public Guid LeaseRoleId { get; init; }
     public string Code { get; init; } = default!;

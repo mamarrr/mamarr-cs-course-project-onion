@@ -7,7 +7,7 @@ using WebApp.ViewModels.Property;
 
 namespace WebApp.Mappers.Mvc.Properties;
 
-public sealed class PropertyMvcMapper
+public class PropertyMvcMapper
 {
     public GetPropertyWorkspaceQuery ToWorkspaceQuery(
         string companySlug,

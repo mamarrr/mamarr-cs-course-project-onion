@@ -1,6 +1,6 @@
 namespace WebApp.UI.Workspace;
 
-public sealed class WorkspaceSwitchOptionViewModel
+public class WorkspaceSwitchOptionViewModel
 {
     public Guid Id { get; init; }
 

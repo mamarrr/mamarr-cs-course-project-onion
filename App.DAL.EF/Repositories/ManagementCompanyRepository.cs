@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
-public sealed class ManagementCompanyRepository :
+public class ManagementCompanyRepository :
     BaseRepository<ManagementCompanyDalDto, ManagementCompany, AppDbContext>,
     IManagementCompanyRepository
 {

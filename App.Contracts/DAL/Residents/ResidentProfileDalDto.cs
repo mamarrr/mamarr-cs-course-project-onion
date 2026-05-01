@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Residents;
 
-public sealed class ResidentProfileDalDto
+public class ResidentProfileDalDto
 {
     public Guid Id { get; init; }
     public Guid ManagementCompanyId { get; init; }

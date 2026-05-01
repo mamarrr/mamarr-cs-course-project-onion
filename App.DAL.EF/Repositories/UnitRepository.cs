@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
-public sealed class UnitRepository :
+public class UnitRepository :
     BaseRepository<UnitDalDto, Unit, AppDbContext>,
     IUnitRepository
 {

@@ -3,7 +3,7 @@ using FluentResults;
 
 namespace App.BLL.Contracts.Common.Errors;
 
-public sealed class ValidationAppError : Error
+public class ValidationAppError : Error
 {
     public IReadOnlyList<ValidationFailureModel> Failures { get; }
 

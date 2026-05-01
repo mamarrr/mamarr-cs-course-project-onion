@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Residents.Models;
 
-public sealed class CompanyResidentsModel
+public class CompanyResidentsModel
 {
     public Guid AppUserId { get; init; }
     public Guid ManagementCompanyId { get; init; }

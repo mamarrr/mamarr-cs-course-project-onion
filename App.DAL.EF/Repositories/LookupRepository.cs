@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
-public sealed class LookupRepository : ILookupRepository
+public class LookupRepository : ILookupRepository
 {
     private readonly AppDbContext _dbContext;
 

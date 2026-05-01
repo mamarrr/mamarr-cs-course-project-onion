@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Properties.Models;
 
-public sealed class PropertyTypeOptionModel
+public class PropertyTypeOptionModel
 {
     public Guid Id { get; init; }
     public string Code { get; init; } = default!;

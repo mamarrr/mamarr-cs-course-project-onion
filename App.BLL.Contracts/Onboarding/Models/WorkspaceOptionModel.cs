@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Onboarding.Models;
 
-public sealed class WorkspaceOptionModel
+public class WorkspaceOptionModel
 {
     public Guid Id { get; init; }
     public string ContextType { get; init; } = default!;

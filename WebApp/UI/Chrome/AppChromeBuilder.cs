@@ -8,7 +8,7 @@ using WebApp.UI.Workspace;
 
 namespace WebApp.UI.Chrome;
 
-public sealed class AppChromeBuilder : IAppChromeBuilder
+public class AppChromeBuilder : IAppChromeBuilder
 {
     private readonly IWorkspaceResolver _workspaceResolver;
     private readonly IBreadcrumbBuilder _breadcrumbBuilder;

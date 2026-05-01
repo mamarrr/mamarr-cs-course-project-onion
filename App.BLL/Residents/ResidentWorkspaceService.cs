@@ -12,7 +12,7 @@ using FluentResults;
 
 namespace App.BLL.Residents;
 
-public sealed class ResidentWorkspaceService : IResidentWorkspaceService
+public class ResidentWorkspaceService : IResidentWorkspaceService
 {
     private readonly IResidentAccessService _residentAccessService;
     private readonly IAppUOW _uow;

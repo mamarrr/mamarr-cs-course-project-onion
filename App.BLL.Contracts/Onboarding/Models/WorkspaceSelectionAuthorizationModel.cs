@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Onboarding.Models;
 
-public sealed class WorkspaceSelectionAuthorizationModel
+public class WorkspaceSelectionAuthorizationModel
 {
     public bool Authorized { get; init; }
     public string? NormalizedType { get; init; }

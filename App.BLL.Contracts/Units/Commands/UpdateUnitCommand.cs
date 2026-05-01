@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Units.Commands;
 
-public sealed class UpdateUnitCommand
+public class UpdateUnitCommand
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

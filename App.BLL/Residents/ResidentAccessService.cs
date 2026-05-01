@@ -8,7 +8,7 @@ using FluentResults;
 
 namespace App.BLL.Residents;
 
-public sealed class ResidentAccessService : IResidentAccessService
+public class ResidentAccessService : IResidentAccessService
 {
     private static readonly HashSet<string> AllowedRoleCodes = new(StringComparer.OrdinalIgnoreCase)
     {

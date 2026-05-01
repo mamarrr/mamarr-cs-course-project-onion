@@ -4,7 +4,7 @@ using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.Customers;
 
-public sealed class CustomerDalMapper : IMapper<CustomerDalDto, Customer>
+public class CustomerDalMapper : IMapper<CustomerDalDto, Customer>
 {
     public CustomerDalDto? Map(Customer? entity)
     {

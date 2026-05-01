@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Properties;
 
-public sealed class PropertyCreateDalDto
+public class PropertyCreateDalDto
 {
     public Guid CustomerId { get; init; }
     public string Name { get; init; } = default!;

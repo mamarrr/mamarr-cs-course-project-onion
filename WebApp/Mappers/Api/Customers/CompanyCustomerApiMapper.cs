@@ -7,7 +7,7 @@ using App.DTO.v1.Shared;
 
 namespace WebApp.Mappers.Api.Customers;
 
-public sealed class CompanyCustomerApiMapper
+public class CompanyCustomerApiMapper
 {
     public GetCompanyCustomersQuery ToQuery(
         string companySlug,

@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Units.Queries;
 
-public sealed class GetUnitProfileQuery
+public class GetUnitProfileQuery
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

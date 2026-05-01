@@ -11,7 +11,7 @@ public interface IApiOnboardingRouteContextMapper
     ApiRouteContextDto CreateManagementCompanyRouteContext(string companySlug, string companyName);
 }
 
-public sealed class ApiOnboardingRouteContextMapper : IApiOnboardingRouteContextMapper
+public class ApiOnboardingRouteContextMapper : IApiOnboardingRouteContextMapper
 {
     public OnboardingContextSummaryDto MapContext(ApiOnboardingContextModel entry)
     {

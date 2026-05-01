@@ -7,7 +7,7 @@ using WebApp.ViewModels.Unit;
 
 namespace WebApp.Mappers.Mvc.Units;
 
-public sealed class UnitMvcMapper
+public class UnitMvcMapper
 {
     public GetUnitDashboardQuery ToDashboardQuery(
         string companySlug,

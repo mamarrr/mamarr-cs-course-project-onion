@@ -12,7 +12,7 @@ using FluentResults;
 
 namespace App.BLL.Leases;
 
-public sealed class LeaseAssignmentService : ILeaseAssignmentService
+public class LeaseAssignmentService : ILeaseAssignmentService
 {
     private readonly IAppUOW _uow;
 

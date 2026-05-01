@@ -1,6 +1,6 @@
 namespace WebApp.UI.Workspace;
 
-public sealed class WorkspaceResolutionResult
+public class WorkspaceResolutionResult
 {
     public WorkspaceIdentityViewModel Workspace { get; init; } = new();
 

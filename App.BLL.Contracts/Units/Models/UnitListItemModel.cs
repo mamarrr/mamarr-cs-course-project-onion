@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Units.Models;
 
-public sealed class UnitListItemModel
+public class UnitListItemModel
 {
     public Guid UnitId { get; init; }
     public Guid PropertyId { get; init; }

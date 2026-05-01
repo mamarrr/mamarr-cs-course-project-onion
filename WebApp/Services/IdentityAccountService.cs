@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace WebApp.Services;
 
-public sealed class IdentityAccountService : IAccountIdentityService
+public class IdentityAccountService : IAccountIdentityService
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;

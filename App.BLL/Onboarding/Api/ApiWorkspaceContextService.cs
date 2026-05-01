@@ -5,7 +5,7 @@ using FluentResults;
 
 namespace App.BLL.Onboarding.Api;
 
-public sealed class ApiWorkspaceContextService : IApiOnboardingContextService
+public class ApiWorkspaceContextService : IApiOnboardingContextService
 {
     private readonly IAppUOW _uow;
     private readonly IAccountOnboardingService _accountOnboardingService;

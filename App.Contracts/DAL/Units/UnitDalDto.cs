@@ -2,7 +2,7 @@ using Base.Contracts;
 
 namespace App.Contracts.DAL.Units;
 
-public sealed class UnitDalDto : IBaseEntity
+public class UnitDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public Guid PropertyId { get; init; }

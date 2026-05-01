@@ -8,7 +8,7 @@ using App.DTO.v1.Shared;
 
 namespace WebApp.Mappers.Api.Properties;
 
-public sealed class PropertyApiMapper
+public class PropertyApiMapper
 {
     public GetPropertyWorkspaceQuery ToWorkspaceQuery(
         string companySlug,

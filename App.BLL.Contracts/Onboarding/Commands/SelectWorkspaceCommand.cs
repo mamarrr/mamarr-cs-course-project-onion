@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Onboarding.Commands;
 
-public sealed class SelectWorkspaceCommand
+public class SelectWorkspaceCommand
 {
     public Guid AppUserId { get; init; }
     public string ContextType { get; init; } = default!;

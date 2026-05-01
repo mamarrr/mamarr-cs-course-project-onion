@@ -2,7 +2,7 @@ using Base.Contracts;
 
 namespace App.Contracts.DAL.Customers;
 
-public sealed class CustomerDalDto : IBaseEntity
+public class CustomerDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public Guid ManagementCompanyId { get; set; }

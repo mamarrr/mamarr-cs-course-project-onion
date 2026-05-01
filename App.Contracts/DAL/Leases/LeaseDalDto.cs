@@ -2,7 +2,7 @@ using Base.Contracts;
 
 namespace App.Contracts.DAL.Leases;
 
-public sealed class LeaseDalDto : IBaseEntity
+public class LeaseDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public Guid UnitId { get; init; }

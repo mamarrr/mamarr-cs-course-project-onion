@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Units.Models;
 
-public sealed class UnitProfileModel
+public class UnitProfileModel
 {
     public Guid UnitId { get; init; }
     public Guid PropertyId { get; init; }

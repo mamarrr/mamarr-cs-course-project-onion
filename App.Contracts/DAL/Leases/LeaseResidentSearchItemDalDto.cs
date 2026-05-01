@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Leases;
 
-public sealed class LeaseResidentSearchItemDalDto
+public class LeaseResidentSearchItemDalDto
 {
     public Guid ResidentId { get; init; }
     public string FullName { get; init; } = default!;

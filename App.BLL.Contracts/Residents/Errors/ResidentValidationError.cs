@@ -3,7 +3,7 @@ using FluentResults;
 
 namespace App.BLL.Contracts.Residents.Errors;
 
-public sealed class ResidentValidationError : Error
+public class ResidentValidationError : Error
 {
     public IReadOnlyList<ValidationFailureModel> Failures { get; }
 

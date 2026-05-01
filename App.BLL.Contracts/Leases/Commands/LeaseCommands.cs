@@ -2,7 +2,7 @@ using App.BLL.Contracts.Leases.Queries;
 
 namespace App.BLL.Contracts.Leases.Commands;
 
-public sealed class CreateLeaseFromResidentCommand : GetResidentLeasesQuery
+public class CreateLeaseFromResidentCommand : GetResidentLeasesQuery
 {
     public Guid UnitId { get; init; }
     public Guid LeaseRoleId { get; init; }
@@ -12,7 +12,7 @@ public sealed class CreateLeaseFromResidentCommand : GetResidentLeasesQuery
     public string? Notes { get; init; }
 }
 
-public sealed class CreateLeaseFromUnitCommand : GetUnitLeasesQuery
+public class CreateLeaseFromUnitCommand : GetUnitLeasesQuery
 {
     public Guid ResidentId { get; init; }
     public Guid LeaseRoleId { get; init; }
@@ -22,7 +22,7 @@ public sealed class CreateLeaseFromUnitCommand : GetUnitLeasesQuery
     public string? Notes { get; init; }
 }
 
-public sealed class UpdateLeaseFromResidentCommand : GetResidentLeaseQuery
+public class UpdateLeaseFromResidentCommand : GetResidentLeaseQuery
 {
     public Guid LeaseRoleId { get; init; }
     public DateOnly StartDate { get; init; }
@@ -31,7 +31,7 @@ public sealed class UpdateLeaseFromResidentCommand : GetResidentLeaseQuery
     public string? Notes { get; init; }
 }
 
-public sealed class UpdateLeaseFromUnitCommand : GetUnitLeaseQuery
+public class UpdateLeaseFromUnitCommand : GetUnitLeaseQuery
 {
     public Guid LeaseRoleId { get; init; }
     public DateOnly StartDate { get; init; }
@@ -40,6 +40,6 @@ public sealed class UpdateLeaseFromUnitCommand : GetUnitLeaseQuery
     public string? Notes { get; init; }
 }
 
-public sealed class DeleteLeaseFromResidentCommand : GetResidentLeaseQuery;
+public class DeleteLeaseFromResidentCommand : GetResidentLeaseQuery;
 
-public sealed class DeleteLeaseFromUnitCommand : GetUnitLeaseQuery;
+public class DeleteLeaseFromUnitCommand : GetUnitLeaseQuery;

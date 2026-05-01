@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Onboarding.Queries;
 
-public sealed class GetOnboardingStateQuery
+public class GetOnboardingStateQuery
 {
     public Guid AppUserId { get; init; }
 }

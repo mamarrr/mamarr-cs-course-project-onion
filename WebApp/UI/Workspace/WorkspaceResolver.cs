@@ -5,7 +5,7 @@ using WebApp.UI.Chrome;
 
 namespace WebApp.UI.Workspace;
 
-public sealed class WorkspaceResolver : IWorkspaceResolver
+public class WorkspaceResolver : IWorkspaceResolver
 {
     private readonly IWorkspaceCatalogService _userWorkspaceCatalogService;
 

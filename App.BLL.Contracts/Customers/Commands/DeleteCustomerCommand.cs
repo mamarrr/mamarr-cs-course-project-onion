@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Customers.Commands;
 
-public sealed class DeleteCustomerCommand
+public class DeleteCustomerCommand
 {
     public string CompanySlug { get; init; } = default!;
     public string CustomerSlug { get; init; } = default!;

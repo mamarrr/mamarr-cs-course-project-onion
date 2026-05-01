@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
-public sealed class PropertyRepository :
+public class PropertyRepository :
     BaseRepository<PropertyDalDto, Property, AppDbContext>,
     IPropertyRepository
 {

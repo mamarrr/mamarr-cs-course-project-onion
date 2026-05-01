@@ -15,7 +15,7 @@ using FluentResults;
 
 namespace App.BLL.Properties;
 
-public sealed class PropertyWorkspaceService : IPropertyWorkspaceService
+public class PropertyWorkspaceService : IPropertyWorkspaceService
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IAppUOW _uow;

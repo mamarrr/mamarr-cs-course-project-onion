@@ -1,6 +1,6 @@
 namespace WebApp.UI.Navigation;
 
-public sealed class NavigationItemViewModel
+public class NavigationItemViewModel
 {
     public string Label { get; init; } = string.Empty;
 

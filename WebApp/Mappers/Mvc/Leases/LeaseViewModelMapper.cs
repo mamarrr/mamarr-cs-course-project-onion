@@ -4,7 +4,7 @@ using WebApp.ViewModels.Unit;
 
 namespace WebApp.Mappers.Mvc.Leases;
 
-public sealed class LeaseViewModelMapper
+public class LeaseViewModelMapper
 {
     public ResidentLeaseListItemViewModel ToResidentLeaseViewModel(ResidentLeaseModel lease)
     {

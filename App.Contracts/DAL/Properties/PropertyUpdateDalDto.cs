@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Properties;
 
-public sealed class PropertyUpdateDalDto
+public class PropertyUpdateDalDto
 {
     public Guid Id { get; init; }
     public Guid CustomerId { get; init; }

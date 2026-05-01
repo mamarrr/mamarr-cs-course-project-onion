@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
-public sealed class ManagementCompanyJoinRequestRepository :
+public class ManagementCompanyJoinRequestRepository :
     BaseRepository<ManagementCompanyJoinRequestDalDto, ManagementCompanyJoinRequest, AppDbContext>,
     IManagementCompanyJoinRequestRepository
 {

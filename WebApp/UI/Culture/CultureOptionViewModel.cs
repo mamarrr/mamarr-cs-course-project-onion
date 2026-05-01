@@ -1,6 +1,6 @@
 namespace WebApp.UI.Culture;
 
-public sealed class CultureOptionViewModel
+public class CultureOptionViewModel
 {
     public string Value { get; init; } = string.Empty;
 

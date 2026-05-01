@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Customers;
 
-public sealed class CustomerWorkspaceDalDto
+public class CustomerWorkspaceDalDto
 {
     public Guid Id { get; init; }
     public Guid ManagementCompanyId { get; init; }
@@ -11,7 +11,7 @@ public sealed class CustomerWorkspaceDalDto
     public bool IsActive { get; init; }
 }
 
-public sealed class CustomerUserContextDalDto
+public class CustomerUserContextDalDto
 {
     public Guid CustomerId { get; init; }
     public string Name { get; init; } = default!;

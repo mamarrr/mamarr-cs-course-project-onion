@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Residents.Models;
 
-public sealed class ResidentListItemModel
+public class ResidentListItemModel
 {
     public Guid ResidentId { get; init; }
     public string FirstName { get; init; } = default!;

@@ -5,7 +5,7 @@ using App.DTO.v1.Unit;
 
 namespace WebApp.Mappers.Api.Leases;
 
-public sealed class LeaseApiMapper
+public class LeaseApiMapper
 {
     public ResidentUnitLeaseDto ToResidentLeaseDto(ResidentLeaseModel item)
     {

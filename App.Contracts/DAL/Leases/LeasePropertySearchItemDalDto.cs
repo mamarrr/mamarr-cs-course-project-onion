@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Leases;
 
-public sealed class LeasePropertySearchItemDalDto
+public class LeasePropertySearchItemDalDto
 {
     public Guid PropertyId { get; init; }
     public Guid CustomerId { get; init; }

@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Contacts;
 
-public sealed class ContactUpdateDalDto
+public class ContactUpdateDalDto
 {
     public Guid Id { get; init; }
     public Guid ManagementCompanyId { get; init; }

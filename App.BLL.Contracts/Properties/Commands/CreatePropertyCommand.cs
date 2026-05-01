@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Properties.Commands;
 
-public sealed class CreatePropertyCommand
+public class CreatePropertyCommand
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

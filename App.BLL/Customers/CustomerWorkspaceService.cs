@@ -5,7 +5,7 @@ using FluentResults;
 
 namespace App.BLL.Customers;
 
-public sealed class CustomerWorkspaceService : ICustomerWorkspaceService
+public class CustomerWorkspaceService : ICustomerWorkspaceService
 {
     private readonly ICustomerAccessService _customerAccessService;
 

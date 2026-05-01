@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Properties.Queries;
 
-public sealed class GetPropertyProfileQuery
+public class GetPropertyProfileQuery
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

@@ -15,7 +15,7 @@ using FluentResults;
 
 namespace App.BLL.Customers;
 
-public sealed class CompanyCustomerService : ICompanyCustomerService
+public class CompanyCustomerService : ICompanyCustomerService
 {
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IAppUOW _uow;

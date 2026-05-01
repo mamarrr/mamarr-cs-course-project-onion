@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Units;
 
-public sealed class UnitUpdateDalDto
+public class UnitUpdateDalDto
 {
     public Guid Id { get; init; }
     public Guid PropertyId { get; init; }

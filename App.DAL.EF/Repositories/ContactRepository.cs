@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
-public sealed class ContactRepository :
+public class ContactRepository :
     BaseRepository<ContactDalDto, Contact, AppDbContext>,
     IContactRepository
 {

@@ -8,7 +8,7 @@ using FluentResults;
 
 namespace App.BLL.Units;
 
-public sealed class UnitAccessService : IUnitAccessService
+public class UnitAccessService : IUnitAccessService
 {
     private readonly IAppUOW _uow;
 

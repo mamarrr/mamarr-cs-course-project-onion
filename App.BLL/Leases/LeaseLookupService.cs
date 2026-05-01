@@ -8,7 +8,7 @@ using FluentResults;
 
 namespace App.BLL.Leases;
 
-public sealed class LeaseLookupService : ILeaseLookupService
+public class LeaseLookupService : ILeaseLookupService
 {
     private readonly IAppUOW _uow;
 

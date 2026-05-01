@@ -7,7 +7,7 @@ using FluentResults;
 
 namespace App.BLL.Onboarding.ContextSelection;
 
-public sealed class WorkspaceRedirectService : IWorkspaceRedirectService, IContextSelectionService
+public class WorkspaceRedirectService : IWorkspaceRedirectService, IContextSelectionService
 {
     private readonly IAppUOW _uow;
     private readonly IAccountOnboardingService _accountOnboardingService;

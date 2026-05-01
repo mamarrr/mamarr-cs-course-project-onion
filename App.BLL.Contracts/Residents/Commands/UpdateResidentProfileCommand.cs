@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Residents.Commands;
 
-public sealed class UpdateResidentProfileCommand
+public class UpdateResidentProfileCommand
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

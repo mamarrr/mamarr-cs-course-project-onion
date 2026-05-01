@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Units.Models;
 
-public sealed class UnitWorkspaceModel
+public class UnitWorkspaceModel
 {
     public Guid AppUserId { get; init; }
     public Guid ManagementCompanyId { get; init; }

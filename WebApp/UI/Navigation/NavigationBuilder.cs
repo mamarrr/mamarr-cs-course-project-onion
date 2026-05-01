@@ -3,7 +3,7 @@ using WebApp.UI.Workspace;
 
 namespace WebApp.UI.Navigation;
 
-public sealed class NavigationBuilder : INavigationBuilder
+public class NavigationBuilder : INavigationBuilder
 {
     public IReadOnlyList<NavigationItemViewModel> Build(
         WorkspaceIdentityViewModel workspace,

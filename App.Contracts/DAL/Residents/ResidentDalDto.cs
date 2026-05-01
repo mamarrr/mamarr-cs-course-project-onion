@@ -2,7 +2,7 @@ using Base.Contracts;
 
 namespace App.Contracts.DAL.Residents;
 
-public sealed class ResidentDalDto : IBaseEntity
+public class ResidentDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public Guid ManagementCompanyId { get; init; }
@@ -13,7 +13,7 @@ public sealed class ResidentDalDto : IBaseEntity
     public bool IsActive { get; init; }
 }
 
-public sealed class ResidentUserContextDalDto
+public class ResidentUserContextDalDto
 {
     public Guid ResidentId { get; init; }
     public string FirstName { get; init; } = default!;

@@ -11,7 +11,7 @@ using FluentResults;
 
 namespace App.BLL.Properties;
 
-public sealed class PropertyProfileService : IPropertyProfileService
+public class PropertyProfileService : IPropertyProfileService
 {
     private static readonly HashSet<string> DeleteAllowedRoleCodes =
     [

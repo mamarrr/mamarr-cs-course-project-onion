@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
-public sealed class CustomerRepository :
+public class CustomerRepository :
     BaseRepository<CustomerDalDto, Customer, AppDbContext>,
     ICustomerRepository
 {

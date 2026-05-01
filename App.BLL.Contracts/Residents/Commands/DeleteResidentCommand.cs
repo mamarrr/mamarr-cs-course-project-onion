@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Residents.Commands;
 
-public sealed class DeleteResidentCommand
+public class DeleteResidentCommand
 {
     public Guid UserId { get; init; }
     public string CompanySlug { get; init; } = default!;

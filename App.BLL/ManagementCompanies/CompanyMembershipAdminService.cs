@@ -9,7 +9,7 @@ using Base.Domain;
 
 namespace App.BLL.ManagementCompanies;
 
-public sealed class CompanyMembershipAdminService :
+public class CompanyMembershipAdminService :
     ICompanyMembershipAdminService,
     IManagementCompanyAccessService,
     ICompanyMembershipAuthorizationService,

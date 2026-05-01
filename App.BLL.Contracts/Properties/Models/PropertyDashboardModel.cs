@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Properties.Models;
 
-public sealed class PropertyDashboardModel
+public class PropertyDashboardModel
 {
     public PropertyWorkspaceModel Workspace { get; init; } = default!;
     public string Title { get; init; } = "Property dashboard";

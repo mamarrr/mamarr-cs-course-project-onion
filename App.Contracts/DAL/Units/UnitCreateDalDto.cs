@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Units;
 
-public sealed class UnitCreateDalDto
+public class UnitCreateDalDto
 {
     public Guid PropertyId { get; init; }
     public string UnitNr { get; init; } = default!;

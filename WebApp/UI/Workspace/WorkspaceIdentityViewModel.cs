@@ -1,6 +1,6 @@
 namespace WebApp.UI.Workspace;
 
-public sealed class WorkspaceIdentityViewModel
+public class WorkspaceIdentityViewModel
 {
     public WorkspaceLevel Level { get; init; } = WorkspaceLevel.None;
 

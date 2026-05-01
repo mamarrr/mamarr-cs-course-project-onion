@@ -2,7 +2,7 @@ using WebApp.UI.Workspace;
 
 namespace WebApp.UI.Breadcrumbs;
 
-public sealed class BreadcrumbLinkViewModel
+public class BreadcrumbLinkViewModel
 {
     public string Label { get; init; } = string.Empty;
 

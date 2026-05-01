@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Units.Models;
 
-public sealed class UnitDashboardModel
+public class UnitDashboardModel
 {
     public UnitWorkspaceModel Workspace { get; init; } = new();
     public string Title { get; init; } = "Unit dashboard";

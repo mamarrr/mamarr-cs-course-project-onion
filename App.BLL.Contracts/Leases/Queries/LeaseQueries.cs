@@ -38,17 +38,17 @@ public class GetUnitLeaseQuery : GetUnitLeasesQuery
     public Guid LeaseId { get; init; }
 }
 
-public sealed class SearchLeasePropertiesQuery : GetResidentLeasesQuery
+public class SearchLeasePropertiesQuery : GetResidentLeasesQuery
 {
     public string? SearchTerm { get; init; }
 }
 
-public sealed class GetLeaseUnitsForPropertyQuery : GetResidentLeasesQuery
+public class GetLeaseUnitsForPropertyQuery : GetResidentLeasesQuery
 {
     public Guid PropertyId { get; init; }
 }
 
-public sealed class SearchLeaseResidentsQuery : GetUnitLeasesQuery
+public class SearchLeaseResidentsQuery : GetUnitLeasesQuery
 {
     public string? SearchTerm { get; init; }
 }

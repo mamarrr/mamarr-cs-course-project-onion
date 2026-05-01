@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Leases;
 
-public sealed class LeaseUnitOptionDalDto
+public class LeaseUnitOptionDalDto
 {
     public Guid UnitId { get; init; }
     public string UnitSlug { get; init; } = default!;

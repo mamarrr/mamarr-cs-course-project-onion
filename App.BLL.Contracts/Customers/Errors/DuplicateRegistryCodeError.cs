@@ -2,7 +2,7 @@ using FluentResults;
 
 namespace App.BLL.Contracts.Customers.Errors;
 
-public sealed class DuplicateRegistryCodeError : Error
+public class DuplicateRegistryCodeError : Error
 {
     public string PropertyName { get; }
 

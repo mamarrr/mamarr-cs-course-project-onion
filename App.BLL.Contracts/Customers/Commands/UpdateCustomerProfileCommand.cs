@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Customers.Commands;
 
-public sealed class UpdateCustomerProfileCommand
+public class UpdateCustomerProfileCommand
 {
     public string CompanySlug { get; init; } = default!;
     public string CustomerSlug { get; init; } = default!;

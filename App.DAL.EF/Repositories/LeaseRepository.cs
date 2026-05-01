@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
-public sealed class LeaseRepository :
+public class LeaseRepository :
     BaseRepository<LeaseDalDto, Lease, AppDbContext>,
     ILeaseRepository
 {

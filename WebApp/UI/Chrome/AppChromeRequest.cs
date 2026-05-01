@@ -4,7 +4,7 @@ using WebApp.UI.Workspace;
 
 namespace WebApp.UI.Chrome;
 
-public sealed class AppChromeRequest
+public class AppChromeRequest
 {
     public ClaimsPrincipal User { get; init; } = default!;
 

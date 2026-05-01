@@ -1,6 +1,6 @@
 namespace App.Contracts.DAL.Leases;
 
-public sealed class UnitLeaseDalDto
+public class UnitLeaseDalDto
 {
     public Guid LeaseId { get; init; }
     public Guid ResidentId { get; init; }

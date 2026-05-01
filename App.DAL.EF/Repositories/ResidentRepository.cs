@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
-public sealed class ResidentRepository :
+public class ResidentRepository :
     BaseRepository<ResidentDalDto, Resident, AppDbContext>,
     IResidentRepository
 {

@@ -1,6 +1,6 @@
 namespace App.BLL.Contracts.Onboarding.Models;
 
-public sealed class WorkspaceCatalogModel
+public class WorkspaceCatalogModel
 {
     public string ManagementCompanyName { get; init; } = "Management Workspace";
     public bool CanManageCompanyUsers { get; init; }

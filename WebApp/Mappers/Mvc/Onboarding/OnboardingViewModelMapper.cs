@@ -5,7 +5,7 @@ using WebApp.ViewModels.Onboarding;
 
 namespace WebApp.Mappers.Mvc.Onboarding;
 
-public sealed class OnboardingViewModelMapper
+public class OnboardingViewModelMapper
 {
     public RegisterAccountCommand Map(RegisterViewModel viewModel)
     {
