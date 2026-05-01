@@ -1,4 +1,5 @@
 using App.BLL.Contracts.ManagementCompanies.Models;
+using FluentResults;
 
 namespace App.BLL.Contracts.ManagementCompanies.Services;
 
@@ -12,7 +13,7 @@ public interface ICompanyMembershipAdminService
     /// Resolves management-area access for the given company slug.
     /// Returns actor context if the user is an effective company member.
     /// </summary>
-    Task<CompanyAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
+    Task<Result<CompanyMembershipContext>> AuthorizeManagementAreaAccessAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default);
@@ -21,7 +22,7 @@ public interface ICompanyMembershipAdminService
     /// Resolves actor authorization for management user administration in the given company slug.
     /// Returns authorized actor context if the user has effective OWNER or MANAGER role.
     /// </summary>
-    Task<CompanyAdminAuthorizationResult> AuthorizeAsync(
+    Task<Result<CompanyAdminAuthorizedContext>> AuthorizeAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default);
@@ -29,14 +30,14 @@ public interface ICompanyMembershipAdminService
     /// <summary>
     /// Lists all company members for the authorized company context.
     /// </summary>
-    Task<CompanyMembershipListResult> ListCompanyMembersAsync(
+    Task<Result<CompanyMembershipListResult>> ListCompanyMembersAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets a single membership for editing, scoped to the authorized company.
     /// </summary>
-    Task<CompanyMembershipEditResult> GetMembershipForEditAsync(
+    Task<Result<CompanyMembershipEditModel>> GetMembershipForEditAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default);
@@ -51,7 +52,7 @@ public interface ICompanyMembershipAdminService
     /// <summary>
     /// Gets role options for the generic edit-user flow, filtered by actor capabilities and target membership.
     /// </summary>
-    Task<CompanyMembershipOptionsResult> GetEditRoleOptionsAsync(
+    Task<Result<IReadOnlyList<CompanyMembershipRoleOption>>> GetEditRoleOptionsAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default);
@@ -59,7 +60,7 @@ public interface ICompanyMembershipAdminService
     /// <summary>
     /// Adds a new company user by email for the authorized company context.
     /// </summary>
-    Task<CompanyMembershipAddResult> AddUserByEmailAsync(
+    Task<Result<Guid>> AddUserByEmailAsync(
         CompanyAdminAuthorizedContext context,
         CompanyMembershipAddRequest request,
         CancellationToken cancellationToken = default);
@@ -67,7 +68,7 @@ public interface ICompanyMembershipAdminService
     /// <summary>
     /// Updates an existing company membership within the authorized company scope.
     /// </summary>
-    Task<CompanyMembershipUpdateResult> UpdateMembershipAsync(
+    Task<Result> UpdateMembershipAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CompanyMembershipUpdateRequest request,
@@ -76,7 +77,7 @@ public interface ICompanyMembershipAdminService
     /// <summary>
     /// Deletes a company membership within the authorized company scope.
     /// </summary>
-    Task<CompanyMembershipDeleteResult> DeleteMembershipAsync(
+    Task<Result> DeleteMembershipAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default);
@@ -84,14 +85,14 @@ public interface ICompanyMembershipAdminService
     /// <summary>
     /// Lists ownership transfer candidates for the current owner.
     /// </summary>
-    Task<OwnershipTransferCandidateListResult> GetOwnershipTransferCandidatesAsync(
+    Task<Result<IReadOnlyList<OwnershipTransferCandidate>>> GetOwnershipTransferCandidatesAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Transfers ownership from the current owner to another existing company member.
     /// </summary>
-    Task<OwnershipTransferResult> TransferOwnershipAsync(
+    Task<Result<OwnershipTransferModel>> TransferOwnershipAsync(
         CompanyAdminAuthorizedContext context,
         TransferOwnershipRequest request,
         CancellationToken cancellationToken = default);
@@ -107,14 +108,14 @@ public interface ICompanyMembershipAdminService
     /// Gets pending access requests for the company.
     /// Currently returns empty placeholder; will be implemented with onboarding workflow.
     /// </summary>
-    Task<PendingAccessRequestListResult> GetPendingAccessRequestsAsync(
+    Task<Result<PendingAccessRequestListResult>> GetPendingAccessRequestsAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Approves a pending access request in the authorized company context.
     /// </summary>
-    Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
+    Task<Result> ApprovePendingAccessRequestAsync(
         CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default);
@@ -122,7 +123,7 @@ public interface ICompanyMembershipAdminService
     /// <summary>
     /// Rejects a pending access request in the authorized company context.
     /// </summary>
-    Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
+    Task<Result> RejectPendingAccessRequestAsync(
         CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default);

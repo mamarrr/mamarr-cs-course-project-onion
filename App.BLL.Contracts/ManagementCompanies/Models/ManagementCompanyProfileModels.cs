@@ -24,11 +24,3 @@ public class CompanyProfileUpdateRequest
     public bool IsActive { get; set; }
 }
 
-public class ProfileOperationResult
-{
-    public bool Success { get; set; }
-    public bool NotFound { get; set; }
-    public bool Forbidden { get; set; }
-    public bool DuplicateRegistryCode { get; set; }
-    public string? ErrorMessage { get; set; }
-}

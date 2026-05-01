@@ -1,4 +1,5 @@
 using App.BLL.Contracts.ManagementCompanies.Models;
+using FluentResults;
 
 namespace App.BLL.Contracts.ManagementCompanies.Services;
 
@@ -8,7 +9,7 @@ public interface ICompanyRoleOptionsService
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
-    Task<CompanyMembershipOptionsResult> GetEditRoleOptionsAsync(
+    Task<Result<IReadOnlyList<CompanyMembershipRoleOption>>> GetEditRoleOptionsAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default);

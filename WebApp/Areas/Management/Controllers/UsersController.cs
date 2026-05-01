@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.ManagementCompanies.Models;
 using App.BLL.Contracts.ManagementCompanies.Services;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -63,7 +65,7 @@ public class UsersController : Controller
             return View(nameof(Index), invalidVm);
         }
 
-        var result = await _companyMembershipAdminService.AddUserByEmailAsync(auth.Context!, new CompanyMembershipAddRequest
+        var result = await _companyMembershipAdminService.AddUserByEmailAsync(auth.Value, new CompanyMembershipAddRequest
         {
             Email = vm.Email,
             RoleId = vm.RoleId.Value,
@@ -73,9 +75,9 @@ public class UsersController : Controller
             IsActive = vm.IsActive
         }, cancellationToken);
 
-        if (!result.Success)
+        if (result.IsFailed)
         {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? App.Resources.Views.UiText.UnableToAddUser);
+            ModelState.AddModelError(string.Empty, ErrorMessage(result.Errors, App.Resources.Views.UiText.UnableToAddUser));
             var invalidVm = await BuildPageViewModelAsync(companySlug, cancellationToken, vm);
             return View(nameof(Index), invalidVm);
         }
@@ -94,20 +96,20 @@ public class UsersController : Controller
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var editResult = await _companyMembershipAdminService.GetMembershipForEditAsync(auth.Context!, id, cancellationToken);
-        if (editResult.NotFound)
+        var editResult = await _companyMembershipAdminService.GetMembershipForEditAsync(auth.Value, id, cancellationToken);
+        if (editResult.IsFailed && editResult.Errors.OfType<NotFoundError>().Any())
         {
             return NotFound();
         }
 
-        if (editResult.Forbidden)
+        if (editResult.IsFailed)
         {
-            TempData["ManagementUsersError"] = editResult.ErrorMessage ?? App.Resources.Views.UiText.UnableToUpdateUser;
+            TempData["ManagementUsersError"] = ErrorMessage(editResult.Errors, App.Resources.Views.UiText.UnableToUpdateUser);
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
         var title = App.Resources.Views.UiText.EditUser;
-        var vm = await MapEditViewModelAsync(auth.Context!, editResult.Data!, title, cancellationToken);
+        var vm = await MapEditViewModelAsync(auth.Value, editResult.Value, title, cancellationToken);
 
         ViewData["Title"] = title;
         return View(vm);
@@ -129,15 +131,15 @@ public class UsersController : Controller
             return NotFound();
         }
 
-        var editResult = await _companyMembershipAdminService.GetMembershipForEditAsync(auth.Context!, id, cancellationToken);
-        if (editResult.NotFound)
+        var editResult = await _companyMembershipAdminService.GetMembershipForEditAsync(auth.Value, id, cancellationToken);
+        if (editResult.IsFailed && editResult.Errors.OfType<NotFoundError>().Any())
         {
             return NotFound();
         }
 
-        if (editResult.Forbidden)
+        if (editResult.IsFailed)
         {
-            TempData["ManagementUsersError"] = editResult.ErrorMessage ?? App.Resources.Views.UiText.UnableToUpdateUser;
+            TempData["ManagementUsersError"] = ErrorMessage(editResult.Errors, App.Resources.Views.UiText.UnableToUpdateUser);
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
@@ -150,12 +152,12 @@ public class UsersController : Controller
                 ModelState.AddModelError(nameof(vm.RoleId), App.Resources.Views.UiText.RoleRequired);
             }
 
-            await HydrateEditViewModelAsync(vm, auth.Context!, editResult.Data!, title, cancellationToken);
+            await HydrateEditViewModelAsync(vm, auth.Value, editResult.Value, title, cancellationToken);
             ViewData["Title"] = title;
             return View(vm);
         }
 
-        var updateResult = await _companyMembershipAdminService.UpdateMembershipAsync(auth.Context!, id, new CompanyMembershipUpdateRequest
+        var updateResult = await _companyMembershipAdminService.UpdateMembershipAsync(auth.Value, id, new CompanyMembershipUpdateRequest
         {
             RoleId = vm.RoleId.Value,
             JobTitle = vm.JobTitle,
@@ -164,10 +166,15 @@ public class UsersController : Controller
             ValidTo = vm.ValidTo
         }, cancellationToken);
 
-        if (!updateResult.Success)
+        if (updateResult.IsFailed && updateResult.Errors.OfType<NotFoundError>().Any())
         {
-            ModelState.AddModelError(string.Empty, updateResult.ErrorMessage ?? App.Resources.Views.UiText.UnableToUpdateUser);
-            await HydrateEditViewModelAsync(vm, auth.Context!, editResult.Data!, title, cancellationToken);
+            return NotFound();
+        }
+
+        if (updateResult.IsFailed)
+        {
+            ModelState.AddModelError(string.Empty, ErrorMessage(updateResult.Errors, App.Resources.Views.UiText.UnableToUpdateUser));
+            await HydrateEditViewModelAsync(vm, auth.Value, editResult.Value, title, cancellationToken);
             ViewData["Title"] = title;
             return View(vm);
         }
@@ -187,10 +194,10 @@ public class UsersController : Controller
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var result = await _companyMembershipAdminService.DeleteMembershipAsync(auth.Context!, id, cancellationToken);
-        if (!result.Success)
+        var result = await _companyMembershipAdminService.DeleteMembershipAsync(auth.Value, id, cancellationToken);
+        if (result.IsFailed)
         {
-            TempData["ManagementUsersError"] = result.ErrorMessage ?? App.Resources.Views.UiText.UnableToRemoveCompanyUser;
+            TempData["ManagementUsersError"] = ErrorMessage(result.Errors, App.Resources.Views.UiText.UnableToRemoveCompanyUser);
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
@@ -208,15 +215,15 @@ public class UsersController : Controller
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var candidateResult = await _companyMembershipAdminService.GetOwnershipTransferCandidatesAsync(auth.Context!, cancellationToken);
-        if (candidateResult.Forbidden)
+        var candidateResult = await _companyMembershipAdminService.GetOwnershipTransferCandidatesAsync(auth.Value, cancellationToken);
+        if (candidateResult.IsFailed)
         {
-            TempData["ManagementUsersError"] = candidateResult.ErrorMessage ?? App.Resources.Views.UiText.OwnershipTransferRequiresCurrentOwner;
+            TempData["ManagementUsersError"] = ErrorMessage(candidateResult.Errors, App.Resources.Views.UiText.OwnershipTransferRequiresCurrentOwner);
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
         var title = App.Resources.Views.UiText.TransferOwnership;
-        var pageVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, title, cancellationToken);
+        var pageVm = await BuildTransferOwnershipPageViewModelAsync(auth.Value, title, cancellationToken);
         ViewData["Title"] = title;
         return View(pageVm);
     }
@@ -244,20 +251,20 @@ public class UsersController : Controller
                 ModelState.AddModelError(nameof(vm.TargetMembershipId), App.Resources.Views.UiText.NewOwnerRequired);
             }
 
-            var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, title, cancellationToken, vm);
+            var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Value, title, cancellationToken, vm);
             ViewData["Title"] = title;
             return View(invalidVm);
         }
 
-        var result = await _companyMembershipAdminService.TransferOwnershipAsync(auth.Context!, new TransferOwnershipRequest
+        var result = await _companyMembershipAdminService.TransferOwnershipAsync(auth.Value, new TransferOwnershipRequest
         {
             TargetMembershipId = vm.TargetMembershipId.Value
         }, cancellationToken);
 
-        if (!result.Success)
+        if (result.IsFailed)
         {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? App.Resources.Views.UiText.UnableToTransferOwnership);
-            var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Context!, title, cancellationToken, vm);
+            ModelState.AddModelError(string.Empty, ErrorMessage(result.Errors, App.Resources.Views.UiText.UnableToTransferOwnership));
+            var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Value, title, cancellationToken, vm);
             ViewData["Title"] = title;
             return View(invalidVm);
         }
@@ -277,10 +284,10 @@ public class UsersController : Controller
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var result = await _companyMembershipAdminService.ApprovePendingAccessRequestAsync(auth.Context!, requestId, cancellationToken);
-        if (!result.Success)
+        var result = await _companyMembershipAdminService.ApprovePendingAccessRequestAsync(auth.Value, requestId, cancellationToken);
+        if (result.IsFailed)
         {
-            TempData["ManagementUsersError"] = result.ErrorMessage ?? App.Resources.Views.UiText.UnableToApproveAccessRequest;
+            TempData["ManagementUsersError"] = ErrorMessage(result.Errors, App.Resources.Views.UiText.UnableToApproveAccessRequest);
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
@@ -299,10 +306,10 @@ public class UsersController : Controller
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var result = await _companyMembershipAdminService.RejectPendingAccessRequestAsync(auth.Context!, requestId, cancellationToken);
-        if (!result.Success)
+        var result = await _companyMembershipAdminService.RejectPendingAccessRequestAsync(auth.Value, requestId, cancellationToken);
+        if (result.IsFailed)
         {
-            TempData["ManagementUsersError"] = result.ErrorMessage ?? App.Resources.Views.UiText.UnableToRejectAccessRequest;
+            TempData["ManagementUsersError"] = ErrorMessage(result.Errors, App.Resources.Views.UiText.UnableToRejectAccessRequest);
             return RedirectToAction(nameof(Index), new { companySlug });
         }
 
@@ -322,19 +329,24 @@ public class UsersController : Controller
         return ToAuthorizationActionResult(auth);
     }
 
-    private IActionResult? ToAuthorizationActionResult(CompanyAdminAuthorizationResult auth)
+    private IActionResult? ToAuthorizationActionResult(Result<CompanyAdminAuthorizedContext> auth)
     {
-        if (auth.CompanyNotFound)
+        if (auth.IsSuccess)
+        {
+            return null;
+        }
+
+        if (auth.Errors.OfType<NotFoundError>().Any())
         {
             return NotFound();
         }
 
-        if (auth.IsForbidden)
+        if (auth.Errors.OfType<ForbiddenError>().Any())
         {
             return Forbid();
         }
 
-        return null;
+        return Forbid();
     }
 
     private async Task<UsersPageViewModel> BuildPageViewModelAsync(
@@ -344,7 +356,7 @@ public class UsersController : Controller
     {
         var appUserId = GetAppUserId()!.Value;
         var auth = await _companyMembershipAdminService.AuthorizeAsync(appUserId, companySlug, cancellationToken);
-        var context = auth.Context!;
+        var context = auth.Value;
 
         var members = await _companyMembershipAdminService.ListCompanyMembersAsync(context, cancellationToken);
         var pendingRequests = await _companyMembershipAdminService.GetPendingAccessRequestsAsync(context, cancellationToken);
@@ -357,7 +369,7 @@ public class UsersController : Controller
             CompanySlug = context.CompanySlug,
             CompanyName = context.CompanyName,
             CurrentActorIsOwner = context.IsOwner,
-            Members = members.Members.Select(x => new ManagementUserListItemViewModel
+            Members = members.Value.Members.Select(x => new ManagementUserListItemViewModel
             {
                 MembershipId = x.MembershipId,
                 FullName = x.FullName,
@@ -379,7 +391,7 @@ public class UsersController : Controller
                 ProtectedReason = x.ProtectedReason
             }).ToList(),
             AddUser = addUserOverride ?? new AddManagementUserViewModel(),
-            PendingRequests = pendingRequests.Requests.Select(x => new PendingAccessRequestViewModel
+            PendingRequests = pendingRequests.Value.Requests.Select(x => new PendingAccessRequestViewModel
             {
                 RequestId = x.RequestId,
                 AppUserId = x.AppUserId,
@@ -401,8 +413,11 @@ public class UsersController : Controller
         TransferOwnershipInputViewModel? transferOverride = null)
     {
         var members = await _companyMembershipAdminService.ListCompanyMembersAsync(context, cancellationToken);
-        var currentOwner = members.Members.Single(x => x.MembershipId == context.ActorMembershipId);
+        var currentOwner = members.Value.Members.Single(x => x.MembershipId == context.ActorMembershipId);
         var candidateResult = await _companyMembershipAdminService.GetOwnershipTransferCandidatesAsync(context, cancellationToken);
+        var candidates = candidateResult.IsSuccess
+            ? candidateResult.Value
+            : Array.Empty<OwnershipTransferCandidate>();
 
         return new TransferOwnershipPageViewModel
         {
@@ -412,7 +427,7 @@ public class UsersController : Controller
             CurrentOwnerName = currentOwner.FullName,
             CurrentOwnerEmail = currentOwner.Email,
             Transfer = transferOverride ?? new TransferOwnershipInputViewModel(),
-            Candidates = candidateResult.Candidates
+            Candidates = candidates
                 .Select(x => new SelectListItem
                 {
                     Value = x.MembershipId.ToString(),
@@ -524,5 +539,10 @@ public class UsersController : Controller
     {
         var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+    }
+
+    private static string ErrorMessage(IReadOnlyList<IError> errors, string fallback)
+    {
+        return errors.FirstOrDefault()?.Message ?? fallback;
     }
 }

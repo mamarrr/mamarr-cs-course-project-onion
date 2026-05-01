@@ -1,5 +1,7 @@
 using System.Security.Claims;
+using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.ManagementCompanies.Services;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.UI.Chrome;
@@ -36,14 +38,9 @@ public class DashboardController : Controller
         }
 
         var auth = await _companyMembershipAdminService.AuthorizeManagementAreaAccessAsync(appUserId.Value, companySlug, cancellationToken);
-        if (auth.CompanyNotFound)
+        if (auth.IsFailed)
         {
-            return NotFound();
-        }
-
-        if (auth.IsForbidden)
-        {
-            return Forbid();
+            return ToAuthorizationActionResult(auth.Errors);
         }
 
         var title = App.Resources.Views.UiText.Dashboard;
@@ -56,13 +53,13 @@ public class DashboardController : Controller
                     HttpContext = HttpContext,
                     PageTitle = title,
                     ActiveSection = Sections.Dashboard,
-                    ManagementCompanySlug = auth.Context!.CompanySlug,
-                    ManagementCompanyName = auth.Context.CompanyName,
+                    ManagementCompanySlug = auth.Value.CompanySlug,
+                    ManagementCompanyName = auth.Value.CompanyName,
                     CurrentLevel = WorkspaceLevel.ManagementCompany
                 },
                 cancellationToken),
-            CompanySlug = auth.Context.CompanySlug,
-            CompanyName = auth.Context.CompanyName
+            CompanySlug = auth.Value.CompanySlug,
+            CompanyName = auth.Value.CompanyName
         };
 
         ViewData["Title"] = title;
@@ -73,5 +70,15 @@ public class DashboardController : Controller
     {
         var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+    }
+
+    private IActionResult ToAuthorizationActionResult(IReadOnlyList<IError> errors)
+    {
+        if (errors.OfType<NotFoundError>().Any())
+        {
+            return NotFound();
+        }
+
+        return Forbid();
     }
 }

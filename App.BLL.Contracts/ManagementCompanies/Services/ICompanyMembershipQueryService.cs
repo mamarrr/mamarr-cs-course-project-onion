@@ -1,14 +1,15 @@
 using App.BLL.Contracts.ManagementCompanies.Models;
+using FluentResults;
 
 namespace App.BLL.Contracts.ManagementCompanies.Services;
 
 public interface ICompanyMembershipQueryService
 {
-    Task<CompanyMembershipListResult> ListCompanyMembersAsync(
+    Task<Result<CompanyMembershipListResult>> ListCompanyMembersAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
-    Task<CompanyMembershipEditResult> GetMembershipForEditAsync(
+    Task<Result<CompanyMembershipEditModel>> GetMembershipForEditAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default);

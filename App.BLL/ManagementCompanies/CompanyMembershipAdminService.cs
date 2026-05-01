@@ -1,4 +1,6 @@
 using System.Text.Json;
+using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.ManagementCompanies.Models;
 using App.BLL.Contracts.ManagementCompanies.Services;
@@ -6,6 +8,7 @@ using App.Contracts;
 using App.Contracts.DAL.Lookups;
 using App.Contracts.DAL.ManagementCompanies;
 using Base.Domain;
+using FluentResults;
 
 namespace App.BLL.ManagementCompanies;
 
@@ -43,78 +46,65 @@ public class CompanyMembershipAdminService :
         _uow = uow;
     }
 
-    public async Task<CompanyAreaAuthorizationResult> AuthorizeManagementAreaAccessAsync(
+    public async Task<Result<CompanyMembershipContext>> AuthorizeManagementAreaAccessAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
     {
         var resolution = await ResolveMembershipContextAsync(appUserId, companySlug, cancellationToken);
-        if (resolution.Result is not null)
+        if (resolution.IsFailed)
         {
-            return resolution.Result;
+            return Result.Fail(resolution.Errors);
         }
 
-        if (!ManagementAreaRoleCodes.Contains(resolution.MembershipContext!.ActorRoleCode))
+        if (!ManagementAreaRoleCodes.Contains(resolution.Value.ActorRoleCode))
         {
-            return new CompanyAreaAuthorizationResult
-            {
-                IsForbidden = true,
-                FailureReason = CompanyMembershipAuthorizationFailureReason.InsufficientPrivileges,
-                ErrorMessage = "You do not have access to the management area."
-            };
+            return Result.Fail<CompanyMembershipContext>(WithAuthorizationReason(
+                new ForbiddenError("You do not have access to the management area."),
+                CompanyMembershipAuthorizationFailureReason.InsufficientPrivileges));
         }
 
-        return new CompanyAreaAuthorizationResult
-        {
-            IsAuthorized = true,
-            Context = resolution.MembershipContext
-        };
+        return Result.Ok(resolution.Value);
     }
 
-    public async Task<CompanyAdminAuthorizationResult> AuthorizeAsync(
+    public async Task<Result<CompanyAdminAuthorizedContext>> AuthorizeAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
     {
         var resolution = await ResolveMembershipContextAsync(appUserId, companySlug, cancellationToken);
-        if (resolution.Result is not null)
+        if (resolution.IsFailed)
         {
-            return ConvertToAdminAuthorizationResult(resolution.Result);
+            return Result.Fail(resolution.Errors);
         }
 
-        if (!AdminRoleCodes.Contains(resolution.MembershipContext!.ActorRoleCode))
+        if (!AdminRoleCodes.Contains(resolution.Value.ActorRoleCode))
         {
-            return new CompanyAdminAuthorizationResult
-            {
-                IsForbidden = true,
-                MembershipValidButNotAdmin = true,
-                FailureReason = CompanyMembershipAuthorizationFailureReason.InsufficientPrivileges,
-                ErrorMessage = "You do not have permission to manage company users."
-            };
+            var error = WithAuthorizationReason(
+                new ForbiddenError("You do not have permission to manage company users."),
+                CompanyMembershipAuthorizationFailureReason.InsufficientPrivileges);
+            error.Metadata["MembershipValidButNotAdmin"] = true;
+            return Result.Fail<CompanyAdminAuthorizedContext>(error);
         }
 
-        return new CompanyAdminAuthorizationResult
+        return Result.Ok(new CompanyAdminAuthorizedContext
         {
-            IsAuthorized = true,
-            Context = new CompanyAdminAuthorizedContext
-            {
-                AppUserId = resolution.MembershipContext.AppUserId,
-                ManagementCompanyId = resolution.MembershipContext.ManagementCompanyId,
-                CompanySlug = resolution.MembershipContext.CompanySlug,
-                CompanyName = resolution.MembershipContext.CompanyName,
-                ActorMembershipId = resolution.MembershipContext.ActorMembershipId,
-                ActorRoleId = resolution.MembershipContext.ActorRoleId,
-                ActorRoleCode = resolution.MembershipContext.ActorRoleCode,
-                ActorRoleLabel = resolution.MembershipContext.ActorRoleLabel,
-                IsOwner = resolution.MembershipContext.IsOwner,
-                IsAdmin = true,
-                ValidFrom = resolution.MembershipContext.ValidFrom,
-                ValidTo = resolution.MembershipContext.ValidTo
-            }
-        };
+            AppUserId = resolution.Value.AppUserId,
+            ManagementCompanyId = resolution.Value.ManagementCompanyId,
+            CompanySlug = resolution.Value.CompanySlug,
+            CompanyName = resolution.Value.CompanyName,
+            ActorMembershipId = resolution.Value.ActorMembershipId,
+            ActorRoleId = resolution.Value.ActorRoleId,
+            ActorRoleCode = resolution.Value.ActorRoleCode,
+            ActorRoleLabel = resolution.Value.ActorRoleLabel,
+            IsOwner = resolution.Value.IsOwner,
+            IsAdmin = true,
+            ValidFrom = resolution.Value.ValidFrom,
+            ValidTo = resolution.Value.ValidTo
+        });
     }
 
-    public async Task<CompanyMembershipListResult> ListCompanyMembersAsync(
+    public async Task<Result<CompanyMembershipListResult>> ListCompanyMembersAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
@@ -123,13 +113,13 @@ public class CompanyMembershipAdminService :
             context.ManagementCompanyId,
             cancellationToken);
 
-        return new CompanyMembershipListResult
+        return Result.Ok(new CompanyMembershipListResult
         {
             Members = members.Select(member => MapMemberListItem(context, member, today)).ToList()
-        };
+        });
     }
 
-    public async Task<CompanyMembershipEditResult> GetMembershipForEditAsync(
+    public async Task<Result<CompanyMembershipEditModel>> GetMembershipForEditAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default)
@@ -142,11 +132,7 @@ public class CompanyMembershipAdminService :
 
         if (membership is null)
         {
-            return new CompanyMembershipEditResult
-            {
-                NotFound = true,
-                ErrorMessage = "Membership not found."
-            };
+            return Result.Fail<CompanyMembershipEditModel>(new NotFoundError("Membership not found."));
         }
 
         var capabilities = ResolveTargetCapabilities(
@@ -160,46 +146,40 @@ public class CompanyMembershipAdminService :
 
         if (!capabilities.CanEdit && !capabilities.CanTransferOwnership)
         {
-            return new CompanyMembershipEditResult
-            {
-                Forbidden = true,
-                ErrorMessage = capabilities.ProtectedReason ?? "This membership cannot be edited."
-            };
+            return Result.Fail<CompanyMembershipEditModel>(WithBlockReason(
+                new BusinessRuleError(capabilities.ProtectedReason ?? "This membership cannot be edited."),
+                capabilities.ProtectedReasonCode));
         }
 
         var optionsResult = await GetEditRoleOptionsAsync(context, membershipId, cancellationToken);
-        var options = optionsResult.Success ? optionsResult.Options : Array.Empty<CompanyMembershipRoleOption>();
+        var options = optionsResult.IsSuccess ? optionsResult.Value : Array.Empty<CompanyMembershipRoleOption>();
 
-        return new CompanyMembershipEditResult
+        return Result.Ok(new CompanyMembershipEditModel
         {
-            Success = true,
-            Data = new CompanyMembershipEditModel
-            {
-                MembershipId = membership.Id,
-                AppUserId = membership.AppUserId,
-                FullName = FullName(membership),
-                Email = membership.Email,
-                RoleId = membership.RoleId,
-                RoleCode = membership.RoleCode,
-                RoleLabel = membership.RoleLabel,
-                JobTitle = NormalizePossiblySerializedLangStr(membership.JobTitle) ?? string.Empty,
-                IsActive = membership.IsActive,
-                ValidFrom = membership.ValidFrom,
-                ValidTo = membership.ValidTo,
-                IsOwner = IsOwnerRole(membership.RoleCode),
-                IsActor = membership.Id == context.ActorMembershipId,
-                IsEffective = IsMembershipEffective(membership.IsActive, membership.ValidFrom, membership.ValidTo, today),
-                CanEdit = capabilities.CanEdit,
-                CanDelete = capabilities.CanDelete,
-                CanTransferOwnership = capabilities.CanTransferOwnership,
-                CanChangeRole = capabilities.CanChangeRole,
-                CanDeactivate = capabilities.CanDeactivate,
-                OwnershipTransferRequired = capabilities.ProtectedReasonCode == CompanyMembershipUserActionBlockReason.OwnershipTransferRequired,
-                ProtectedReason = capabilities.ProtectedReason,
-                ProtectedReasonCode = capabilities.ProtectedReasonCode,
-                AvailableRoleOptions = options
-            }
-        };
+            MembershipId = membership.Id,
+            AppUserId = membership.AppUserId,
+            FullName = FullName(membership),
+            Email = membership.Email,
+            RoleId = membership.RoleId,
+            RoleCode = membership.RoleCode,
+            RoleLabel = membership.RoleLabel,
+            JobTitle = NormalizePossiblySerializedLangStr(membership.JobTitle) ?? string.Empty,
+            IsActive = membership.IsActive,
+            ValidFrom = membership.ValidFrom,
+            ValidTo = membership.ValidTo,
+            IsOwner = IsOwnerRole(membership.RoleCode),
+            IsActor = membership.Id == context.ActorMembershipId,
+            IsEffective = IsMembershipEffective(membership.IsActive, membership.ValidFrom, membership.ValidTo, today),
+            CanEdit = capabilities.CanEdit,
+            CanDelete = capabilities.CanDelete,
+            CanTransferOwnership = capabilities.CanTransferOwnership,
+            CanChangeRole = capabilities.CanChangeRole,
+            CanDeactivate = capabilities.CanDeactivate,
+            OwnershipTransferRequired = capabilities.ProtectedReasonCode == CompanyMembershipUserActionBlockReason.OwnershipTransferRequired,
+            ProtectedReason = capabilities.ProtectedReason,
+            ProtectedReasonCode = capabilities.ProtectedReasonCode,
+            AvailableRoleOptions = options
+        });
     }
 
     public async Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAddRoleOptionsAsync(
@@ -213,7 +193,7 @@ public class CompanyMembershipAdminService :
             .ToList();
     }
 
-    public async Task<CompanyMembershipOptionsResult> GetEditRoleOptionsAsync(
+    public async Task<Result<IReadOnlyList<CompanyMembershipRoleOption>>> GetEditRoleOptionsAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default)
@@ -225,42 +205,29 @@ public class CompanyMembershipAdminService :
 
         if (membership is null)
         {
-            return new CompanyMembershipOptionsResult
-            {
-                NotFound = true,
-                ErrorMessage = "Membership not found."
-            };
+            return Result.Fail<IReadOnlyList<CompanyMembershipRoleOption>>(new NotFoundError("Membership not found."));
         }
 
         if (IsOwnerRole(membership.RoleCode))
         {
-            return new CompanyMembershipOptionsResult
-            {
-                Forbidden = true,
-                OwnershipTransferRequired = true,
-                ErrorMessage = "Owner role cannot be changed in the standard edit flow. Use ownership transfer instead."
-            };
+            return Result.Fail<IReadOnlyList<CompanyMembershipRoleOption>>(WithBlockReason(
+                new BusinessRuleError("Owner role cannot be changed in the standard edit flow. Use ownership transfer instead."),
+                CompanyMembershipUserActionBlockReason.OwnershipTransferRequired));
         }
 
-        return new CompanyMembershipOptionsResult
-        {
-            Success = true,
-            Options = await GetAddRoleOptionsAsync(context, cancellationToken)
-        };
+        return Result.Ok(await GetAddRoleOptionsAsync(context, cancellationToken));
     }
 
-    public async Task<CompanyMembershipAddResult> AddUserByEmailAsync(
+    public async Task<Result<Guid>> AddUserByEmailAsync(
         CompanyAdminAuthorizedContext context,
         CompanyMembershipAddRequest request,
         CancellationToken cancellationToken = default)
     {
         if (!IsValidDateRange(request.ValidFrom, request.ValidTo))
         {
-            return new CompanyMembershipAddResult
-            {
-                InvalidDateRange = true,
-                ErrorMessage = "Membership validity range is invalid."
-            };
+            return Result.Fail<Guid>(WithBlockReason(
+                ValidationError("Membership validity range is invalid.", nameof(request.ValidTo)),
+                CompanyMembershipUserActionBlockReason.InvalidDateRange));
         }
 
         var appUserId = await _uow.ManagementCompanies.FindAppUserIdByEmailAsync(
@@ -269,11 +236,7 @@ public class CompanyMembershipAdminService :
 
         if (appUserId is null)
         {
-            return new CompanyMembershipAddResult
-            {
-                UserNotFound = true,
-                ErrorMessage = "User with this email does not exist. They must register first."
-            };
+            return Result.Fail<Guid>(new NotFoundError("User with this email does not exist. They must register first."));
         }
 
         var existingMembership = await _uow.ManagementCompanies.MembershipExistsAsync(
@@ -283,33 +246,22 @@ public class CompanyMembershipAdminService :
 
         if (existingMembership)
         {
-            return new CompanyMembershipAddResult
-            {
-                DuplicateMembership = true,
-                ErrorMessage = "This user is already a member of this company."
-            };
+            return Result.Fail<Guid>(new ConflictError("This user is already a member of this company."));
         }
 
         var role = await _uow.ManagementCompanies.FindManagementCompanyRoleByIdAsync(request.RoleId, cancellationToken);
         if (role is null)
         {
-            return new CompanyMembershipAddResult
-            {
-                InvalidRole = true,
-                ErrorMessage = "Selected role is invalid."
-            };
+            return Result.Fail<Guid>(ValidationError("Selected role is invalid.", nameof(request.RoleId)));
         }
 
         if (!CanAssignRoleInGenericFlow(context, role.Code))
         {
-            return new CompanyMembershipAddResult
-            {
-                InvalidRole = true,
-                CannotAssignOwner = IsOwnerRole(role.Code),
-                ErrorMessage = IsOwnerRole(role.Code)
+            return Result.Fail<Guid>(WithBlockReason(
+                new BusinessRuleError(IsOwnerRole(role.Code)
                     ? "Owner cannot be assigned through the generic add flow."
-                    : "Selected role is not allowed for this action."
-            };
+                    : "Selected role is not allowed for this action."),
+                CompanyMembershipUserActionBlockReason.RoleNotAssignable));
         }
 
         var membershipId = Guid.NewGuid();
@@ -328,14 +280,10 @@ public class CompanyMembershipAdminService :
 
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return new CompanyMembershipAddResult
-        {
-            Success = true,
-            CreatedMembershipId = membershipId
-        };
+        return Result.Ok(membershipId);
     }
 
-    public async Task<CompanyMembershipUpdateResult> UpdateMembershipAsync(
+    public async Task<Result> UpdateMembershipAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CompanyMembershipUpdateRequest request,
@@ -343,12 +291,9 @@ public class CompanyMembershipAdminService :
     {
         if (!IsValidDateRange(request.ValidFrom, request.ValidTo))
         {
-            return new CompanyMembershipUpdateResult
-            {
-                InvalidDateRange = true,
-                BlockReason = CompanyMembershipUserActionBlockReason.InvalidDateRange,
-                ErrorMessage = "Membership validity range is invalid."
-            };
+            return Result.Fail(WithBlockReason(
+                ValidationError("Membership validity range is invalid.", nameof(request.ValidTo)),
+                CompanyMembershipUserActionBlockReason.InvalidDateRange));
         }
 
         var membership = await _uow.ManagementCompanies.FindMemberByIdAndCompanyAsync(
@@ -358,78 +303,49 @@ public class CompanyMembershipAdminService :
 
         if (membership is null)
         {
-            return new CompanyMembershipUpdateResult
-            {
-                NotFound = true,
-                ErrorMessage = "Membership not found."
-            };
+            return Result.Fail(new NotFoundError("Membership not found."));
         }
 
         var role = await _uow.ManagementCompanies.FindManagementCompanyRoleByIdAsync(request.RoleId, cancellationToken);
         if (role is null)
         {
-            return new CompanyMembershipUpdateResult
-            {
-                InvalidRole = true,
-                ErrorMessage = "Selected role is invalid."
-            };
+            return Result.Fail(ValidationError("Selected role is invalid.", nameof(request.RoleId)));
         }
 
         var isSelf = membership.Id == context.ActorMembershipId;
         if (IsOwnerRole(membership.RoleCode))
         {
-            return new CompanyMembershipUpdateResult
-            {
-                Forbidden = true,
-                CannotEditOwner = true,
-                OwnershipTransferRequired = true,
-                BlockReason = CompanyMembershipUserActionBlockReason.OwnershipTransferRequired,
-                ErrorMessage = "Owner role cannot be changed in the standard edit flow. Use ownership transfer instead."
-            };
+            return Result.Fail(WithBlockReason(
+                new BusinessRuleError("Owner role cannot be changed in the standard edit flow. Use ownership transfer instead."),
+                CompanyMembershipUserActionBlockReason.OwnershipTransferRequired));
         }
 
         if (isSelf && !string.Equals(membership.RoleCode, role.Code, StringComparison.OrdinalIgnoreCase))
         {
-            return new CompanyMembershipUpdateResult
-            {
-                Forbidden = true,
-                CannotChangeOwnRole = true,
-                BlockReason = CompanyMembershipUserActionBlockReason.SelfProtected,
-                ErrorMessage = "You cannot change your own role through the generic edit flow."
-            };
+            return Result.Fail(WithBlockReason(
+                new BusinessRuleError("You cannot change your own role through the generic edit flow."),
+                CompanyMembershipUserActionBlockReason.SelfProtected));
         }
 
         if (isSelf && membership.IsActive && !request.IsActive)
         {
-            return new CompanyMembershipUpdateResult
-            {
-                Forbidden = true,
-                CannotDeactivateSelf = true,
-                BlockReason = CompanyMembershipUserActionBlockReason.SelfProtected,
-                ErrorMessage = "You cannot deactivate your own membership."
-            };
+            return Result.Fail(WithBlockReason(
+                new BusinessRuleError("You cannot deactivate your own membership."),
+                CompanyMembershipUserActionBlockReason.SelfProtected));
         }
 
         if (IsOwnerRole(role.Code))
         {
-            return new CompanyMembershipUpdateResult
-            {
-                Forbidden = true,
-                CannotAssignOwner = true,
-                BlockReason = CompanyMembershipUserActionBlockReason.RoleNotAssignable,
-                ErrorMessage = "Owner cannot be assigned through the generic edit flow."
-            };
+            return Result.Fail(WithBlockReason(
+                new BusinessRuleError("Owner cannot be assigned through the generic edit flow."),
+                CompanyMembershipUserActionBlockReason.RoleNotAssignable));
         }
 
         if (!CanAssignRoleInGenericFlow(context, role.Code))
         {
-            return new CompanyMembershipUpdateResult
-            {
-                Forbidden = true,
-                InvalidRole = true,
-                BlockReason = CompanyMembershipUserActionBlockReason.RoleNotAssignable,
-                ErrorMessage = "Selected role is not allowed for this action."
-            };
+            return Result.Fail(WithBlockReason(
+                ValidationError("Selected role is not allowed for this action.", nameof(request.RoleId)),
+                CompanyMembershipUserActionBlockReason.RoleNotAssignable));
         }
 
         var updated = await _uow.ManagementCompanies.ApplyMembershipUpdateAsync(
@@ -447,18 +363,14 @@ public class CompanyMembershipAdminService :
 
         if (!updated)
         {
-            return new CompanyMembershipUpdateResult
-            {
-                NotFound = true,
-                ErrorMessage = "Membership not found."
-            };
+            return Result.Fail(new NotFoundError("Membership not found."));
         }
 
         await _uow.SaveChangesAsync(cancellationToken);
-        return new CompanyMembershipUpdateResult { Success = true };
+        return Result.Ok();
     }
 
-    public async Task<CompanyMembershipDeleteResult> DeleteMembershipAsync(
+    public async Task<Result> DeleteMembershipAsync(
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         CancellationToken cancellationToken = default)
@@ -470,33 +382,21 @@ public class CompanyMembershipAdminService :
 
         if (membership is null)
         {
-            return new CompanyMembershipDeleteResult
-            {
-                NotFound = true,
-                ErrorMessage = "Membership not found."
-            };
+            return Result.Fail(new NotFoundError("Membership not found."));
         }
 
         if (membership.Id == context.ActorMembershipId)
         {
-            return new CompanyMembershipDeleteResult
-            {
-                Forbidden = true,
-                CannotDeleteSelf = true,
-                BlockReason = CompanyMembershipUserActionBlockReason.SelfProtected,
-                ErrorMessage = "You cannot remove your own membership."
-            };
+            return Result.Fail(WithBlockReason(
+                new BusinessRuleError("You cannot remove your own membership."),
+                CompanyMembershipUserActionBlockReason.SelfProtected));
         }
 
         if (IsOwnerRole(membership.RoleCode))
         {
-            return new CompanyMembershipDeleteResult
-            {
-                Forbidden = true,
-                CannotDeleteOwner = true,
-                BlockReason = CompanyMembershipUserActionBlockReason.OwnerProtected,
-                ErrorMessage = "The current owner cannot be removed through the standard delete flow. Use ownership transfer instead."
-            };
+            return Result.Fail(WithBlockReason(
+                new BusinessRuleError("The current owner cannot be removed through the standard delete flow. Use ownership transfer instead."),
+                CompanyMembershipUserActionBlockReason.OwnerProtected));
         }
 
         await _uow.ManagementCompanies.RemoveMembershipAsync(
@@ -505,20 +405,16 @@ public class CompanyMembershipAdminService :
             cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return new CompanyMembershipDeleteResult { Success = true };
+        return Result.Ok();
     }
 
-    public async Task<OwnershipTransferCandidateListResult> GetOwnershipTransferCandidatesAsync(
+    public async Task<Result<IReadOnlyList<OwnershipTransferCandidate>>> GetOwnershipTransferCandidatesAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
         if (!context.IsOwner)
         {
-            return new OwnershipTransferCandidateListResult
-            {
-                Forbidden = true,
-                ErrorMessage = "Only the current owner can transfer ownership."
-            };
+            return Result.Fail<IReadOnlyList<OwnershipTransferCandidate>>(new BusinessRuleError("Only the current owner can transfer ownership."));
         }
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -526,10 +422,7 @@ public class CompanyMembershipAdminService :
             context.ManagementCompanyId,
             cancellationToken);
 
-        return new OwnershipTransferCandidateListResult
-        {
-            Success = true,
-            Candidates = members
+        return Result.Ok((IReadOnlyList<OwnershipTransferCandidate>)members
                 .Where(member => member.Id != context.ActorMembershipId)
                 .Where(member => !IsOwnerRole(member.RoleCode))
                 .Where(member => IsMembershipEffective(member.IsActive, member.ValidFrom, member.ValidTo, today))
@@ -546,41 +439,30 @@ public class CompanyMembershipAdminService :
                     RoleLabel = member.RoleLabel,
                     IsEffective = true
                 })
-                .ToList()
-        };
+                .ToList());
     }
 
-    public async Task<OwnershipTransferResult> TransferOwnershipAsync(
+    public async Task<Result<OwnershipTransferModel>> TransferOwnershipAsync(
         CompanyAdminAuthorizedContext context,
         TransferOwnershipRequest request,
         CancellationToken cancellationToken = default)
     {
         if (!context.IsOwner)
         {
-            return new OwnershipTransferResult
-            {
-                Forbidden = true,
-                ErrorMessage = "Only the current owner can transfer ownership."
-            };
+            return Result.Fail<OwnershipTransferModel>(new BusinessRuleError("Only the current owner can transfer ownership."));
         }
 
         if (request.TargetMembershipId == context.ActorMembershipId)
         {
-            return new OwnershipTransferResult
-            {
-                TargetNotEligibleForOwnership = true,
-                ErrorMessage = "Ownership transfer target must be another effective company member."
-            };
+            return Result.Fail<OwnershipTransferModel>(WithBlockReason(
+                new BusinessRuleError("Ownership transfer target must be another effective company member."),
+                CompanyMembershipUserActionBlockReason.TargetNotEligibleForOwnership));
         }
 
         var managerRole = await _uow.Lookups.FindManagementCompanyRoleByCodeAsync(ManagerRoleCode, cancellationToken);
         if (managerRole is null)
         {
-            return new OwnershipTransferResult
-            {
-                Forbidden = true,
-                ErrorMessage = "Management roles are not configured correctly."
-            };
+            return Result.Fail<OwnershipTransferModel>(new BusinessRuleError("Management roles are not configured correctly."));
         }
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
@@ -594,30 +476,20 @@ public class CompanyMembershipAdminService :
 
         if (currentOwner is null || target is null)
         {
-            return new OwnershipTransferResult
-            {
-                NotFound = true,
-                ErrorMessage = "Ownership transfer target was not found in this company."
-            };
+            return Result.Fail<OwnershipTransferModel>(new NotFoundError("Ownership transfer target was not found in this company."));
         }
 
         if (!IsOwnerRole(currentOwner.RoleCode))
         {
-            return new OwnershipTransferResult
-            {
-                Forbidden = true,
-                ErrorMessage = "Only the current active owner can transfer ownership."
-            };
+            return Result.Fail<OwnershipTransferModel>(new BusinessRuleError("Only the current active owner can transfer ownership."));
         }
 
         if (IsOwnerRole(target.RoleCode)
             || !IsMembershipEffective(target.IsActive, target.ValidFrom, target.ValidTo, today))
         {
-            return new OwnershipTransferResult
-            {
-                TargetNotEligibleForOwnership = true,
-                ErrorMessage = "Ownership transfer target must be an active effective non-owner company member."
-            };
+            return Result.Fail<OwnershipTransferModel>(WithBlockReason(
+                new BusinessRuleError("Ownership transfer target must be an active effective non-owner company member."),
+                CompanyMembershipUserActionBlockReason.TargetNotEligibleForOwnership));
         }
 
         await _uow.BeginTransactionAsync(cancellationToken);
@@ -641,11 +513,7 @@ public class CompanyMembershipAdminService :
             if (ownerCount != 1)
             {
                 await _uow.RollbackTransactionAsync(cancellationToken);
-                return new OwnershipTransferResult
-                {
-                    Forbidden = true,
-                    ErrorMessage = "Ownership transfer failed because the single-owner invariant could not be preserved."
-                };
+                return Result.Fail<OwnershipTransferModel>(new BusinessRuleError("Ownership transfer failed because the single-owner invariant could not be preserved."));
             }
 
             await _uow.CommitTransactionAsync(cancellationToken);
@@ -656,12 +524,11 @@ public class CompanyMembershipAdminService :
             throw;
         }
 
-        return new OwnershipTransferResult
+        return Result.Ok(new OwnershipTransferModel
         {
-            Success = true,
             PreviousOwnerMembershipId = currentOwner.Id,
             NewOwnerMembershipId = target.Id
-        };
+        });
     }
 
     public async Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAvailableRolesAsync(
@@ -671,7 +538,7 @@ public class CompanyMembershipAdminService :
         return roles.Select(MapRoleOption).ToList();
     }
 
-    public async Task<PendingAccessRequestListResult> GetPendingAccessRequestsAsync(
+    public async Task<Result<PendingAccessRequestListResult>> GetPendingAccessRequestsAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
@@ -683,7 +550,7 @@ public class CompanyMembershipAdminService :
             pendingStatus.Id,
             cancellationToken);
 
-        return new PendingAccessRequestListResult
+        return Result.Ok(new PendingAccessRequestListResult
         {
             Requests = requests.Select(request => new PendingAccessRequestItem
             {
@@ -696,10 +563,10 @@ public class CompanyMembershipAdminService :
                 Message = NormalizePossiblySerializedLangStr(request.Message),
                 RequestedAt = request.CreatedAt
             }).ToList()
-        };
+        });
     }
 
-    public Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
+    public Task<Result> ApprovePendingAccessRequestAsync(
         CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default)
@@ -712,7 +579,7 @@ public class CompanyMembershipAdminService :
             cancellationToken);
     }
 
-    public Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
+    public Task<Result> RejectPendingAccessRequestAsync(
         CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default)
@@ -725,7 +592,7 @@ public class CompanyMembershipAdminService :
             cancellationToken);
     }
 
-    private async Task<PendingAccessRequestActionResult> ResolvePendingAccessRequestAsync(
+    private async Task<Result> ResolvePendingAccessRequestAsync(
         CompanyAdminAuthorizedContext context,
         Guid requestId,
         string targetStatusCode,
@@ -734,11 +601,7 @@ public class CompanyMembershipAdminService :
     {
         if (!AdminRoleCodes.Contains(context.ActorRoleCode))
         {
-            return new PendingAccessRequestActionResult
-            {
-                Forbidden = true,
-                ErrorMessage = L("NoPermissionToResolveAccessRequests", "You do not have permission to resolve access requests.")
-            };
+            return Result.Fail(new ForbiddenError(L("NoPermissionToResolveAccessRequests", "You do not have permission to resolve access requests.")));
         }
 
         var pendingStatus = await GetJoinRequestStatusAsync(
@@ -753,21 +616,13 @@ public class CompanyMembershipAdminService :
 
         if (joinRequest is null)
         {
-            return new PendingAccessRequestActionResult
-            {
-                NotFound = true,
-                ErrorMessage = L("JoinRequestNotFound", "Join request not found.")
-            };
+            return Result.Fail(new NotFoundError(L("JoinRequestNotFound", "Join request not found.")));
         }
 
         if (!string.Equals(joinRequest.StatusCode, ManagementCompanyJoinRequestStatusCodes.Pending, StringComparison.OrdinalIgnoreCase)
             && joinRequest.StatusId != pendingStatus.Id)
         {
-            return new PendingAccessRequestActionResult
-            {
-                AlreadyResolved = true,
-                ErrorMessage = L("JoinRequestAlreadyResolved", "Join request is already resolved.")
-            };
+            return Result.Fail(new ConflictError(L("JoinRequestAlreadyResolved", "Join request is already resolved.")));
         }
 
         var requesterMembershipExists = await _uow.ManagementCompanies.MembershipExistsAsync(
@@ -777,11 +632,7 @@ public class CompanyMembershipAdminService :
 
         if (requesterMembershipExists)
         {
-            return new PendingAccessRequestActionResult
-            {
-                AlreadyMember = true,
-                ErrorMessage = L("RequesterAlreadyMemberOfThisCompany", "Requester is already a member of this company.")
-            };
+            return Result.Fail(new ConflictError(L("RequesterAlreadyMemberOfThisCompany", "Requester is already a member of this company.")));
         }
 
         await _uow.BeginTransactionAsync(cancellationToken);
@@ -818,10 +669,10 @@ public class CompanyMembershipAdminService :
             throw;
         }
 
-        return new PendingAccessRequestActionResult { Success = true };
+        return Result.Ok();
     }
 
-    private async Task<(CompanyAreaAuthorizationResult? Result, CompanyMembershipContext? MembershipContext)> ResolveMembershipContextAsync(
+    private async Task<Result<CompanyMembershipContext>> ResolveMembershipContextAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken)
@@ -829,23 +680,17 @@ public class CompanyMembershipAdminService :
         var normalizedSlug = companySlug.Trim();
         if (string.IsNullOrWhiteSpace(normalizedSlug))
         {
-            return (new CompanyAreaAuthorizationResult
-            {
-                CompanyNotFound = true,
-                FailureReason = CompanyMembershipAuthorizationFailureReason.CompanyNotFound,
-                ErrorMessage = "Company slug is required."
-            }, null);
+            return Result.Fail<CompanyMembershipContext>(WithAuthorizationReason(
+                new NotFoundError("Company slug is required."),
+                CompanyMembershipAuthorizationFailureReason.CompanyNotFound));
         }
 
         var company = await _uow.ManagementCompanies.FirstBySlugAsync(normalizedSlug, cancellationToken);
         if (company is null)
         {
-            return (new CompanyAreaAuthorizationResult
-            {
-                CompanyNotFound = true,
-                FailureReason = CompanyMembershipAuthorizationFailureReason.CompanyNotFound,
-                ErrorMessage = "Company not found."
-            }, null);
+            return Result.Fail<CompanyMembershipContext>(WithAuthorizationReason(
+                new NotFoundError("Company not found."),
+                CompanyMembershipAuthorizationFailureReason.CompanyNotFound));
         }
 
         var actorMembership = await _uow.ManagementCompanies.FirstMembershipByUserAndCompanyAsync(
@@ -855,38 +700,27 @@ public class CompanyMembershipAdminService :
 
         if (actorMembership is null)
         {
-            return (new CompanyAreaAuthorizationResult
-            {
-                IsForbidden = true,
-                FailureReason = CompanyMembershipAuthorizationFailureReason.MembershipNotFound,
-                ErrorMessage = "You do not have access to this company."
-            }, null);
+            return Result.Fail<CompanyMembershipContext>(WithAuthorizationReason(
+                new ForbiddenError("You do not have access to this company."),
+                CompanyMembershipAuthorizationFailureReason.MembershipNotFound));
         }
 
         if (!actorMembership.IsActive)
         {
-            return (new CompanyAreaAuthorizationResult
-            {
-                IsForbidden = true,
-                MembershipInactive = true,
-                FailureReason = CompanyMembershipAuthorizationFailureReason.MembershipInactive,
-                ErrorMessage = "Your company membership is inactive."
-            }, null);
+            return Result.Fail<CompanyMembershipContext>(WithAuthorizationReason(
+                new ForbiddenError("Your company membership is inactive."),
+                CompanyMembershipAuthorizationFailureReason.MembershipInactive));
         }
 
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         if (!IsMembershipEffective(actorMembership.IsActive, actorMembership.ValidFrom, actorMembership.ValidTo, today))
         {
-            return (new CompanyAreaAuthorizationResult
-            {
-                IsForbidden = true,
-                MembershipNotEffective = true,
-                FailureReason = CompanyMembershipAuthorizationFailureReason.MembershipNotEffective,
-                ErrorMessage = "Your company membership is not currently effective."
-            }, null);
+            return Result.Fail<CompanyMembershipContext>(WithAuthorizationReason(
+                new ForbiddenError("Your company membership is not currently effective."),
+                CompanyMembershipAuthorizationFailureReason.MembershipNotEffective));
         }
 
-        return (null, new CompanyMembershipContext
+        return Result.Ok(new CompanyMembershipContext
         {
             AppUserId = appUserId,
             ManagementCompanyId = company.Id,
@@ -948,20 +782,6 @@ public class CompanyMembershipAdminService :
             CanDeactivate = capabilities.CanDeactivate,
             ProtectedReason = capabilities.ProtectedReason,
             ProtectedReasonCode = capabilities.ProtectedReasonCode
-        };
-    }
-
-    private static CompanyAdminAuthorizationResult ConvertToAdminAuthorizationResult(CompanyAreaAuthorizationResult result)
-    {
-        return new CompanyAdminAuthorizationResult
-        {
-            IsAuthorized = false,
-            IsForbidden = result.IsForbidden,
-            CompanyNotFound = result.CompanyNotFound,
-            MembershipInactive = result.MembershipInactive,
-            MembershipNotEffective = result.MembershipNotEffective,
-            FailureReason = result.FailureReason,
-            ErrorMessage = result.ErrorMessage
         };
     }
 
@@ -1100,6 +920,31 @@ public class CompanyMembershipAdminService :
     {
         return App.Resources.Views.UiText.ResourceManager.GetString(resourceKey, System.Globalization.CultureInfo.CurrentUICulture)
                ?? fallback;
+    }
+
+    private static Error WithAuthorizationReason(Error error, CompanyMembershipAuthorizationFailureReason reason)
+    {
+        error.Metadata["FailureReason"] = reason;
+        return error;
+    }
+
+    private static Error WithBlockReason(Error error, CompanyMembershipUserActionBlockReason reason)
+    {
+        error.Metadata["BlockReason"] = reason;
+        return error;
+    }
+
+    private static ValidationAppError ValidationError(string message, string propertyName)
+    {
+        return new ValidationAppError(
+            message,
+            [
+                new ValidationFailureModel
+                {
+                    PropertyName = propertyName,
+                    ErrorMessage = message
+                }
+            ]);
     }
 
     private sealed record MemberCapabilities(

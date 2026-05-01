@@ -1,19 +1,20 @@
 using App.BLL.Contracts.ManagementCompanies.Models;
+using FluentResults;
 
 namespace App.BLL.Contracts.ManagementCompanies.Services;
 
 public interface ICompanyAccessRequestReviewService
 {
-    Task<PendingAccessRequestListResult> GetPendingAccessRequestsAsync(
+    Task<Result<PendingAccessRequestListResult>> GetPendingAccessRequestsAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);
 
-    Task<PendingAccessRequestActionResult> ApprovePendingAccessRequestAsync(
+    Task<Result> ApprovePendingAccessRequestAsync(
         CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default);
 
-    Task<PendingAccessRequestActionResult> RejectPendingAccessRequestAsync(
+    Task<Result> RejectPendingAccessRequestAsync(
         CompanyAdminAuthorizedContext context,
         Guid requestId,
         CancellationToken cancellationToken = default);

@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.ManagementCompanies.Models;
 using App.BLL.Contracts.ManagementCompanies.Services;
 using App.Resources.Views;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.UI.Chrome;
@@ -37,12 +39,12 @@ public class ProfileController : Controller
         }
 
         var profile = await _managementCompanyProfileService.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
-        if (profile == null)
+        if (profile.IsFailed)
         {
-            return NotFound();
+            return ToProfileLookupActionResult(profile.Errors);
         }
 
-        return View(await BuildViewModelAsync(profile, null, cancellationToken));
+        return View(await BuildViewModelAsync(profile.Value, null, cancellationToken));
     }
 
     [HttpPost("edit")]
@@ -59,15 +61,15 @@ public class ProfileController : Controller
         }
 
         var currentProfile = await _managementCompanyProfileService.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
-        if (currentProfile == null)
+        if (currentProfile.IsFailed)
         {
-            return NotFound();
+            return ToProfileLookupActionResult(currentProfile.Errors);
         }
 
         if (!ModelState.IsValid)
         {
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(currentProfile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
         var result = await _managementCompanyProfileService.UpdateProfileAsync(
@@ -85,21 +87,21 @@ public class ProfileController : Controller
             },
             cancellationToken);
 
-        if (result.NotFound)
+        if (result.IsFailed && result.Errors.OfType<NotFoundError>().Any())
         {
             return NotFound();
         }
 
-        if (result.Forbidden)
+        if (result.IsFailed && result.Errors.OfType<ForbiddenError>().Any())
         {
             return Forbid();
         }
 
-        if (!result.Success)
+        if (result.IsFailed)
         {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToUpdateProfile);
+            ModelState.AddModelError(string.Empty, ErrorMessage(result.Errors, UiText.UnableToUpdateProfile));
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(currentProfile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
         TempData[nameof(UiText.ProfileUpdatedSuccessfully)] = UiText.ProfileUpdatedSuccessfully;
@@ -120,41 +122,42 @@ public class ProfileController : Controller
         }
 
         var currentProfile = await _managementCompanyProfileService.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
-        if (currentProfile == null)
+        if (currentProfile.IsFailed)
         {
-            return NotFound();
+            return ToProfileLookupActionResult(currentProfile.Errors);
         }
 
-        if (!IsDeleteConfirmationValid(edit.DeleteConfirmation, currentProfile.Name))
+        if (!IsDeleteConfirmationValid(edit.DeleteConfirmation, currentProfile.Value.Name))
         {
             ModelState.AddModelError(nameof(edit.DeleteConfirmation), UiText.DeleteConfirmationDoesNotMatch);
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(currentProfile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
         var result = await _managementCompanyProfileService.DeleteProfileAsync(appUserId.Value, companySlug, cancellationToken);
-        if (result.NotFound)
+        if (result.IsFailed && result.Errors.OfType<NotFoundError>().Any())
         {
             return NotFound();
         }
 
-        if (result.Forbidden)
+        if (result.IsFailed && result.Errors.OfType<ForbiddenError>().Any())
         {
-            if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
+            var errorMessage = result.Errors.FirstOrDefault()?.Message;
+            if (!string.IsNullOrWhiteSpace(errorMessage))
             {
-                ModelState.AddModelError(string.Empty, result.ErrorMessage);
+                ModelState.AddModelError(string.Empty, errorMessage);
                 Response.StatusCode = StatusCodes.Status403Forbidden;
-                return View("Index", await BuildViewModelAsync(currentProfile, edit, cancellationToken));
+                return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
             }
 
             return Forbid();
         }
 
-        if (!result.Success)
+        if (result.IsFailed)
         {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? UiText.UnableToDeleteProfile);
+            ModelState.AddModelError(string.Empty, ErrorMessage(result.Errors, UiText.UnableToDeleteProfile));
             Response.StatusCode = StatusCodes.Status400BadRequest;
-            return View("Index", await BuildViewModelAsync(currentProfile, edit, cancellationToken));
+            return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
         TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
@@ -207,5 +210,20 @@ public class ProfileController : Controller
     private static bool IsDeleteConfirmationValid(string? providedValue, string expectedValue)
     {
         return string.Equals(providedValue?.Trim(), expectedValue.Trim(), StringComparison.Ordinal);
+    }
+
+    private IActionResult ToProfileLookupActionResult(IReadOnlyList<IError> errors)
+    {
+        if (errors.OfType<NotFoundError>().Any())
+        {
+            return NotFound();
+        }
+
+        return Forbid();
+    }
+
+    private static string ErrorMessage(IReadOnlyList<IError> errors, string fallback)
+    {
+        return errors.FirstOrDefault()?.Message ?? fallback;
     }
 }

@@ -1,8 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.ManagementCompanies.Models;
 using App.BLL.Contracts.ManagementCompanies.Services;
 using App.Contracts;
 using App.Contracts.DAL.ManagementCompanies;
+using FluentResults;
 
 namespace App.BLL.ManagementCompanies;
 
@@ -19,7 +22,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
         _membershipService = membershipService;
     }
 
-    public async Task<CompanyProfileModel?> GetProfileAsync(
+    public async Task<Result<CompanyProfileModel>> GetProfileAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
@@ -29,19 +32,21 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
             companySlug,
             cancellationToken);
 
-        if (!auth.IsAuthorized || auth.Context is null)
+        if (auth.IsFailed)
         {
-            return null;
+            return Result.Fail(auth.Errors);
         }
 
         var profile = await _uow.ManagementCompanies.FirstProfileByIdAsync(
-            auth.Context.ManagementCompanyId,
+            auth.Value.ManagementCompanyId,
             cancellationToken);
 
-        return profile is null ? null : MapProfile(profile);
+        return profile is null
+            ? Result.Fail<CompanyProfileModel>(new NotFoundError("Management company profile was not found."))
+            : Result.Ok(MapProfile(profile));
     }
 
-    public async Task<ProfileOperationResult> UpdateProfileAsync(
+    public async Task<Result> UpdateProfileAsync(
         Guid appUserId,
         string companySlug,
         CompanyProfileUpdateRequest request,
@@ -52,52 +57,42 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
             companySlug,
             cancellationToken);
 
-        if (auth.CompanyNotFound)
+        if (auth.IsFailed)
         {
-            return new ProfileOperationResult { NotFound = true };
-        }
-
-        if (!auth.IsAuthorized || auth.Context is null)
-        {
-            return new ProfileOperationResult { Forbidden = true };
+            return Result.Fail(auth.Errors);
         }
 
         var validationError = ValidateRequiredCompanyFields(request);
         if (validationError is not null)
         {
-            return validationError;
+            return Result.Fail(validationError);
         }
 
         var normalizedEmail = request.Email.Trim();
         var emailAttribute = new EmailAddressAttribute();
         if (!emailAttribute.IsValid(normalizedEmail))
         {
-            return new ProfileOperationResult
-            {
-                ErrorMessage = App.Resources.Views.UiText.InvalidEmailAddress
-            };
+            return Result.Fail(ValidationError(App.Resources.Views.UiText.InvalidEmailAddress, nameof(request.Email)));
         }
 
         var normalizedRegistryCode = request.RegistryCode.Trim();
         var duplicateRegistryCode = await _uow.ManagementCompanies.RegistryCodeExistsOutsideCompanyAsync(
-            auth.Context.ManagementCompanyId,
+            auth.Value.ManagementCompanyId,
             normalizedRegistryCode,
             cancellationToken);
 
         if (duplicateRegistryCode)
         {
-            return new ProfileOperationResult
-            {
-                DuplicateRegistryCode = true,
-                ErrorMessage = App.Resources.Views.UiText.ResourceManager.GetString("CustomerRegistryCodeAlreadyExists")
-                               ?? "Registry code already exists."
-            };
+            return Result.Fail(ValidationError(
+                App.Resources.Views.UiText.ResourceManager.GetString("CustomerRegistryCodeAlreadyExists")
+                ?? "Registry code already exists.",
+                nameof(request.RegistryCode)));
         }
 
         var updated = await _uow.ManagementCompanies.UpdateProfileAsync(
             new ManagementCompanyProfileUpdateDalDto
             {
-                Id = auth.Context.ManagementCompanyId,
+                Id = auth.Value.ManagementCompanyId,
                 Name = request.Name.Trim(),
                 RegistryCode = normalizedRegistryCode,
                 VatNumber = request.VatNumber.Trim(),
@@ -110,15 +105,15 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
 
         if (!updated)
         {
-            return new ProfileOperationResult { NotFound = true };
+            return Result.Fail(new NotFoundError("Management company profile was not found."));
         }
 
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return new ProfileOperationResult { Success = true };
+        return Result.Ok();
     }
 
-    public async Task<ProfileOperationResult> DeleteProfileAsync(
+    public async Task<Result> DeleteProfileAsync(
         Guid appUserId,
         string companySlug,
         CancellationToken cancellationToken = default)
@@ -128,40 +123,31 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
             companySlug,
             cancellationToken);
 
-        if (auth.CompanyNotFound)
+        if (auth.IsFailed)
         {
-            return new ProfileOperationResult { NotFound = true };
+            return Result.Fail(auth.Errors);
         }
 
-        if (!auth.IsAuthorized || auth.Context is null)
+        if (!IsOwnerOrManager(auth.Value.ActorRoleCode))
         {
-            return new ProfileOperationResult { Forbidden = true };
-        }
-
-        if (!IsOwnerOrManager(auth.Context.ActorRoleCode))
-        {
-            return new ProfileOperationResult
-            {
-                Forbidden = true,
-                ErrorMessage = App.Resources.Views.UiText.AccessDeniedDescription
-            };
+            return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
         await _uow.BeginTransactionAsync(cancellationToken);
         try
         {
             var deleted = await _uow.ManagementCompanies.DeleteCascadeAsync(
-                auth.Context.ManagementCompanyId,
+                auth.Value.ManagementCompanyId,
                 cancellationToken);
 
             if (!deleted)
             {
                 await _uow.RollbackTransactionAsync(cancellationToken);
-                return new ProfileOperationResult { NotFound = true };
+                return Result.Fail(new NotFoundError("Management company profile was not found."));
             }
 
             await _uow.CommitTransactionAsync(cancellationToken);
-            return new ProfileOperationResult { Success = true };
+            return Result.Ok();
         }
         catch
         {
@@ -192,7 +178,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
                || string.Equals(roleCode, "MANAGER", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static ProfileOperationResult? ValidateRequiredCompanyFields(CompanyProfileUpdateRequest request)
+    private static ValidationAppError? ValidateRequiredCompanyFields(CompanyProfileUpdateRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
         {
@@ -224,11 +210,21 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
             : null;
     }
 
-    private static ProfileOperationResult Required(string fieldName)
+    private static ValidationAppError Required(string fieldName)
     {
-        return new ProfileOperationResult
-        {
-            ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace("{0}", fieldName)
-        };
+        return ValidationError(App.Resources.Views.UiText.RequiredField.Replace("{0}", fieldName), fieldName);
+    }
+
+    private static ValidationAppError ValidationError(string message, string propertyName)
+    {
+        return new ValidationAppError(
+            message,
+            [
+                new ValidationFailureModel
+                {
+                    PropertyName = propertyName,
+                    ErrorMessage = message
+                }
+            ]);
     }
 }

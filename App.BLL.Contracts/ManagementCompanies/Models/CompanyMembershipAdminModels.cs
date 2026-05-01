@@ -23,37 +23,6 @@ public enum CompanyMembershipUserActionBlockReason
 }
 
 /// <summary>
-/// Result of authorization check for management-area access.
-/// </summary>
-public class CompanyAreaAuthorizationResult
-{
-    public bool IsAuthorized { get; set; }
-    public bool IsForbidden { get; set; }
-    public bool CompanyNotFound { get; set; }
-    public bool MembershipInactive { get; set; }
-    public bool MembershipNotEffective { get; set; }
-    public CompanyMembershipAuthorizationFailureReason FailureReason { get; set; }
-    public CompanyMembershipContext? Context { get; set; }
-    public string? ErrorMessage { get; set; }
-}
-
-/// <summary>
-/// Result of authorization check for management user administration.
-/// </summary>
-public class CompanyAdminAuthorizationResult
-{
-    public bool IsAuthorized { get; set; }
-    public bool IsForbidden { get; set; }
-    public bool CompanyNotFound { get; set; }
-    public bool MembershipInactive { get; set; }
-    public bool MembershipNotEffective { get; set; }
-    public bool MembershipValidButNotAdmin { get; set; }
-    public CompanyMembershipAuthorizationFailureReason FailureReason { get; set; }
-    public CompanyAdminAuthorizedContext? Context { get; set; }
-    public string? ErrorMessage { get; set; }
-}
-
-/// <summary>
 /// Effective management membership context.
 /// </summary>
 public class CompanyMembershipContext
@@ -116,18 +85,6 @@ public class CompanyMembershipUserListItem
 }
 
 /// <summary>
-/// Result of getting a membership for editing.
-/// </summary>
-public class CompanyMembershipEditResult
-{
-    public bool Success { get; set; }
-    public bool NotFound { get; set; }
-    public bool Forbidden { get; set; }
-    public CompanyMembershipEditModel? Data { get; set; }
-    public string? ErrorMessage { get; set; }
-}
-
-/// <summary>
 /// Model for editing a membership.
 /// </summary>
 public class CompanyMembershipEditModel
@@ -164,16 +121,6 @@ public class CompanyMembershipRoleOption
     public string RoleLabel { get; set; } = default!;
 }
 
-public class CompanyMembershipOptionsResult
-{
-    public bool Success { get; set; }
-    public bool NotFound { get; set; }
-    public bool Forbidden { get; set; }
-    public bool OwnershipTransferRequired { get; set; }
-    public IReadOnlyList<CompanyMembershipRoleOption> Options { get; set; } = Array.Empty<CompanyMembershipRoleOption>();
-    public string? ErrorMessage { get; set; }
-}
-
 /// <summary>
 /// Request to add a user by email.
 /// </summary>
@@ -188,21 +135,6 @@ public class CompanyMembershipAddRequest
 }
 
 /// <summary>
-/// Result of adding a user by email.
-/// </summary>
-public class CompanyMembershipAddResult
-{
-    public bool Success { get; set; }
-    public bool UserNotFound { get; set; }
-    public bool DuplicateMembership { get; set; }
-    public bool InvalidRole { get; set; }
-    public bool InvalidDateRange { get; set; }
-    public bool CannotAssignOwner { get; set; }
-    public Guid? CreatedMembershipId { get; set; }
-    public string? ErrorMessage { get; set; }
-}
-
-/// <summary>
 /// Request to update a membership.
 /// </summary>
 public class CompanyMembershipUpdateRequest
@@ -214,50 +146,15 @@ public class CompanyMembershipUpdateRequest
     public DateOnly? ValidTo { get; set; }
 }
 
-/// <summary>
-/// Result of updating a membership.
-/// </summary>
-public class CompanyMembershipUpdateResult
-{
-    public bool Success { get; set; }
-    public bool NotFound { get; set; }
-    public bool Forbidden { get; set; }
-    public bool InvalidRole { get; set; }
-    public bool InvalidDateRange { get; set; }
-    public bool CannotEditOwner { get; set; }
-    public bool CannotAssignOwner { get; set; }
-    public bool CannotChangeOwnRole { get; set; }
-    public bool CannotDeactivateSelf { get; set; }
-    public bool OwnershipTransferRequired { get; set; }
-    public CompanyMembershipUserActionBlockReason BlockReason { get; set; }
-    public string? ErrorMessage { get; set; }
-}
-
-/// <summary>
-/// Result of deleting a membership.
-/// </summary>
-public class CompanyMembershipDeleteResult
-{
-    public bool Success { get; set; }
-    public bool NotFound { get; set; }
-    public bool Forbidden { get; set; }
-    public bool CannotDeleteOwner { get; set; }
-    public bool CannotDeleteSelf { get; set; }
-    public CompanyMembershipUserActionBlockReason BlockReason { get; set; }
-    public string? ErrorMessage { get; set; }
-}
-
 public class TransferOwnershipRequest
 {
     public Guid TargetMembershipId { get; set; }
 }
 
-public class OwnershipTransferCandidateListResult
+public class OwnershipTransferModel
 {
-    public bool Success { get; set; }
-    public bool Forbidden { get; set; }
-    public IReadOnlyList<OwnershipTransferCandidate> Candidates { get; set; } = Array.Empty<OwnershipTransferCandidate>();
-    public string? ErrorMessage { get; set; }
+    public Guid PreviousOwnerMembershipId { get; set; }
+    public Guid NewOwnerMembershipId { get; set; }
 }
 
 public class OwnershipTransferCandidate
@@ -270,18 +167,6 @@ public class OwnershipTransferCandidate
     public string RoleCode { get; set; } = default!;
     public string RoleLabel { get; set; } = default!;
     public bool IsEffective { get; set; }
-}
-
-public class OwnershipTransferResult
-{
-    public bool Success { get; set; }
-    public bool Forbidden { get; set; }
-    public bool NotFound { get; set; }
-    public bool TargetNotEligibleForOwnership { get; set; }
-    public bool OwnershipTransferRequired { get; set; }
-    public Guid? PreviousOwnerMembershipId { get; set; }
-    public Guid? NewOwnerMembershipId { get; set; }
-    public string? ErrorMessage { get; set; }
 }
 
 /// <summary>
@@ -307,12 +192,3 @@ public class PendingAccessRequestItem
     public DateTime RequestedAt { get; set; }
 }
 
-public class PendingAccessRequestActionResult
-{
-    public bool Success { get; set; }
-    public bool NotFound { get; set; }
-    public bool Forbidden { get; set; }
-    public bool AlreadyResolved { get; set; }
-    public bool AlreadyMember { get; set; }
-    public string? ErrorMessage { get; set; }
-}
