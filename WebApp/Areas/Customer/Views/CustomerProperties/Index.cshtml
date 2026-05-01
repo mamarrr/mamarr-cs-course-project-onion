@@ -14,7 +14,7 @@
 
         @if (Model.Properties.Count == 0)
         {
-            <p class="management-muted mb-0">@T("NoPropertiesFound", "No properties found.")</p>
+            <p class="management-muted mb-0">@App.Resources.Views.UiText.NoPropertiesFound</p>
         }
         else
         {
@@ -24,9 +24,9 @@
                     <tr>
                         <th>@App.Resources.Views.UiText.Name</th>
                         <th>@App.Resources.Views.UiText.AddressLine</th>
-                        <th>@T("City", "City")</th>
-                        <th>@T("PostalCode", "Postal code")</th>
-                        <th>@T("PropertyType", "Property type")</th>
+                        <th>@App.Resources.Views.UiText.City</th>
+                        <th>@App.Resources.Views.UiText.PostalCode</th>
+                        <th>@App.Resources.Views.UiText.PropertyType</th>
                         <th>@App.Resources.Views.UiText.Status</th>
                     </tr>
                     </thead>
@@ -51,11 +51,11 @@
                             <td>
                                 @if (property.IsActive)
                                 {
-                                    <span class="management-badge success">@T("Active", "Active")</span>
+                                    <span class="management-badge success">@App.Resources.Views.UiText.Active</span>
                                 }
                                 else
                                 {
-                                    <span class="management-badge">@T("Inactive", "Inactive")</span>
+                                    <span class="management-badge">@App.Resources.Views.UiText.Inactive</span>
                                 }
                             </td>
                         </tr>
@@ -67,7 +67,7 @@
     </section>
 
     <section class="management-card" style="grid-column: 1 / -1;">
-        <h2 class="mb-3">@T("AddProperty", "Add property")</h2>
+        <h2 class="mb-3">@App.Resources.Views.UiText.AddProperty</h2>
 
         <form asp-area="Customer"
               asp-controller="CustomerProperties"
@@ -89,7 +89,7 @@
                 <div class="col-md-6">
                     <label asp-for="AddProperty.PropertyTypeId" class="form-label"></label>
                     <select asp-for="AddProperty.PropertyTypeId" class="form-select">
-                        <option value="">@T("SelectPropertyType", "Select property type")</option>
+                        <option value="">@App.Resources.Views.UiText.SelectPropertyType</option>
                         @foreach (var option in Model.PropertyTypeOptions)
                         {
                             <option value="@option.Id">@option.Label</option>
@@ -130,7 +130,7 @@
                 </div>
 
                 <div class="col-12">
-                    <button type="submit" class="management-btn primary">@T("AddProperty", "Add property")</button>
+                    <button type="submit" class="management-btn primary">@App.Resources.Views.UiText.AddProperty</button>
                 </div>
             </div>
         </form>
@@ -141,9 +141,3 @@
     <partial name="_ValidationScriptsPartial" />
 }
 
-@functions {
-    private static string T(string key, string fallback)
-    {
-        return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
-    }
-}

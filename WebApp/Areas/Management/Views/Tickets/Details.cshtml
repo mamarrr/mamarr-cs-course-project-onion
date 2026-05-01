@@ -2,7 +2,6 @@
 @using App.Resources.Views
 @{
     ViewData["Title"] = Model.TicketNr;
-    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
     string Empty(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
 }
 
@@ -37,7 +36,7 @@
                           asp-route-ticketId="@Model.TicketId">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="management-btn">
-                            @string.Format(T("AdvanceToStatus", "Advance to {0}"), Model.NextStatusLabel)
+                            @string.Format(UiText.AdvanceToStatus, Model.NextStatusLabel)
                         </button>
                     </form>
                 }
@@ -50,24 +49,24 @@
     </section>
 
     <section class="management-card">
-        <h2>@T("TicketDescription", "Description")</h2>
+        <h2>@UiText.TicketDescription</h2>
         <p class="mb-0">@Model.Description</p>
     </section>
 
     <section class="management-card">
-        <h2>@T("TicketDates", "Dates")</h2>
+        <h2>@UiText.TicketDates</h2>
         <dl class="row mb-0">
-            <dt class="col-sm-4">@T("CreatedAt", "Created")</dt>
+            <dt class="col-sm-4">@UiText.CreatedAt</dt>
             <dd class="col-sm-8">@Model.CreatedAt.ToString("g")</dd>
-            <dt class="col-sm-4">@T("DueAt", "Due at")</dt>
+            <dt class="col-sm-4">@UiText.DueAt</dt>
             <dd class="col-sm-8">@(Model.DueAt?.ToString("g") ?? "-")</dd>
-            <dt class="col-sm-4">@T("ClosedAt", "Closed")</dt>
+            <dt class="col-sm-4">@UiText.ClosedAt</dt>
             <dd class="col-sm-8">@(Model.ClosedAt?.ToString("g") ?? "-")</dd>
         </dl>
     </section>
 
     <section class="management-card">
-        <h2>@T("TicketContext", "Context")</h2>
+        <h2>@UiText.TicketContext</h2>
         <dl class="row mb-0">
             <dt class="col-sm-4">@UiText.Customers</dt>
             <dd class="col-sm-8">
@@ -143,8 +142,8 @@
     </section>
 
     <section class="management-card">
-        <h2>@T("DangerZone", "Danger zone")</h2>
-        <p class="management-muted">@T("DeleteTicketDescription", "Deleting a ticket also removes its scheduled work and work logs.")</p>
+        <h2>@UiText.DangerZone</h2>
+        <p class="management-muted">@UiText.DeleteTicketDescription</p>
         <form method="post"
               asp-action="Delete"
               asp-route-companySlug="@Model.CompanySlug"
@@ -152,7 +151,7 @@
             @Html.AntiForgeryToken()
             <button type="submit"
                     class="btn btn-outline-danger"
-                    onclick="return confirm('@T("DeleteTicketConfirmation", "Delete this ticket?")');">@UiText.Delete</button>
+                    onclick="return confirm('@UiText.DeleteTicketConfirmation');">@UiText.Delete</button>
         </form>
     </section>
 </div>

@@ -2,7 +2,6 @@
 @using App.Resources.Views
 @{
     ViewData["Title"] = UiText.Tickets;
-    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
     string Empty(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
 }
 
@@ -10,11 +9,11 @@
     <section class="management-card">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
-                <p class="management-eyebrow mb-2">@T("TicketWorkspace", "Ticket workspace")</p>
+                <p class="management-eyebrow mb-2">@UiText.TicketWorkspace</p>
                 <h2 class="mb-2">@UiText.Tickets</h2>
-                <p class="management-muted mb-0">@string.Format(T("TicketsPageIntro", "Track and manage maintenance tickets for {0}."), Model.CompanyName)</p>
+                <p class="management-muted mb-0">@string.Format(UiText.TicketsPageIntro, Model.CompanyName)</p>
             </div>
-            <a class="management-btn" asp-action="Create" asp-route-companySlug="@Model.CompanySlug">@T("CreateTicket", "Create ticket")</a>
+            <a class="management-btn" asp-action="Create" asp-route-companySlug="@Model.CompanySlug">@UiText.CreateTicket</a>
         </div>
     </section>
 
@@ -37,43 +36,43 @@
             <div class="col-md-2">
                 <label asp-for="Filter.StatusId" class="form-label"></label>
                 <select asp-for="Filter.StatusId" name="StatusId" asp-items="Model.Options.Statuses" class="form-select">
-                    <option value="">@T("AllStatuses", "All statuses")</option>
+                    <option value="">@UiText.AllStatuses</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <label asp-for="Filter.PriorityId" class="form-label"></label>
                 <select asp-for="Filter.PriorityId" name="PriorityId" asp-items="Model.Options.Priorities" class="form-select">
-                    <option value="">@T("AllPriorities", "All priorities")</option>
+                    <option value="">@UiText.AllPriorities</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <label asp-for="Filter.CategoryId" class="form-label"></label>
                 <select asp-for="Filter.CategoryId" name="CategoryId" asp-items="Model.Options.Categories" class="form-select">
-                    <option value="">@T("AllCategories", "All categories")</option>
+                    <option value="">@UiText.AllCategories</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <label asp-for="Filter.CustomerId" class="form-label"></label>
                 <select asp-for="Filter.CustomerId" name="CustomerId" asp-items="Model.Options.Customers" class="form-select">
-                    <option value="">@T("AllCustomers", "All customers")</option>
+                    <option value="">@UiText.AllCustomers</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <label asp-for="Filter.PropertyId" class="form-label"></label>
                 <select asp-for="Filter.PropertyId" name="PropertyId" asp-items="Model.Options.Properties" class="form-select">
-                    <option value="">@T("AllProperties", "All properties")</option>
+                    <option value="">@UiText.AllProperties</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <label asp-for="Filter.UnitId" class="form-label"></label>
                 <select asp-for="Filter.UnitId" name="UnitId" asp-items="Model.Options.Units" class="form-select">
-                    <option value="">@T("AllUnits", "All units")</option>
+                    <option value="">@UiText.AllUnits</option>
                 </select>
             </div>
             <div class="col-md-2">
                 <label asp-for="Filter.VendorId" class="form-label"></label>
                 <select asp-for="Filter.VendorId" name="VendorId" asp-items="Model.Options.Vendors" class="form-select">
-                    <option value="">@T("AllVendors", "All vendors")</option>
+                    <option value="">@UiText.AllVendors</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -85,8 +84,8 @@
                 <input asp-for="Filter.DueTo" name="DueTo" class="form-control" type="date" />
             </div>
             <div class="col-md-2 d-flex align-items-end gap-2">
-                <button type="submit" class="management-btn">@T("ApplyFilters", "Apply filters")</button>
-                <a class="btn btn-outline-secondary" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">@T("Clear", "Clear")</a>
+                <button type="submit" class="management-btn">@UiText.ApplyFilters</button>
+                <a class="btn btn-outline-secondary" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">@UiText.Clear</a>
             </div>
         </form>
     </section>
@@ -94,8 +93,8 @@
     <section class="management-card">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h2 class="mb-1">@T("CurrentTickets", "Current tickets")</h2>
-                <p class="management-muted mb-0">@T("CurrentTicketsDescription", "Only tickets in the current company scope are shown.")</p>
+                <h2 class="mb-1">@UiText.CurrentTickets</h2>
+                <p class="management-muted mb-0">@UiText.CurrentTicketsDescription</p>
             </div>
             <span class="management-badge @(Model.Tickets.Count > 0 ? "success" : "warning")">
                 @string.Format(UiText.ActiveRecords, Model.Tickets.Count)
@@ -105,8 +104,8 @@
         @if (Model.Tickets.Count == 0)
         {
             <div class="border rounded p-3 bg-light-subtle">
-                <strong>@T("NoTicketsFound", "No tickets found")</strong>
-                <p class="management-muted mb-0">@T("NoTicketsFoundDescription", "Create a ticket or adjust filters.")</p>
+                <strong>@UiText.NoTicketsFound</strong>
+                <p class="management-muted mb-0">@UiText.NoTicketsFoundDescription</p>
             </div>
         }
         else
@@ -115,18 +114,18 @@
                 <table class="table align-middle mb-0">
                     <thead>
                     <tr>
-                        <th>@T("TicketNumber", "Ticket number")</th>
-                        <th>@T("TicketTitle", "Title")</th>
+                        <th>@UiText.TicketNumber</th>
+                        <th>@UiText.TicketTitle</th>
                         <th>@UiText.Status</th>
-                        <th>@T("TicketPriority", "Priority")</th>
-                        <th>@T("TicketCategory", "Category")</th>
+                        <th>@UiText.TicketPriority</th>
+                        <th>@UiText.TicketCategory</th>
                         <th>@UiText.Customers</th>
                         <th>@UiText.Property</th>
                         <th>@UiText.Unit</th>
                         <th>@UiText.Resident</th>
                         <th>@UiText.Vendors</th>
-                        <th>@T("DueAt", "Due at")</th>
-                        <th>@T("CreatedAt", "Created")</th>
+                        <th>@UiText.DueAt</th>
+                        <th>@UiText.CreatedAt</th>
                     </tr>
                     </thead>
                     <tbody>

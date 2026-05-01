@@ -6,14 +6,14 @@
 
 <div class="management-grid management-grid-2">
     <section class="management-card" style="grid-column: 1 / -1;">
-        <p class="management-eyebrow mb-2">@T("CustomerDashboard", "Customer dashboard")</p>
+        <p class="management-eyebrow mb-2">@App.Resources.Views.UiText.CustomerDashboard</p>
         <h2 class="mb-2">@Model.CustomerName</h2>
-        <p class="management-muted mb-0">@string.Format(T("CustomerDashboardIntro", "Customer workspace for {0} in company {1}."), Model.CustomerName, Model.CompanyName)</p>
+        <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.CustomerDashboardIntro, Model.CustomerName, Model.CompanyName)</p>
     </section>
 
     <section class="management-card">
         <h2>@currentSectionLabel</h2>
-        <p class="management-muted mb-0">@string.Format(T("CustomerSectionPlaceholder", "{0} content is planned and will be added in a later increment."), currentSectionLabel)</p>
+        <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.CustomerSectionPlaceholder, currentSectionLabel)</p>
     </section>
 
     <section class="management-card">
@@ -22,9 +22,3 @@
     </section>
 </div>
 
-@functions {
-    private static string T(string key, string fallback)
-    {
-        return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
-    }
-}

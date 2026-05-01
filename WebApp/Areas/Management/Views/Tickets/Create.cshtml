@@ -1,7 +1,7 @@
 @model WebApp.ViewModels.Management.Tickets.TicketFormPageViewModel
 @using App.Resources.Views
 @{
-    ViewData["Title"] = UiText.ResourceManager.GetString("CreateTicket") ?? "Create ticket";
+    ViewData["Title"] = UiText.CreateTicket;
 }
 
 @await Html.PartialAsync("_TicketForm", Model)

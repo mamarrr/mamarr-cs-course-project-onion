@@ -2,13 +2,12 @@
 @using App.Resources.Views
 @using App.Resources.Domain
 @{
-    ViewData["Title"] = T("Tenants", "Tenants");
-    ViewData["CurrentSectionLabel"] = T("Tenants", "Tenants");
-    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+    ViewData["Title"] = UiText.Tenants;
+    ViewData["CurrentSectionLabel"] = UiText.Tenants;
 
     string ResidentLabel(WebApp.ViewModels.Unit.UnitLeaseResidentSearchResultViewModel resident)
     {
-        var statusText = resident.IsActive ? string.Empty : $" ({T("Inactive", "Inactive")})";
+        var statusText = resident.IsActive ? string.Empty : $" ({UiText.Inactive})";
         return $"{resident.FullName} · {resident.IdCode}{statusText}";
     }
 
@@ -17,14 +16,14 @@
 
 <div class="management-grid management-grid-2">
     <section class="management-card" style="grid-column: 1 / -1;">
-        <p class="management-eyebrow mb-2">@T("Tenants", "Tenants")</p>
+        <p class="management-eyebrow mb-2">@UiText.Tenants</p>
         <h2 class="mb-1">@Model.UnitName</h2>
-        <p class="management-muted mb-0">@string.Format(T("UnitDashboardIntro", "Unit workspace for {0} in property {1}, customer {2} ({3})."), Model.UnitName, Model.PropertyName, Model.CustomerName, Model.CompanyName)</p>
+        <p class="management-muted mb-0">@string.Format(UiText.UnitDashboardIntro, Model.UnitName, Model.PropertyName, Model.CustomerName, Model.CompanyName)</p>
     </section>
 
     <section class="management-card">
-        <h2>@T("AddLease", "Add lease")</h2>
-        <p class="management-muted">@T("UnitLeaseAddDescription", "Search a resident, select one result, and link the resident to this unit.")</p>
+        <h2>@UiText.AddLease</h2>
+        <p class="management-muted">@UiText.UnitLeaseAddDescription</p>
 
         @if (!string.IsNullOrWhiteSpace(Model.SuccessMessage))
         {
@@ -45,7 +44,7 @@
                 <span asp-validation-for="AddLease.ResidentSearchTerm" class="text-danger"></span>
             </div>
             <div class="col-md-3 d-flex align-items-end">
-                <button type="submit" class="management-btn w-100">@T("SearchResidents", "Search residents")</button>
+                <button type="submit" class="management-btn w-100">@UiText.SearchResidents</button>
             </div>
             <input type="hidden" asp-for="AddLease.ResidentId" />
         </form>
@@ -55,15 +54,15 @@
             if (Model.ResidentSearchResults.Count == 0)
             {
                 <div class="border rounded p-3 bg-light-subtle mb-4">
-                    <strong>@T("NoResidentsFound", "No residents found")</strong>
-                    <p class="management-muted mb-0">@T("NoResidentsFoundDescription", "Try a different resident name or id code within the current company scope.")</p>
+                    <strong>@UiText.NoResidentsFound</strong>
+                    <p class="management-muted mb-0">@UiText.NoResidentsFoundDescription</p>
                 </div>
             }
             else
             {
                 <div class="border rounded p-3 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <strong>@T("ResidentResults", "Resident results")</strong>
+                        <strong>@UiText.ResidentResults</strong>
                         <span class="management-muted">@Model.ResidentSearchResults.Count</span>
                     </div>
                     <div class="list-group">
@@ -82,7 +81,7 @@
                                 <div>@resident.IdCode</div>
                                 @if (!resident.IsActive)
                                 {
-                                    <div class="small @(isSelected ? "text-white-50" : "text-muted")">@T("Inactive", "Inactive")</div>
+                                    <div class="small @(isSelected ? "text-white-50" : "text-muted")">@UiText.Inactive</div>
                                 }
                             </a>
                         }
@@ -97,7 +96,7 @@
             <input type="hidden" asp-for="AddLease.ResidentId" />
 
             <div class="col-12">
-                <label class="form-label">@T("Resident", "Resident")</label>
+                <label class="form-label">@UiText.Resident</label>
                 @if (selectedResident == null)
                 {
                     <div class="form-control bg-light-subtle">@UiText.NoValuePlaceholder</div>
@@ -112,7 +111,7 @@
             <div class="col-md-6">
                 <label asp-for="AddLease.LeaseRoleId" class="form-label"></label>
                 <select asp-for="AddLease.LeaseRoleId" class="form-select">
-                    <option value="">@T("SelectLeaseRole", "Select lease role")</option>
+                    <option value="">@UiText.SelectLeaseRole</option>
                     @foreach (var role in Model.LeaseRoleOptions)
                     {
                         <option value="@role.LeaseRoleId">@role.Label</option>
@@ -145,7 +144,7 @@
             </div>
 
             <div class="col-12">
-                <button type="submit" class="management-btn">@T("AddLease", "Add lease")</button>
+                <button type="submit" class="management-btn">@UiText.AddLease</button>
             </div>
         </form>
     </section>
@@ -153,8 +152,8 @@
     <section class="management-card">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h2 class="mb-1">@T("CurrentLeases", "Current leases")</h2>
-                <p class="management-muted mb-0">@T("UnitLeaseListDescription", "Existing resident leases linked to this unit in the current company scope.")</p>
+                <h2 class="mb-1">@UiText.CurrentLeases</h2>
+                <p class="management-muted mb-0">@UiText.UnitLeaseListDescription</p>
             </div>
             <span class="management-badge @(Model.Leases.Count > 0 ? "success" : "warning")">
                 @string.Format(UiText.ActiveRecords, Model.Leases.Count)
@@ -164,8 +163,8 @@
         @if (Model.Leases.Count == 0)
         {
             <div class="border rounded p-3 bg-light-subtle">
-                <strong>@T("NoTenantsFound", "No tenants found")</strong>
-                <p class="management-muted mb-0">@T("NoUnitLeasesFoundDescription", "No residents are currently linked to this unit.")</p>
+                <strong>@UiText.NoTenantsFound</strong>
+                <p class="management-muted mb-0">@UiText.NoUnitLeasesFoundDescription</p>
             </div>
         }
         else
@@ -181,16 +180,16 @@
                                 <h3 class="h5 mb-1">@lease.ResidentFullName</h3>
                                 <div class="management-muted mb-2">@lease.LeaseRoleLabel</div>
                                 <div class="small text-muted">
-                                    @T("StartDate", "Start date"): @lease.StartDate.ToString("yyyy-MM-dd")
+                                    @UiText.StartDate: @lease.StartDate.ToString("yyyy-MM-dd")
                                     @if (lease.EndDate.HasValue)
                                     {
-                                        <span class="ms-2">@T("EndDate", "End date"): @lease.EndDate.Value.ToString("yyyy-MM-dd")</span>
+                                        <span class="ms-2">@UiText.EndDate: @lease.EndDate.Value.ToString("yyyy-MM-dd")</span>
                                     }
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-lg-end gap-2">
                                 <span class="management-badge @(lease.IsActive ? "success" : "warning")">
-                                    @(lease.IsActive ? UiText.Active : T("Inactive", "Inactive"))
+                                    @(lease.IsActive ? UiText.Active : UiText.Inactive)
                                 </span>
                                 <div class="d-flex gap-2">
                                     <a class="management-btn ghost"
@@ -228,7 +227,7 @@
                                 <div class="col-md-6">
                                     <label asp-for="EditLease.LeaseRoleId" class="form-label"></label>
                                     <select asp-for="EditLease.LeaseRoleId" class="form-select">
-                                        <option value="">@T("SelectLeaseRole", "Select lease role")</option>
+                                        <option value="">@UiText.SelectLeaseRole</option>
                                         @foreach (var role in Model.LeaseRoleOptions)
                                         {
                                             var selectedRoleId = Model.EditLease.LeaseId == lease.LeaseId && Model.EditLease.LeaseRoleId.HasValue

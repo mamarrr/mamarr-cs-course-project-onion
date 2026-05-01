@@ -4,20 +4,13 @@
 }
 
 <section class="management-card mb-4">
-    <p class="management-eyebrow mb-2">@T("UnitDashboard", "Unit dashboard")</p>
+    <p class="management-eyebrow mb-2">@App.Resources.Views.UiText.UnitDashboard</p>
     <h2 class="mb-1">@Model.UnitName</h2>
-    <p class="management-muted mb-0">@string.Format(T("UnitDashboardIntro", "Unit workspace for {0} in property {1}, customer {2} ({3})."), Model.UnitName, Model.PropertyName, Model.CustomerName, Model.CompanyName)</p>
+    <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.UnitDashboardIntro, Model.UnitName, Model.PropertyName, Model.CustomerName, Model.CompanyName)</p>
 </section>
 
 <section class="management-card">
     <h3>@currentSectionLabel</h3>
-    <p class="management-muted mb-0">@string.Format(T("UnitSectionPlaceholder", "{0} content is planned and will be added in a later increment."), currentSectionLabel)</p>
+    <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.UnitSectionPlaceholder, currentSectionLabel)</p>
 </section>
-
-@functions {
-    private static string T(string key, string fallback)
-    {
-        return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
-    }
-}
 

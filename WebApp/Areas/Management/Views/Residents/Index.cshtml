@@ -1,17 +1,16 @@
 @model WebApp.ViewModels.Management.Residents.ResidentsPageViewModel
 @using App.Resources.Views
 @{
-    ViewData["Title"] = UiText.ResourceManager.GetString("Residents") ?? "Residents";
-    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+    ViewData["Title"] = UiText.Residents;
 }
 
 <div class="management-grid management-grid-2">
     <section class="management-card" style="grid-column: 1 / -1;">
         <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
             <div>
-                <p class="management-eyebrow mb-2">@T("Residents", "Residents")</p>
-                <h2 class="mb-2">@T("Residents", "Residents")</h2>
-                <p class="management-muted mb-0">@string.Format(T("ResidentsPageIntro", "Manage residents linked to {0}."), Model.CompanyName)</p>
+                <p class="management-eyebrow mb-2">@UiText.Residents</p>
+                <h2 class="mb-2">@UiText.Residents</h2>
+                <p class="management-muted mb-0">@string.Format(UiText.ResidentsPageIntro, Model.CompanyName)</p>
             </div>
             <div class="d-flex flex-column align-items-lg-end gap-2">
                 <span class="management-badge @(Model.Residents.Count > 0 ? "success" : "warning")">
@@ -22,8 +21,8 @@
     </section>
 
     <section class="management-card">
-        <h2>@T("AddResident", "Add resident")</h2>
-        <p class="management-muted">@T("AddResidentDescription", "Add a resident in the current company scope.")</p>
+        <h2>@UiText.AddResident</h2>
+        <p class="management-muted">@UiText.AddResidentDescription</p>
 
         @if (TempData["ManagementResidentsSuccess"] is string successMessage)
         {
@@ -56,7 +55,7 @@
                 <span asp-validation-for="AddResident.PreferredLanguage" class="text-danger"></span>
             </div>
             <div class="col-12">
-                <button type="submit" class="management-btn">@T("AddResident", "Add resident")</button>
+                <button type="submit" class="management-btn">@UiText.AddResident</button>
             </div>
         </form>
     </section>
@@ -64,16 +63,16 @@
     <section class="management-card">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h2 class="mb-1">@T("CurrentResidents", "Current residents")</h2>
-                <p class="management-muted mb-0">@T("CurrentResidentsDescription", "Only residents in the current company scope are shown here.")</p>
+                <h2 class="mb-1">@UiText.CurrentResidents</h2>
+                <p class="management-muted mb-0">@UiText.CurrentResidentsDescription</p>
             </div>
         </div>
 
         @if (Model.Residents.Count == 0)
         {
             <div class="border rounded p-3 bg-light-subtle">
-                <strong>@T("NoResidentsFound", "No residents found")</strong>
-                <p class="management-muted mb-0">@T("NoResidentsFoundDescription", "Add your first resident to start resident workspace access.")</p>
+                <strong>@UiText.NoResidentsFound</strong>
+                <p class="management-muted mb-0">@UiText.NoResidentsFoundDescription</p>
             </div>
         }
         else
@@ -83,9 +82,9 @@
                     <thead>
                     <tr>
                         <th>@UiText.Name</th>
-                        <th>@T("IdCode", "ID code")</th>
-                        <th>@T("PreferredLanguage", "Preferred language")</th>
-                        <th>@T("Status", "Status")</th>
+                        <th>@UiText.IdCode</th>
+                        <th>@UiText.PreferredLanguage</th>
+                        <th>@UiText.Status</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -109,7 +108,7 @@
                             <td>@(string.IsNullOrWhiteSpace(resident.PreferredLanguage) ? UiText.NoValuePlaceholder : resident.PreferredLanguage)</td>
                             <td>
                                 <span class="management-badge @(resident.IsActive ? "success" : "warning")">
-                                    @(resident.IsActive ? T("Active", "Active") : T("Inactive", "Inactive"))
+                                    @(resident.IsActive ? UiText.Active : UiText.Inactive)
                                 </span>
                             </td>
                         </tr>

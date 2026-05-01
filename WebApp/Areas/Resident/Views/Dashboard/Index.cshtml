@@ -4,9 +4,9 @@
 }
 
 <section class="management-card mb-4">
-    <p class="management-eyebrow mb-2">@T("ResidentDashboard", "Resident dashboard")</p>
+    <p class="management-eyebrow mb-2">@App.Resources.Views.UiText.ResidentDashboard</p>
     <h2 class="mb-1">@Model.ResidentDisplayName</h2>
-    <p class="management-muted mb-0">@string.Format(T("ResidentDashboardIntro", "Resident workspace for {0} in {1}."), Model.ResidentDisplayName, Model.CompanyName)</p>
+    <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.ResidentDashboardIntro, Model.ResidentDisplayName, Model.CompanyName)</p>
     @if (!string.IsNullOrWhiteSpace(Model.ResidentSupportingText))
     {
         <p class="management-muted mb-0">@Model.ResidentSupportingText</p>
@@ -15,12 +15,6 @@
 
 <section class="management-card">
     <h3>@currentSectionLabel</h3>
-    <p class="management-muted mb-0">@string.Format(T("ResidentSectionPlaceholder", "{0} content is planned and will be added in a later increment."), currentSectionLabel)</p>
+    <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.ResidentSectionPlaceholder, currentSectionLabel)</p>
 </section>
 
-@functions {
-    private static string T(string key, string fallback)
-    {
-        return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
-    }
-}

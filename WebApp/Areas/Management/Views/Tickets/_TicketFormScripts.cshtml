@@ -1,8 +1,5 @@
 @model WebApp.ViewModels.Management.Tickets.TicketFormPageViewModel
 @using App.Resources.Views
-@{
-    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
-}
 
 <script>
 (() => {
@@ -17,10 +14,10 @@
     };
 
     const placeholders = {
-        property: '@T("SelectProperty", "Select property")',
-        unit: '@T("SelectUnit", "Select unit")',
-        resident: '@T("SelectResident", "Select resident")',
-        vendor: '@T("SelectVendor", "Select vendor")'
+        property: '@UiText.SelectProperty',
+        unit: '@UiText.SelectUnit',
+        resident: '@UiText.SelectResident',
+        vendor: '@UiText.SelectVendor'
     };
 
     const reset = (select, placeholder) => {
