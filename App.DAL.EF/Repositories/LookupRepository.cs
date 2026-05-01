@@ -1,6 +1,5 @@
 using App.Contracts;
 using App.Contracts.DAL.Lookups;
-using App.DAL.EF.Mappers;
 using App.Domain;
 using Base.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -26,12 +25,16 @@ public sealed class LookupRepository : ILookupRepository
     public async Task<IReadOnlyList<LookupDalDto>> AllManagementCompanyJoinRequestStatusesAsync(
         CancellationToken cancellationToken = default)
     {
-        var statuses = await _dbContext.ManagementCompanyJoinRequestStatuses
+        return await _dbContext.ManagementCompanyJoinRequestStatuses
             .AsNoTracking()
             .OrderBy(status => status.Code)
+            .Select(status => new LookupDalDto
+            {
+                Id = status.Id,
+                Code = status.Code,
+                Label = status.Label.ToString()
+            })
             .ToListAsync(cancellationToken);
-
-        return statuses.Select(LookupDalMapper.Map).ToList();
     }
 
     public Task<LookupDalDto?> FindManagementCompanyRoleByCodeAsync(
@@ -80,10 +83,15 @@ public sealed class LookupRepository : ILookupRepository
         }
 
         var normalizedCode = code.Trim();
-        var lookup = await _dbContext.Set<TLookup>()
+        return await _dbContext.Set<TLookup>()
             .AsNoTracking()
-            .SingleOrDefaultAsync(entity => entity.Code == normalizedCode, cancellationToken);
-
-        return lookup is null ? null : LookupDalMapper.Map(lookup);
+            .Where(entity => entity.Code == normalizedCode)
+            .Select(entity => new LookupDalDto
+            {
+                Id = entity.Id,
+                Code = entity.Code,
+                Label = entity.Label.ToString()
+            })
+            .SingleOrDefaultAsync(cancellationToken);
     }
 }

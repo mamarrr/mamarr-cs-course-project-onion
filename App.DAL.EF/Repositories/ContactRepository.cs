@@ -12,24 +12,28 @@ public sealed class ContactRepository :
     IContactRepository
 {
     private readonly AppDbContext _dbContext;
-    private readonly ContactDalMapper _mapper;
 
     public ContactRepository(AppDbContext dbContext, ContactDalMapper mapper)
         : base(dbContext, mapper)
     {
         _dbContext = dbContext;
-        _mapper = mapper;
     }
 
     public async Task<ContactDalDto?> FindAsync(
         Guid contactId,
         CancellationToken cancellationToken = default)
     {
-        var contact = await _dbContext.Contacts
+        return await _dbContext.Contacts
             .AsNoTracking()
+            .Select(entity => new ContactDalDto
+            {
+                Id = entity.Id,
+                ManagementCompanyId = entity.ManagementCompanyId,
+                ContactTypeId = entity.ContactTypeId,
+                ContactValue = entity.ContactValue,
+                Notes = entity.Notes == null ? null : entity.Notes.ToString()
+            })
             .FirstOrDefaultAsync(entity => entity.Id == contactId, cancellationToken);
-
-        return _mapper.Map(contact);
     }
 
     public Task<ContactDalDto> AddAsync(
@@ -48,7 +52,14 @@ public sealed class ContactRepository :
 
         _dbContext.Contacts.Add(contact);
 
-        return Task.FromResult(_mapper.Map(contact)!);
+        return Task.FromResult(new ContactDalDto
+        {
+            Id = contact.Id,
+            ManagementCompanyId = contact.ManagementCompanyId,
+            ContactTypeId = contact.ContactTypeId,
+            ContactValue = contact.ContactValue,
+            Notes = contact.Notes == null ? null : contact.Notes.ToString()
+        });
     }
 
     public async Task UpdateAsync(

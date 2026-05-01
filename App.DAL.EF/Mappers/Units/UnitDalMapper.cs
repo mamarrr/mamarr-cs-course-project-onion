@@ -25,62 +25,6 @@ public sealed class UnitDalMapper : IMapper<UnitDalDto, Unit>
         };
     }
 
-    public UnitListItemDalDto MapListItem(Unit entity)
-    {
-        return new UnitListItemDalDto
-        {
-            Id = entity.Id,
-            PropertyId = entity.PropertyId,
-            UnitNr = entity.UnitNr,
-            Slug = entity.Slug,
-            FloorNr = entity.FloorNr,
-            SizeM2 = entity.SizeM2
-        };
-    }
-
-    public UnitDashboardDalDto MapDashboard(Unit entity)
-    {
-        return new UnitDashboardDalDto
-        {
-            Id = entity.Id,
-            PropertyId = entity.PropertyId,
-            CustomerId = entity.Property!.CustomerId,
-            ManagementCompanyId = entity.Property.Customer!.ManagementCompanyId,
-            CompanySlug = entity.Property.Customer.ManagementCompany!.Slug,
-            CompanyName = entity.Property.Customer.ManagementCompany.Name,
-            CustomerSlug = entity.Property.Customer.Slug,
-            CustomerName = entity.Property.Customer.Name,
-            PropertySlug = entity.Property.Slug,
-            PropertyName = entity.Property.Label.ToString(),
-            UnitNr = entity.UnitNr,
-            Slug = entity.Slug
-        };
-    }
-
-    public UnitProfileDalDto MapProfile(Unit entity)
-    {
-        return new UnitProfileDalDto
-        {
-            Id = entity.Id,
-            PropertyId = entity.PropertyId,
-            CustomerId = entity.Property!.CustomerId,
-            ManagementCompanyId = entity.Property.Customer!.ManagementCompanyId,
-            CompanySlug = entity.Property.Customer.ManagementCompany!.Slug,
-            CompanyName = entity.Property.Customer.ManagementCompany.Name,
-            CustomerSlug = entity.Property.Customer.Slug,
-            CustomerName = entity.Property.Customer.Name,
-            PropertySlug = entity.Property.Slug,
-            PropertyName = entity.Property.Label.ToString(),
-            UnitNr = entity.UnitNr,
-            Slug = entity.Slug,
-            FloorNr = entity.FloorNr,
-            SizeM2 = entity.SizeM2,
-            Notes = entity.Notes?.ToString(),
-            IsActive = entity.IsActive,
-            CreatedAt = entity.CreatedAt
-        };
-    }
-
     public Unit? Map(UnitDalDto? entity)
     {
         if (entity is null)

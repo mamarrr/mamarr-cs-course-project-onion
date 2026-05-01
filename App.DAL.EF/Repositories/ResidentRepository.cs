@@ -11,13 +11,11 @@ public sealed class ResidentRepository :
     IResidentRepository
 {
     private readonly AppDbContext _dbContext;
-    private readonly ResidentDalMapper _mapper;
 
     public ResidentRepository(AppDbContext dbContext, ResidentDalMapper mapper)
         : base(dbContext, mapper)
     {
         _dbContext = dbContext;
-        _mapper = mapper;
     }
 
     public async Task<ResidentProfileDalDto?> FirstProfileAsync(
@@ -30,12 +28,23 @@ public sealed class ResidentRepository :
 
         var resident = await _dbContext.Residents
             .AsNoTracking()
-            .Include(entity => entity.ManagementCompany)
             .Where(entity => entity.ManagementCompany!.Slug == normalizedCompanySlug)
             .Where(entity => entity.IdCode == normalizedResidentIdCode)
+            .Select(entity => new ResidentProfileDalDto
+            {
+                Id = entity.Id,
+                ManagementCompanyId = entity.ManagementCompanyId,
+                CompanySlug = entity.ManagementCompany!.Slug,
+                CompanyName = entity.ManagementCompany.Name,
+                FirstName = entity.FirstName,
+                LastName = entity.LastName,
+                IdCode = entity.IdCode,
+                PreferredLanguage = entity.PreferredLanguage,
+                IsActive = entity.IsActive
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return resident is null ? null : _mapper.MapProfile(resident);
+        return resident;
     }
 
     public async Task<ResidentProfileDalDto?> FindProfileAsync(
@@ -45,11 +54,22 @@ public sealed class ResidentRepository :
     {
         var resident = await _dbContext.Residents
             .AsNoTracking()
-            .Include(entity => entity.ManagementCompany)
             .Where(entity => entity.Id == residentId && entity.ManagementCompanyId == managementCompanyId)
+            .Select(entity => new ResidentProfileDalDto
+            {
+                Id = entity.Id,
+                ManagementCompanyId = entity.ManagementCompanyId,
+                CompanySlug = entity.ManagementCompany!.Slug,
+                CompanyName = entity.ManagementCompany.Name,
+                FirstName = entity.FirstName,
+                LastName = entity.LastName,
+                IdCode = entity.IdCode,
+                PreferredLanguage = entity.PreferredLanguage,
+                IsActive = entity.IsActive
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return resident is null ? null : _mapper.MapProfile(resident);
+        return resident;
     }
 
     public async Task<IReadOnlyList<ResidentListItemDalDto>> AllByCompanyAsync(
@@ -62,9 +82,19 @@ public sealed class ResidentRepository :
             .OrderBy(entity => entity.LastName)
             .ThenBy(entity => entity.FirstName)
             .ThenBy(entity => entity.IdCode)
+            .Select(entity => new ResidentListItemDalDto
+            {
+                Id = entity.Id,
+                ManagementCompanyId = entity.ManagementCompanyId,
+                FirstName = entity.FirstName,
+                LastName = entity.LastName,
+                IdCode = entity.IdCode,
+                PreferredLanguage = entity.PreferredLanguage,
+                IsActive = entity.IsActive
+            })
             .ToListAsync(cancellationToken);
 
-        return residents.Select(_mapper.MapListItem).ToList();
+        return residents;
     }
 
     public async Task<ResidentUserContextDalDto?> FirstActiveUserResidentContextAsync(
@@ -149,7 +179,16 @@ public sealed class ResidentRepository :
 
         _dbContext.Residents.Add(resident);
 
-        return Task.FromResult(_mapper.Map(resident)!);
+        return Task.FromResult(new ResidentDalDto
+        {
+            Id = resident.Id,
+            ManagementCompanyId = resident.ManagementCompanyId,
+            FirstName = resident.FirstName,
+            LastName = resident.LastName,
+            IdCode = resident.IdCode,
+            PreferredLanguage = resident.PreferredLanguage,
+            IsActive = resident.IsActive
+        });
     }
 
     public async Task UpdateAsync(

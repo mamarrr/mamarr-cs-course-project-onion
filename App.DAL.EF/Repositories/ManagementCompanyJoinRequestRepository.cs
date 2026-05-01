@@ -12,7 +12,6 @@ public sealed class ManagementCompanyJoinRequestRepository :
     IManagementCompanyJoinRequestRepository
 {
     private readonly AppDbContext _dbContext;
-    private readonly ManagementCompanyJoinRequestDalMapper _mapper;
 
     public ManagementCompanyJoinRequestRepository(
         AppDbContext dbContext,
@@ -20,7 +19,6 @@ public sealed class ManagementCompanyJoinRequestRepository :
         : base(dbContext, mapper)
     {
         _dbContext = dbContext;
-        _mapper = mapper;
     }
 
     public async Task<IReadOnlyList<ManagementCompanyJoinRequestDalDto>> PendingByCompanyAsync(
@@ -28,13 +26,30 @@ public sealed class ManagementCompanyJoinRequestRepository :
         Guid pendingStatusId,
         CancellationToken cancellationToken = default)
     {
-        var requests = await RequestQuery()
+        return await RequestQuery()
             .Where(request => request.ManagementCompanyId == managementCompanyId
                               && request.ManagementCompanyJoinRequestStatusId == pendingStatusId)
             .OrderByDescending(request => request.CreatedAt)
+            .Select(request => new ManagementCompanyJoinRequestDalDto
+            {
+                Id = request.Id,
+                AppUserId = request.AppUserId,
+                RequesterFirstName = request.AppUser == null ? string.Empty : request.AppUser.FirstName,
+                RequesterLastName = request.AppUser == null ? string.Empty : request.AppUser.LastName,
+                RequesterEmail = request.AppUser == null ? string.Empty : request.AppUser.Email ?? string.Empty,
+                ManagementCompanyId = request.ManagementCompanyId,
+                RequestedRoleId = request.RequestedManagementCompanyRoleId,
+                RequestedRoleCode = request.RequestedManagementCompanyRole == null ? string.Empty : request.RequestedManagementCompanyRole.Code,
+                RequestedRoleLabel = request.RequestedManagementCompanyRole == null ? string.Empty : request.RequestedManagementCompanyRole.Label.ToString(),
+                StatusId = request.ManagementCompanyJoinRequestStatusId,
+                StatusCode = request.ManagementCompanyJoinRequestStatus == null ? string.Empty : request.ManagementCompanyJoinRequestStatus.Code,
+                StatusLabel = request.ManagementCompanyJoinRequestStatus == null ? string.Empty : request.ManagementCompanyJoinRequestStatus.Label.ToString(),
+                Message = request.Message == null ? null : request.Message.ToString(),
+                CreatedAt = request.CreatedAt,
+                ResolvedAt = request.ResolvedAt,
+                ResolvedByAppUserId = request.ResolvedByAppUserId
+            })
             .ToListAsync(cancellationToken);
-
-        return requests.Select(_mapper.Map).OfType<ManagementCompanyJoinRequestDalDto>().ToList();
     }
 
     public async Task<ManagementCompanyJoinRequestDalDto?> FindByIdAndCompanyAsync(
@@ -42,13 +57,29 @@ public sealed class ManagementCompanyJoinRequestRepository :
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var request = await RequestQuery()
-            .FirstOrDefaultAsync(
-                request => request.Id == requestId
-                           && request.ManagementCompanyId == managementCompanyId,
-                cancellationToken);
-
-        return _mapper.Map(request);
+        return await RequestQuery()
+            .Where(request => request.Id == requestId
+                              && request.ManagementCompanyId == managementCompanyId)
+            .Select(request => new ManagementCompanyJoinRequestDalDto
+            {
+                Id = request.Id,
+                AppUserId = request.AppUserId,
+                RequesterFirstName = request.AppUser == null ? string.Empty : request.AppUser.FirstName,
+                RequesterLastName = request.AppUser == null ? string.Empty : request.AppUser.LastName,
+                RequesterEmail = request.AppUser == null ? string.Empty : request.AppUser.Email ?? string.Empty,
+                ManagementCompanyId = request.ManagementCompanyId,
+                RequestedRoleId = request.RequestedManagementCompanyRoleId,
+                RequestedRoleCode = request.RequestedManagementCompanyRole == null ? string.Empty : request.RequestedManagementCompanyRole.Code,
+                RequestedRoleLabel = request.RequestedManagementCompanyRole == null ? string.Empty : request.RequestedManagementCompanyRole.Label.ToString(),
+                StatusId = request.ManagementCompanyJoinRequestStatusId,
+                StatusCode = request.ManagementCompanyJoinRequestStatus == null ? string.Empty : request.ManagementCompanyJoinRequestStatus.Code,
+                StatusLabel = request.ManagementCompanyJoinRequestStatus == null ? string.Empty : request.ManagementCompanyJoinRequestStatus.Label.ToString(),
+                Message = request.Message == null ? null : request.Message.ToString(),
+                CreatedAt = request.CreatedAt,
+                ResolvedAt = request.ResolvedAt,
+                ResolvedByAppUserId = request.ResolvedByAppUserId
+            })
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<bool> HasPendingRequestAsync(

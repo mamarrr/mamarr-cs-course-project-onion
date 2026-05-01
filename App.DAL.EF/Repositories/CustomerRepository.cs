@@ -11,13 +11,11 @@ public sealed class CustomerRepository :
     ICustomerRepository
 {
     private readonly AppDbContext _dbContext;
-    private readonly CustomerDalMapper _mapper;
 
     public CustomerRepository(AppDbContext dbContext, CustomerDalMapper mapper)
         : base(dbContext, mapper)
     {
         _dbContext = dbContext;
-        _mapper = mapper;
     }
 
     public async Task<IReadOnlyList<CustomerListItemDalDto>> AllByCompanySlugAsync(
@@ -30,9 +28,21 @@ public sealed class CustomerRepository :
             .AsNoTracking()
             .Where(c => c.ManagementCompany!.Slug == normalizedCompanySlug)
             .OrderBy(c => c.Name)
+            .Select(c => new CustomerListItemDalDto
+            {
+                Id = c.Id,
+                ManagementCompanyId = c.ManagementCompanyId,
+                Name = c.Name,
+                Slug = c.Slug,
+                RegistryCode = c.RegistryCode,
+                BillingEmail = c.BillingEmail,
+                BillingAddress = c.BillingAddress,
+                Phone = c.Phone,
+                IsActive = c.IsActive
+            })
             .ToListAsync(cancellationToken);
 
-        return customers.Select(_mapper.MapListItem).ToList();
+        return customers;
     }
 
     public async Task<IReadOnlyList<CustomerListItemDalDto>> AllByCompanyIdAsync(
@@ -43,9 +53,21 @@ public sealed class CustomerRepository :
             .AsNoTracking()
             .Where(c => c.ManagementCompanyId == managementCompanyId)
             .OrderBy(c => c.Name)
+            .Select(c => new CustomerListItemDalDto
+            {
+                Id = c.Id,
+                ManagementCompanyId = c.ManagementCompanyId,
+                Name = c.Name,
+                Slug = c.Slug,
+                RegistryCode = c.RegistryCode,
+                BillingEmail = c.BillingEmail,
+                BillingAddress = c.BillingAddress,
+                Phone = c.Phone,
+                IsActive = c.IsActive
+            })
             .ToListAsync(cancellationToken);
 
-        return customers.Select(_mapper.MapListItem).ToList();
+        return customers;
     }
 
     public async Task<IReadOnlyList<CustomerPropertyLinkDalDto>> AllPropertyLinksByCompanyIdAsync(
@@ -56,9 +78,15 @@ public sealed class CustomerRepository :
             .AsNoTracking()
             .Where(p => p.Customer!.ManagementCompanyId == managementCompanyId)
             .OrderBy(p => p.Label)
+            .Select(p => new CustomerPropertyLinkDalDto
+            {
+                CustomerId = p.CustomerId,
+                PropertySlug = p.Slug,
+                PropertyName = p.Label.ToString()
+            })
             .ToListAsync(cancellationToken);
 
-        return properties.Select(_mapper.MapPropertyLink).ToList();
+        return properties;
     }
 
     public Task<CustomerDalDto> AddAsync(
@@ -81,7 +109,15 @@ public sealed class CustomerRepository :
 
         _dbContext.Customers.Add(customer);
 
-        return Task.FromResult(_mapper.Map(customer)!);
+        return Task.FromResult(new CustomerDalDto
+        {
+            Id = customer.Id,
+            ManagementCompanyId = customer.ManagementCompanyId,
+            Name = customer.Name,
+            Slug = customer.Slug,
+            RegistryCode = customer.RegistryCode,
+            IsActive = customer.IsActive
+        });
     }
 
     public async Task<bool> CustomerSlugExistsInCompanyAsync(
@@ -106,11 +142,20 @@ public sealed class CustomerRepository :
 
         var customer = await _dbContext.Customers
             .AsNoTracking()
-            .Include(c => c.ManagementCompany)
             .Where(c => c.ManagementCompanyId == managementCompanyId && c.Slug == normalizedCustomerSlug)
+            .Select(c => new CustomerWorkspaceDalDto
+            {
+                Id = c.Id,
+                ManagementCompanyId = c.ManagementCompanyId,
+                CompanySlug = c.ManagementCompany!.Slug,
+                CompanyName = c.ManagementCompany.Name,
+                Name = c.Name,
+                Slug = c.Slug,
+                IsActive = c.IsActive
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return customer is null ? null : _mapper.MapWorkspace(customer);
+        return customer;
     }
 
     public async Task<IReadOnlyList<CustomerUserContextDalDto>> ActiveUserCustomerContextsAsync(
@@ -164,11 +209,24 @@ public sealed class CustomerRepository :
 
         var customer = await _dbContext.Customers
             .AsNoTracking()
-            .Include(c => c.ManagementCompany)
             .Where(c => c.ManagementCompany!.Slug == normalizedCompanySlug && c.Slug == normalizedCustomerSlug)
+            .Select(c => new CustomerProfileDalDto
+            {
+                Id = c.Id,
+                ManagementCompanyId = c.ManagementCompanyId,
+                CompanySlug = c.ManagementCompany!.Slug,
+                CompanyName = c.ManagementCompany.Name,
+                Name = c.Name,
+                Slug = c.Slug,
+                RegistryCode = c.RegistryCode,
+                BillingEmail = c.BillingEmail,
+                BillingAddress = c.BillingAddress,
+                Phone = c.Phone,
+                IsActive = c.IsActive
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return customer is null ? null : _mapper.MapProfile(customer);
+        return customer;
     }
 
     public async Task<CustomerProfileDalDto?> FindProfileAsync(
@@ -178,11 +236,24 @@ public sealed class CustomerRepository :
     {
         var customer = await _dbContext.Customers
             .AsNoTracking()
-            .Include(c => c.ManagementCompany)
             .Where(c => c.Id == customerId && c.ManagementCompanyId == managementCompanyId)
+            .Select(c => new CustomerProfileDalDto
+            {
+                Id = c.Id,
+                ManagementCompanyId = c.ManagementCompanyId,
+                CompanySlug = c.ManagementCompany!.Slug,
+                CompanyName = c.ManagementCompany.Name,
+                Name = c.Name,
+                Slug = c.Slug,
+                RegistryCode = c.RegistryCode,
+                BillingEmail = c.BillingEmail,
+                BillingAddress = c.BillingAddress,
+                Phone = c.Phone,
+                IsActive = c.IsActive
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return customer is null ? null : _mapper.MapProfile(customer);
+        return customer;
     }
 
     public async Task<bool> RegistryCodeExistsInCompanyAsync(

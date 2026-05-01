@@ -14,13 +14,11 @@ public sealed class LeaseRepository :
     private const int MaxSearchResults = 20;
 
     private readonly AppDbContext _dbContext;
-    private readonly LeaseDalMapper _mapper;
 
     public LeaseRepository(AppDbContext dbContext, LeaseDalMapper mapper)
         : base(dbContext, mapper)
     {
         _dbContext = dbContext;
-        _mapper = mapper;
     }
 
     public async Task<IReadOnlyList<ResidentLeaseDalDto>> AllByResidentAsync(
@@ -99,7 +97,17 @@ public sealed class LeaseRepository :
             .Where(entity => entity.Id == leaseId)
             .Where(entity => entity.ResidentId == residentId)
             .Where(entity => entity.Resident!.ManagementCompanyId == managementCompanyId)
-            .Select(entity => MapDetails(entity))
+            .Select(entity => new LeaseDetailsDalDto
+            {
+                LeaseId = entity.Id,
+                LeaseRoleId = entity.LeaseRoleId,
+                ResidentId = entity.ResidentId,
+                UnitId = entity.UnitId,
+                StartDate = entity.StartDate,
+                EndDate = entity.EndDate,
+                IsActive = entity.IsActive,
+                Notes = entity.Notes == null ? null : entity.Notes.ToString()
+            })
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -115,7 +123,17 @@ public sealed class LeaseRepository :
             .Where(entity => entity.UnitId == unitId)
             .Where(entity => entity.Unit!.PropertyId == propertyId)
             .Where(entity => entity.Resident!.ManagementCompanyId == managementCompanyId)
-            .Select(entity => MapDetails(entity))
+            .Select(entity => new LeaseDetailsDalDto
+            {
+                LeaseId = entity.Id,
+                LeaseRoleId = entity.LeaseRoleId,
+                ResidentId = entity.ResidentId,
+                UnitId = entity.UnitId,
+                StartDate = entity.StartDate,
+                EndDate = entity.EndDate,
+                IsActive = entity.IsActive,
+                Notes = entity.Notes == null ? null : entity.Notes.ToString()
+            })
             .FirstOrDefaultAsync(cancellationToken);
     }
 
@@ -196,7 +214,17 @@ public sealed class LeaseRepository :
         };
 
         _dbContext.Leases.Add(lease);
-        return Task.FromResult(_mapper.Map(lease)!);
+        return Task.FromResult(new LeaseDalDto
+        {
+            Id = lease.Id,
+            UnitId = lease.UnitId,
+            ResidentId = lease.ResidentId,
+            LeaseRoleId = lease.LeaseRoleId,
+            StartDate = lease.StartDate,
+            EndDate = lease.EndDate,
+            IsActive = lease.IsActive,
+            Notes = lease.Notes == null ? null : lease.Notes.ToString()
+        });
     }
 
     public async Task<bool> UpdateForResidentAsync(
@@ -430,21 +458,6 @@ public sealed class LeaseRepository :
     private IQueryable<Lease> LeaseDetailsQuery()
     {
         return _dbContext.Leases.AsNoTracking();
-    }
-
-    private static LeaseDetailsDalDto MapDetails(Lease lease)
-    {
-        return new LeaseDetailsDalDto
-        {
-            LeaseId = lease.Id,
-            LeaseRoleId = lease.LeaseRoleId,
-            ResidentId = lease.ResidentId,
-            UnitId = lease.UnitId,
-            StartDate = lease.StartDate,
-            EndDate = lease.EndDate,
-            IsActive = lease.IsActive,
-            Notes = lease.Notes == null ? null : lease.Notes.ToString()
-        };
     }
 
     private void ApplyUpdate(Lease lease, LeaseUpdateDalDto dto)

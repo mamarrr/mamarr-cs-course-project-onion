@@ -12,13 +12,11 @@ public sealed class UnitRepository :
     IUnitRepository
 {
     private readonly AppDbContext _dbContext;
-    private readonly UnitDalMapper _mapper;
 
     public UnitRepository(AppDbContext dbContext, UnitDalMapper mapper)
         : base(dbContext, mapper)
     {
         _dbContext = dbContext;
-        _mapper = mapper;
     }
 
     public async Task<UnitDashboardDalDto?> FirstDashboardAsync(
@@ -29,9 +27,24 @@ public sealed class UnitRepository :
         CancellationToken cancellationToken = default)
     {
         var unit = await BaseScopedUnitQuery(companySlug, customerSlug, propertySlug, unitSlug)
+            .Select(entity => new UnitDashboardDalDto
+            {
+                Id = entity.Id,
+                PropertyId = entity.PropertyId,
+                CustomerId = entity.Property!.CustomerId,
+                ManagementCompanyId = entity.Property.Customer!.ManagementCompanyId,
+                CompanySlug = entity.Property.Customer.ManagementCompany!.Slug,
+                CompanyName = entity.Property.Customer.ManagementCompany.Name,
+                CustomerSlug = entity.Property.Customer.Slug,
+                CustomerName = entity.Property.Customer.Name,
+                PropertySlug = entity.Property.Slug,
+                PropertyName = entity.Property.Label.ToString(),
+                UnitNr = entity.UnitNr,
+                Slug = entity.Slug
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return unit is null ? null : _mapper.MapDashboard(unit);
+        return unit;
     }
 
     public async Task<UnitProfileDalDto?> FirstProfileAsync(
@@ -42,9 +55,29 @@ public sealed class UnitRepository :
         CancellationToken cancellationToken = default)
     {
         var unit = await BaseScopedUnitQuery(companySlug, customerSlug, propertySlug, unitSlug)
+            .Select(entity => new UnitProfileDalDto
+            {
+                Id = entity.Id,
+                PropertyId = entity.PropertyId,
+                CustomerId = entity.Property!.CustomerId,
+                ManagementCompanyId = entity.Property.Customer!.ManagementCompanyId,
+                CompanySlug = entity.Property.Customer.ManagementCompany!.Slug,
+                CompanyName = entity.Property.Customer.ManagementCompany.Name,
+                CustomerSlug = entity.Property.Customer.Slug,
+                CustomerName = entity.Property.Customer.Name,
+                PropertySlug = entity.Property.Slug,
+                PropertyName = entity.Property.Label.ToString(),
+                UnitNr = entity.UnitNr,
+                Slug = entity.Slug,
+                FloorNr = entity.FloorNr,
+                SizeM2 = entity.SizeM2,
+                Notes = entity.Notes == null ? null : entity.Notes.ToString(),
+                IsActive = entity.IsActive,
+                CreatedAt = entity.CreatedAt
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return unit is null ? null : _mapper.MapProfile(unit);
+        return unit;
     }
 
     public async Task<UnitProfileDalDto?> FindProfileAsync(
@@ -54,13 +87,30 @@ public sealed class UnitRepository :
     {
         var unit = await _dbContext.Units
             .AsNoTracking()
-            .Include(entity => entity.Property)!
-            .ThenInclude(property => property!.Customer)!
-            .ThenInclude(customer => customer!.ManagementCompany)
             .Where(unit => unit.Id == unitId && unit.PropertyId == propertyId)
+            .Select(entity => new UnitProfileDalDto
+            {
+                Id = entity.Id,
+                PropertyId = entity.PropertyId,
+                CustomerId = entity.Property!.CustomerId,
+                ManagementCompanyId = entity.Property.Customer!.ManagementCompanyId,
+                CompanySlug = entity.Property.Customer.ManagementCompany!.Slug,
+                CompanyName = entity.Property.Customer.ManagementCompany.Name,
+                CustomerSlug = entity.Property.Customer.Slug,
+                CustomerName = entity.Property.Customer.Name,
+                PropertySlug = entity.Property.Slug,
+                PropertyName = entity.Property.Label.ToString(),
+                UnitNr = entity.UnitNr,
+                Slug = entity.Slug,
+                FloorNr = entity.FloorNr,
+                SizeM2 = entity.SizeM2,
+                Notes = entity.Notes == null ? null : entity.Notes.ToString(),
+                IsActive = entity.IsActive,
+                CreatedAt = entity.CreatedAt
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return unit is null ? null : _mapper.MapProfile(unit);
+        return unit;
     }
 
     public async Task<IReadOnlyList<UnitListItemDalDto>> AllByPropertyAsync(
@@ -73,9 +123,18 @@ public sealed class UnitRepository :
             .OrderBy(unit => unit.UnitNr)
             .ThenBy(unit => unit.FloorNr)
             .ThenBy(unit => unit.Id)
+            .Select(unit => new UnitListItemDalDto
+            {
+                Id = unit.Id,
+                PropertyId = unit.PropertyId,
+                UnitNr = unit.UnitNr,
+                Slug = unit.Slug,
+                FloorNr = unit.FloorNr,
+                SizeM2 = unit.SizeM2
+            })
             .ToListAsync(cancellationToken);
 
-        return units.Select(_mapper.MapListItem).ToList();
+        return units;
     }
 
     public async Task<IReadOnlyList<string>> AllSlugsByPropertyWithPrefixAsync(
@@ -126,7 +185,14 @@ public sealed class UnitRepository :
 
         _dbContext.Units.Add(unit);
 
-        return Task.FromResult(_mapper.Map(unit)!);
+        return Task.FromResult(new UnitDalDto
+        {
+            Id = unit.Id,
+            PropertyId = unit.PropertyId,
+            UnitNr = unit.UnitNr,
+            Slug = unit.Slug,
+            IsActive = unit.IsActive
+        });
     }
 
     public async Task UpdateAsync(

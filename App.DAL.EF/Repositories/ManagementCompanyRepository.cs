@@ -1,6 +1,5 @@
 using App.Contracts.DAL.ManagementCompanies;
 using App.Contracts.DAL.Lookups;
-using App.DAL.EF.Mappers;
 using App.DAL.EF.Mappers.ManagementCompanies;
 using App.Domain;
 using Base.Domain;
@@ -14,13 +13,11 @@ public sealed class ManagementCompanyRepository :
     IManagementCompanyRepository
 {
     private readonly AppDbContext _dbContext;
-    private readonly ManagementCompanyDalMapper _mapper;
 
     public ManagementCompanyRepository(AppDbContext dbContext, ManagementCompanyDalMapper mapper)
         : base(dbContext, mapper)
     {
         _dbContext = dbContext;
-        _mapper = mapper;
     }
 
     public async Task<ManagementCompanyDalDto?> FirstBySlugAsync(
@@ -29,12 +26,17 @@ public sealed class ManagementCompanyRepository :
     {
         var normalizedSlug = companySlug.Trim();
 
-        var company = await _dbContext.ManagementCompanies
+        return await _dbContext.ManagementCompanies
             .AsNoTracking()
             .Where(c => c.Slug == normalizedSlug)
+            .Select(c => new ManagementCompanyDalDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Slug = c.Slug,
+                IsActive = c.IsActive
+            })
             .FirstOrDefaultAsync(cancellationToken);
-
-        return _mapper.Map(company);
     }
 
     public async Task<string?> FindActiveUserRoleCodeAsync(
@@ -62,9 +64,22 @@ public sealed class ManagementCompanyRepository :
 
         var company = await _dbContext.ManagementCompanies
             .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Slug == normalizedSlug, cancellationToken);
+            .Where(c => c.Slug == normalizedSlug)
+            .Select(c => new ManagementCompanyProfileDalDto
+            {
+                Id = c.Id,
+                Slug = c.Slug,
+                Name = c.Name,
+                RegistryCode = c.RegistryCode,
+                VatNumber = c.VatNumber,
+                Email = c.Email,
+                Phone = c.Phone,
+                Address = c.Address,
+                IsActive = c.IsActive
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        return _mapper.MapProfile(company);
+        return company;
     }
 
     public async Task<ManagementCompanyProfileDalDto?> FirstProfileByIdAsync(
@@ -73,9 +88,22 @@ public sealed class ManagementCompanyRepository :
     {
         var company = await _dbContext.ManagementCompanies
             .AsNoTracking()
-            .FirstOrDefaultAsync(c => c.Id == managementCompanyId, cancellationToken);
+            .Where(c => c.Id == managementCompanyId)
+            .Select(c => new ManagementCompanyProfileDalDto
+            {
+                Id = c.Id,
+                Slug = c.Slug,
+                Name = c.Name,
+                RegistryCode = c.RegistryCode,
+                VatNumber = c.VatNumber,
+                Email = c.Email,
+                Phone = c.Phone,
+                Address = c.Address,
+                IsActive = c.IsActive
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        return _mapper.MapProfile(company);
+        return company;
     }
 
     public async Task<ManagementCompanyDalDto?> FirstActiveByRegistryCodeAsync(
@@ -83,12 +111,18 @@ public sealed class ManagementCompanyRepository :
         CancellationToken cancellationToken = default)
     {
         var normalized = registryCode.Trim();
-        var company = await _dbContext.ManagementCompanies
+        return await _dbContext.ManagementCompanies
             .AsNoTracking()
             .Where(company => company.IsActive)
-            .SingleOrDefaultAsync(company => company.RegistryCode == normalized, cancellationToken);
-
-        return _mapper.Map(company);
+            .Where(company => company.RegistryCode == normalized)
+            .Select(company => new ManagementCompanyDalDto
+            {
+                Id = company.Id,
+                Name = company.Name,
+                Slug = company.Slug,
+                IsActive = company.IsActive
+            })
+            .SingleOrDefaultAsync(cancellationToken);
     }
 
     public async Task<bool> RegistryCodeExistsAsync(
@@ -130,7 +164,13 @@ public sealed class ManagementCompanyRepository :
         };
 
         _dbContext.ManagementCompanies.Add(company);
-        return Task.FromResult(_mapper.Map(company)!);
+        return Task.FromResult(new ManagementCompanyDalDto
+        {
+            Id = company.Id,
+            Name = company.Name,
+            Slug = company.Slug,
+            IsActive = company.IsActive
+        });
     }
 
     public async Task<IReadOnlyList<ManagementCompanyContextDalDto>> ActiveUserManagementContextsAsync(
@@ -218,26 +258,22 @@ public sealed class ManagementCompanyRepository :
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var membership = await MembershipQuery()
+        return await MembershipQuery()
             .FirstOrDefaultAsync(
                 membership => membership.AppUserId == appUserId
                               && membership.ManagementCompanyId == managementCompanyId,
                 cancellationToken);
-
-        return MapMembership(membership);
     }
 
     public async Task<IReadOnlyList<ManagementCompanyMembershipDalDto>> MembersByCompanyAsync(
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var members = await MembershipQuery()
+        return await MembershipQuery()
             .Where(membership => membership.ManagementCompanyId == managementCompanyId)
-            .OrderBy(membership => membership.AppUser!.LastName)
-            .ThenBy(membership => membership.AppUser!.FirstName)
+            .OrderBy(membership => membership.LastName)
+            .ThenBy(membership => membership.FirstName)
             .ToListAsync(cancellationToken);
-
-        return members.Select(MapMembership).OfType<ManagementCompanyMembershipDalDto>().ToList();
     }
 
     public async Task<ManagementCompanyMembershipDalDto?> FindMemberByIdAndCompanyAsync(
@@ -245,13 +281,11 @@ public sealed class ManagementCompanyRepository :
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var membership = await MembershipQuery()
+        return await MembershipQuery()
             .FirstOrDefaultAsync(
                 membership => membership.Id == membershipId
                               && membership.ManagementCompanyId == managementCompanyId,
                 cancellationToken);
-
-        return MapMembership(membership);
     }
 
     public async Task<IReadOnlyList<ManagementCompanyMembershipDalDto>> FindMembersByIdsAndCompanyAsync(
@@ -259,34 +293,40 @@ public sealed class ManagementCompanyRepository :
         IReadOnlyCollection<Guid> membershipIds,
         CancellationToken cancellationToken = default)
     {
-        var members = await MembershipQuery()
+        return await MembershipQuery()
             .Where(membership => membership.ManagementCompanyId == managementCompanyId
                                  && membershipIds.Contains(membership.Id))
             .ToListAsync(cancellationToken);
-
-        return members.Select(MapMembership).OfType<ManagementCompanyMembershipDalDto>().ToList();
     }
 
     public async Task<IReadOnlyList<LookupDalDto>> AllManagementCompanyRolesAsync(
         CancellationToken cancellationToken = default)
     {
-        var roles = await _dbContext.ManagementCompanyRoles
+        return await _dbContext.ManagementCompanyRoles
             .AsNoTracking()
             .OrderBy(role => role.Code)
+            .Select(role => new LookupDalDto
+            {
+                Id = role.Id,
+                Code = role.Code,
+                Label = role.Label.ToString()
+            })
             .ToListAsync(cancellationToken);
-
-        return roles.Select(LookupDalMapper.Map).ToList();
     }
 
     public async Task<LookupDalDto?> FindManagementCompanyRoleByIdAsync(
         Guid roleId,
         CancellationToken cancellationToken = default)
     {
-        var role = await _dbContext.ManagementCompanyRoles
+        return await _dbContext.ManagementCompanyRoles
             .AsNoTracking()
+            .Select(role => new LookupDalDto
+            {
+                Id = role.Id,
+                Code = role.Code,
+                Label = role.Label.ToString()
+            })
             .FirstOrDefaultAsync(role => role.Id == roleId, cancellationToken);
-
-        return role is null ? null : LookupDalMapper.Map(role);
     }
 
     public async Task<Guid?> FindAppUserIdByEmailAsync(
@@ -608,40 +648,31 @@ public sealed class ManagementCompanyRepository :
         return true;
     }
 
-    private IQueryable<ManagementCompanyUser> MembershipQuery()
+    private IQueryable<ManagementCompanyMembershipDalDto> MembershipQuery()
     {
         return _dbContext.ManagementCompanyUsers
             .AsNoTracking()
             .Include(membership => membership.AppUser)
             .Include(membership => membership.ManagementCompany)
-            .Include(membership => membership.ManagementCompanyRole);
-    }
-
-    private static ManagementCompanyMembershipDalDto? MapMembership(ManagementCompanyUser? membership)
-    {
-        if (membership is null)
-        {
-            return null;
-        }
-
-        return new ManagementCompanyMembershipDalDto
-        {
-            Id = membership.Id,
-            ManagementCompanyId = membership.ManagementCompanyId,
-            AppUserId = membership.AppUserId,
-            CompanySlug = membership.ManagementCompany?.Slug ?? string.Empty,
-            CompanyName = membership.ManagementCompany?.Name ?? string.Empty,
-            RoleId = membership.ManagementCompanyRoleId,
-            RoleCode = membership.ManagementCompanyRole?.Code ?? string.Empty,
-            RoleLabel = membership.ManagementCompanyRole?.Label.ToString() ?? string.Empty,
-            FirstName = membership.AppUser?.FirstName ?? string.Empty,
-            LastName = membership.AppUser?.LastName ?? string.Empty,
-            Email = membership.AppUser?.Email ?? string.Empty,
-            JobTitle = membership.JobTitle.ToString(),
-            IsActive = membership.IsActive,
-            ValidFrom = membership.ValidFrom,
-            ValidTo = membership.ValidTo
-        };
+            .Include(membership => membership.ManagementCompanyRole)
+            .Select(membership => new ManagementCompanyMembershipDalDto
+            {
+                Id = membership.Id,
+                ManagementCompanyId = membership.ManagementCompanyId,
+                AppUserId = membership.AppUserId,
+                CompanySlug = membership.ManagementCompany == null ? string.Empty : membership.ManagementCompany.Slug,
+                CompanyName = membership.ManagementCompany == null ? string.Empty : membership.ManagementCompany.Name,
+                RoleId = membership.ManagementCompanyRoleId,
+                RoleCode = membership.ManagementCompanyRole == null ? string.Empty : membership.ManagementCompanyRole.Code,
+                RoleLabel = membership.ManagementCompanyRole == null ? string.Empty : membership.ManagementCompanyRole.Label.ToString(),
+                FirstName = membership.AppUser == null ? string.Empty : membership.AppUser.FirstName,
+                LastName = membership.AppUser == null ? string.Empty : membership.AppUser.LastName,
+                Email = membership.AppUser == null ? string.Empty : membership.AppUser.Email ?? string.Empty,
+                JobTitle = membership.JobTitle.ToString(),
+                IsActive = membership.IsActive,
+                ValidFrom = membership.ValidFrom,
+                ValidTo = membership.ValidTo
+            });
     }
 
     private async Task DeleteTicketsAsync(

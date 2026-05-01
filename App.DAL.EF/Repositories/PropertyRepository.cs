@@ -12,13 +12,11 @@ public sealed class PropertyRepository :
     IPropertyRepository
 {
     private readonly AppDbContext _dbContext;
-    private readonly PropertyDalMapper _mapper;
 
     public PropertyRepository(AppDbContext dbContext, PropertyDalMapper mapper)
         : base(dbContext, mapper)
     {
         _dbContext = dbContext;
-        _mapper = mapper;
     }
 
     public async Task<IReadOnlyList<PropertyListItemDalDto>> AllByCustomerAsync(
@@ -27,14 +25,27 @@ public sealed class PropertyRepository :
     {
         var properties = await _dbContext.Properties
             .AsNoTracking()
-            .Include(property => property.Customer)
-            .Include(property => property.PropertyType)
             .Where(property => property.CustomerId == customerId)
             .OrderBy(property => property.Label)
             .ThenBy(property => property.Id)
+            .Select(property => new PropertyListItemDalDto
+            {
+                Id = property.Id,
+                CustomerId = property.CustomerId,
+                ManagementCompanyId = property.Customer!.ManagementCompanyId,
+                Name = property.Label.ToString(),
+                Slug = property.Slug,
+                AddressLine = property.AddressLine,
+                City = property.City,
+                PostalCode = property.PostalCode,
+                PropertyTypeId = property.PropertyTypeId,
+                PropertyTypeCode = property.PropertyType!.Code,
+                PropertyTypeLabel = property.PropertyType.Label.ToString(),
+                IsActive = property.IsActive
+            })
             .ToListAsync(cancellationToken);
 
-        return properties.Select(_mapper.MapListItem).ToList();
+        return properties;
     }
 
     public async Task<IReadOnlyList<PropertyTypeOptionDalDto>> AllPropertyTypeOptionsAsync(
@@ -62,9 +73,17 @@ public sealed class PropertyRepository :
         var property = await _dbContext.Properties
             .AsNoTracking()
             .Where(property => property.CustomerId == customerId && property.Slug == normalizedSlug)
+            .Select(property => new PropertyWorkspaceDalDto
+            {
+                Id = property.Id,
+                CustomerId = property.CustomerId,
+                Name = property.Label.ToString(),
+                Slug = property.Slug,
+                IsActive = property.IsActive
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return property is null ? null : _mapper.MapWorkspace(property);
+        return property;
     }
 
     public async Task<PropertyProfileDalDto?> FindProfileAsync(
@@ -74,13 +93,30 @@ public sealed class PropertyRepository :
     {
         var property = await _dbContext.Properties
             .AsNoTracking()
-            .Include(entity => entity.Customer)!
-            .ThenInclude(customer => customer!.ManagementCompany)
-            .Include(entity => entity.PropertyType)
             .Where(property => property.Id == propertyId && property.CustomerId == customerId)
+            .Select(property => new PropertyProfileDalDto
+            {
+                Id = property.Id,
+                CustomerId = property.CustomerId,
+                ManagementCompanyId = property.Customer!.ManagementCompanyId,
+                CompanySlug = property.Customer.ManagementCompany!.Slug,
+                CompanyName = property.Customer.ManagementCompany.Name,
+                CustomerSlug = property.Customer.Slug,
+                CustomerName = property.Customer.Name,
+                Name = property.Label.ToString(),
+                Slug = property.Slug,
+                AddressLine = property.AddressLine,
+                City = property.City,
+                PostalCode = property.PostalCode,
+                Notes = property.Notes == null ? null : property.Notes.ToString(),
+                PropertyTypeId = property.PropertyTypeId,
+                PropertyTypeCode = property.PropertyType!.Code,
+                PropertyTypeLabel = property.PropertyType.Label.ToString(),
+                IsActive = property.IsActive
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
-        return property is null ? null : _mapper.MapProfile(property);
+        return property;
     }
 
     public async Task<bool> PropertyTypeExistsAsync(

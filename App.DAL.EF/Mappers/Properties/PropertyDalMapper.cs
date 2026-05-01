@@ -24,61 +24,6 @@ public sealed class PropertyDalMapper : IMapper<PropertyDalDto, Property>
         };
     }
 
-    public PropertyListItemDalDto MapListItem(Property entity)
-    {
-        return new PropertyListItemDalDto
-        {
-            Id = entity.Id,
-            CustomerId = entity.CustomerId,
-            ManagementCompanyId = entity.Customer!.ManagementCompanyId,
-            Name = entity.Label.ToString(),
-            Slug = entity.Slug,
-            AddressLine = entity.AddressLine,
-            City = entity.City,
-            PostalCode = entity.PostalCode,
-            PropertyTypeId = entity.PropertyTypeId,
-            PropertyTypeCode = entity.PropertyType!.Code,
-            PropertyTypeLabel = entity.PropertyType.Label.ToString(),
-            IsActive = entity.IsActive
-        };
-    }
-
-    public PropertyWorkspaceDalDto MapWorkspace(Property entity)
-    {
-        return new PropertyWorkspaceDalDto
-        {
-            Id = entity.Id,
-            CustomerId = entity.CustomerId,
-            Name = entity.Label.ToString(),
-            Slug = entity.Slug,
-            IsActive = entity.IsActive
-        };
-    }
-
-    public PropertyProfileDalDto MapProfile(Property entity)
-    {
-        return new PropertyProfileDalDto
-        {
-            Id = entity.Id,
-            CustomerId = entity.CustomerId,
-            ManagementCompanyId = entity.Customer!.ManagementCompanyId,
-            CompanySlug = entity.Customer.ManagementCompany!.Slug,
-            CompanyName = entity.Customer.ManagementCompany.Name,
-            CustomerSlug = entity.Customer.Slug,
-            CustomerName = entity.Customer.Name,
-            Name = entity.Label.ToString(),
-            Slug = entity.Slug,
-            AddressLine = entity.AddressLine,
-            City = entity.City,
-            PostalCode = entity.PostalCode,
-            Notes = entity.Notes?.ToString(),
-            PropertyTypeId = entity.PropertyTypeId,
-            PropertyTypeCode = entity.PropertyType!.Code,
-            PropertyTypeLabel = entity.PropertyType.Label.ToString(),
-            IsActive = entity.IsActive
-        };
-    }
-
     public Property? Map(PropertyDalDto? entity)
     {
         if (entity is null)
