@@ -12,6 +12,8 @@ public class LeaseRepository :
     BaseRepository<LeaseDalDto, Lease, AppDbContext>,
     ILeaseRepository
 {
+    private const int MaxSearchResults = 20;
+
     private readonly AppDbContext _dbContext;
 
     public LeaseRepository(AppDbContext dbContext, LeaseDalMapper mapper)
@@ -134,6 +136,52 @@ public class LeaseRepository :
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public Task<bool> LeaseRoleExistsAsync(
+        Guid leaseRoleId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.LeaseRoles
+            .AsNoTracking()
+            .AnyAsync(entity => entity.Id == leaseRoleId, cancellationToken);
+    }
+
+    public Task<bool> UnitExistsInCompanyAsync(
+        Guid unitId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Units
+            .AsNoTracking()
+            .AnyAsync(
+                entity => entity.Id == unitId
+                          && entity.Property!.Customer!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
+    }
+
+    public Task<bool> ResidentExistsInCompanyAsync(
+        Guid residentId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Residents
+            .AsNoTracking()
+            .AnyAsync(
+                entity => entity.Id == residentId && entity.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
+    }
+
+    public Task<bool> PropertyExistsInCompanyAsync(
+        Guid propertyId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Properties
+            .AsNoTracking()
+            .AnyAsync(
+                entity => entity.Id == propertyId && entity.Customer!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
     }
 
     public Task<bool> HasOverlappingActiveLeaseAsync(
@@ -276,27 +324,136 @@ public class LeaseRepository :
         return true;
     }
 
-    public async Task DeleteByUnitIdsAsync(
-        IReadOnlyCollection<Guid> unitIds,
+    public async Task<IReadOnlyList<LeasePropertySearchItemDalDto>> SearchPropertiesAsync(
+        Guid managementCompanyId,
+        string? searchTerm,
         CancellationToken cancellationToken = default)
     {
-        if (unitIds.Count == 0)
+        var normalizedSearch = searchTerm?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedSearch))
         {
-            return;
+            return Array.Empty<LeasePropertySearchItemDalDto>();
         }
 
-        await _dbContext.Leases
-            .Where(lease => unitIds.Contains(lease.UnitId))
-            .ExecuteDeleteAsync(cancellationToken);
+        var candidates = await _dbContext.Properties
+            .AsNoTracking()
+            .Where(entity => entity.Customer!.ManagementCompanyId == managementCompanyId)
+            .OrderBy(entity => entity.Slug)
+            .ThenBy(entity => entity.AddressLine)
+            .Take(250)
+            .Select(entity => new
+            {
+                PropertyId = entity.Id,
+                entity.CustomerId,
+                PropertySlug = entity.Slug,
+                entity.Label,
+                CustomerSlug = entity.Customer!.Slug,
+                CustomerName = entity.Customer.Name,
+                entity.AddressLine,
+                entity.City,
+                entity.PostalCode
+            })
+            .ToListAsync(cancellationToken);
+
+        static bool ContainsCI(string? value, string term)
+            => !string.IsNullOrWhiteSpace(value) && value.Contains(term, StringComparison.OrdinalIgnoreCase);
+
+        return candidates
+            .Where(entity =>
+                ContainsCI(entity.Label.ToString(), normalizedSearch) ||
+                ContainsCI(entity.AddressLine, normalizedSearch) ||
+                ContainsCI(entity.City, normalizedSearch) ||
+                ContainsCI(entity.PostalCode, normalizedSearch) ||
+                ContainsCI(entity.CustomerName, normalizedSearch) ||
+                ContainsCI(entity.PropertySlug, normalizedSearch))
+            .Take(MaxSearchResults)
+            .Select(entity => new LeasePropertySearchItemDalDto
+            {
+                PropertyId = entity.PropertyId,
+                CustomerId = entity.CustomerId,
+                PropertySlug = entity.PropertySlug,
+                PropertyName = entity.Label.ToString(),
+                CustomerSlug = entity.CustomerSlug,
+                CustomerName = entity.CustomerName,
+                AddressLine = entity.AddressLine,
+                City = entity.City,
+                PostalCode = entity.PostalCode
+            })
+            .ToList();
     }
 
-    public async Task DeleteByResidentIdAsync(
-        Guid residentId,
+    public async Task<IReadOnlyList<LeaseUnitOptionDalDto>> ListUnitsForPropertyAsync(
+        Guid propertyId,
+        Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        await _dbContext.Leases
-            .Where(lease => lease.ResidentId == residentId)
-            .ExecuteDeleteAsync(cancellationToken);
+        return await _dbContext.Units
+            .AsNoTracking()
+            .Where(entity => entity.PropertyId == propertyId)
+            .Where(entity => entity.Property!.Customer!.ManagementCompanyId == managementCompanyId)
+            .OrderBy(entity => entity.UnitNr)
+            .ThenBy(entity => entity.FloorNr)
+            .ThenBy(entity => entity.Id)
+            .Select(entity => new LeaseUnitOptionDalDto
+            {
+                UnitId = entity.Id,
+                UnitSlug = entity.Slug,
+                UnitNr = entity.UnitNr,
+                FloorNr = entity.FloorNr,
+                IsActive = entity.IsActive
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<LeaseResidentSearchItemDalDto>> SearchResidentsAsync(
+        Guid managementCompanyId,
+        string? searchTerm,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedSearch = searchTerm?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedSearch))
+        {
+            return Array.Empty<LeaseResidentSearchItemDalDto>();
+        }
+
+        var pattern = $"%{normalizedSearch}%";
+
+        return await _dbContext.Residents
+            .AsNoTracking()
+            .Where(entity => entity.ManagementCompanyId == managementCompanyId)
+            .Where(entity =>
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.FirstName, pattern) ||
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.LastName, pattern) ||
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.FirstName + " " + entity.LastName, pattern) ||
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.IdCode, pattern))
+            .OrderBy(entity => entity.FirstName)
+            .ThenBy(entity => entity.LastName)
+            .ThenBy(entity => entity.IdCode)
+            .Take(MaxSearchResults)
+            .Select(entity => new LeaseResidentSearchItemDalDto
+            {
+                ResidentId = entity.Id,
+                FullName = string.Join(" ", new[] { entity.FirstName, entity.LastName }.Where(value => !string.IsNullOrWhiteSpace(value))),
+                IdCode = entity.IdCode,
+                IsActive = entity.IsActive
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<LeaseRoleOptionDalDto>> ListLeaseRolesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.LeaseRoles
+            .AsNoTracking()
+            .OrderBy(entity => entity.Label)
+            .ThenBy(entity => entity.Code)
+            .Select(entity => new LeaseRoleOptionDalDto
+            {
+                LeaseRoleId = entity.Id,
+                Code = entity.Code,
+                Label = entity.Label.ToString()
+            })
+            .ToListAsync(cancellationToken);
     }
 
     private IQueryable<Lease> LeaseDetailsQuery()

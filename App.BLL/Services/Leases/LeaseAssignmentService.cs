@@ -97,7 +97,7 @@ public class LeaseAssignmentService : ILeaseAssignmentService
             return Result.Fail<LeaseCommandModel>(validation.Errors);
         }
 
-        var unitExists = await _uow.Units.ExistsInCompanyAsync(
+        var unitExists = await _uow.Leases.UnitExistsInCompanyAsync(
             command.UnitId,
             command.ManagementCompanyId,
             cancellationToken);
@@ -149,7 +149,7 @@ public class LeaseAssignmentService : ILeaseAssignmentService
             return Result.Fail<LeaseCommandModel>(validation.Errors);
         }
 
-        var residentExists = await _uow.Residents.ExistsInCompanyAsync(
+        var residentExists = await _uow.Leases.ResidentExistsInCompanyAsync(
             command.ResidentId,
             command.ManagementCompanyId,
             cancellationToken);
@@ -351,7 +351,7 @@ public class LeaseAssignmentService : ILeaseAssignmentService
                 App.Resources.Views.UiText.ResourceManager.GetString("LeaseRole") ?? "Lease role")));
         }
 
-        var leaseRoleExists = await _uow.Lookups.LeaseRoleExistsAsync(leaseRoleId, cancellationToken);
+        var leaseRoleExists = await _uow.Leases.LeaseRoleExistsAsync(leaseRoleId, cancellationToken);
         if (!leaseRoleExists)
         {
             return Result.Fail(Validation("LeaseRoleId", App.Resources.Views.UiText.ResourceManager.GetString("InvalidData") ?? "Invalid data."));

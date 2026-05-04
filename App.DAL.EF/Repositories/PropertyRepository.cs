@@ -1,5 +1,4 @@
 using App.DAL.Contracts.Repositories;
-using App.DAL.DTO.Leases;
 using App.DAL.DTO.Properties;
 using App.DAL.EF.Mappers.Properties;
 using App.Domain;
@@ -13,8 +12,6 @@ public class PropertyRepository :
     BaseRepository<PropertyDalDto, Property, AppDbContext>,
     IPropertyRepository
 {
-    private const int MaxLeaseAssignmentSearchResults = 20;
-
     private readonly AppDbContext _dbContext;
 
     public PropertyRepository(AppDbContext dbContext, PropertyDalMapper mapper)
@@ -147,74 +144,6 @@ public class PropertyRepository :
             .AnyAsync(property => property.Slug.ToLower() == normalizedSlug, cancellationToken);
     }
 
-    public Task<bool> ExistsInCompanyAsync(
-        Guid propertyId,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default)
-    {
-        return _dbContext.Properties
-            .AnyAsync(
-                entity => entity.Id == propertyId && entity.Customer!.ManagementCompanyId == managementCompanyId,
-                cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<LeasePropertySearchItemDalDto>> SearchForLeaseAssignmentAsync(
-        Guid managementCompanyId,
-        string? searchTerm,
-        CancellationToken cancellationToken = default)
-    {
-        var normalizedSearch = searchTerm?.Trim();
-        if (string.IsNullOrWhiteSpace(normalizedSearch))
-        {
-            return Array.Empty<LeasePropertySearchItemDalDto>();
-        }
-
-        var candidates = await _dbContext.Properties
-            .Where(entity => entity.Customer!.ManagementCompanyId == managementCompanyId)
-            .OrderBy(entity => entity.Slug)
-            .ThenBy(entity => entity.AddressLine)
-            .Take(250)
-            .Select(entity => new
-            {
-                PropertyId = entity.Id,
-                entity.CustomerId,
-                PropertySlug = entity.Slug,
-                entity.Label,
-                CustomerSlug = entity.Customer!.Slug,
-                CustomerName = entity.Customer.Name,
-                entity.AddressLine,
-                entity.City,
-                entity.PostalCode
-            })
-            .ToListAsync(cancellationToken);
-
-        static bool ContainsCI(string? value, string term)
-            => !string.IsNullOrWhiteSpace(value) && value.Contains(term, StringComparison.OrdinalIgnoreCase);
-
-        return candidates
-            .Where(entity =>
-                ContainsCI(entity.Label.ToString(), normalizedSearch) ||
-                ContainsCI(entity.AddressLine, normalizedSearch) ||
-                ContainsCI(entity.City, normalizedSearch) ||
-                ContainsCI(entity.PostalCode, normalizedSearch) ||
-                ContainsCI(entity.CustomerName, normalizedSearch) ||
-                ContainsCI(entity.PropertySlug, normalizedSearch))
-            .Take(MaxLeaseAssignmentSearchResults)
-            .Select(entity => new LeasePropertySearchItemDalDto
-            {
-                PropertyId = entity.PropertyId,
-                CustomerId = entity.CustomerId,
-                PropertySlug = entity.PropertySlug,
-                PropertyName = entity.Label.ToString(),
-                CustomerSlug = entity.CustomerSlug,
-                CustomerName = entity.CustomerName,
-                AddressLine = entity.AddressLine,
-                City = entity.City,
-                PostalCode = entity.PostalCode
-            })
-            .ToList();
-    }
-
     public Task<PropertyDalDto> AddAsync(
         PropertyCreateDalDto dto,
         CancellationToken cancellationToken = default)
@@ -291,36 +220,73 @@ public class PropertyRepository :
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var deleted = await _dbContext.Properties
-            .Where(entity => entity.Id == propertyId
-                             && entity.CustomerId == customerId
-                             && entity.Customer!.ManagementCompanyId == managementCompanyId)
+        var property = await _dbContext.Properties
+            .AsNoTracking()
+            .Where(entity => entity.Id == propertyId && entity.CustomerId == customerId)
+            .Select(entity => new { entity.Id })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (property is null)
+        {
+            return false;
+        }
+
+        var unitIds = await _dbContext.Units
+            .Where(unit => unit.PropertyId == property.Id)
+            .Select(unit => unit.Id)
+            .ToListAsync(cancellationToken);
+
+        var ticketIds = await _dbContext.Tickets
+            .Where(ticket => (ticket.PropertyId.HasValue && ticket.PropertyId.Value == property.Id)
+                             || (ticket.UnitId.HasValue && unitIds.Contains(ticket.UnitId.Value)))
+            .Where(ticket => ticket.ManagementCompanyId == managementCompanyId)
+            .Select(ticket => ticket.Id)
+            .ToListAsync(cancellationToken);
+
+        await DeleteTicketsAsync(ticketIds, cancellationToken);
+
+        await _dbContext.Leases
+            .Where(lease => unitIds.Contains(lease.UnitId))
             .ExecuteDeleteAsync(cancellationToken);
 
-        return deleted > 0;
+        await _dbContext.Units
+            .Where(unit => unitIds.Contains(unit.Id))
+            .ExecuteDeleteAsync(cancellationToken);
+
+        await _dbContext.Properties
+            .Where(entity => entity.Id == property.Id)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        return true;
     }
 
-    public async Task<IReadOnlyList<Guid>> AllIdsByCustomerIdAsync(
-        Guid customerId,
-        CancellationToken cancellationToken = default)
+    private async Task DeleteTicketsAsync(
+        IReadOnlyCollection<Guid> ticketIds,
+        CancellationToken cancellationToken)
     {
-        return await _dbContext.Properties
-            .Where(property => property.CustomerId == customerId)
-            .Select(property => property.Id)
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task DeleteByIdsAsync(
-        IReadOnlyCollection<Guid> propertyIds,
-        CancellationToken cancellationToken = default)
-    {
-        if (propertyIds.Count == 0)
+        if (ticketIds.Count == 0)
         {
             return;
         }
 
-        await _dbContext.Properties
-            .Where(property => propertyIds.Contains(property.Id))
+        var scheduledWorkIds = await _dbContext.ScheduledWorks
+            .Where(scheduledWork => ticketIds.Contains(scheduledWork.TicketId))
+            .Select(scheduledWork => scheduledWork.Id)
+            .ToListAsync(cancellationToken);
+
+        if (scheduledWorkIds.Count > 0)
+        {
+            await _dbContext.WorkLogs
+                .Where(workLog => scheduledWorkIds.Contains(workLog.ScheduledWorkId))
+                .ExecuteDeleteAsync(cancellationToken);
+
+            await _dbContext.ScheduledWorks
+                .Where(scheduledWork => scheduledWorkIds.Contains(scheduledWork.Id))
+                .ExecuteDeleteAsync(cancellationToken);
+        }
+
+        await _dbContext.Tickets
+            .Where(ticket => ticketIds.Contains(ticket.Id))
             .ExecuteDeleteAsync(cancellationToken);
     }
 }

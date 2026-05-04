@@ -1,5 +1,4 @@
 using App.BLL.Contracts.Common;
-using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Units;
 using App.BLL.Contracts.Units.Commands;
@@ -21,16 +20,13 @@ public class UnitProfileService : IUnitProfileService
     ];
 
     private readonly IUnitAccessService _unitAccessService;
-    private readonly IAppDeleteOrchestrator _deleteOrchestrator;
     private readonly IAppUOW _uow;
 
     public UnitProfileService(
         IUnitAccessService unitAccessService,
-        IAppDeleteOrchestrator deleteOrchestrator,
         IAppUOW uow)
     {
         _unitAccessService = unitAccessService;
-        _deleteOrchestrator = deleteOrchestrator;
         _uow = uow;
     }
 
@@ -149,17 +145,30 @@ public class UnitProfileService : IUnitProfileService
             return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
-        var deleted = await _deleteOrchestrator.DeleteUnitAsync(
-            workspace.Value.UnitId,
-            workspace.Value.PropertyId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-        if (!deleted)
+        await _uow.BeginTransactionAsync(cancellationToken);
+        try
         {
-            return Result.Fail(new NotFoundError("Unit profile was not found."));
-        }
+            var deleted = await _uow.Units.DeleteAsync(
+                workspace.Value.UnitId,
+                workspace.Value.PropertyId,
+                workspace.Value.ManagementCompanyId,
+                cancellationToken);
 
-        return Result.Ok();
+            if (!deleted)
+            {
+                await _uow.RollbackTransactionAsync(cancellationToken);
+                return Result.Fail(new NotFoundError("Unit profile was not found."));
+            }
+
+            await _uow.SaveChangesAsync(cancellationToken);
+            await _uow.CommitTransactionAsync(cancellationToken);
+            return Result.Ok();
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
     }
 
     private async Task<Result<UnitWorkspaceModel>> ResolveWorkspaceAsync(

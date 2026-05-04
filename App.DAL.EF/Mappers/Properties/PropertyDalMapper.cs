@@ -17,6 +17,7 @@ public class PropertyDalMapper : IBaseMapper<PropertyDalDto, Property>
         {
             Id = entity.Id,
             CustomerId = entity.CustomerId,
+            ManagementCompanyId = entity.Customer?.ManagementCompanyId ?? Guid.Empty,
             Name = entity.Label.ToString(),
             Slug = entity.Slug,
             IsActive = entity.IsActive

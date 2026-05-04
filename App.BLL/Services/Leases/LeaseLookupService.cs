@@ -21,7 +21,7 @@ public class LeaseLookupService : ILeaseLookupService
         SearchLeasePropertiesQuery query,
         CancellationToken cancellationToken = default)
     {
-        var properties = await _uow.Properties.SearchForLeaseAssignmentAsync(
+        var properties = await _uow.Leases.SearchPropertiesAsync(
             query.ManagementCompanyId,
             query.SearchTerm,
             cancellationToken);
@@ -36,7 +36,7 @@ public class LeaseLookupService : ILeaseLookupService
         GetLeaseUnitsForPropertyQuery query,
         CancellationToken cancellationToken = default)
     {
-        var propertyExists = await _uow.Properties.ExistsInCompanyAsync(
+        var propertyExists = await _uow.Leases.PropertyExistsInCompanyAsync(
             query.PropertyId,
             query.ManagementCompanyId,
             cancellationToken);
@@ -46,7 +46,7 @@ public class LeaseLookupService : ILeaseLookupService
                 new NotFoundError(App.Resources.Views.UiText.ResourceManager.GetString("PropertyWasNotFound") ?? "Property was not found."));
         }
 
-        var units = await _uow.Units.ListForLeaseAssignmentAsync(
+        var units = await _uow.Leases.ListUnitsForPropertyAsync(
             query.PropertyId,
             query.ManagementCompanyId,
             cancellationToken);
@@ -61,7 +61,7 @@ public class LeaseLookupService : ILeaseLookupService
         SearchLeaseResidentsQuery query,
         CancellationToken cancellationToken = default)
     {
-        var residents = await _uow.Residents.SearchForLeaseAssignmentAsync(
+        var residents = await _uow.Leases.SearchResidentsAsync(
             query.ManagementCompanyId,
             query.SearchTerm,
             cancellationToken);
@@ -75,7 +75,7 @@ public class LeaseLookupService : ILeaseLookupService
     public async Task<Result<LeaseRoleOptionsModel>> ListLeaseRolesAsync(
         CancellationToken cancellationToken = default)
     {
-        var roles = await _uow.Lookups.ListLeaseRolesAsync(cancellationToken);
+        var roles = await _uow.Leases.ListLeaseRolesAsync(cancellationToken);
 
         return Result.Ok(new LeaseRoleOptionsModel
         {

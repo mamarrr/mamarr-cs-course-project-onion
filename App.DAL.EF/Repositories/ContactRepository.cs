@@ -108,49 +108,4 @@ public class ContactRepository :
 
         return deleted > 0;
     }
-
-    public async Task<IReadOnlyList<Guid>> AllIdsByResidentIdAsync(
-        Guid residentId,
-        CancellationToken cancellationToken = default)
-    {
-        return await _dbContext.ResidentContacts
-            .Where(entity => entity.ResidentId == residentId)
-            .Select(entity => entity.ContactId)
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task DeleteResidentLinksByResidentIdAsync(
-        Guid residentId,
-        CancellationToken cancellationToken = default)
-    {
-        await _dbContext.ResidentContacts
-            .Where(entity => entity.ResidentId == residentId)
-            .ExecuteDeleteAsync(cancellationToken);
-    }
-
-    public async Task DeleteOrphanedByIdsAsync(
-        IReadOnlyCollection<Guid> contactIds,
-        CancellationToken cancellationToken = default)
-    {
-        if (contactIds.Count == 0)
-        {
-            return;
-        }
-
-        var orphanedContactIds = await _dbContext.Contacts
-            .Where(contact => contactIds.Contains(contact.Id))
-            .Where(contact => !_dbContext.ResidentContacts.Any(residentContact => residentContact.ContactId == contact.Id))
-            .Where(contact => !_dbContext.VendorContacts.Any(vendorContact => vendorContact.ContactId == contact.Id))
-            .Select(contact => contact.Id)
-            .ToListAsync(cancellationToken);
-
-        if (orphanedContactIds.Count == 0)
-        {
-            return;
-        }
-
-        await _dbContext.Contacts
-            .Where(contact => orphanedContactIds.Contains(contact.Id))
-            .ExecuteDeleteAsync(cancellationToken);
-    }
 }

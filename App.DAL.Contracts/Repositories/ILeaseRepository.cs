@@ -29,6 +29,25 @@ public interface ILeaseRepository : IBaseRepository<LeaseDalDto>
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
+    Task<bool> LeaseRoleExistsAsync(
+        Guid leaseRoleId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> UnitExistsInCompanyAsync(
+        Guid unitId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> ResidentExistsInCompanyAsync(
+        Guid residentId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> PropertyExistsInCompanyAsync(
+        Guid propertyId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
     Task<bool> HasOverlappingActiveLeaseAsync(
         Guid residentId,
         Guid unitId,
@@ -66,11 +85,21 @@ public interface ILeaseRepository : IBaseRepository<LeaseDalDto>
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
-    Task DeleteByUnitIdsAsync(
-        IReadOnlyCollection<Guid> unitIds,
+    Task<IReadOnlyList<LeasePropertySearchItemDalDto>> SearchPropertiesAsync(
+        Guid managementCompanyId,
+        string? searchTerm,
         CancellationToken cancellationToken = default);
 
-    Task DeleteByResidentIdAsync(
-        Guid residentId,
+    Task<IReadOnlyList<LeaseUnitOptionDalDto>> ListUnitsForPropertyAsync(
+        Guid propertyId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<LeaseResidentSearchItemDalDto>> SearchResidentsAsync(
+        Guid managementCompanyId,
+        string? searchTerm,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<LeaseRoleOptionDalDto>> ListLeaseRolesAsync(
         CancellationToken cancellationToken = default);
 }

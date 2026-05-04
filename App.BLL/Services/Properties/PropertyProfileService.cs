@@ -1,5 +1,4 @@
 using App.BLL.Contracts.Common;
-using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Properties.Commands;
@@ -21,16 +20,13 @@ public class PropertyProfileService : IPropertyProfileService
     ];
 
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
-    private readonly IAppDeleteOrchestrator _deleteOrchestrator;
     private readonly IAppUOW _uow;
 
     public PropertyProfileService(
         IPropertyWorkspaceService propertyWorkspaceService,
-        IAppDeleteOrchestrator deleteOrchestrator,
         IAppUOW uow)
     {
         _propertyWorkspaceService = propertyWorkspaceService;
-        _deleteOrchestrator = deleteOrchestrator;
         _uow = uow;
     }
 
@@ -151,17 +147,30 @@ public class PropertyProfileService : IPropertyProfileService
             return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
-        var deleted = await _deleteOrchestrator.DeletePropertyAsync(
-            workspace.Value.PropertyId,
-            workspace.Value.CustomerId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-        if (!deleted)
+        await _uow.BeginTransactionAsync(cancellationToken);
+        try
         {
-            return Result.Fail(new NotFoundError("Property profile was not found."));
-        }
+            var deleted = await _uow.Properties.DeleteAsync(
+                workspace.Value.PropertyId,
+                workspace.Value.CustomerId,
+                workspace.Value.ManagementCompanyId,
+                cancellationToken);
 
-        return Result.Ok();
+            if (!deleted)
+            {
+                await _uow.RollbackTransactionAsync(cancellationToken);
+                return Result.Fail(new NotFoundError("Property profile was not found."));
+            }
+
+            await _uow.SaveChangesAsync(cancellationToken);
+            await _uow.CommitTransactionAsync(cancellationToken);
+            return Result.Ok();
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(cancellationToken);
+            throw;
+        }
     }
 
     private async Task<Result<PropertyWorkspaceModel>> ResolveWorkspaceAsync(

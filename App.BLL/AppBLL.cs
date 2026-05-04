@@ -1,5 +1,4 @@
 ﻿using App.BLL.Contracts;
-using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
@@ -8,7 +7,6 @@ using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
-using App.BLL.Services.Common.Deletion;
 using App.BLL.Services.Customers;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
@@ -48,7 +46,6 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private IUnitAccessService? _unitAccess;
     private IUnitProfileService? _unitProfiles;
     private IUnitWorkspaceService? _unitWorkspaces;
-    private IAppDeleteOrchestrator? _deleteOrchestrator;
     private ILeaseAssignmentService? _leaseAssignments;
     private ILeaseLookupService? _leaseLookups;
     private IManagementTicketService? _managementTickets;
@@ -85,25 +82,25 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
         _customerAccess ??= new CustomerAccessService(UOW);
 
     public ICustomerProfileService CustomerProfiles =>
-        _customerProfiles ??= new CustomerProfileService(CustomerAccess, DeleteOrchestrator, UOW);
+        _customerProfiles ??= new CustomerProfileService(CustomerAccess, UOW);
 
     public ICustomerWorkspaceService CustomerWorkspaces =>
         _customerWorkspaces ??= new CustomerWorkspaceService(CustomerAccess);
 
     public IPropertyProfileService PropertyProfiles =>
-        _propertyProfiles ??= new PropertyProfileService(PropertyWorkspaces, DeleteOrchestrator, UOW);
+        _propertyProfiles ??= new PropertyProfileService(PropertyWorkspaces, UOW);
 
     public IPropertyWorkspaceService PropertyWorkspaces =>
         _propertyWorkspaces ??= new PropertyWorkspaceService(CustomerAccess, UOW);
 
     public IResidentProfileService ResidentProfiles =>
-        _residentProfiles ??= new ResidentProfileService(ResidentAccess, DeleteOrchestrator, UOW);
+        _residentProfiles ??= new ResidentProfileService(ResidentAccess, UOW);
 
     public IResidentWorkspaceService ResidentWorkspaces =>
         _residentWorkspaces ??= new ResidentWorkspaceService(ResidentAccess, UOW);
 
     public IUnitProfileService UnitProfiles =>
-        _unitProfiles ??= new UnitProfileService(UnitAccess, DeleteOrchestrator, UOW);
+        _unitProfiles ??= new UnitProfileService(UnitAccess, UOW);
 
     public IUnitWorkspaceService UnitWorkspaces =>
         _unitWorkspaces ??= new UnitWorkspaceService(PropertyWorkspaces, UnitAccess, UOW);
@@ -122,9 +119,6 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 
     public IUnitAccessService UnitAccess =>
         _unitAccess ??= new UnitAccessService(UOW);
-
-    private IAppDeleteOrchestrator DeleteOrchestrator =>
-        _deleteOrchestrator ??= new AppDeleteOrchestrator(UOW);
 
     public AppBLL(
         IAppUOW uow) : base(uow)

@@ -56,11 +56,6 @@ public interface ICustomerRepository : IBaseRepository<CustomerDalDto>
         Guid? exceptCustomerId = null,
         CancellationToken cancellationToken = default);
 
-    Task<bool> ExistsInCompanyAsync(
-        Guid customerId,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default);
-
     Task<string?> FindActiveManagementCompanyRoleCodeAsync(
         Guid managementCompanyId,
         Guid appUserId,
@@ -73,13 +68,5 @@ public interface ICustomerRepository : IBaseRepository<CustomerDalDto>
     Task<bool> DeleteAsync(
         Guid customerId,
         Guid managementCompanyId,
-        CancellationToken cancellationToken = default);
-
-    Task DeleteRepresentativesByCustomerIdAsync(
-        Guid customerId,
-        CancellationToken cancellationToken = default);
-
-    Task DeleteRepresentativesByResidentIdAsync(
-        Guid residentId,
         CancellationToken cancellationToken = default);
 }
