@@ -28,7 +28,6 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private ICustomerAccessService? _customerAccess;
     private ICustomerProfileService? _customerProfiles;
     private ICustomerWorkspaceService? _customerWorkspaces;
-    private IAccountIdentityService? _accountIdentity;
     private IAccountOnboardingService? _accountOnboarding;
     private IWorkspaceCatalogService? _workspaceCatalog;
     private IWorkspaceRedirectService? _workspaceRedirect;
@@ -47,12 +46,10 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private ILeaseLookupService? _leaseLookups;
     private IManagementTicketService? _managementTickets;
 
-    public IAccountIdentityService AccountIdentity =>
-        _accountIdentity ?? throw new InvalidOperationException(
-            $"{nameof(IAccountIdentityService)} must be provided by the web layer.");
+    
 
     public IAccountOnboardingService AccountOnboarding =>
-        _accountOnboarding ??= new AccountOnboardingService(AccountIdentity, UOW);
+        _accountOnboarding ??= new AccountOnboardingService(UOW);
 
     public IWorkspaceCatalogService WorkspaceCatalog =>
         _workspaceCatalog ??= new UserWorkspaceCatalogService(UOW);
@@ -113,10 +110,5 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 
     public AppBLL(IAppUOW uow) : base(uow)
     {
-    }
-
-    public AppBLL(IAppUOW uow, IAccountIdentityService accountIdentity) : base(uow)
-    {
-        _accountIdentity = accountIdentity;
     }
 }

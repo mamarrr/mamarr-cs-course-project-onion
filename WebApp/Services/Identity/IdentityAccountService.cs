@@ -1,13 +1,12 @@
-using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Commands;
 using App.BLL.Contracts.Onboarding.Models;
 using App.Domain.Identity;
 using FluentResults;
 using Microsoft.AspNetCore.Identity;
 
-namespace WebApp.Services;
+namespace WebApp.Services.Identity;
 
-public class IdentityAccountService : IAccountIdentityService
+public class IdentityAccountService : IIdentityAccountService
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly SignInManager<AppUser> _signInManager;

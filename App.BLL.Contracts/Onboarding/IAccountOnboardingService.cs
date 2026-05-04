@@ -7,18 +7,6 @@ namespace App.BLL.Contracts.Onboarding;
 
 public interface IAccountOnboardingService
 {
-    Task<Result<AccountRegisterModel>> RegisterAsync(
-        RegisterAccountCommand command,
-        CancellationToken cancellationToken = default);
-
-    Task<Result<AccountLoginModel>> LoginAsync(
-        LoginAccountCommand command,
-        CancellationToken cancellationToken = default);
-
-    Task<Result> LogoutAsync(
-        LogoutCommand command,
-        CancellationToken cancellationToken = default);
-
     Task<Result<CreateManagementCompanyModel>> CreateManagementCompanyAsync(
         CreateManagementCompanyCommand command,
         CancellationToken cancellationToken = default);
@@ -31,7 +19,9 @@ public interface IAccountOnboardingService
         CompleteAccountOnboardingCommand command,
         CancellationToken cancellationToken = default);
 
-    Task<bool> HasAnyContextAsync(Guid appUserId, CancellationToken cancellationToken = default);
+    Task<bool> HasAnyContextAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default);
 
     Task<string?> GetDefaultManagementCompanySlugAsync(
         Guid appUserId,

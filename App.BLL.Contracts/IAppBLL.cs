@@ -12,7 +12,6 @@ namespace App.BLL.Contracts;
 
 public interface IAppBLL : IBaseBLL
 {
-    IAccountIdentityService AccountIdentity { get; }
     IAccountOnboardingService AccountOnboarding { get; }
     IWorkspaceCatalogService WorkspaceCatalog { get; }
     IWorkspaceRedirectService WorkspaceRedirect { get; }

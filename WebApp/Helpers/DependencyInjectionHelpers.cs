@@ -36,6 +36,7 @@ using WebApp.Mappers.Mvc.Residents;
 using WebApp.Mappers.Mvc.Tickets;
 using WebApp.Mappers.Mvc.Units;
 using WebApp.Services;
+using WebApp.Services.Identity;
 
 namespace WebApp.Helpers;
 
@@ -67,7 +68,6 @@ public static class DependencyInjectionHelpers
 
     public static IServiceCollection AddAppBll(this IServiceCollection services)
     {
-        services.AddScoped<IAccountIdentityService, IdentityAccountService>();
         services.AddScoped<IAccountOnboardingService, AccountOnboardingService>();
         services.AddScoped<IWorkspaceRedirectService, WorkspaceRedirectService>();
         services.AddScoped<IContextSelectionService, WorkspaceRedirectService>();

@@ -12,56 +12,22 @@ namespace App.BLL.Services.Onboarding.Account;
 public class AccountOnboardingService : IAccountOnboardingService
 {
     private const string InitialManagementRoleCode = "OWNER";
-
-    private readonly IAccountIdentityService _identityService;
+    
     private readonly IAppUOW _uow;
 
     public AccountOnboardingService(
-        IAccountIdentityService identityService,
         IAppUOW uow)
     {
-        _identityService = identityService;
         _uow = uow;
-    }
-
-    public async Task<Result<AccountRegisterModel>> RegisterAsync(
-        RegisterAccountCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        var existingUserId = await _identityService.FindUserIdByEmailAsync(
-            command.Email,
-            cancellationToken);
-        if (existingUserId.HasValue)
-        {
-            return Result.Fail("A user with this email already exists.");
-        }
-
-        return await _identityService.CreateUserAsync(command, cancellationToken);
-    }
-
-    public async Task<Result<AccountLoginModel>> LoginAsync(
-        LoginAccountCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        return await _identityService.PasswordSignInAsync(command, cancellationToken);
-    }
-
-    public async Task<Result> LogoutAsync(
-        LogoutCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        await _identityService.SignOutAsync(cancellationToken);
-        return Result.Ok();
     }
 
     public async Task<Result<CreateManagementCompanyModel>> CreateManagementCompanyAsync(
         CreateManagementCompanyCommand command,
         CancellationToken cancellationToken = default)
     {
-        var userExists = await _identityService.UserExistsAsync(command.AppUserId, cancellationToken);
-        if (!userExists)
+        if (command.AppUserId == Guid.Empty)
         {
-            return Result.Fail("Authenticated user was not found.");
+            return Result.Fail("Authenticated user is required.");
         }
 
         var registryCode = command.RegistryCode.Trim();
