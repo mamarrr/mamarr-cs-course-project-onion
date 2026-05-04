@@ -1,4 +1,4 @@
-using App.Contracts.DAL.ManagementCompanies;
+using App.DAL.Contracts.DAL.ManagementCompanies;
 using App.Domain;
 using Base.Contracts;
 using Base.Domain;
@@ -6,7 +6,7 @@ using Base.Domain;
 namespace App.DAL.EF.Mappers.ManagementCompanies;
 
 public class ManagementCompanyJoinRequestDalMapper :
-    IMapper<ManagementCompanyJoinRequestDalDto, ManagementCompanyJoinRequest>
+    IBaseMapper<ManagementCompanyJoinRequestDalDto, ManagementCompanyJoinRequest>
 {
     public ManagementCompanyJoinRequestDalDto? Map(ManagementCompanyJoinRequest? entity)
     {

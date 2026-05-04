@@ -1,4 +1,4 @@
-using App.Contracts.DAL.Tickets;
+using App.DAL.Contracts.DAL.Tickets;
 using App.Domain;
 using Base.Domain;
 using Microsoft.EntityFrameworkCore;
@@ -590,7 +590,7 @@ public class TicketRepository : ITicketRepository
     }
 
     private static IQueryable<TicketOptionDalDto> LookupOptions<TLookup>(IQueryable<TLookup> query)
-        where TLookup : BaseEntity, App.Contracts.ILookUpEntity
+        where TLookup : BaseEntity, Contracts.ILookUpEntity
     {
         return query
             .AsNoTracking()

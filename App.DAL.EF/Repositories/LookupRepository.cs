@@ -1,5 +1,5 @@
-using App.Contracts;
-using App.Contracts.DAL.Lookups;
+using App.DAL.Contracts;
+using App.DAL.Contracts.DAL.Lookups;
 using App.Domain;
 using Base.Domain;
 using Microsoft.EntityFrameworkCore;

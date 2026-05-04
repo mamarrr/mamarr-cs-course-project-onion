@@ -1,10 +1,10 @@
-using App.Contracts.DAL.Residents;
+using App.DAL.Contracts.DAL.Residents;
 using App.Domain;
 using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.Residents;
 
-public class ResidentDalMapper : IMapper<ResidentDalDto, Resident>
+public class ResidentDalMapper : IBaseMapper<ResidentDalDto, Resident>
 {
     public ResidentDalDto? Map(Resident? entity)
     {

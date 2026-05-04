@@ -1,25 +1,24 @@
+
 using Base.Contracts;
 
 namespace Base.DAL.Contracts;
 
-public interface IBaseRepository<TDalEntity> : IBaseRepository<Guid, TDalEntity>
-    where TDalEntity : IBaseEntity<Guid>
+public interface IBaseRepository<TEntity> : IBaseRepository<Guid, TEntity> 
+    where TEntity : IBaseEntity<Guid>
 {
 }
 
-public interface IBaseRepository<in TKey, TDALEntity>
+public interface IBaseRepository<TKey, TEntity>
     where TKey : IEquatable<TKey>
-    where TDALEntity : IBaseEntity<TKey>
+    where TEntity : IBaseEntity<TKey>
 {
-    Task<IEnumerable<TDALEntity>> AllAsync(TKey parentId);
+    Task<IEnumerable<TEntity>> AllAsync(TKey appUserId = default!);
+    Task<TEntity?> FindAsync(TKey id, TKey appUserId = default!);
 
-    Task<TDALEntity?> FindAsync(TKey id, TKey parentId);
+    void Add(TEntity entity);
 
-    void Add(TDALEntity entity);
+    TEntity Update(TEntity entity);
 
-    TDALEntity Update(TDALEntity entity);
-
-    void Remove(TDALEntity entity);
-
-    Task Remove(TKey id);
+    void Remove(TEntity entity);
+    Task RemoveAsync(TKey id);
 }

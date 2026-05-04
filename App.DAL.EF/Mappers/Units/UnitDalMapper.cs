@@ -1,10 +1,10 @@
-using App.Contracts.DAL.Units;
+using App.DAL.Contracts.DAL.Units;
 using App.Domain;
 using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.Units;
 
-public class UnitDalMapper : IMapper<UnitDalDto, Unit>
+public class UnitDalMapper : IBaseMapper<UnitDalDto, Unit>
 {
     public UnitDalDto? Map(Unit? entity)
     {

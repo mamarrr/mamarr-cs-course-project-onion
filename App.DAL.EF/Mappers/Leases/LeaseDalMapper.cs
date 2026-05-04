@@ -1,11 +1,11 @@
-using App.Contracts.DAL.Leases;
+using App.DAL.Contracts.DAL.Leases;
 using App.Domain;
 using Base.Contracts;
 using Base.Domain;
 
 namespace App.DAL.EF.Mappers.Leases;
 
-public class LeaseDalMapper : IMapper<LeaseDalDto, Lease>
+public class LeaseDalMapper : IBaseMapper<LeaseDalDto, Lease>
 {
     public LeaseDalDto? Map(Lease? entity)
     {

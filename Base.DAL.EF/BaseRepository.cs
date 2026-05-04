@@ -1,42 +1,41 @@
-﻿using Base.Contracts;
+﻿
+using Base.Contracts;
 using Base.DAL.Contracts;
 using Microsoft.EntityFrameworkCore;
 
 namespace Base.DAL.EF;
 
-public class BaseRepository<TDALEntity, TDomainEntity, TDbContext> :
-    BaseRepository<Guid, TDALEntity, TDomainEntity, TDbContext>
+public class
+    BaseRepository<TDALEntity, TDomainEntity, TDbContext> : BaseRepository<Guid, TDALEntity, TDomainEntity, TDbContext>
     where TDALEntity : class, IBaseEntity<Guid>
     where TDomainEntity : class, IBaseEntity<Guid>
     where TDbContext : DbContext
 {
-    public BaseRepository(TDbContext repositoryDbContext, IMapper<TDALEntity, TDomainEntity> mapper)
-        : base(repositoryDbContext, mapper)
-    {}
+    public BaseRepository(TDbContext repositoryDbContext, IBaseMapper<TDALEntity, TDomainEntity> mapper) : base(
+        repositoryDbContext, mapper)
+    {
+    }
 }
 
 
-public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> :
-    IBaseRepository<TKey, TDALEntity>
-    where TKey : IEquatable<TKey>
+public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBaseRepository<TKey, TDALEntity>
     where TDALEntity : class, IBaseEntity<TKey>
     where TDomainEntity : class, IBaseEntity<TKey>
+    where TKey : IEquatable<TKey>
     where TDbContext : DbContext
 {
-
     protected readonly TDbContext RepositoryDbContext;
     protected readonly DbSet<TDomainEntity> RepositoryDbSet;
-    protected readonly IMapper<TDALEntity, TDomainEntity> Mapper;
+    protected readonly IBaseMapper<TDALEntity, TDomainEntity> Mapper;
 
-    public BaseRepository(TDbContext repositoryDbContext, IMapper<TDALEntity, TDomainEntity> mapper)
+    public BaseRepository(TDbContext repositoryDbContext, IBaseMapper<TDALEntity, TDomainEntity> mapper)
     {
         RepositoryDbContext = repositoryDbContext;
-        RepositoryDbSet = RepositoryDbContext.Set<TDomainEntity>();
         Mapper = mapper;
-
+        RepositoryDbSet = RepositoryDbContext.Set<TDomainEntity>();
     }
     
-    public async Task<IEnumerable<TDALEntity>> AllAsync(TKey parentId = default!)
+    public virtual async Task<IEnumerable<TDALEntity>> AllAsync(TKey parentId = default!)
     {
         var query = RepositoryDbSet.AsQueryable();
 
@@ -49,7 +48,7 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> :
         return res;
     }
 
-    public async Task<TDALEntity?> FindAsync(TKey id, TKey parentId = default!)
+    public virtual async Task<TDALEntity?> FindAsync(TKey id, TKey parentId = default!)
     {
         var query = RepositoryDbSet.AsQueryable();
         if (!parentId.Equals(default))
@@ -61,7 +60,7 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> :
         return res;
     }
 
-    public void Add(TDALEntity entity)
+    public virtual void Add(TDALEntity entity)
     {
         RepositoryDbSet.Add(Mapper.Map(entity)!);
     }
@@ -71,13 +70,18 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> :
         return Mapper.Map(
             RepositoryDbSet.Update(
                 Mapper.Map(entity)!
-                ).Entity
-            )!;
+            ).Entity
+        )!;
     }
 
     public void Remove(TDALEntity entity)
     {
         RepositoryDbSet.Remove(Mapper.Map(entity)!);
+    }
+
+    public Task RemoveAsync(TKey id)
+    {
+        throw new NotImplementedException();
     }
 
     public async Task Remove(TKey id)

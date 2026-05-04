@@ -1,4 +1,4 @@
-using App.Contracts;
+using App.DAL.Contracts;
 using App.Domain;
 using App.Domain.Identity;
 using Base.Domain;

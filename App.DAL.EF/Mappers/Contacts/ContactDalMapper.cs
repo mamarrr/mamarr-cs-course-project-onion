@@ -1,10 +1,10 @@
-using App.Contracts.DAL.Contacts;
+using App.DAL.Contracts.DAL.Contacts;
 using App.Domain;
 using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.Contacts;
 
-public class ContactDalMapper : IMapper<ContactDalDto, Contact>
+public class ContactDalMapper : IBaseMapper<ContactDalDto, Contact>
 {
     public ContactDalDto? Map(Contact? entity)
     {

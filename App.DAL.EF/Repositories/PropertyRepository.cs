@@ -1,4 +1,4 @@
-using App.Contracts.DAL.Properties;
+using App.DAL.Contracts.DAL.Properties;
 using App.DAL.EF.Mappers.Properties;
 using App.Domain;
 using Base.DAL.EF;

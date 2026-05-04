@@ -1,10 +1,10 @@
-using App.Contracts.DAL.Customers;
+using App.DAL.Contracts.DAL.Customers;
 using App.Domain;
 using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.Customers;
 
-public class CustomerDalMapper : IMapper<CustomerDalDto, Customer>
+public class CustomerDalMapper : IBaseMapper<CustomerDalDto, Customer>
 {
     public CustomerDalDto? Map(Customer? entity)
     {

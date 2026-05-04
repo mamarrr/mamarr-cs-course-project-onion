@@ -1,0 +1,72 @@
+﻿using Base.BLL.Contracts;
+using Base.Contracts;
+using Base.DAL.Contracts;
+
+namespace Base.BLL;
+
+public class
+    BaseService<TBLLEntity, TDALEntity, TRepository, TUOW> :
+    BaseService<Guid, TBLLEntity, TDALEntity, TRepository, TUOW> where TBLLEntity : class, IBaseEntity<Guid>
+    where TDALEntity : class, IBaseEntity<Guid>
+    where TRepository : IBaseRepository<Guid, TDALEntity>
+    where TUOW: IBaseUOW
+{
+    public BaseService(TRepository serviceRepository, TUOW serviceBLL, IBaseMapper<TBLLEntity, TDALEntity> mapper) :
+        base(serviceRepository, serviceBLL, mapper)
+    {
+    }
+}
+
+public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBaseService<TKey, TBLLEntity>
+    where TBLLEntity : class, IBaseEntity<TKey>
+    where TKey : IEquatable<TKey>
+    where TRepository : IBaseRepository<TKey, TDALEntity>
+    where TDALEntity : class, IBaseEntity<TKey>
+    where TUOW: IBaseUOW
+{
+    protected readonly TUOW ServiceUOW;
+    protected readonly TRepository ServiceRepository;
+    protected readonly IBaseMapper<TBLLEntity, TDALEntity> Mapper;
+
+    public BaseService(TRepository serviceRepository, TUOW serviceBLL, IBaseMapper<TBLLEntity, TDALEntity> mapper)
+    {
+        ServiceUOW = serviceBLL;
+        ServiceRepository = serviceRepository;
+        Mapper = mapper;
+    }
+
+
+    public virtual async Task<IEnumerable<TBLLEntity>> AllAsync(TKey appUserId = default!)
+    {
+        var res = await ServiceRepository.AllAsync(appUserId);
+        var mappedRes = res.Select(e => Mapper.Map(e)!).ToList();
+        return mappedRes;
+    }
+
+    public virtual async Task<TBLLEntity?> FindAsync(TKey id, TKey appUserId = default!)
+    {
+        var res = await ServiceRepository.FindAsync(id, appUserId);
+        return Mapper.Map(res);
+    }
+
+    public virtual void Add(TBLLEntity entity)
+    {
+        ServiceRepository.Add(Mapper.Map(entity)!);
+    }
+
+    public virtual TBLLEntity Update(TBLLEntity entity)
+    {
+        var res = ServiceRepository.Update(Mapper.Map(entity)!);
+        return Mapper.Map(res)!;
+    }
+
+    public virtual void Remove(TBLLEntity entity)
+    {
+        ServiceRepository.Remove(Mapper.Map(entity)!);
+    }
+
+    public virtual async Task RemoveAsync(TKey id)
+    {
+        await ServiceRepository.RemoveAsync(id);
+    }
+}

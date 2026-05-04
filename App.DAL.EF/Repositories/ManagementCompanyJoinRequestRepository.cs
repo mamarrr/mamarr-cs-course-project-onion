@@ -1,4 +1,4 @@
-using App.Contracts.DAL.ManagementCompanies;
+using App.DAL.Contracts.DAL.ManagementCompanies;
 using App.DAL.EF.Mappers.ManagementCompanies;
 using App.Domain;
 using Base.Domain;

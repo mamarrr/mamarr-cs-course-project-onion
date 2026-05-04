@@ -1,10 +1,10 @@
-using App.Contracts.DAL.ManagementCompanies;
+using App.DAL.Contracts.DAL.ManagementCompanies;
 using App.Domain;
 using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.ManagementCompanies;
 
-public class ManagementCompanyDalMapper : IMapper<ManagementCompanyDalDto, ManagementCompany>
+public class ManagementCompanyDalMapper : IBaseMapper<ManagementCompanyDalDto, ManagementCompany>
 {
     public ManagementCompanyDalDto? Map(ManagementCompany? entity)
     {

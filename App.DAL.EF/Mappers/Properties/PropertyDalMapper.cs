@@ -1,10 +1,10 @@
-using App.Contracts.DAL.Properties;
+using App.DAL.Contracts.DAL.Properties;
 using App.Domain;
 using Base.Contracts;
 
 namespace App.DAL.EF.Mappers.Properties;
 
-public class PropertyDalMapper : IMapper<PropertyDalDto, Property>
+public class PropertyDalMapper : IBaseMapper<PropertyDalDto, Property>
 {
     public PropertyDalDto? Map(Property? entity)
     {

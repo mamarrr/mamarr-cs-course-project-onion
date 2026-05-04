@@ -1,6 +1,6 @@
 using App.BLL.Contracts.Customers.Models;
 using App.BLL.Contracts.Properties.Models;
-using App.Contracts.DAL.Properties;
+using App.DAL.Contracts.DAL.Properties;
 
 namespace App.BLL.Mappers.Properties;
 
