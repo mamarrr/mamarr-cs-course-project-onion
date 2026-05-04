@@ -79,9 +79,10 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
         RepositoryDbSet.Remove(Mapper.Map(entity)!);
     }
 
-    public Task RemoveAsync(TKey id)
+    public async Task RemoveAsync(TKey id)
     {
-        throw new NotImplementedException();
+        var entity = await RepositoryDbSet.FindAsync(id);
+        if (entity != null) Remove(Mapper.Map(entity)!);
     }
 
     public async Task Remove(TKey id)
