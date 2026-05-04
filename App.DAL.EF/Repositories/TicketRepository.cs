@@ -1,4 +1,5 @@
-using App.DAL.Contracts.DAL.Tickets;
+using App.DAL.Contracts.Repositories;
+using App.DAL.DTO.Tickets;
 using App.Domain;
 using Base.Domain;
 using Microsoft.EntityFrameworkCore;

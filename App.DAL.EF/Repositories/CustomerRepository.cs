@@ -1,4 +1,5 @@
-using App.DAL.Contracts.DAL.Customers;
+using App.DAL.Contracts.Repositories;
+using App.DAL.DTO.Customers;
 using App.DAL.EF.Mappers.Customers;
 using App.Domain;
 using Base.DAL.EF;

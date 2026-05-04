@@ -1,5 +1,6 @@
-using App.DAL.Contracts.DAL.ManagementCompanies;
-using App.DAL.Contracts.DAL.Lookups;
+using App.DAL.Contracts.Repositories;
+using App.DAL.DTO.Lookups;
+using App.DAL.DTO.ManagementCompanies;
 using App.DAL.EF.Mappers.ManagementCompanies;
 using App.Domain;
 using Base.Domain;

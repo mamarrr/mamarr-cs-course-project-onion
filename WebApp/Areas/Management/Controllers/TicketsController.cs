@@ -1,5 +1,5 @@
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Tickets.Services;
+using App.BLL.Contracts.Tickets;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;

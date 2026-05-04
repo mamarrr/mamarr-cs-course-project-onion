@@ -1,12 +1,12 @@
 using System.Security.Claims;
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.Leases.Commands;
 using App.BLL.Contracts.Leases.Models;
 using App.BLL.Contracts.Leases.Queries;
-using App.BLL.Contracts.Leases.Services;
+using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Residents.Models;
 using App.BLL.Contracts.Residents.Queries;
-using App.BLL.Contracts.Residents.Services;
 using App.BLL.Mappers.Leases;
 using App.Resources.Views;
 using FluentResults;

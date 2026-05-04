@@ -1,18 +1,17 @@
 using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Queries;
-using App.BLL.Contracts.Customers.Services;
 using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Tickets.Commands;
 using App.BLL.Contracts.Tickets.Models;
 using App.BLL.Contracts.Tickets.Queries;
-using App.BLL.Contracts.Tickets.Services;
 using App.DAL.Contracts;
-using App.DAL.Contracts.DAL.Tickets;
+using App.DAL.DTO.Tickets;
 using Base.Domain;
 using FluentResults;
 
-namespace App.BLL.Tickets;
+namespace App.BLL.Services.Tickets;
 
 public class ManagementTicketService : IManagementTicketService
 {

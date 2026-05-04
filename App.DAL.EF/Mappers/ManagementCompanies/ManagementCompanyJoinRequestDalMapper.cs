@@ -1,4 +1,4 @@
-using App.DAL.Contracts.DAL.ManagementCompanies;
+using App.DAL.DTO.ManagementCompanies;
 using App.Domain;
 using Base.Contracts;
 using Base.Domain;

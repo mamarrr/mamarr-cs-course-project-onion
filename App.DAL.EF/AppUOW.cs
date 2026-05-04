@@ -1,13 +1,5 @@
 using App.DAL.Contracts;
-using App.DAL.Contracts.DAL.Contacts;
-using App.DAL.Contracts.DAL.Customers;
-using App.DAL.Contracts.DAL.Leases;
-using App.DAL.Contracts.DAL.Lookups;
-using App.DAL.Contracts.DAL.ManagementCompanies;
-using App.DAL.Contracts.DAL.Properties;
-using App.DAL.Contracts.DAL.Residents;
-using App.DAL.Contracts.DAL.Tickets;
-using App.DAL.Contracts.DAL.Units;
+using App.DAL.Contracts.Repositories;
 using App.DAL.EF.Mappers.Contacts;
 using App.DAL.EF.Mappers.Customers;
 using App.DAL.EF.Mappers.Leases;

@@ -1,19 +1,18 @@
 using System.ComponentModel.DataAnnotations;
 using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Commands;
 using App.BLL.Contracts.Customers.Errors;
 using App.BLL.Contracts.Customers.Models;
 using App.BLL.Contracts.Customers.Queries;
-using App.BLL.Contracts.Customers.Services;
 using App.BLL.Mappers.Customers;
 using App.BLL.Shared.Routing;
 using App.DAL.Contracts;
-using App.DAL.Contracts.DAL.Customers;
+using App.DAL.DTO.Customers;
 using FluentResults;
 
-
-namespace App.BLL.Customers;
+namespace App.BLL.Services.Customers;
 
 public class CompanyCustomerService : ICompanyCustomerService
 {

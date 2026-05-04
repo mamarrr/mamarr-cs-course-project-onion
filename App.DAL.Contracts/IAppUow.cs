@@ -1,13 +1,6 @@
+using App.DAL.Contracts.Repositories;
 using Base.DAL.Contracts;
-using App.DAL.Contracts.DAL.Contacts;
-using App.DAL.Contracts.DAL.Customers;
-using App.DAL.Contracts.DAL.Leases;
-using App.DAL.Contracts.DAL.Lookups;
-using App.DAL.Contracts.DAL.ManagementCompanies;
-using App.DAL.Contracts.DAL.Properties;
-using App.DAL.Contracts.DAL.Residents;
-using App.DAL.Contracts.DAL.Tickets;
-using App.DAL.Contracts.DAL.Units;
+
 
 namespace App.DAL.Contracts;
 

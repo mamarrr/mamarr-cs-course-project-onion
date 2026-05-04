@@ -1,13 +1,13 @@
+using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Commands;
 using App.BLL.Contracts.Onboarding.Models;
 using App.BLL.Contracts.Onboarding.Queries;
-using App.BLL.Contracts.Onboarding.Services;
 using App.BLL.Shared.Routing;
 using App.DAL.Contracts;
-using App.DAL.Contracts.DAL.ManagementCompanies;
+using App.DAL.DTO.ManagementCompanies;
 using FluentResults;
 
-namespace App.BLL.Onboarding.Account;
+namespace App.BLL.Services.Onboarding.Account;
 
 public class AccountOnboardingService : IAccountOnboardingService
 {

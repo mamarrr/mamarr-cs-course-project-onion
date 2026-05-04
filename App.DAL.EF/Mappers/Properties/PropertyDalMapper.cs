@@ -1,4 +1,4 @@
-using App.DAL.Contracts.DAL.Properties;
+using App.DAL.DTO.Properties;
 using App.Domain;
 using Base.Contracts;
 

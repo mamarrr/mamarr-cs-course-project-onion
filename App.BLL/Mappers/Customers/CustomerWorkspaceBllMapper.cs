@@ -1,6 +1,6 @@
 using App.BLL.Contracts.Customers.Models;
-using App.DAL.Contracts.DAL.Customers;
-using App.DAL.Contracts.DAL.ManagementCompanies;
+using App.DAL.DTO.Customers;
+using App.DAL.DTO.ManagementCompanies;
 
 namespace App.BLL.Mappers.Customers;
 

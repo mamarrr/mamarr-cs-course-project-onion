@@ -1,9 +1,9 @@
+using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Models;
-using App.BLL.Contracts.Onboarding.Services;
 using App.DAL.Contracts;
 using FluentResults;
 
-namespace App.BLL.Onboarding.Api;
+namespace App.BLL.Services.Onboarding.Api;
 
 public class ApiWorkspaceContextService : IApiOnboardingContextService
 {

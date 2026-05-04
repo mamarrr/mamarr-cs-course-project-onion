@@ -1,4 +1,5 @@
-using App.DAL.Contracts.DAL.Residents;
+using App.DAL.Contracts.Repositories;
+using App.DAL.DTO.Residents;
 using App.DAL.EF.Mappers.Residents;
 using App.Domain;
 using Base.DAL.EF;

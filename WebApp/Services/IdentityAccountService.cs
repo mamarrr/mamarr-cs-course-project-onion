@@ -1,6 +1,6 @@
+using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Commands;
 using App.BLL.Contracts.Onboarding.Models;
-using App.BLL.Contracts.Onboarding.Services;
 using App.Domain.Identity;
 using FluentResults;
 using Microsoft.AspNetCore.Identity;

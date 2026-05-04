@@ -1,9 +1,9 @@
+using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Models;
 using App.BLL.Contracts.Customers.Queries;
-using App.BLL.Contracts.Customers.Services;
 using FluentResults;
 
-namespace App.BLL.Customers;
+namespace App.BLL.Services.Customers;
 
 public class CustomerWorkspaceService : ICustomerWorkspaceService
 {

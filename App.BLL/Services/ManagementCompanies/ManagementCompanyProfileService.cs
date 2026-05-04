@@ -1,13 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.ManagementCompanies.Models;
-using App.BLL.Contracts.ManagementCompanies.Services;
 using App.DAL.Contracts;
-using App.DAL.Contracts.DAL.ManagementCompanies;
+using App.DAL.DTO.ManagementCompanies;
 using FluentResults;
 
-namespace App.BLL.ManagementCompanies;
+namespace App.BLL.Services.ManagementCompanies;
 
 public class ManagementCompanyProfileService : IManagementCompanyProfileService
 {

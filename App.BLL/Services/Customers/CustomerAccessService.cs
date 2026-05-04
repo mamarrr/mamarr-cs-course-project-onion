@@ -1,12 +1,12 @@
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Models;
 using App.BLL.Contracts.Customers.Queries;
-using App.BLL.Contracts.Customers.Services;
 using App.BLL.Mappers.Customers;
 using App.DAL.Contracts;
 using FluentResults;
 
-namespace App.BLL.Customers;
+namespace App.BLL.Services.Customers;
 
 public class CustomerAccessService : ICustomerAccessService
 {

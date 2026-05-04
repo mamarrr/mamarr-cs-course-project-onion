@@ -1,5 +1,5 @@
 using System.Net;
-using App.BLL.Contracts.Properties.Services;
+using App.BLL.Contracts.Properties;
 using App.DTO.v1;
 using App.DTO.v1.Property;
 using Asp.Versioning;

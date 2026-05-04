@@ -1,6 +1,6 @@
 using System.Security.Claims;
+using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Queries;
-using App.BLL.Contracts.Onboarding.Services;
 using WebApp.UI.Chrome;
 
 namespace WebApp.UI.Workspace;

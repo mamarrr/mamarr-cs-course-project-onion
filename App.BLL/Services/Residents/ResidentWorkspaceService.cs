@@ -1,16 +1,16 @@
 using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Residents.Commands;
 using App.BLL.Contracts.Residents.Errors;
 using App.BLL.Contracts.Residents.Models;
 using App.BLL.Contracts.Residents.Queries;
-using App.BLL.Contracts.Residents.Services;
 using App.BLL.Mappers.Residents;
 using App.DAL.Contracts;
-using App.DAL.Contracts.DAL.Residents;
+using App.DAL.DTO.Residents;
 using FluentResults;
 
-namespace App.BLL.Residents;
+namespace App.BLL.Services.Residents;
 
 public class ResidentWorkspaceService : IResidentWorkspaceService
 {

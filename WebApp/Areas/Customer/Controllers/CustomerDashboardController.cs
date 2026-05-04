@@ -1,5 +1,5 @@
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Customers.Services;
+using App.BLL.Contracts.Customers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;

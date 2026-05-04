@@ -3,7 +3,7 @@ using App.BLL.Contracts.Leases.Models;
 using App.BLL.Contracts.Leases.Queries;
 using App.BLL.Contracts.Residents.Models;
 using App.BLL.Contracts.Units.Models;
-using App.DAL.Contracts.DAL.Leases;
+using App.DAL.DTO.Leases;
 
 namespace App.BLL.Mappers.Leases;
 

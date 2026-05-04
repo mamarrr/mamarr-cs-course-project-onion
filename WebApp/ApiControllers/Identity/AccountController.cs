@@ -1,7 +1,7 @@
+using App.BLL.Contracts.Onboarding;
 using App.DTO.v1;
 using App.DTO.v1.Identity;
 using App.DTO.v1.Onboarding;
-using App.BLL.Contracts.Onboarding.Services;
 using Base.Helpers;
 
 namespace WebApp.ApiControllers.Identity;

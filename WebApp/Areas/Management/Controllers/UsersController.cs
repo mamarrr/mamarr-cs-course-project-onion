@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.ManagementCompanies.Models;
-using App.BLL.Contracts.ManagementCompanies.Services;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

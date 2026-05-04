@@ -1,19 +1,19 @@
 using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Models;
 using App.BLL.Contracts.Customers.Queries;
-using App.BLL.Contracts.Customers.Services;
+using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Properties.Commands;
 using App.BLL.Contracts.Properties.Models;
 using App.BLL.Contracts.Properties.Queries;
-using App.BLL.Contracts.Properties.Services;
 using App.BLL.Mappers.Properties;
 using App.BLL.Shared.Routing;
 using App.DAL.Contracts;
-using App.DAL.Contracts.DAL.Properties;
+using App.DAL.DTO.Properties;
 using FluentResults;
 
-namespace App.BLL.Properties;
+namespace App.BLL.Services.Properties;
 
 public class PropertyWorkspaceService : IPropertyWorkspaceService
 {

@@ -1,6 +1,6 @@
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Properties.Models;
-using App.BLL.Contracts.Properties.Services;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;

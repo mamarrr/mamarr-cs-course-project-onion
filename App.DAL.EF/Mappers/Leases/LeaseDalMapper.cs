@@ -1,4 +1,4 @@
-using App.DAL.Contracts.DAL.Leases;
+using App.DAL.DTO.Leases;
 using App.Domain;
 using Base.Contracts;
 using Base.Domain;

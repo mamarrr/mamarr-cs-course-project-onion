@@ -1,14 +1,14 @@
 using System.Globalization;
 using App.BLL.Contracts.ManagementCompanies;
+using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Commands;
 using App.BLL.Contracts.Onboarding.Models;
-using App.BLL.Contracts.Onboarding.Services;
 using App.DAL.Contracts;
-using App.DAL.Contracts.DAL.ManagementCompanies;
+using App.DAL.DTO.ManagementCompanies;
 using FluentResults;
 using Microsoft.Extensions.Logging;
 
-namespace App.BLL.Onboarding.CompanyJoinRequests;
+namespace App.BLL.Services.Onboarding.CompanyJoinRequests;
 
 public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequestService
 {

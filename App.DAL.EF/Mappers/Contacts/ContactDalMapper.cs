@@ -1,4 +1,5 @@
-using App.DAL.Contracts.DAL.Contacts;
+
+using App.DAL.DTO.Contacts;
 using App.Domain;
 using Base.Contracts;
 

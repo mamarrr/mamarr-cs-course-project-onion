@@ -1,5 +1,5 @@
 using App.BLL.Contracts.Customers.Models;
-using App.DAL.Contracts.DAL.Customers;
+using App.DAL.DTO.Customers;
 
 namespace App.BLL.Mappers.Customers;
 

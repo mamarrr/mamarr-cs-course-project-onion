@@ -1,11 +1,11 @@
+using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Commands;
 using App.BLL.Contracts.Onboarding.Models;
 using App.BLL.Contracts.Onboarding.Queries;
-using App.BLL.Contracts.Onboarding.Services;
 using App.DAL.Contracts;
 using FluentResults;
 
-namespace App.BLL.Onboarding.ContextSelection;
+namespace App.BLL.Services.Onboarding.ContextSelection;
 
 public class WorkspaceRedirectService : IWorkspaceRedirectService, IContextSelectionService
 {

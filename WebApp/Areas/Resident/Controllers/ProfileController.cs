@@ -1,7 +1,7 @@
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Residents.Errors;
 using App.BLL.Contracts.Residents.Models;
-using App.BLL.Contracts.Residents.Services;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;

@@ -1,15 +1,15 @@
 using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Units;
 using App.BLL.Contracts.Units.Commands;
 using App.BLL.Contracts.Units.Models;
 using App.BLL.Contracts.Units.Queries;
-using App.BLL.Contracts.Units.Services;
 using App.BLL.Mappers.Units;
 using App.DAL.Contracts;
-using App.DAL.Contracts.DAL.Units;
+using App.DAL.DTO.Units;
 using FluentResults;
 
-namespace App.BLL.Units;
+namespace App.BLL.Services.Units;
 
 public class UnitProfileService : IUnitProfileService
 {

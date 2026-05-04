@@ -1,4 +1,5 @@
-using App.DAL.Contracts.DAL.Contacts;
+using App.DAL.Contracts.Repositories;
+using App.DAL.DTO.Contacts;
 using App.DAL.EF.Mappers.Contacts;
 using App.Domain;
 using Base.DAL.EF;

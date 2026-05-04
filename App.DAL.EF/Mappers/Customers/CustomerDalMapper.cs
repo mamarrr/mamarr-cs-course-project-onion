@@ -1,4 +1,4 @@
-using App.DAL.Contracts.DAL.Customers;
+using App.DAL.DTO.Customers;
 using App.Domain;
 using Base.Contracts;
 

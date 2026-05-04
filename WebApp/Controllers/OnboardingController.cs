@@ -1,12 +1,12 @@
 using App.Domain.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.ManagementCompanies.Models;
-using App.BLL.Contracts.ManagementCompanies.Services;
+using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Commands;
 using App.BLL.Contracts.Onboarding.Models;
 using App.BLL.Contracts.Onboarding.Queries;
-using App.BLL.Contracts.Onboarding.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

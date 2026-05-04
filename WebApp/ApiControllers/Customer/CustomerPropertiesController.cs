@@ -1,6 +1,6 @@
 using System.Net;
-using App.BLL.Contracts.Customers.Services;
-using App.BLL.Contracts.Properties.Services;
+using App.BLL.Contracts.Customers;
+using App.BLL.Contracts.Properties;
 using App.DTO.v1;
 using App.DTO.v1.Customer;
 using App.DTO.v1.Property;

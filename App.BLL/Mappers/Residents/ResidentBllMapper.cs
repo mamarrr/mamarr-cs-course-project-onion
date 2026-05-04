@@ -1,5 +1,5 @@
 using App.BLL.Contracts.Residents.Models;
-using App.DAL.Contracts.DAL.Residents;
+using App.DAL.DTO.Residents;
 
 namespace App.BLL.Mappers.Residents;
 

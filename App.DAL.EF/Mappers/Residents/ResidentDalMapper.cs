@@ -1,4 +1,4 @@
-using App.DAL.Contracts.DAL.Residents;
+using App.DAL.DTO.Residents;
 using App.Domain;
 using Base.Contracts;
 

@@ -1,16 +1,16 @@
 using System.Globalization;
 using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Errors;
+using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.Leases.Commands;
 using App.BLL.Contracts.Leases.Models;
 using App.BLL.Contracts.Leases.Queries;
-using App.BLL.Contracts.Leases.Services;
 using App.BLL.Mappers.Leases;
 using App.DAL.Contracts;
-using App.DAL.Contracts.DAL.Leases;
+using App.DAL.DTO.Leases;
 using FluentResults;
 
-namespace App.BLL.Leases;
+namespace App.BLL.Services.Leases;
 
 public class LeaseAssignmentService : ILeaseAssignmentService
 {

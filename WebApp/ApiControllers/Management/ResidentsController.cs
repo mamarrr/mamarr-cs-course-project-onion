@@ -1,5 +1,5 @@
 using System.Net;
-using App.BLL.Contracts.Residents.Services;
+using App.BLL.Contracts.Residents;
 using App.DTO.v1;
 using App.DTO.v1.Management;
 using App.DTO.v1.Shared;
