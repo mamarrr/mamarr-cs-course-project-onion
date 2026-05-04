@@ -1,6 +1,7 @@
 using App.DAL.DTO.Properties;
 using App.Domain;
 using Base.Contracts;
+using Base.Domain;
 
 namespace App.DAL.EF.Mappers.Properties;
 
@@ -17,10 +18,15 @@ public class PropertyDalMapper : IBaseMapper<PropertyDalDto, Property>
         {
             Id = entity.Id,
             CustomerId = entity.CustomerId,
-            ManagementCompanyId = entity.Customer?.ManagementCompanyId ?? Guid.Empty,
-            Name = entity.Label.ToString(),
+            PropertyTypeId = entity.PropertyTypeId,
+            Label = entity.Label.ToString(),
             Slug = entity.Slug,
-            IsActive = entity.IsActive
+            AddressLine = entity.AddressLine,
+            City = entity.City,
+            PostalCode = entity.PostalCode,
+            Notes = entity.Notes?.ToString(),
+            IsActive = entity.IsActive,
+            CreatedAt = entity.CreatedAt
         };
     }
 
@@ -35,9 +41,15 @@ public class PropertyDalMapper : IBaseMapper<PropertyDalDto, Property>
         {
             Id = entity.Id,
             CustomerId = entity.CustomerId,
-            Label = entity.Name,
+            PropertyTypeId = entity.PropertyTypeId,
+            Label = new LangStr(entity.Label.Trim()),
             Slug = entity.Slug,
-            IsActive = entity.IsActive
+            AddressLine = entity.AddressLine,
+            City = entity.City,
+            PostalCode = entity.PostalCode,
+            Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim()),
+            IsActive = entity.IsActive,
+            CreatedAt = entity.CreatedAt
         };
     }
 }

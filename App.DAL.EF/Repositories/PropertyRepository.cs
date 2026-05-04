@@ -169,9 +169,15 @@ public class PropertyRepository :
         {
             Id = property.Id,
             CustomerId = property.CustomerId,
-            Name = property.Label.ToString(),
+            PropertyTypeId = property.PropertyTypeId,
+            Label = property.Label.ToString(),
             Slug = property.Slug,
-            IsActive = property.IsActive
+            AddressLine = property.AddressLine,
+            City = property.City,
+            PostalCode = property.PostalCode,
+            Notes = property.Notes?.ToString(),
+            IsActive = property.IsActive,
+            CreatedAt = property.CreatedAt
         });
     }
 

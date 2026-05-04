@@ -2,6 +2,7 @@
 using App.DAL.DTO.Contacts;
 using App.Domain;
 using Base.Contracts;
+using Base.Domain;
 
 namespace App.DAL.EF.Mappers.Contacts;
 
@@ -20,6 +21,7 @@ public class ContactDalMapper : IBaseMapper<ContactDalDto, Contact>
             ManagementCompanyId = entity.ManagementCompanyId,
             ContactTypeId = entity.ContactTypeId,
             ContactValue = entity.ContactValue,
+            CreatedAt = entity.CreatedAt,
             Notes = entity.Notes?.ToString()
         };
     }
@@ -36,7 +38,9 @@ public class ContactDalMapper : IBaseMapper<ContactDalDto, Contact>
             Id = entity.Id,
             ManagementCompanyId = entity.ManagementCompanyId,
             ContactTypeId = entity.ContactTypeId,
-            ContactValue = entity.ContactValue
+            ContactValue = entity.ContactValue,
+            CreatedAt = entity.CreatedAt,
+            Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim())
         };
     }
 }

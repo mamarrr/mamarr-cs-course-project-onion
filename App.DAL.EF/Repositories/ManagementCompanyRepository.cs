@@ -35,6 +35,12 @@ public class ManagementCompanyRepository :
                 Id = c.Id,
                 Name = c.Name,
                 Slug = c.Slug,
+                RegistryCode = c.RegistryCode,
+                VatNumber = c.VatNumber,
+                Email = c.Email,
+                Phone = c.Phone,
+                Address = c.Address,
+                CreatedAt = c.CreatedAt,
                 IsActive = c.IsActive
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -121,6 +127,12 @@ public class ManagementCompanyRepository :
                 Id = company.Id,
                 Name = company.Name,
                 Slug = company.Slug,
+                RegistryCode = company.RegistryCode,
+                VatNumber = company.VatNumber,
+                Email = company.Email,
+                Phone = company.Phone,
+                Address = company.Address,
+                CreatedAt = company.CreatedAt,
                 IsActive = company.IsActive
             })
             .SingleOrDefaultAsync(cancellationToken);
@@ -170,6 +182,12 @@ public class ManagementCompanyRepository :
             Id = company.Id,
             Name = company.Name,
             Slug = company.Slug,
+            RegistryCode = company.RegistryCode,
+            VatNumber = company.VatNumber,
+            Email = company.Email,
+            Phone = company.Phone,
+            Address = company.Address,
+            CreatedAt = company.CreatedAt,
             IsActive = company.IsActive
         });
     }

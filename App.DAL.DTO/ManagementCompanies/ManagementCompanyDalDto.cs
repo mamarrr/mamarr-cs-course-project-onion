@@ -7,6 +7,12 @@ public class ManagementCompanyDalDto : IBaseEntity
     public Guid Id { get; set; }
     public string Name { get; init; } = default!;
     public string Slug { get; init; } = default!;
+    public string RegistryCode { get; init; } = default!;
+    public string VatNumber { get; init; } = default!;
+    public string Email { get; init; } = default!;
+    public string Phone { get; init; } = default!;
+    public string Address { get; init; } = default!;
+    public DateTime CreatedAt { get; init; }
     public bool IsActive { get; init; }
 }
 
@@ -106,6 +112,19 @@ public class ManagementCompanyMembershipUpdateDalDto
 }
 
 public class ManagementCompanyJoinRequestDalDto : IBaseEntity
+{
+    public Guid Id { get; set; }
+    public Guid AppUserId { get; init; }
+    public Guid ManagementCompanyId { get; init; }
+    public Guid RequestedRoleId { get; init; }
+    public Guid StatusId { get; init; }
+    public string? Message { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public DateTime? ResolvedAt { get; init; }
+    public Guid? ResolvedByAppUserId { get; init; }
+}
+
+public class ManagementCompanyJoinRequestDetailsDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public Guid AppUserId { get; init; }

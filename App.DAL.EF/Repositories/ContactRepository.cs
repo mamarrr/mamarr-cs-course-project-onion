@@ -32,6 +32,7 @@ public class ContactRepository :
                 ManagementCompanyId = entity.ManagementCompanyId,
                 ContactTypeId = entity.ContactTypeId,
                 ContactValue = entity.ContactValue,
+                CreatedAt = entity.CreatedAt,
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .FirstOrDefaultAsync(entity => entity.Id == contactId, cancellationToken);
@@ -59,6 +60,7 @@ public class ContactRepository :
             ManagementCompanyId = contact.ManagementCompanyId,
             ContactTypeId = contact.ContactTypeId,
             ContactValue = contact.ContactValue,
+            CreatedAt = contact.CreatedAt,
             Notes = contact.Notes == null ? null : contact.Notes.ToString()
         });
     }

@@ -6,8 +6,13 @@ public class PropertyDalDto : IBaseEntity
 {
     public Guid Id { get; set; }
     public Guid CustomerId { get; set; }
-    public Guid ManagementCompanyId { get; set; }
-    public string Name { get; set; } = default!;
+    public Guid PropertyTypeId { get; set; }
+    public string Label { get; set; } = default!;
     public string Slug { get; set; } = default!;
+    public string AddressLine { get; set; } = default!;
+    public string City { get; set; } = default!;
+    public string PostalCode { get; set; } = default!;
+    public string? Notes { get; set; }
     public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

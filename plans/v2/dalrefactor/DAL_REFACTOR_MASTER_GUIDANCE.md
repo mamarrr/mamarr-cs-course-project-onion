@@ -142,6 +142,7 @@ Canonical DAL DTOs should:
 - Implement the relevant base entity interface.
 - Mostly contain scalar fields from the same table/entity.
 - Avoid data that requires unloaded navigation properties.
+- Expose localized domain values as strings, not `LangStr`. Repositories and mappers translate `LangStr` to display strings on reads, and convert strings back to `LangStr` inside persistence/update code while preserving translations with `SetTranslation(...)` where an existing entity is being updated.
 
 Projection DTOs should:
 

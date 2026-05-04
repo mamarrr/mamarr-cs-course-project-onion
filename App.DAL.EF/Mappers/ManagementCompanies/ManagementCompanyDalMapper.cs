@@ -18,6 +18,12 @@ public class ManagementCompanyDalMapper : IBaseMapper<ManagementCompanyDalDto, M
             Id = entity.Id,
             Name = entity.Name,
             Slug = entity.Slug,
+            RegistryCode = entity.RegistryCode,
+            VatNumber = entity.VatNumber,
+            Email = entity.Email,
+            Phone = entity.Phone,
+            Address = entity.Address,
+            CreatedAt = entity.CreatedAt,
             IsActive = entity.IsActive
         };
     }
@@ -34,6 +40,12 @@ public class ManagementCompanyDalMapper : IBaseMapper<ManagementCompanyDalDto, M
             Id = entity.Id,
             Name = entity.Name,
             Slug = entity.Slug,
+            RegistryCode = entity.RegistryCode,
+            VatNumber = entity.VatNumber,
+            Email = entity.Email,
+            Phone = entity.Phone,
+            Address = entity.Address,
+            CreatedAt = entity.CreatedAt,
             IsActive = entity.IsActive
         };
     }

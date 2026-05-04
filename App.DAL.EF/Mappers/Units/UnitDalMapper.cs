@@ -1,6 +1,7 @@
 using App.DAL.DTO.Units;
 using App.Domain;
 using Base.Contracts;
+using Base.Domain;
 
 namespace App.DAL.EF.Mappers.Units;
 
@@ -17,11 +18,13 @@ public class UnitDalMapper : IBaseMapper<UnitDalDto, Unit>
         {
             Id = entity.Id,
             PropertyId = entity.PropertyId,
-            CustomerId = entity.Property?.CustomerId ?? Guid.Empty,
-            ManagementCompanyId = entity.Property?.Customer?.ManagementCompanyId ?? Guid.Empty,
             UnitNr = entity.UnitNr,
             Slug = entity.Slug,
-            IsActive = entity.IsActive
+            FloorNr = entity.FloorNr,
+            SizeM2 = entity.SizeM2,
+            Notes = entity.Notes?.ToString(),
+            IsActive = entity.IsActive,
+            CreatedAt = entity.CreatedAt
         };
     }
 
@@ -38,7 +41,11 @@ public class UnitDalMapper : IBaseMapper<UnitDalDto, Unit>
             PropertyId = entity.PropertyId,
             UnitNr = entity.UnitNr,
             Slug = entity.Slug,
-            IsActive = entity.IsActive
+            FloorNr = entity.FloorNr,
+            SizeM2 = entity.SizeM2,
+            Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim()),
+            IsActive = entity.IsActive,
+            CreatedAt = entity.CreatedAt
         };
     }
 }

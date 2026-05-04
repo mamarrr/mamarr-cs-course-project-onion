@@ -5,12 +5,12 @@ namespace App.DAL.Contracts.Repositories;
 
 public interface IManagementCompanyJoinRequestRepository : IBaseRepository<ManagementCompanyJoinRequestDalDto>
 {
-    Task<IReadOnlyList<ManagementCompanyJoinRequestDalDto>> PendingByCompanyAsync(
+    Task<IReadOnlyList<ManagementCompanyJoinRequestDetailsDalDto>> PendingByCompanyAsync(
         Guid managementCompanyId,
         Guid pendingStatusId,
         CancellationToken cancellationToken = default);
 
-    Task<ManagementCompanyJoinRequestDalDto?> FindByIdAndCompanyAsync(
+    Task<ManagementCompanyJoinRequestDetailsDalDto?> FindByIdAndCompanyAsync(
         Guid requestId,
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);

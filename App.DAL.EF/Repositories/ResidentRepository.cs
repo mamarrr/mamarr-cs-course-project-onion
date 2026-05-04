@@ -188,7 +188,8 @@ public class ResidentRepository :
             LastName = resident.LastName,
             IdCode = resident.IdCode,
             PreferredLanguage = resident.PreferredLanguage,
-            IsActive = resident.IsActive
+            IsActive = resident.IsActive,
+            CreatedAt = resident.CreatedAt
         });
     }
 

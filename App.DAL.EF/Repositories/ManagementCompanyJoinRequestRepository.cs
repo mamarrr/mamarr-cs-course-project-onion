@@ -22,7 +22,7 @@ public class ManagementCompanyJoinRequestRepository :
         _dbContext = dbContext;
     }
 
-    public async Task<IReadOnlyList<ManagementCompanyJoinRequestDalDto>> PendingByCompanyAsync(
+    public async Task<IReadOnlyList<ManagementCompanyJoinRequestDetailsDalDto>> PendingByCompanyAsync(
         Guid managementCompanyId,
         Guid pendingStatusId,
         CancellationToken cancellationToken = default)
@@ -31,7 +31,7 @@ public class ManagementCompanyJoinRequestRepository :
             .Where(request => request.ManagementCompanyId == managementCompanyId
                               && request.ManagementCompanyJoinRequestStatusId == pendingStatusId)
             .OrderByDescending(request => request.CreatedAt)
-            .Select(request => new ManagementCompanyJoinRequestDalDto
+            .Select(request => new ManagementCompanyJoinRequestDetailsDalDto
             {
                 Id = request.Id,
                 AppUserId = request.AppUserId,
@@ -53,7 +53,7 @@ public class ManagementCompanyJoinRequestRepository :
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<ManagementCompanyJoinRequestDalDto?> FindByIdAndCompanyAsync(
+    public async Task<ManagementCompanyJoinRequestDetailsDalDto?> FindByIdAndCompanyAsync(
         Guid requestId,
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
@@ -61,7 +61,7 @@ public class ManagementCompanyJoinRequestRepository :
         return await RequestQuery()
             .Where(request => request.Id == requestId
                               && request.ManagementCompanyId == managementCompanyId)
-            .Select(request => new ManagementCompanyJoinRequestDalDto
+            .Select(request => new ManagementCompanyJoinRequestDetailsDalDto
             {
                 Id = request.Id,
                 AppUserId = request.AppUserId,

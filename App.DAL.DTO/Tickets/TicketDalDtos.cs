@@ -1,5 +1,3 @@
-using Base.Domain;
-
 namespace App.DAL.DTO.Tickets;
 
 public class TicketListFilterDalDto
@@ -76,8 +74,8 @@ public class TicketEditDalDto
     public Guid Id { get; init; }
     public Guid ManagementCompanyId { get; init; }
     public string TicketNr { get; init; } = default!;
-    public LangStr Title { get; init; } = default!;
-    public LangStr Description { get; init; } = default!;
+    public string Title { get; init; } = default!;
+    public string Description { get; init; } = default!;
     public Guid TicketStatusId { get; init; }
     public string StatusCode { get; init; } = default!;
     public Guid TicketPriorityId { get; init; }
@@ -95,8 +93,9 @@ public class TicketCreateDalDto
 {
     public Guid ManagementCompanyId { get; init; }
     public string TicketNr { get; init; } = default!;
-    public LangStr Title { get; init; } = default!;
-    public LangStr Description { get; init; } = default!;
+    public string Title { get; init; } = default!;
+    public string Description { get; init; } = default!;
+    public string Culture { get; init; } = default!;
     public Guid TicketCategoryId { get; init; }
     public Guid TicketStatusId { get; init; }
     public Guid TicketPriorityId { get; init; }

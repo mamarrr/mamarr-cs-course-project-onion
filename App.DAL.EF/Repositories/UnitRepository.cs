@@ -192,7 +192,11 @@ public class UnitRepository :
             PropertyId = unit.PropertyId,
             UnitNr = unit.UnitNr,
             Slug = unit.Slug,
-            IsActive = unit.IsActive
+            FloorNr = unit.FloorNr,
+            SizeM2 = unit.SizeM2,
+            Notes = unit.Notes?.ToString(),
+            IsActive = unit.IsActive,
+            CreatedAt = unit.CreatedAt
         });
     }
 

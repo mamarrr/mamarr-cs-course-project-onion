@@ -8,7 +8,6 @@ using App.BLL.Contracts.Tickets.Models;
 using App.BLL.Contracts.Tickets.Queries;
 using App.DAL.Contracts;
 using App.DAL.DTO.Tickets;
-using Base.Domain;
 using FluentResults;
 
 namespace App.BLL.Services.Tickets;
@@ -289,8 +288,9 @@ public class ManagementTicketService : IManagementTicketService
             {
                 ManagementCompanyId = workspace.Value.ManagementCompanyId,
                 TicketNr = normalized.TicketNr,
-                Title = new LangStr(normalized.Title, normalized.Culture),
-                Description = new LangStr(normalized.Description, normalized.Culture),
+                Title = normalized.Title,
+                Description = normalized.Description,
+                Culture = normalized.Culture,
                 TicketCategoryId = command.TicketCategoryId,
                 TicketStatusId = createdStatus.Id,
                 TicketPriorityId = command.TicketPriorityId,

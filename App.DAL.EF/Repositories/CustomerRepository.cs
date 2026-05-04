@@ -117,7 +117,12 @@ public class CustomerRepository :
             Name = customer.Name,
             Slug = customer.Slug,
             RegistryCode = customer.RegistryCode,
-            IsActive = customer.IsActive
+            BillingEmail = customer.BillingEmail,
+            BillingAddress = customer.BillingAddress,
+            Phone = customer.Phone,
+            Notes = customer.Notes?.ToString(),
+            IsActive = customer.IsActive,
+            CreatedAt = customer.CreatedAt
         });
     }
 

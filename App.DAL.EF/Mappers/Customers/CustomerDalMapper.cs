@@ -1,6 +1,7 @@
 using App.DAL.DTO.Customers;
 using App.Domain;
 using Base.Contracts;
+using Base.Domain;
 
 namespace App.DAL.EF.Mappers.Customers;
 
@@ -20,7 +21,12 @@ public class CustomerDalMapper : IBaseMapper<CustomerDalDto, Customer>
             Name = entity.Name,
             Slug = entity.Slug,
             RegistryCode = entity.RegistryCode,
-            IsActive = entity.IsActive
+            BillingEmail = entity.BillingEmail,
+            BillingAddress = entity.BillingAddress,
+            Phone = entity.Phone,
+            Notes = entity.Notes?.ToString(),
+            IsActive = entity.IsActive,
+            CreatedAt = entity.CreatedAt
         };
     }
 
@@ -38,7 +44,12 @@ public class CustomerDalMapper : IBaseMapper<CustomerDalDto, Customer>
             Name = entity.Name,
             Slug = entity.Slug,
             RegistryCode = entity.RegistryCode,
-            IsActive = entity.IsActive
+            BillingEmail = entity.BillingEmail,
+            BillingAddress = entity.BillingAddress,
+            Phone = entity.Phone,
+            Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim()),
+            IsActive = entity.IsActive,
+            CreatedAt = entity.CreatedAt
         };
     }
 }
