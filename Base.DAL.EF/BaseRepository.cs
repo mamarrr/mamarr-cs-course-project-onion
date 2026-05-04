@@ -35,7 +35,9 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
         RepositoryDbSet = RepositoryDbContext.Set<TDomainEntity>();
     }
     
-    public virtual async Task<IEnumerable<TDALEntity>> AllAsync(TKey parentId = default!)
+    public virtual async Task<IEnumerable<TDALEntity>> AllAsync(
+        TKey parentId = default!,
+        CancellationToken cancellationToken = default)
     {
         var query = RepositoryDbSet.AsQueryable();
 
@@ -43,19 +45,22 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
         {
             query = ApplyIdorRestrictions(query, parentId);
         }
-        var domainRes = await query.ToListAsync();
+        var domainRes = await query.ToListAsync(cancellationToken);
         var res = domainRes.Select(e => Mapper.Map(e)!);
         return res;
     }
 
-    public virtual async Task<TDALEntity?> FindAsync(TKey id, TKey parentId = default!)
+    public virtual async Task<TDALEntity?> FindAsync(
+        TKey id,
+        TKey parentId = default!,
+        CancellationToken cancellationToken = default)
     {
         var query = RepositoryDbSet.AsQueryable();
         if (!parentId.Equals(default))
         {
             query = ApplyIdorRestrictions(query, parentId);
         }
-        var domainRes = await query.FirstOrDefaultAsync(e => e.Id.Equals(id));
+        var domainRes = await query.FirstOrDefaultAsync(e => e.Id.Equals(id), cancellationToken);
         var res = Mapper.Map(domainRes);
         return res;
     }
@@ -79,10 +84,22 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
         RepositoryDbSet.Remove(Mapper.Map(entity)!);
     }
 
-    public async Task RemoveAsync(TKey id)
+    public async Task RemoveAsync(
+        TKey id,
+        TKey parentId = default!,
+        CancellationToken cancellationToken = default)
     {
-        var entity = await RepositoryDbSet.FindAsync(id);
-        if (entity != null) Remove(Mapper.Map(entity)!);
+        var query = RepositoryDbSet.AsTracking();
+        if (!parentId.Equals(default))
+        {
+            query = ApplyIdorRestrictions(query, parentId);
+        }
+
+        var entity = await query.FirstOrDefaultAsync(e => e.Id.Equals(id), cancellationToken);
+        if (entity != null)
+        {
+            RepositoryDbSet.Remove(entity);
+        }
     }
 
     private IQueryable<TDomainEntity> ApplyIdorRestrictions(IQueryable<TDomainEntity> query, TKey parentId)

@@ -36,16 +36,21 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
     }
 
 
-    public virtual async Task<IEnumerable<TBLLEntity>> AllAsync(TKey appUserId = default!)
+    public virtual async Task<IEnumerable<TBLLEntity>> AllAsync(
+        TKey parentId = default!,
+        CancellationToken cancellationToken = default)
     {
-        var res = await ServiceRepository.AllAsync(appUserId);
+        var res = await ServiceRepository.AllAsync(parentId, cancellationToken);
         var mappedRes = res.Select(e => Mapper.Map(e)!).ToList();
         return mappedRes;
     }
 
-    public virtual async Task<TBLLEntity?> FindAsync(TKey id, TKey appUserId = default!)
+    public virtual async Task<TBLLEntity?> FindAsync(
+        TKey id,
+        TKey parentId = default!,
+        CancellationToken cancellationToken = default)
     {
-        var res = await ServiceRepository.FindAsync(id, appUserId);
+        var res = await ServiceRepository.FindAsync(id, parentId, cancellationToken);
         return Mapper.Map(res);
     }
 
@@ -65,8 +70,11 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
         ServiceRepository.Remove(Mapper.Map(entity)!);
     }
 
-    public virtual async Task RemoveAsync(TKey id)
+    public virtual async Task RemoveAsync(
+        TKey id,
+        TKey parentId = default!,
+        CancellationToken cancellationToken = default)
     {
-        await ServiceRepository.RemoveAsync(id);
+        await ServiceRepository.RemoveAsync(id, parentId, cancellationToken);
     }
 }

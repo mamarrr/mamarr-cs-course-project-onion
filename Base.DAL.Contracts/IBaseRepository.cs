@@ -12,13 +12,13 @@ public interface IBaseRepository<TKey, TEntity>
     where TKey : IEquatable<TKey>
     where TEntity : IBaseEntity<TKey>
 {
-    Task<IEnumerable<TEntity>> AllAsync(TKey parentId = default!);
-    Task<TEntity?> FindAsync(TKey id, TKey parentId = default!);
+    Task<IEnumerable<TEntity>> AllAsync(TKey parentId = default!, CancellationToken cancellationToken = default);
+    Task<TEntity?> FindAsync(TKey id, TKey parentId = default!, CancellationToken cancellationToken = default);
 
     void Add(TEntity entity);
 
     TEntity Update(TEntity entity);
 
     void Remove(TEntity entity);
-    Task RemoveAsync(TKey id);
+    Task RemoveAsync(TKey id, TKey parentId = default!, CancellationToken cancellationToken = default);
 }
