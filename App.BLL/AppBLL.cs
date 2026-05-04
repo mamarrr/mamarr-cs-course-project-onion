@@ -7,7 +7,6 @@ using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
-using App.BLL.Contracts.Vendors;
 using App.BLL.Services.Customers;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
@@ -47,7 +46,6 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private ILeaseAssignmentService? _leaseAssignments;
     private ILeaseLookupService? _leaseLookups;
     private IManagementTicketService? _managementTickets;
-    private IManagementVendorService? _managementVendors;
 
     public IAccountIdentityService AccountIdentity =>
         _accountIdentity ?? throw new InvalidOperationException(
@@ -106,10 +104,6 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 
     public IManagementTicketService ManagementTickets =>
         _managementTickets ??= new ManagementTicketService(CustomerAccess, UOW);
-
-    public IManagementVendorService ManagementVendors =>
-        _managementVendors ?? throw new NotImplementedException(
-            $"{nameof(IManagementVendorService)} has no App.BLL implementation yet.");
 
     private IResidentAccessService ResidentAccess =>
         _residentAccess ??= new ResidentAccessService(UOW);
