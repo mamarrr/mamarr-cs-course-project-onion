@@ -2,6 +2,8 @@
 
 Scope: Phase 1 audit artifact for `DAL_REFACTOR_PHASE_01_STABILIZE_BASE_REPOSITORY_USAGE.md`.
 
+Give to phases: 3, 4, 5, 6, 7. Phase 2 optional additional context.
+
 ## Base Repository Decisions
 
 - `IBaseRepository` uses `parentId` for optional parent/scope filtering.
