@@ -3,6 +3,7 @@ using App.BLL.Contracts.Onboarding.Models;
 using App.Domain.Identity;
 using FluentResults;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace WebApp.Services.Identity;
 
@@ -17,6 +18,14 @@ public class IdentityAccountService : IIdentityAccountService
     {
         _userManager = userManager;
         _signInManager = signInManager;
+    }
+
+    public async Task<Guid?> GetAuthenticatedUserIdAsync(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken = default)
+    {
+        var appUser = await _userManager.GetUserAsync(principal);
+        return appUser?.Id;
     }
 
     public async Task<Guid?> FindUserIdByEmailAsync(

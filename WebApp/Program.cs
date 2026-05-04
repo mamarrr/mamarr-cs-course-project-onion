@@ -17,6 +17,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApp;
 using WebApp.Helpers;
 using WebApp.Middleware;
+using WebApp.Services.Identity;
 using WebApp.UI.Breadcrumbs;
 using WebApp.UI.Chrome;
 using WebApp.UI.Culture;
@@ -54,6 +55,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddAppBll();
 builder.Services.AddWebAppMappers();
+builder.Services.AddScoped<IIdentityAccountService, IdentityAccountService>();
 builder.Services.AddScoped<IAppChromeBuilder, AppChromeBuilder>();
 builder.Services.AddScoped<IWorkspaceResolver, WorkspaceResolver>();
 builder.Services.AddScoped<IBreadcrumbBuilder, BreadcrumbBuilder>();

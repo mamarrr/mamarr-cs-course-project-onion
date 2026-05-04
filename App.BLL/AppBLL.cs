@@ -11,6 +11,8 @@ using App.BLL.Services.Customers;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
 using App.BLL.Services.Onboarding.Account;
+using App.BLL.Services.Onboarding.Api;
+using App.BLL.Services.Onboarding.CompanyJoinRequests;
 using App.BLL.Services.Onboarding.ContextSelection;
 using App.BLL.Services.Onboarding.WorkspaceCatalog;
 using App.BLL.Services.Properties;
@@ -29,6 +31,8 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private ICustomerProfileService? _customerProfiles;
     private ICustomerWorkspaceService? _customerWorkspaces;
     private IAccountOnboardingService? _accountOnboarding;
+    private IOnboardingCompanyJoinRequestService? _onboardingCompanyJoinRequests;
+    private IApiOnboardingContextService? _apiOnboardingContexts;
     private IWorkspaceCatalogService? _workspaceCatalog;
     private IWorkspaceRedirectService? _workspaceRedirect;
     private IManagementCompanyProfileService? _managementCompanyProfiles;
@@ -51,11 +55,19 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     public IAccountOnboardingService AccountOnboarding =>
         _accountOnboarding ??= new AccountOnboardingService(UOW);
 
+    public IOnboardingCompanyJoinRequestService OnboardingCompanyJoinRequests =>
+        _onboardingCompanyJoinRequests ??= new OnboardingCompanyJoinRequestService(UOW);
+
+    public IApiOnboardingContextService ApiOnboardingContexts =>
+        _apiOnboardingContexts ??= new ApiWorkspaceContextService(UOW, AccountOnboarding);
+
     public IWorkspaceCatalogService WorkspaceCatalog =>
         _workspaceCatalog ??= new UserWorkspaceCatalogService(UOW);
 
     public IWorkspaceRedirectService WorkspaceRedirect =>
         _workspaceRedirect ??= new WorkspaceRedirectService(UOW, AccountOnboarding, WorkspaceCatalog);
+
+    public IContextSelectionService ContextSelection => (IContextSelectionService) WorkspaceRedirect;
 
     public IManagementCompanyProfileService ManagementCompanyProfiles =>
         _managementCompanyProfiles ??= new ManagementCompanyProfileService(UOW, CompanyMembershipAdmin);
@@ -102,13 +114,14 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     public IManagementTicketService ManagementTickets =>
         _managementTickets ??= new ManagementTicketService(CustomerAccess, UOW);
 
-    private IResidentAccessService ResidentAccess =>
+    public IResidentAccessService ResidentAccess =>
         _residentAccess ??= new ResidentAccessService(UOW);
 
-    private IUnitAccessService UnitAccess =>
+    public IUnitAccessService UnitAccess =>
         _unitAccess ??= new UnitAccessService(UOW);
 
-    public AppBLL(IAppUOW uow) : base(uow)
+    public AppBLL(
+        IAppUOW uow) : base(uow)
     {
     }
 }

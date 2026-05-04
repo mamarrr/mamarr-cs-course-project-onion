@@ -1,6 +1,6 @@
-using App.Domain.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using App.BLL.Contracts;
 using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.ManagementCompanies.Models;
 using App.BLL.Contracts.Onboarding;
@@ -8,39 +8,27 @@ using App.BLL.Contracts.Onboarding.Commands;
 using App.BLL.Contracts.Onboarding.Models;
 using App.BLL.Contracts.Onboarding.Queries;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Onboarding;
+using WebApp.Services.Identity;
 using WebApp.ViewModels.Onboarding;
 
 namespace WebApp.Controllers;
 
 public class OnboardingController : Controller
 {
-    private readonly IAccountOnboardingService _accountOnboardingService;
-    private readonly IWorkspaceRedirectService _workspaceRedirectService;
-    private readonly IOnboardingCompanyJoinRequestService _joinRequestService;
-    private readonly ICompanyMembershipAdminService _companyMembershipAdminService;
+    private readonly IAppBLL _bll;
+    private readonly IIdentityAccountService _identityAccountService;
     private readonly OnboardingViewModelMapper _mapper;
-    private readonly UserManager<AppUser> _userManager;
-    private readonly ILogger<OnboardingController> _logger;
 
     public OnboardingController(
-        IAccountOnboardingService accountOnboardingService,
-        IWorkspaceRedirectService workspaceRedirectService,
-        IOnboardingCompanyJoinRequestService joinRequestService,
-        ICompanyMembershipAdminService companyMembershipAdminService,
-        OnboardingViewModelMapper mapper,
-        UserManager<AppUser> userManager,
-        ILogger<OnboardingController> logger)
+        IAppBLL bll,
+        IIdentityAccountService identityAccountService,
+        OnboardingViewModelMapper mapper)
     {
-        _accountOnboardingService = accountOnboardingService;
-        _workspaceRedirectService = workspaceRedirectService;
-        _joinRequestService = joinRequestService;
-        _companyMembershipAdminService = companyMembershipAdminService;
+        _bll = bll;
+        _identityAccountService = identityAccountService;
         _mapper = mapper;
-        _userManager = userManager;
-        _logger = logger;
     }
 
     [AllowAnonymous]
@@ -60,8 +48,8 @@ public class OnboardingController : Controller
             return RedirectToAction("Index", "Home");
         }
 
-        var appUser = await _userManager.GetUserAsync(User);
-        if (appUser == null)
+        var appUserId = await _identityAccountService.GetAuthenticatedUserIdAsync(User, HttpContext.RequestAborted);
+        if (appUserId == null)
         {
             return RedirectToAction(nameof(Login));
         }
@@ -71,7 +59,7 @@ public class OnboardingController : Controller
             return View(new FlowChooserViewModel());
         }
 
-        var redirectTarget = await ResolveContextRedirectAsync(appUser.Id, HttpContext.RequestAborted);
+        var redirectTarget = await ResolveContextRedirectAsync(appUserId.Value, HttpContext.RequestAborted);
         if (redirectTarget != null)
         {
             return redirectTarget;
@@ -84,7 +72,6 @@ public class OnboardingController : Controller
     [HttpGet]
     public IActionResult Register()
     {
-        LogOnboardingFormLocalizationDiagnostics();
 
         if (User.Identity?.IsAuthenticated == true)
         {
@@ -109,7 +96,7 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _accountOnboardingService.RegisterAsync(
+        var result = await _identityAccountService.CreateUserAsync(
             _mapper.Map(vm),
             HttpContext.RequestAborted);
 
@@ -128,7 +115,6 @@ public class OnboardingController : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
-        LogOnboardingFormLocalizationDiagnostics();
 
         if (User.Identity?.IsAuthenticated == true)
         {
@@ -153,7 +139,7 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _accountOnboardingService.LoginAsync(
+        var result = await _identityAccountService.PasswordSignInAsync(
             _mapper.Map(vm),
             HttpContext.RequestAborted);
 
@@ -168,13 +154,7 @@ public class OnboardingController : Controller
             return LocalRedirect(vm.ReturnUrl);
         }
 
-        var appUser = await _userManager.GetUserAsync(User);
-        if (appUser == null)
-        {
-            return RedirectToAction(nameof(Index));
-        }
-
-        var redirectTarget = await ResolveContextRedirectAsync(appUser.Id, HttpContext.RequestAborted);
+        var redirectTarget = await ResolveContextRedirectAsync(result.Value.AppUserId, HttpContext.RequestAborted);
         if (redirectTarget != null)
         {
             return redirectTarget;
@@ -189,9 +169,7 @@ public class OnboardingController : Controller
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            await _accountOnboardingService.LogoutAsync(
-                new LogoutCommand(),
-                HttpContext.RequestAborted);
+            await _identityAccountService.SignOutAsync(HttpContext.RequestAborted);
         }
 
         return RedirectToAction(nameof(Index));
@@ -201,8 +179,8 @@ public class OnboardingController : Controller
     [HttpGet]
     public async Task<IActionResult> SetContext(string type, Guid? id = null, string? returnUrl = null)
     {
-        var appUser = await _userManager.GetUserAsync(User);
-        if (appUser == null)
+        var appUserId = await _identityAccountService.GetAuthenticatedUserIdAsync(User, HttpContext.RequestAborted);
+        if (appUserId == null)
         {
             return RedirectToAction(nameof(Login));
         }
@@ -216,10 +194,10 @@ public class OnboardingController : Controller
             SameSite = SameSiteMode.Lax
         };
 
-        var authorizationResult = await _workspaceRedirectService.AuthorizeContextSelectionAsync(
+        var authorizationResult = await _bll.WorkspaceRedirect.AuthorizeContextSelectionAsync(
             new AuthorizeContextSelectionQuery
             {
-                AppUserId = appUser.Id,
+                AppUserId = appUserId.Value,
                 ContextType = type,
                 ContextId = id
             },
@@ -258,8 +236,8 @@ public class OnboardingController : Controller
     [HttpGet]
     public async Task<IActionResult> NewManagementCompany()
     {
-        var appUser = await _userManager.GetUserAsync(User);
-        if (appUser == null)
+        var appUserId = await _identityAccountService.GetAuthenticatedUserIdAsync(User, HttpContext.RequestAborted);
+        if (appUserId == null)
         {
             return RedirectToAction(nameof(Login));
         }
@@ -282,14 +260,14 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var appUser = await _userManager.GetUserAsync(User);
-        if (appUser == null)
+        var appUserId = await _identityAccountService.GetAuthenticatedUserIdAsync(User, HttpContext.RequestAborted);
+        if (appUserId == null)
         {
             return RedirectToAction(nameof(Login));
         }
 
-        var result = await _accountOnboardingService.CreateManagementCompanyAsync(
-            _mapper.Map(appUser.Id, vm),
+        var result = await _bll.AccountOnboarding.CreateManagementCompanyAsync(
+            _mapper.Map(appUserId.Value, vm),
             HttpContext.RequestAborted);
 
         if (result.IsFailed)
@@ -324,8 +302,8 @@ public class OnboardingController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> JoinManagementCompany(JoinManagementCompanyViewModel vm, CancellationToken cancellationToken)
     {
-        var appUser = await _userManager.GetUserAsync(User);
-        if (appUser == null)
+        var appUserId = await _identityAccountService.GetAuthenticatedUserIdAsync(User, cancellationToken);
+        if (appUserId == null)
         {
             return RedirectToAction(nameof(Login));
         }
@@ -342,8 +320,8 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _joinRequestService.CreateJoinRequestAsync(
-            _mapper.Map(appUser.Id, vm),
+        var result = await _bll.OnboardingCompanyJoinRequests.CreateJoinRequestAsync(
+            _mapper.Map(appUserId.Value, vm),
             cancellationToken);
 
         if (result.IsFailed)
@@ -378,7 +356,7 @@ public class OnboardingController : Controller
             return RedirectToAction("Index", "Home");
         }
 
-        var redirectTarget = await _workspaceRedirectService.ResolveContextRedirectAsync(
+        var redirectTarget = await _bll.WorkspaceRedirect.ResolveContextRedirectAsync(
             new ResolveWorkspaceRedirectQuery
             {
                 AppUserId = appUserId,
@@ -428,7 +406,7 @@ public class OnboardingController : Controller
         CancellationToken cancellationToken,
         Guid? selectedRoleId)
     {
-        var roles = await _companyMembershipAdminService.GetAvailableRolesAsync(cancellationToken);
+        var roles = await _bll.CompanyMembershipAdmin.GetAvailableRolesAsync(cancellationToken);
         return roles
             .Select(r => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
             {
@@ -437,43 +415,6 @@ public class OnboardingController : Controller
                 Selected = selectedRoleId.HasValue && selectedRoleId.Value == r.RoleId
             })
             .ToList();
-    }
-
-    private void LogOnboardingFormLocalizationDiagnostics()
-    {
-        var loginEmailHasDisplay = HasDisplayAttribute<LoginViewModel>(nameof(LoginViewModel.Email));
-        var loginPasswordHasDisplay = HasDisplayAttribute<LoginViewModel>(nameof(LoginViewModel.Password));
-        var loginRememberMeHasDisplay = HasDisplayAttribute<LoginViewModel>(nameof(LoginViewModel.RememberMe));
-
-        var registerEmailHasDisplay = HasDisplayAttribute<RegisterViewModel>(nameof(RegisterViewModel.Email));
-        var registerPasswordHasDisplay = HasDisplayAttribute<RegisterViewModel>(nameof(RegisterViewModel.Password));
-        var registerFirstNameHasDisplay = HasDisplayAttribute<RegisterViewModel>(nameof(RegisterViewModel.FirstName));
-        var registerLastNameHasDisplay = HasDisplayAttribute<RegisterViewModel>(nameof(RegisterViewModel.LastName));
-
-        var uiCulture = CultureInfo.CurrentUICulture;
-
-        var hasEmailResource = !string.IsNullOrWhiteSpace(App.Resources.Views.UiText.ResourceManager.GetString("Email", uiCulture));
-        var hasPasswordResource = !string.IsNullOrWhiteSpace(App.Resources.Views.UiText.ResourceManager.GetString("Password", uiCulture));
-        var hasRememberMeResource = !string.IsNullOrWhiteSpace(App.Resources.Views.UiText.ResourceManager.GetString("RememberMe", uiCulture));
-        var hasFirstNameResource = !string.IsNullOrWhiteSpace(App.Resources.Views.UiText.ResourceManager.GetString("FirstName", uiCulture));
-        var hasLastNameResource = !string.IsNullOrWhiteSpace(App.Resources.Views.UiText.ResourceManager.GetString("LastName", uiCulture));
-
-        _logger.LogInformation(
-            "Onboarding localization diagnostics. UICulture={UICulture}; Culture={Culture}; Login DisplayAttrs: Email={LoginEmailDisplay}, Password={LoginPasswordDisplay}, RememberMe={LoginRememberMeDisplay}; Register DisplayAttrs: Email={RegisterEmailDisplay}, Password={RegisterPasswordDisplay}, FirstName={RegisterFirstNameDisplay}, LastName={RegisterLastNameDisplay}; UiText keys present: Email={HasEmailResource}, Password={HasPasswordResource}, RememberMe={HasRememberMeResource}, FirstName={HasFirstNameResource}, LastName={HasLastNameResource}",
-            uiCulture.Name,
-            CultureInfo.CurrentCulture.Name,
-            loginEmailHasDisplay,
-            loginPasswordHasDisplay,
-            loginRememberMeHasDisplay,
-            registerEmailHasDisplay,
-            registerPasswordHasDisplay,
-            registerFirstNameHasDisplay,
-            registerLastNameHasDisplay,
-            hasEmailResource,
-            hasPasswordResource,
-            hasRememberMeResource,
-            hasFirstNameResource,
-            hasLastNameResource);
     }
 
     private static bool HasDisplayAttribute<TModel>(string propertyName)

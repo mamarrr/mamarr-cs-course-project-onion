@@ -1,5 +1,5 @@
 using System.Net;
-using App.BLL.Contracts.Onboarding;
+using App.BLL.Contracts;
 using App.BLL.Contracts.Onboarding.Commands;
 using App.DTO.v1;
 using App.DTO.v1.Onboarding;
@@ -7,10 +7,9 @@ using App.DTO.v1.Shared;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using App.Domain.Identity;
 using WebApp.ApiControllers.Shared;
+using WebApp.Services.Identity;
 
 namespace WebApp.ApiControllers.Onboarding;
 
@@ -20,21 +19,18 @@ namespace WebApp.ApiControllers.Onboarding;
 [Route("/api/v{version:apiVersion}/onboarding")]
 public class OnboardingController : ControllerBase
 {
-    private readonly IApiOnboardingContextService _apiOnboardingContextService;
     private readonly IApiOnboardingRouteContextMapper _routeContextMapper;
-    private readonly IAccountOnboardingService _accountOnboardingService;
-    private readonly UserManager<AppUser> _userManager;
+    private readonly IAppBLL _bll;
+    private readonly IIdentityAccountService _identityAccountService;
 
     public OnboardingController(
-        IApiOnboardingContextService apiOnboardingContextService,
         IApiOnboardingRouteContextMapper routeContextMapper,
-        IAccountOnboardingService accountOnboardingService,
-        UserManager<AppUser> userManager)
+        IAppBLL bll,
+        IIdentityAccountService identityAccountService)
     {
-        _apiOnboardingContextService = apiOnboardingContextService;
         _routeContextMapper = routeContextMapper;
-        _accountOnboardingService = accountOnboardingService;
-        _userManager = userManager;
+        _bll = bll;
+        _identityAccountService = identityAccountService;
     }
 
     [HttpGet("contexts")]
@@ -43,13 +39,13 @@ public class OnboardingController : ControllerBase
     [ProducesResponseType<RestApiErrorResponse>((int)HttpStatusCode.Unauthorized)]
     public async Task<ActionResult<OnboardingContextsResponseDto>> GetContexts(CancellationToken cancellationToken)
     {
-        var appUser = await _userManager.GetUserAsync(User);
-        if (appUser == null)
+        var appUserId = await _identityAccountService.GetAuthenticatedUserIdAsync(User, cancellationToken);
+        if (appUserId == null)
         {
             return Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized));
         }
 
-        var catalog = await _apiOnboardingContextService.GetContextsAsync(appUser.Id, cancellationToken);
+        var catalog = await _bll.ApiOnboardingContexts.GetContextsAsync(appUserId.Value, cancellationToken);
         var response = _routeContextMapper.MapCatalog(catalog.Value);
 
         return Ok(response);
@@ -64,8 +60,8 @@ public class OnboardingController : ControllerBase
     public async Task<ActionResult<CreateManagementCompanyResponseDto>> CreateManagementCompany(
         [FromBody] CreateManagementCompanyRequestDto dto)
     {
-        var appUser = await _userManager.GetUserAsync(User);
-        if (appUser == null)
+        var appUserId = await _identityAccountService.GetAuthenticatedUserIdAsync(User, HttpContext.RequestAborted);
+        if (appUserId == null)
         {
             return Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized));
         }
@@ -75,16 +71,16 @@ public class OnboardingController : ControllerBase
             return BadRequest(CreateValidationError());
         }
 
-        var result = await _accountOnboardingService.CreateManagementCompanyAsync(new CreateManagementCompanyCommand
+        var result = await _bll.AccountOnboarding.CreateManagementCompanyAsync(new CreateManagementCompanyCommand
         {
-            AppUserId = appUser.Id,
+            AppUserId = appUserId.Value,
             Name = dto.Name,
             RegistryCode = dto.RegistryCode,
             VatNumber = dto.VatNumber,
             Email = dto.Email,
             Phone = dto.Phone,
             Address = dto.Address
-        });
+        }, HttpContext.RequestAborted);
 
         if (result.IsFailed)
         {

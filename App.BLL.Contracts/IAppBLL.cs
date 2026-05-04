@@ -13,22 +13,28 @@ namespace App.BLL.Contracts;
 public interface IAppBLL : IBaseBLL
 {
     IAccountOnboardingService AccountOnboarding { get; }
+    IOnboardingCompanyJoinRequestService OnboardingCompanyJoinRequests { get; }
+    IApiOnboardingContextService ApiOnboardingContexts { get; }
     IWorkspaceCatalogService WorkspaceCatalog { get; }
     IWorkspaceRedirectService WorkspaceRedirect { get; }
+    IContextSelectionService ContextSelection { get; }
 
     IManagementCompanyProfileService ManagementCompanyProfiles { get; }
     ICompanyMembershipAdminService CompanyMembershipAdmin { get; }
 
     ICompanyCustomerService CompanyCustomers { get; }
+    ICustomerAccessService CustomerAccess { get; }
     ICustomerProfileService CustomerProfiles { get; }
     ICustomerWorkspaceService CustomerWorkspaces { get; }
 
     IPropertyProfileService PropertyProfiles { get; }
     IPropertyWorkspaceService PropertyWorkspaces { get; }
 
+    IResidentAccessService ResidentAccess { get; }
     IResidentProfileService ResidentProfiles { get; }
     IResidentWorkspaceService ResidentWorkspaces { get; }
 
+    IUnitAccessService UnitAccess { get; }
     IUnitProfileService UnitProfiles { get; }
     IUnitWorkspaceService UnitWorkspaces { get; }
 

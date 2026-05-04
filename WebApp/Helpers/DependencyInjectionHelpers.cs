@@ -1,3 +1,5 @@
+using App.BLL;
+using App.BLL.Contracts;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
@@ -35,7 +37,6 @@ using WebApp.Mappers.Mvc.Properties;
 using WebApp.Mappers.Mvc.Residents;
 using WebApp.Mappers.Mvc.Tickets;
 using WebApp.Mappers.Mvc.Units;
-using WebApp.Services;
 using WebApp.Services.Identity;
 
 namespace WebApp.Helpers;
@@ -68,6 +69,7 @@ public static class DependencyInjectionHelpers
 
     public static IServiceCollection AddAppBll(this IServiceCollection services)
     {
+        services.AddScoped<IAppBLL, AppBLL>();
         services.AddScoped<IAccountOnboardingService, AccountOnboardingService>();
         services.AddScoped<IWorkspaceRedirectService, WorkspaceRedirectService>();
         services.AddScoped<IContextSelectionService, WorkspaceRedirectService>();

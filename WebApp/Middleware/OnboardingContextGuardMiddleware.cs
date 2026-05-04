@@ -1,6 +1,5 @@
 using App.BLL.Contracts.Onboarding;
-using App.Domain.Identity;
-using Microsoft.AspNetCore.Identity;
+using WebApp.Services.Identity;
 
 namespace WebApp.Middleware;
 
@@ -22,7 +21,10 @@ public class OnboardingContextGuardMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context, IAccountOnboardingService accountOnboardingService, UserManager<AppUser> userManager)
+    public async Task InvokeAsync(
+        HttpContext context,
+        IAccountOnboardingService accountOnboardingService,
+        IIdentityAccountService identityAccountService)
     {
         var path = context.Request.Path;
 
@@ -44,8 +46,8 @@ public class OnboardingContextGuardMiddleware
             return;
         }
 
-        var appUser = await userManager.GetUserAsync(context.User);
-        if (appUser == null)
+        var appUserId = await identityAccountService.GetAuthenticatedUserIdAsync(context.User, context.RequestAborted);
+        if (appUserId == null)
         {
             await _next(context);
             return;
@@ -59,7 +61,10 @@ public class OnboardingContextGuardMiddleware
                 .FirstOrDefault();
 
             var hasManagementAccess = !string.IsNullOrWhiteSpace(companySlug) &&
-                                      await accountOnboardingService.UserHasManagementCompanyAccessAsync(appUser.Id, companySlug);
+                                      await accountOnboardingService.UserHasManagementCompanyAccessAsync(
+                                          appUserId.Value,
+                                          companySlug,
+                                          context.RequestAborted);
 
             if (!hasManagementAccess)
             {
@@ -71,7 +76,7 @@ public class OnboardingContextGuardMiddleware
             return;
         }
 
-        var hasContext = await accountOnboardingService.HasAnyContextAsync(appUser.Id);
+        var hasContext = await accountOnboardingService.HasAnyContextAsync(appUserId.Value, context.RequestAborted);
         if (hasContext)
         {
             await _next(context);

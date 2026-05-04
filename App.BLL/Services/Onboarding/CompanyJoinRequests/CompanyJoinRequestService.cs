@@ -13,14 +13,11 @@ namespace App.BLL.Services.Onboarding.CompanyJoinRequests;
 public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequestService
 {
     private readonly IAppUOW _uow;
-    private readonly ILogger<OnboardingCompanyJoinRequestService> _logger;
 
     public OnboardingCompanyJoinRequestService(
-        IAppUOW uow,
-        ILogger<OnboardingCompanyJoinRequestService> logger)
+        IAppUOW uow)
     {
         _uow = uow;
-        _logger = logger;
     }
 
     public async Task<Result<OnboardingJoinRequestModel>> CreateJoinRequestAsync(
@@ -30,9 +27,6 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
         var registryCode = command.RegistryCode.Trim();
         if (registryCode.Length == 0)
         {
-            _logger.LogWarning(
-                "Join request validation failed: empty registry code. AppUserId={AppUserId}",
-                command.AppUserId);
             return Result.Fail(L("ManagementCompanyWasNotFound", "Management company was not found."));
         }
 
@@ -41,10 +35,6 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             cancellationToken);
         if (company == null)
         {
-            _logger.LogWarning(
-                "Join request validation failed: company not found by registry code. AppUserId={AppUserId}; RegistryCode={RegistryCode}",
-                command.AppUserId,
-                registryCode);
             return Result.Fail(L("ManagementCompanyWasNotFound", "Management company was not found."));
         }
 
@@ -53,10 +43,6 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             cancellationToken);
         if (role == null)
         {
-            _logger.LogWarning(
-                "Join request validation failed: requested role does not exist. AppUserId={AppUserId}; RequestedRoleId={RequestedRoleId}",
-                command.AppUserId,
-                command.RequestedRoleId);
             return Result.Fail(L("SelectedRoleIsInvalid", "Selected role is invalid."));
         }
 
@@ -66,10 +52,6 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             cancellationToken);
         if (membershipExists)
         {
-            _logger.LogInformation(
-                "Join request skipped: user is already a member. AppUserId={AppUserId}; ManagementCompanyId={ManagementCompanyId}",
-                command.AppUserId,
-                company.Id);
             return Result.Fail(L("AlreadyMemberOfThisManagementCompany", "You are already a member of this management company."));
         }
 
@@ -89,10 +71,6 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             cancellationToken);
         if (duplicatePending)
         {
-            _logger.LogInformation(
-                "Join request skipped: duplicate pending request exists. AppUserId={AppUserId}; ManagementCompanyId={ManagementCompanyId}",
-                command.AppUserId,
-                company.Id);
             return Result.Fail(L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists."));
         }
 
@@ -114,10 +92,6 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
         }
         catch
         {
-            _logger.LogWarning(
-                "Join request save failed; returning duplicate pending response. AppUserId={AppUserId}; ManagementCompanyId={ManagementCompanyId}",
-                command.AppUserId,
-                company.Id);
             return Result.Fail(L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists."));
         }
 

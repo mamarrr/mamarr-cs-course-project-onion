@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Onboarding;
+using App.BLL.Contracts;
 using App.DTO.v1;
 using App.DTO.v1.Identity;
 using App.DTO.v1.Onboarding;
@@ -29,12 +29,12 @@ public class AccountController : ControllerBase
     private readonly SignInManager<AppUser> _signInManager;
     private readonly IConfiguration _configuration;
     private readonly AppDbContext _context;
-    private readonly IApiOnboardingContextService _apiOnboardingContextService;
+    private readonly IAppBLL _bll;
     private readonly IApiOnboardingRouteContextMapper _routeContextMapper;
 
     public AccountController(UserManager<AppUser> userManager, ILogger<AccountController> logger,
         SignInManager<AppUser> signInManager, IConfiguration configuration, AppDbContext context,
-        IApiOnboardingContextService apiOnboardingContextService,
+        IAppBLL bll,
         IApiOnboardingRouteContextMapper routeContextMapper)
     {
         _userManager = userManager;
@@ -42,7 +42,7 @@ public class AccountController : ControllerBase
         _signInManager = signInManager;
         _configuration = configuration;
         _context = context;
-        _apiOnboardingContextService = apiOnboardingContextService;
+        _bll = bll;
         _routeContextMapper = routeContextMapper;
     }
 
@@ -413,7 +413,7 @@ public class AccountController : ControllerBase
     private async Task<SpaJwtResponseDto> BuildSpaJwtResponseAsync(AppUser appUser, string jwt, string refreshToken)
     {
         var roles = await _userManager.GetRolesAsync(appUser);
-        var onboardingContexts = await _apiOnboardingContextService.GetContextsAsync(appUser.Id, HttpContext.RequestAborted);
+        var onboardingContexts = await _bll.ApiOnboardingContexts.GetContextsAsync(appUser.Id, HttpContext.RequestAborted);
 
         return new SpaJwtResponseDto
         {

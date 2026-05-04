@@ -1,11 +1,16 @@
 using App.BLL.Contracts.Onboarding.Commands;
 using App.BLL.Contracts.Onboarding.Models;
 using FluentResults;
+using System.Security.Claims;
 
 namespace WebApp.Services.Identity;
 
 public interface IIdentityAccountService
 {
+    Task<Guid?> GetAuthenticatedUserIdAsync(
+        ClaimsPrincipal principal,
+        CancellationToken cancellationToken = default);
+
     Task<Guid?> FindUserIdByEmailAsync(
         string email,
         CancellationToken cancellationToken = default);
