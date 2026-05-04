@@ -1,5 +1,6 @@
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
+using App.DAL.DTO.Leases;
 using App.DAL.DTO.Lookups;
 using App.Domain;
 using Base.Domain;
@@ -57,6 +58,29 @@ public class LookupRepository : ILookupRepository
         CancellationToken cancellationToken = default)
     {
         return FindByCodeAsync<LeaseRole>(code, cancellationToken);
+    }
+
+    public Task<bool> LeaseRoleExistsAsync(
+        Guid leaseRoleId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.LeaseRoles
+            .AnyAsync(entity => entity.Id == leaseRoleId, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<LeaseRoleOptionDalDto>> ListLeaseRolesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.LeaseRoles
+            .OrderBy(entity => entity.Label)
+            .ThenBy(entity => entity.Code)
+            .Select(entity => new LeaseRoleOptionDalDto
+            {
+                LeaseRoleId = entity.Id,
+                Code = entity.Code,
+                Label = entity.Label.ToString()
+            })
+            .ToListAsync(cancellationToken);
     }
 
     public Task<LookupDalDto?> FindPropertyTypeByCodeAsync(

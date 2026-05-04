@@ -1,3 +1,4 @@
+using App.DAL.DTO.Leases;
 using App.DAL.DTO.Units;
 using Base.DAL.Contracts;
 
@@ -39,6 +40,16 @@ public interface IUnitRepository : IBaseRepository<UnitDalDto>
         Guid? exceptUnitId = null,
         CancellationToken cancellationToken = default);
 
+    Task<bool> ExistsInCompanyAsync(
+        Guid unitId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<LeaseUnitOptionDalDto>> ListForLeaseAssignmentAsync(
+        Guid propertyId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
     Task<UnitDalDto> AddAsync(
         UnitCreateDalDto dto,
         CancellationToken cancellationToken = default);
@@ -51,5 +62,13 @@ public interface IUnitRepository : IBaseRepository<UnitDalDto>
         Guid unitId,
         Guid propertyId,
         Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Guid>> AllIdsByPropertyIdsAsync(
+        IReadOnlyCollection<Guid> propertyIds,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteByIdsAsync(
+        IReadOnlyCollection<Guid> unitIds,
         CancellationToken cancellationToken = default);
 }

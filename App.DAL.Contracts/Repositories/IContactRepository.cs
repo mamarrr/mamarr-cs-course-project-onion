@@ -20,4 +20,16 @@ public interface IContactRepository : IBaseRepository<ContactDalDto>
     Task<bool> DeleteAsync(
         Guid contactId,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Guid>> AllIdsByResidentIdAsync(
+        Guid residentId,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteResidentLinksByResidentIdAsync(
+        Guid residentId,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteOrphanedByIdsAsync(
+        IReadOnlyCollection<Guid> contactIds,
+        CancellationToken cancellationToken = default);
 }

@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Residents.Commands;
@@ -21,13 +22,16 @@ public class ResidentProfileService : IResidentProfileService
     };
 
     private readonly IResidentAccessService _residentAccessService;
+    private readonly IAppDeleteOrchestrator _deleteOrchestrator;
     private readonly IAppUOW _uow;
 
     public ResidentProfileService(
         IResidentAccessService residentAccessService,
+        IAppDeleteOrchestrator deleteOrchestrator,
         IAppUOW uow)
     {
         _residentAccessService = residentAccessService;
+        _deleteOrchestrator = deleteOrchestrator;
         _uow = uow;
     }
 
@@ -160,28 +164,16 @@ public class ResidentProfileService : IResidentProfileService
             return Result.Fail(new ForbiddenError("Access denied."));
         }
 
-        await _uow.BeginTransactionAsync(cancellationToken);
-        try
+        var deleted = await _deleteOrchestrator.DeleteResidentAsync(
+            workspace.Value.ResidentId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!deleted)
         {
-            var deleted = await _uow.Residents.DeleteAsync(
-                workspace.Value.ResidentId,
-                workspace.Value.ManagementCompanyId,
-                cancellationToken);
-            if (!deleted)
-            {
-                await _uow.RollbackTransactionAsync(cancellationToken);
-                return Result.Fail(new NotFoundError("Resident profile was not found."));
-            }
+            return Result.Fail(new NotFoundError("Resident profile was not found."));
+        }
 
-            await _uow.SaveChangesAsync(cancellationToken);
-            await _uow.CommitTransactionAsync(cancellationToken);
-            return Result.Ok();
-        }
-        catch
-        {
-            await _uow.RollbackTransactionAsync(cancellationToken);
-            throw;
-        }
+        return Result.Ok();
     }
 
     private async Task<Result<ResidentProfileModel>> GetProfileAsync(

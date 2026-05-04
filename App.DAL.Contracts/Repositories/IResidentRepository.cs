@@ -1,4 +1,5 @@
 using App.DAL.DTO.Residents;
+using App.DAL.DTO.Leases;
 using Base.DAL.Contracts;
 
 namespace App.DAL.Contracts.Repositories;
@@ -33,6 +34,16 @@ public interface IResidentRepository : IBaseRepository<ResidentDalDto>
         Guid? exceptResidentId = null,
         CancellationToken cancellationToken = default);
 
+    Task<bool> ExistsInCompanyAsync(
+        Guid residentId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<LeaseResidentSearchItemDalDto>> SearchForLeaseAssignmentAsync(
+        Guid managementCompanyId,
+        string? searchTerm,
+        CancellationToken cancellationToken = default);
+
     Task<ResidentDalDto> AddAsync(
         ResidentCreateDalDto dto,
         CancellationToken cancellationToken = default);
@@ -44,6 +55,10 @@ public interface IResidentRepository : IBaseRepository<ResidentDalDto>
     Task<bool> DeleteAsync(
         Guid residentId,
         Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteUsersByResidentIdAsync(
+        Guid residentId,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<ResidentContactDalDto>> ContactsByResidentAsync(

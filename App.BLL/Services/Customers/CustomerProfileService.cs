@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Commands;
@@ -22,13 +23,16 @@ public class CustomerProfileService : ICustomerProfileService
     ];
 
     private readonly ICustomerAccessService _customerAccessService;
+    private readonly IAppDeleteOrchestrator _deleteOrchestrator;
     private readonly IAppUOW _uow;
 
     public CustomerProfileService(
         ICustomerAccessService customerAccessService,
+        IAppDeleteOrchestrator deleteOrchestrator,
         IAppUOW uow)
     {
         _customerAccessService = customerAccessService;
+        _deleteOrchestrator = deleteOrchestrator;
         _uow = uow;
     }
 
@@ -162,29 +166,16 @@ public class CustomerProfileService : ICustomerProfileService
             return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
-        await _uow.BeginTransactionAsync(cancellationToken);
-        try
+        var deleted = await _deleteOrchestrator.DeleteCustomerAsync(
+            access.Value.CustomerId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!deleted)
         {
-            var deleted = await _uow.Customers.DeleteAsync(
-                access.Value.CustomerId,
-                access.Value.ManagementCompanyId,
-                cancellationToken);
-
-            if (!deleted)
-            {
-                await _uow.RollbackTransactionAsync(cancellationToken);
-                return Result.Fail(new NotFoundError("Customer profile was not found."));
-            }
-
-            await _uow.SaveChangesAsync(cancellationToken);
-            await _uow.CommitTransactionAsync(cancellationToken);
-            return Result.Ok();
+            return Result.Fail(new NotFoundError("Customer profile was not found."));
         }
-        catch
-        {
-            await _uow.RollbackTransactionAsync(cancellationToken);
-            throw;
-        }
+
+        return Result.Ok();
     }
 
     private async Task<Result<CustomerAccessContext>> ResolveAccessAsync(

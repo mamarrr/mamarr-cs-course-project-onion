@@ -1,3 +1,4 @@
+using App.DAL.DTO.Leases;
 using App.DAL.DTO.Lookups;
 
 namespace App.DAL.Contracts.Repositories;
@@ -21,6 +22,13 @@ public interface ILookupRepository
 
     Task<LookupDalDto?> FindLeaseRoleByCodeAsync(
         string code,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> LeaseRoleExistsAsync(
+        Guid leaseRoleId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<LeaseRoleOptionDalDto>> ListLeaseRolesAsync(
         CancellationToken cancellationToken = default);
 
     Task<LookupDalDto?> FindPropertyTypeByCodeAsync(

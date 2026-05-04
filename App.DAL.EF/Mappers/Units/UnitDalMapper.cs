@@ -17,8 +17,6 @@ public class UnitDalMapper : IBaseMapper<UnitDalDto, Unit>
         {
             Id = entity.Id,
             PropertyId = entity.PropertyId,
-            CustomerId = entity.Property?.CustomerId ?? Guid.Empty,
-            ManagementCompanyId = entity.Property?.Customer?.ManagementCompanyId ?? Guid.Empty,
             UnitNr = entity.UnitNr,
             Slug = entity.Slug,
             IsActive = entity.IsActive

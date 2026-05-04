@@ -99,4 +99,36 @@ public interface ITicketRepository
         Guid ticketId,
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Guid>> AllIdsForCustomerScopeAsync(
+        Guid customerId,
+        IReadOnlyCollection<Guid> propertyIds,
+        IReadOnlyCollection<Guid> unitIds,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Guid>> AllIdsForPropertyScopeAsync(
+        Guid propertyId,
+        IReadOnlyCollection<Guid> unitIds,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Guid>> AllIdsForUnitScopeAsync(
+        Guid unitId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Guid>> AllIdsForResidentScopeAsync(
+        Guid residentId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteDependentsByTicketIdsAsync(
+        IReadOnlyCollection<Guid> ticketIds,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteByIdsAsync(
+        IReadOnlyCollection<Guid> ticketIds,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
 }

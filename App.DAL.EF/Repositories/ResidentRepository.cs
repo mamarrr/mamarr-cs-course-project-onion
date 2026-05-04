@@ -1,4 +1,5 @@
 using App.DAL.Contracts.Repositories;
+using App.DAL.DTO.Leases;
 using App.DAL.DTO.Residents;
 using App.DAL.EF.Mappers.Residents;
 using App.Domain;
@@ -11,6 +12,8 @@ public class ResidentRepository :
     BaseRepository<ResidentDalDto, Resident, AppDbContext>,
     IResidentRepository
 {
+    private const int MaxLeaseAssignmentSearchResults = 20;
+
     private readonly AppDbContext _dbContext;
 
     public ResidentRepository(AppDbContext dbContext, ResidentDalMapper mapper)
@@ -162,6 +165,51 @@ public class ResidentRepository :
             .AnyAsync(entity => entity.IdCode.ToLower() == normalizedIdCode, cancellationToken);
     }
 
+    public Task<bool> ExistsInCompanyAsync(
+        Guid residentId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Residents
+            .AnyAsync(
+                entity => entity.Id == residentId && entity.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<LeaseResidentSearchItemDalDto>> SearchForLeaseAssignmentAsync(
+        Guid managementCompanyId,
+        string? searchTerm,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedSearch = searchTerm?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedSearch))
+        {
+            return Array.Empty<LeaseResidentSearchItemDalDto>();
+        }
+
+        var pattern = $"%{normalizedSearch}%";
+
+        return await _dbContext.Residents
+            .Where(entity => entity.ManagementCompanyId == managementCompanyId)
+            .Where(entity =>
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.FirstName, pattern) ||
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.LastName, pattern) ||
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.FirstName + " " + entity.LastName, pattern) ||
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.IdCode, pattern))
+            .OrderBy(entity => entity.FirstName)
+            .ThenBy(entity => entity.LastName)
+            .ThenBy(entity => entity.IdCode)
+            .Take(MaxLeaseAssignmentSearchResults)
+            .Select(entity => new LeaseResidentSearchItemDalDto
+            {
+                ResidentId = entity.Id,
+                FullName = string.Join(" ", new[] { entity.FirstName, entity.LastName }.Where(value => !string.IsNullOrWhiteSpace(value))),
+                IdCode = entity.IdCode,
+                IsActive = entity.IsActive
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<ResidentDalDto> AddAsync(
         ResidentCreateDalDto dto,
         CancellationToken cancellationToken = default)
@@ -219,52 +267,20 @@ public class ResidentRepository :
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var resident = await _dbContext.Residents
-            .AsNoTracking()
+        var deleted = await _dbContext.Residents
             .Where(entity => entity.Id == residentId && entity.ManagementCompanyId == managementCompanyId)
-            .Select(entity => new { entity.Id })
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (resident is null)
-        {
-            return false;
-        }
-
-        var ticketIds = await _dbContext.Tickets
-            .Where(ticket => ticket.ResidentId == resident.Id && ticket.ManagementCompanyId == managementCompanyId)
-            .Select(ticket => ticket.Id)
-            .ToListAsync(cancellationToken);
-
-        await DeleteTicketsAsync(ticketIds, cancellationToken);
-
-        await _dbContext.CustomerRepresentatives
-            .Where(entity => entity.ResidentId == resident.Id)
             .ExecuteDeleteAsync(cancellationToken);
 
-        await _dbContext.Leases
-            .Where(entity => entity.ResidentId == resident.Id)
-            .ExecuteDeleteAsync(cancellationToken);
+        return deleted > 0;
+    }
 
+    public async Task DeleteUsersByResidentIdAsync(
+        Guid residentId,
+        CancellationToken cancellationToken = default)
+    {
         await _dbContext.ResidentUsers
-            .Where(entity => entity.ResidentId == resident.Id)
+            .Where(entity => entity.ResidentId == residentId)
             .ExecuteDeleteAsync(cancellationToken);
-
-        var residentContactIds = await _dbContext.ResidentContacts
-            .Where(entity => entity.ResidentId == resident.Id)
-            .Select(entity => entity.ContactId)
-            .ToListAsync(cancellationToken);
-
-        await _dbContext.ResidentContacts
-            .Where(entity => entity.ResidentId == resident.Id)
-            .ExecuteDeleteAsync(cancellationToken);
-
-        await DeleteContactsIfOrphanedAsync(residentContactIds, cancellationToken);
-
-        await _dbContext.Residents
-            .Where(entity => entity.Id == resident.Id)
-            .ExecuteDeleteAsync(cancellationToken);
-
-        return true;
     }
 
     public async Task<IReadOnlyList<ResidentContactDalDto>> ContactsByResidentAsync(
@@ -325,62 +341,4 @@ public class ResidentRepository :
             .ToListAsync(cancellationToken);
     }
 
-    private async Task DeleteTicketsAsync(
-        IReadOnlyCollection<Guid> ticketIds,
-        CancellationToken cancellationToken)
-    {
-        if (ticketIds.Count == 0)
-        {
-            return;
-        }
-
-        var scheduledWorkIds = await _dbContext.ScheduledWorks
-            .Where(entity => ticketIds.Contains(entity.TicketId))
-            .Select(entity => entity.Id)
-            .ToListAsync(cancellationToken);
-
-        if (scheduledWorkIds.Count > 0)
-        {
-            await _dbContext.WorkLogs
-                .Where(entity => scheduledWorkIds.Contains(entity.ScheduledWorkId))
-                .ExecuteDeleteAsync(cancellationToken);
-
-            await _dbContext.ScheduledWorks
-                .Where(entity => scheduledWorkIds.Contains(entity.Id))
-                .ExecuteDeleteAsync(cancellationToken);
-        }
-
-        await _dbContext.Tickets
-            .Where(entity => ticketIds.Contains(entity.Id))
-            .ExecuteDeleteAsync(cancellationToken);
-    }
-
-    private async Task DeleteContactsIfOrphanedAsync(
-        IReadOnlyCollection<Guid> contactIds,
-        CancellationToken cancellationToken)
-    {
-        if (contactIds.Count == 0)
-        {
-            return;
-        }
-
-        var stillLinkedContactIds = await _dbContext.ResidentContacts
-            .Where(entity => contactIds.Contains(entity.ContactId))
-            .Select(entity => entity.ContactId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
-        var orphanedContactIds = contactIds
-            .Except(stillLinkedContactIds)
-            .ToList();
-
-        if (orphanedContactIds.Count == 0)
-        {
-            return;
-        }
-
-        await _dbContext.Contacts
-            .Where(entity => orphanedContactIds.Contains(entity.Id))
-            .ExecuteDeleteAsync(cancellationToken);
-    }
 }
