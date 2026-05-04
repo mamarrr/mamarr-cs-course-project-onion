@@ -1,15 +1,30 @@
-# DAL Refactor Plan
+# DAL Refactor Master Guidance — Blocked Delete Strategy
+
+Use this master guidance file together with exactly one phase scope file.
+
+The phase file tells the agent what to do now.
+This master file tells the agent how to think, what boundaries to respect, and what not to break.
+
+## How to use this file
+
+For every implementation pass, give the AI agent:
+
+1. This file: `DAL_REFACTOR_MASTER_GUIDANCE.md`
+2. One phase file: `DAL_REFACTOR_PHASE_XX_...md`
+
+The agent should implement only the selected phase. It should not start work from later phases unless explicitly instructed.
 
 ## Purpose
 
-Refactor the DAL and related BLL orchestration so the application uses the shared `BaseRepository` and `BaseService` patterns consistently, while keeping complex business workflows explicit and understandable.
+Refactor the DAL and related BLL validation so the application uses the shared `BaseRepository` and `BaseService` patterns consistently, while keeping business workflows explicit and safe.
 
 The goal is not to force every repository method into a generic base class. The goal is to make the boundary clear:
 
 - `BaseRepository` handles simple, generic CRUD.
 - Concrete repositories own entity-specific persistence and query predicates for their own aggregate/entity.
 - BLL services own business validation and workflow decisions.
-- Complex cross-aggregate deletes are coordinated in the BLL through a delete orchestrator, not hidden inside one repository that reaches across many DbSets.
+- Deletes of important business entities should be blocked when dependent records exist.
+- Database FK constraints should act as a final safety net, not as the primary user-facing error mechanism.
 
 ## Current assumptions
 
@@ -34,119 +49,19 @@ For delete workflows:
 
 ```text
 BLL service
-  -> Delete orchestrator
+  -> BLL delete guard / delete policy
       -> IAppUOW
-          -> multiple repositories
-              -> each repository deletes or queries only its own aggregate/entity where possible
+          -> focused repositories
+              -> dependency checks and simple deletes
 ```
-
-## Key architectural rules
-
-### 1. Repositories should not become use-case orchestrators
-
-A repository should not contain a large business workflow just because one use case needs several tables.
-
-Bad direction:
-
-```text
-CustomerRepository.DeleteAsync
-  deletes work logs
-  deletes scheduled works
-  deletes tickets
-  deletes leases
-  deletes units
-  deletes properties
-  deletes customer representatives
-  deletes customer
-```
-
-Better direction:
-
-```text
-CustomerDeleteOrchestrator in BLL
-  asks repositories for related ids
-  calls focused delete methods on the owning repositories
-  controls transaction and workflow outcome
-```
-
-### 2. Repositories should mostly query their own DbSet
-
-A repository may join to parent/lookup tables when needed to enforce scope or produce a projection, but it should not own unrelated entity behavior.
-
-Acceptable examples:
-
-- `UnitRepository` checking that a unit belongs to a property/company.
-- `LeaseRepository` checking whether a lease overlaps another lease.
-- `PropertyRepository` searching properties in a company.
-
-Questionable examples to clean up:
-
-- `LeaseRepository.ResidentExistsInCompanyAsync` querying `Residents`.
-- `LeaseRepository.PropertyExistsInCompanyAsync` querying `Properties`.
-- `LeaseRepository.UnitExistsInCompanyAsync` querying `Units`.
-- Multiple repositories each implementing their own ticket/worklog/scheduled-work cascade deletion logic.
-
-### 3. BLL performs validation decisions
-
-Repositories can answer factual database questions:
-
-- Does resident X exist in company Y?
-- Does property X exist in company Y?
-- Does unit X belong to property Y?
-- Does an overlapping active lease exist?
-
-BLL decides what those facts mean:
-
-- Return validation error.
-- Return not found.
-- Return forbidden.
-- Continue the workflow.
-
-### 4. Use `BaseRepository` for easy CRUD only
-
-Use inherited `BaseRepository` methods for basic operations:
-
-- `AllAsync(ParentId)`
-- `FindAsync(id, ParentId)`
-- `Add(entity)`
-- `Update(entity)`
-- `Remove(entity)`
-- `RemoveAsync(id)`
-
-Do not put projection queries, search workflows, or destructive cascades into `BaseRepository`.
-
-### 5. Keep one canonical DAL DTO per entity for base CRUD
-
-Every entity that uses `BaseRepository` should have one canonical DAL DTO:
-
-- `CustomerDalDto`
-- `PropertyDalDto`
-- `UnitDalDto`
-- `ResidentDalDto`
-- `LeaseDalDto`
-- `TicketDalDto`
-- etc.
-
-This DTO is the `TDALEntity` for `BaseRepository<TDALEntity, TDomainEntity, AppDbContext>`.
-
-Do not force all use cases to use this DTO. Keep specialized DTOs for projections and commands:
-
-- `XxxCreateDalDto`
-- `XxxUpdateDalDto`
-- `XxxListItemDalDto`
-- `XxxProfileDalDto`
-- `XxxDashboardDalDto`
-- `XxxSearchItemDalDto`
-
-Canonical `XxxDalDto` should map safely without requiring navigation properties. If a DTO needs data from related entities, it should usually be a projection DTO instead.
 
 ## Phase index
 
 1. Stabilize base repository usage
 2. Define canonical DTO rules and clean risky mappings
 3. Repository method ownership cleanup
-4. Use `BaseRepository` for simple CRUD in concrete repositories
-5. Introduce BLL delete orchestrator
+4. Use BaseRepository for simple CRUD in concrete repositories
+5. Introduce BLL delete guard and blocked-delete policy
 6. BLL service cleanup after DAL refactor
 7. Final repository audit
 
@@ -154,7 +69,7 @@ Canonical `XxxDalDto` should map safely without requiring navigation properties.
 
 - Work incrementally.
 - Keep commits small and focused.
-- Do not mix CRUD cleanup, repository ownership cleanup, DTO cleanup, and delete orchestration in the same change unless the active phase explicitly requires it.
+- Do not mix CRUD cleanup, repository ownership cleanup, DTO cleanup, and delete policy changes in the same change unless the active phase explicitly requires it.
 - Preserve current behavior unless the active phase explicitly changes it.
 - Run a solution build after each phase or after a small group of related edits.
 - Prefer moving code to the correct layer over rewriting business behavior.
@@ -171,6 +86,7 @@ Repositories should:
 - Own persistence and query predicates for their own aggregate/entity.
 - Use `BaseRepository` for simple CRUD.
 - Keep projection/search methods only when they are naturally owned by that repository.
+- Expose dependency-check methods for their own entity where needed for delete blocking.
 - Use `AsTracking()` for load-and-mutate update methods.
 - Rely on global no-tracking behavior for read methods unless an explicit override is needed.
 - Avoid querying unrelated DbSets except for parent-scope checks or projection joins that are truly needed.
@@ -178,7 +94,8 @@ Repositories should:
 Repositories should not:
 
 - Become use-case orchestrators.
-- Contain large cross-aggregate delete workflows.
+- Contain large cross-aggregate cascade delete workflows.
+- Delete unrelated aggregates as part of deleting one entity.
 - Duplicate predicates that belong in another repository.
 - Reach into many unrelated DbSets just because a caller needs a workflow.
 
@@ -189,8 +106,8 @@ BLL services should:
 - Own validation decisions.
 - Coordinate use cases.
 - Use repositories through `IAppUOW`.
+- Call delete guards before attempting destructive operations.
 - Return BLL-level results/errors according to current project conventions.
-- Use delete orchestrator services for cross-aggregate deletes after that phase is implemented.
 
 BLL services should not:
 
@@ -198,6 +115,7 @@ BLL services should not:
 - Use `AppDbContext` directly.
 - Depend on WebApp.
 - Depend on ASP.NET Identity infrastructure.
+- Cascade-delete large business object graphs.
 
 ### BaseRepository
 
@@ -214,6 +132,7 @@ BLL services should not:
 - Delete dependent aggregates.
 - Contain projection/search logic.
 - Contain domain-specific joins.
+- Catch database FK exceptions and turn them into business messages.
 
 ### DTOs
 
@@ -229,6 +148,42 @@ Projection DTOs should:
 - Carry cross-entity display data.
 - Be used for profile, dashboard, list, search, workspace, and UI-specific DAL projections.
 
+### Delete policy
+
+The default delete policy is **blocked delete**, not cascade delete.
+
+For important business entities, do not delete a whole graph automatically. Instead:
+
+1. BLL checks whether the entity may be deleted.
+2. The delete guard asks repositories for dependency summaries/counts.
+3. If dependencies exist, BLL returns a clear business error.
+4. If no dependencies exist, BLL calls the owning repository to delete only the requested entity.
+5. Database FK constraints remain as a safety net if an unexpected dependency exists.
+
+Good blocked-delete examples:
+
+```text
+Cannot delete customer because it has:
+- 2 properties
+- 14 units
+- 6 leases
+- 3 tickets
+Remove or reassign these records before deleting the customer.
+```
+
+Use blocked delete for:
+
+- management companies
+- customers
+- properties
+- units
+- residents
+- leases
+- tickets
+- other business-important records
+
+Use automatic cascade only for true owned data with no independent business meaning, if the domain model clearly supports it.
+
 ## Layering rules
 
 Correct direction:
@@ -242,13 +197,14 @@ WebApp
                   -> AppDbContext
 ```
 
-Delete workflow direction after the delete-orchestrator phase:
+Delete workflow direction:
 
 ```text
 BLL service
-  -> BLL delete orchestrator
+  -> BLL delete guard / delete policy
       -> IAppUOW
-          -> multiple focused repositories
+          -> focused repository dependency checks
+  -> owning repository simple delete, if allowed
 ```
 
 Incorrect direction:
@@ -265,6 +221,9 @@ BLL service
 
 Repository
   -> unrelated repository through service locator
+
+Repository
+  -> delete full cross-aggregate graph
 ```
 
 ## Repository ownership naming guidance
@@ -275,6 +234,8 @@ Use simple names where possible:
 ExistsInCompanyAsync(entityId, managementCompanyId)
 ExistsInCustomerAsync(entityId, customerId)
 ExistsInPropertyAsync(entityId, propertyId)
+HasDeleteDependenciesAsync(...)
+GetDeleteDependencySummaryAsync(...)
 SlugExistsInCompanyAsync(...)
 SlugExistsInCustomerAsync(...)
 AllSlugsByParentAsync(...)
@@ -285,12 +246,17 @@ ListForLeaseAssignmentAsync(...)
 Move predicates according to the entity they primarily query:
 
 ```text
-Resident existence/checks  -> ResidentRepository
-Property existence/checks  -> PropertyRepository
-Unit existence/checks      -> UnitRepository
-Lease existence/checks     -> LeaseRepository
-Ticket existence/checks    -> TicketRepository
-Lookup/role checks         -> LookupRepository
+Resident existence/checks       -> ResidentRepository
+Resident dependency checks      -> ResidentRepository
+Property existence/checks       -> PropertyRepository
+Property dependency checks      -> PropertyRepository
+Unit existence/checks           -> UnitRepository
+Unit dependency checks          -> UnitRepository
+Lease existence/checks          -> LeaseRepository
+Lease dependency checks         -> LeaseRepository
+Ticket existence/checks         -> TicketRepository
+Ticket dependency checks        -> TicketRepository
+Lookup/role checks              -> LookupRepository
 ```
 
 ## Build and verification expectations
@@ -303,6 +269,7 @@ For each phase:
 - Check for stale using statements.
 - Check that BLL callers use the new repository locations.
 - Avoid leaving duplicate methods with the same semantics in multiple repositories unless documented.
+- Verify delete behavior returns useful business errors instead of silently deleting dependent graphs.
 
 ## Commit strategy
 
@@ -313,11 +280,11 @@ Use small commits. Suggested sequence:
 3. Refactor one simple repository to rely on base CRUD.
 4. Move lease-related existence checks to owning repositories.
 5. Update lease BLL service callers.
-6. Extract ticket delete helper methods into the owning repository.
-7. Add BLL delete orchestrator contract and implementation.
-8. Move unit delete workflow to orchestrator.
-9. Move property delete workflow to orchestrator.
-10. Move customer delete workflow to orchestrator.
+6. Add dependency summary DTOs/contracts for blocked delete.
+7. Add BLL delete guard contract and implementation.
+8. Replace unit cascade delete with blocked-delete validation.
+9. Replace property cascade delete with blocked-delete validation.
+10. Replace customer cascade delete with blocked-delete validation.
 11. Final repository duplicate-method audit.
 
 After every commit or small group of commits, run the solution build.
@@ -331,10 +298,12 @@ Do not convert every service to `BaseService`.
 Do not remove projection DTOs just to use one DTO everywhere.
 Do not hide destructive business workflows inside `BaseRepository`.
 Do not add `AsNoTracking()` everywhere because the DbContext default already handles no-tracking reads.
+Do not implement broad cascade delete orchestration for business-important entities.
+Do not rely only on raw database FK exception text for user-facing messages.
 
 ## Desired final state
 
-The final DAL should feel like this:
+The final DAL/BLL delete model should feel like this:
 
 - Simple CRUD is inherited from `BaseRepository`.
 - Canonical DAL DTOs are safe and minimal.
@@ -342,5 +311,8 @@ The final DAL should feel like this:
 - Repositories own their own entity queries.
 - Similar predicates are not duplicated across repositories.
 - Lease repository does not own resident/property/unit existence checks.
-- Complex deletes are coordinated by BLL delete orchestrator using multiple repositories.
+- Complex business deletes are blocked when dependencies exist.
+- BLL delete guard returns dependency summaries and clear business errors.
+- Repositories delete only their own entity or true owned child rows.
+- Database FK constraints protect against missed dependencies.
 - Repositories are smaller, more focused, and easier to reason about.

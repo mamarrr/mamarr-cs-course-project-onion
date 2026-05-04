@@ -1,15 +1,16 @@
-# DAL Refactor Phase 3: Repository method ownership cleanup
+# DAL Refactor Phase 3: Repository Method Ownership Cleanup
 
 > Scope file only. Use this together with `DAL_REFACTOR_MASTER_GUIDANCE.md`.
 > Do not implement other phases unless explicitly instructed.
 
-### Goals
+## Goals
 
 - Repositories should not reach too far outside their natural DbSet.
 - Simple existence checks should live in the repository that owns the checked entity.
 - Similar semantic methods should be consolidated.
+- Prepare repositories for blocked-delete dependency checks, but do not implement the BLL delete guard yet.
 
-### General rule
+## General rule
 
 Move methods according to the entity they primarily query:
 
@@ -22,7 +23,7 @@ Ticket existence/checks    -> TicketRepository
 Lookup/role checks         -> LookupRepository
 ```
 
-### Lease repository cleanup
+## Lease repository cleanup
 
 Move these methods out of `ILeaseRepository` / `LeaseRepository`:
 
@@ -44,12 +45,15 @@ Review these later; they may be moved after first cleanup:
 - `ListUnitsForPropertyAsync` may belong in `UnitRepository`.
 - `ListLeaseRolesAsync` may belong in `LookupRepository`.
 
-### Similar semantics audit
+## Similar semantics audit
 
 Search all repositories for methods with similar names or behavior:
 
 - `ExistsInCompanyAsync`
 - `ExistsInCustomerAsync`
+- `ExistsInPropertyAsync`
+- `HasDeleteDependenciesAsync`
+- `GetDeleteDependencySummaryAsync`
 - `SlugExists...`
 - `RegistryCodeExists...`
 - `AllSlugs...`
@@ -67,26 +71,42 @@ For each duplicate semantic pattern:
 4. Update BLL services to call the new repository location through `IAppUOW`.
 5. Remove old methods from old repository contracts and implementations.
 
-### Suggested naming conventions
+## Delete-related cleanup in this phase
 
-Use simple, consistent names:
+Do not implement the delete guard yet, but begin preparing for it by identifying where dependency checks should live.
+
+Examples:
 
 ```text
-ExistsInCompanyAsync(entityId, managementCompanyId)
-ExistsInCustomerAsync(entityId, customerId)
-ExistsInPropertyAsync(entityId, propertyId)
-SlugExistsInCompanyAsync(...)
-SlugExistsInCustomerAsync(...)
-AllSlugsByParentAsync(...)
-SearchForLeaseAssignmentAsync(...)
-ListForLeaseAssignmentAsync(...)
+CustomerRepository:
+  should be able to report customer delete dependencies owned by customer scope
+
+PropertyRepository:
+  should be able to report whether property has units/tickets/other blockers if those are property-owned checks
+
+UnitRepository:
+  should be able to report whether unit has leases/tickets
+
+ResidentRepository:
+  should be able to report whether resident has leases/tickets/contacts where appropriate
+
+TicketRepository:
+  should be able to report whether ticket has scheduled work/work logs
 ```
 
-Avoid names that include the caller use case unless the query is truly use-case-specific.
+Keep the actual BLL delete policy implementation for Phase 5.
 
-### Acceptance criteria
+## Out of scope
+
+- Do not create `IAppDeleteGuard` yet.
+- Do not replace existing delete workflows yet.
+- Do not implement user-facing blocked-delete messages yet.
+- Do not refactor easy CRUD yet unless required by method relocation.
+
+## Acceptance criteria
 
 - `LeaseRepository` no longer owns resident/property/unit existence predicates.
 - Each moved method is exposed on the correct repository contract.
 - BLL services compile against the new method locations.
 - No duplicate method with the same semantics remains in multiple repositories unless there is a clear reason.
+- A list of delete dependency predicates needed for Phase 5 is identified.

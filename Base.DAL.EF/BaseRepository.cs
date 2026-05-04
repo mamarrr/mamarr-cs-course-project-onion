@@ -85,12 +85,6 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
         if (entity != null) Remove(Mapper.Map(entity)!);
     }
 
-    public async Task Remove(TKey id)
-    {
-        var entity = await FindAsync(id);
-        if (entity != null) Remove(entity);
-    }
-
     private IQueryable<TDomainEntity> ApplyIdorRestrictions(IQueryable<TDomainEntity> query, TKey parentId)
     {
         var res = CheckManagementCompanyId(query, parentId);
