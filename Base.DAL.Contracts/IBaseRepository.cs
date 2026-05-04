@@ -12,8 +12,8 @@ public interface IBaseRepository<TKey, TEntity>
     where TKey : IEquatable<TKey>
     where TEntity : IBaseEntity<TKey>
 {
-    Task<IEnumerable<TEntity>> AllAsync(TKey appUserId = default!);
-    Task<TEntity?> FindAsync(TKey id, TKey appUserId = default!);
+    Task<IEnumerable<TEntity>> AllAsync(TKey parentId = default!);
+    Task<TEntity?> FindAsync(TKey id, TKey parentId = default!);
 
     void Add(TEntity entity);
 

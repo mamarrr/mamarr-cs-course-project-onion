@@ -94,35 +94,24 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
     private IQueryable<TDomainEntity> ApplyIdorRestrictions(IQueryable<TDomainEntity> query, TKey parentId)
     {
         var res = CheckManagementCompanyId(query, parentId);
-        if (res.changedQuery)
-        {
-            return res.query;
-        }
-        res = CheckCustomerId(query, parentId);
-        if (res.changedQuery)
-        {
-            return res.query;
-        }
-
-        return query;
+        res = CheckCustomerId(res, parentId);
+        return res;
     }
-    private (bool changedQuery, IQueryable<TDomainEntity> query) CheckManagementCompanyId(IQueryable<TDomainEntity> query, TKey parentId)
+    private IQueryable<TDomainEntity> CheckManagementCompanyId(IQueryable<TDomainEntity> query, TKey parentId)
     {
         if (typeof(IManagementCompanyId<TKey>).IsAssignableFrom(typeof(TDomainEntity)))
         {
             query = query.Where(e => ((IManagementCompanyId<TKey>)e).ManagementCompanyId.Equals(parentId));
-            return (true, query);
         }
-        return (false, query);
+        return query;
     }
 
-    private (bool changedQuery, IQueryable<TDomainEntity>) CheckCustomerId(IQueryable<TDomainEntity> query, TKey parentId)
+    private IQueryable<TDomainEntity> CheckCustomerId(IQueryable<TDomainEntity> query, TKey parentId)
     {
         if (typeof(ICustomerId<TKey>).IsAssignableFrom(typeof(TDomainEntity)))
         {
             query = query.Where(e => ((ICustomerId<TKey>)e).CustomerId.Equals(parentId));
-            return (true, query);
         }
-        return (false, query);
+        return query;
     }
 }
