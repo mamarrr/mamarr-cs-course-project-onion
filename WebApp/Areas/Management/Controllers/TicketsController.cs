@@ -81,8 +81,7 @@ public class TicketsController : Controller
             _mapper.ToCreateCommand(
                 companySlug,
                 vm.Form,
-                User,
-                ManagementTicketMvcMapper.CurrentCultureName()),
+                User),
             cancellationToken);
 
         if (result.IsFailed)
@@ -154,8 +153,7 @@ public class TicketsController : Controller
                 companySlug,
                 ticketId,
                 vm.Form,
-                User,
-                ManagementTicketMvcMapper.CurrentCultureName()),
+                User),
             cancellationToken);
 
         if (result.IsFailed)

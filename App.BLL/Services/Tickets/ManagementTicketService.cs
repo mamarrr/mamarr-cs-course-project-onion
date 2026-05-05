@@ -822,8 +822,7 @@ public class ManagementTicketService : IManagementTicketService
         return new NormalizedCreate(
             command.TicketNr.Trim(),
             command.Title.Trim(),
-            command.Description.Trim(),
-            NormalizeCulture(command.Culture));
+            command.Description.Trim());
     }
 
     private static NormalizedUpdate NormalizeUpdate(UpdateManagementTicketCommand command)
@@ -831,15 +830,7 @@ public class ManagementTicketService : IManagementTicketService
         return new NormalizedUpdate(
             command.TicketNr.Trim(),
             command.Title.Trim(),
-            command.Description.Trim(),
-            NormalizeCulture(command.Culture));
-    }
-
-    private static string NormalizeCulture(string culture)
-    {
-        return string.IsNullOrWhiteSpace(culture)
-            ? Thread.CurrentThread.CurrentUICulture.Name
-            : culture.Trim();
+            command.Description.Trim());
     }
 
     private static string T(string key, string fallback)
@@ -850,12 +841,10 @@ public class ManagementTicketService : IManagementTicketService
     private sealed record NormalizedCreate(
         string TicketNr,
         string Title,
-        string Description,
-        string Culture);
+        string Description);
 
     private sealed record NormalizedUpdate(
         string TicketNr,
         string Title,
-        string Description,
-        string Culture);
+        string Description);
 }

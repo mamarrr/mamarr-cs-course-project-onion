@@ -7,7 +7,6 @@ public class CreateManagementTicketCommand
     public string TicketNr { get; init; } = default!;
     public string Title { get; init; } = default!;
     public string Description { get; init; } = default!;
-    public string Culture { get; init; } = default!;
     public Guid TicketCategoryId { get; init; }
     public Guid TicketPriorityId { get; init; }
     public Guid? CustomerId { get; init; }
@@ -26,7 +25,6 @@ public class UpdateManagementTicketCommand
     public string TicketNr { get; init; } = default!;
     public string Title { get; init; } = default!;
     public string Description { get; init; } = default!;
-    public string Culture { get; init; } = default!;
     public Guid TicketCategoryId { get; init; }
     public Guid TicketStatusId { get; init; }
     public Guid TicketPriorityId { get; init; }

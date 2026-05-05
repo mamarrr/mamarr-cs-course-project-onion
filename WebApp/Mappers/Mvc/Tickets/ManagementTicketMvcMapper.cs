@@ -67,8 +67,7 @@ public class ManagementTicketMvcMapper
     public CreateManagementTicketCommand ToCreateCommand(
         string companySlug,
         TicketFormViewModel form,
-        ClaimsPrincipal user,
-        string culture)
+        ClaimsPrincipal user)
     {
         return new CreateManagementTicketCommand
         {
@@ -77,7 +76,6 @@ public class ManagementTicketMvcMapper
             TicketNr = form.TicketNr,
             Title = form.Title,
             Description = form.Description,
-            Culture = culture,
             TicketCategoryId = form.TicketCategoryId,
             TicketPriorityId = form.TicketPriorityId,
             CustomerId = form.CustomerId,
@@ -93,8 +91,7 @@ public class ManagementTicketMvcMapper
         string companySlug,
         Guid ticketId,
         TicketFormViewModel form,
-        ClaimsPrincipal user,
-        string culture)
+        ClaimsPrincipal user)
     {
         return new UpdateManagementTicketCommand
         {
@@ -104,7 +101,6 @@ public class ManagementTicketMvcMapper
             TicketNr = form.TicketNr,
             Title = form.Title,
             Description = form.Description,
-            Culture = culture,
             TicketCategoryId = form.TicketCategoryId,
             TicketStatusId = form.TicketStatusId,
             TicketPriorityId = form.TicketPriorityId,
