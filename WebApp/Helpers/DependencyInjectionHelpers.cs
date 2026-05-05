@@ -1,5 +1,6 @@
 using App.BLL;
 using App.BLL.Contracts;
+using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
@@ -8,6 +9,7 @@ using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
+using App.BLL.Services.Common.Deletion;
 using App.BLL.Services.Customers;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
@@ -76,6 +78,7 @@ public static class DependencyInjectionHelpers
         services.AddScoped<IApiOnboardingContextService, ApiWorkspaceContextService>();
         services.AddScoped<IWorkspaceCatalogService, UserWorkspaceCatalogService>();
         services.AddScoped<IOnboardingCompanyJoinRequestService, OnboardingCompanyJoinRequestService>();
+        services.AddScoped<IAppDeleteGuard, AppDeleteGuard>();
         services.AddScoped<ICompanyMembershipAdminService, CompanyMembershipAdminService>();
         services.AddScoped<ICompanyCustomerService, CompanyCustomerService>();
         services.AddScoped<ICustomerAccessService, CustomerAccessService>();

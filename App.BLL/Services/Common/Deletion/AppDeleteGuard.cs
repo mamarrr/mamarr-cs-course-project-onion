@@ -3,7 +3,7 @@ using App.DAL.Contracts;
 
 namespace App.BLL.Services.Common.Deletion;
 
-internal sealed class AppDeleteGuard : IAppDeleteGuard
+public class AppDeleteGuard : IAppDeleteGuard
 {
     private readonly IAppUOW _uow;
 
