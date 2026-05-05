@@ -185,7 +185,7 @@ public class CompanyMembershipAdminService :
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
-        var roles = await _uow.ManagementCompanies.AllManagementCompanyRolesAsync(cancellationToken);
+        var roles = await _uow.Lookups.AllManagementCompanyRolesAsync(cancellationToken);
         return roles
             .Where(role => CanAssignRoleInGenericFlow(context, role.Code))
             .Select(MapRoleOption)
@@ -248,7 +248,7 @@ public class CompanyMembershipAdminService :
             return Result.Fail<Guid>(new ConflictError("This user is already a member of this company."));
         }
 
-        var role = await _uow.ManagementCompanies.FindManagementCompanyRoleByIdAsync(request.RoleId, cancellationToken);
+        var role = await _uow.Lookups.FindManagementCompanyRoleByIdAsync(request.RoleId, cancellationToken);
         if (role is null)
         {
             return Result.Fail<Guid>(ValidationError("Selected role is invalid.", nameof(request.RoleId)));
@@ -305,7 +305,7 @@ public class CompanyMembershipAdminService :
             return Result.Fail(new NotFoundError("Membership not found."));
         }
 
-        var role = await _uow.ManagementCompanies.FindManagementCompanyRoleByIdAsync(request.RoleId, cancellationToken);
+        var role = await _uow.Lookups.FindManagementCompanyRoleByIdAsync(request.RoleId, cancellationToken);
         if (role is null)
         {
             return Result.Fail(ValidationError("Selected role is invalid.", nameof(request.RoleId)));
@@ -533,7 +533,7 @@ public class CompanyMembershipAdminService :
     public async Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAvailableRolesAsync(
         CancellationToken cancellationToken = default)
     {
-        var roles = await _uow.ManagementCompanies.AllManagementCompanyRolesAsync(cancellationToken);
+        var roles = await _uow.Lookups.AllManagementCompanyRolesAsync(cancellationToken);
         return roles.Select(MapRoleOption).ToList();
     }
 

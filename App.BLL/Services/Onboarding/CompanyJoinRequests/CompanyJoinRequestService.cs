@@ -38,7 +38,7 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             return Result.Fail(L("ManagementCompanyWasNotFound", "Management company was not found."));
         }
 
-        var role = await _uow.ManagementCompanies.FindManagementCompanyRoleByIdAsync(
+        var role = await _uow.Lookups.FindManagementCompanyRoleByIdAsync(
             command.RequestedRoleId,
             cancellationToken);
         if (role == null)

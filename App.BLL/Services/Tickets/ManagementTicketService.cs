@@ -246,7 +246,7 @@ public class ManagementTicketService : IManagementTicketService
             return Result.Fail(workspace.Errors);
         }
 
-        var createdStatus = await _uow.Tickets.FindStatusByCodeAsync(
+        var createdStatus = await _uow.Lookups.FindTicketStatusByCodeAsync(
             TicketWorkflowConstants.Created,
             cancellationToken);
         if (createdStatus is null)
@@ -332,7 +332,7 @@ public class ManagementTicketService : IManagementTicketService
             return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
         }
 
-        var targetStatus = await _uow.Tickets.FindStatusByIdAsync(command.TicketStatusId, cancellationToken);
+        var targetStatus = await _uow.Lookups.FindTicketStatusByIdAsync(command.TicketStatusId, cancellationToken);
         if (targetStatus is null)
         {
             return Result.Fail(new ValidationAppError("Validation failed.", [
@@ -472,7 +472,7 @@ public class ManagementTicketService : IManagementTicketService
             return Result.Fail(statusGuard.Errors);
         }
 
-        var nextStatus = await _uow.Tickets.FindStatusByCodeAsync(nextStatusCode, cancellationToken);
+        var nextStatus = await _uow.Lookups.FindTicketStatusByCodeAsync(nextStatusCode, cancellationToken);
         if (nextStatus is null)
         {
             return Result.Fail(new BusinessRuleError(T("TicketNextStatusMissing", "Next ticket status is not configured.")));
@@ -522,19 +522,19 @@ public class ManagementTicketService : IManagementTicketService
         return new TicketSelectorOptionsModel
         {
             Statuses = await GetStatusesAsync(cancellationToken),
-            Priorities = (await _uow.Tickets.AllPrioritiesAsync(cancellationToken)).Select(MapOption).ToList(),
-            Categories = (await _uow.Tickets.AllCategoriesAsync(cancellationToken)).Select(MapOption).ToList(),
-            Customers = (await _uow.Tickets.CustomerOptionsAsync(managementCompanyId, cancellationToken)).Select(MapOption).ToList(),
-            Properties = (await _uow.Tickets.PropertyOptionsAsync(managementCompanyId, customerId, cancellationToken)).Select(MapOption).ToList(),
-            Units = (await _uow.Tickets.UnitOptionsAsync(managementCompanyId, propertyId, cancellationToken)).Select(MapOption).ToList(),
-            Residents = (await _uow.Tickets.ResidentOptionsAsync(managementCompanyId, unitId, cancellationToken)).Select(MapOption).ToList(),
-            Vendors = (await _uow.Tickets.VendorOptionsAsync(managementCompanyId, categoryId, cancellationToken)).Select(MapOption).ToList()
+            Priorities = (await _uow.Lookups.AllTicketPrioritiesAsync(cancellationToken)).Select(MapOption).ToList(),
+            Categories = (await _uow.Lookups.AllTicketCategoriesAsync(cancellationToken)).Select(MapOption).ToList(),
+            Customers = (await _uow.Customers.OptionsForTicketAsync(managementCompanyId, cancellationToken)).Select(MapOption).ToList(),
+            Properties = (await _uow.Properties.OptionsForTicketAsync(managementCompanyId, customerId, cancellationToken)).Select(MapOption).ToList(),
+            Units = (await _uow.Units.OptionsForTicketAsync(managementCompanyId, propertyId, cancellationToken)).Select(MapOption).ToList(),
+            Residents = (await _uow.Residents.OptionsForTicketAsync(managementCompanyId, unitId, cancellationToken)).Select(MapOption).ToList(),
+            Vendors = (await _uow.Vendors.OptionsForTicketAsync(managementCompanyId, categoryId, cancellationToken)).Select(MapOption).ToList()
         };
     }
 
     private async Task<IReadOnlyList<TicketOptionModel>> GetStatusesAsync(CancellationToken cancellationToken)
     {
-        var statuses = (await _uow.Tickets.AllStatusesAsync(cancellationToken))
+        var statuses = (await _uow.Lookups.AllTicketStatusesAsync(cancellationToken))
             .Select(MapOption)
             .ToList();
 
@@ -560,36 +560,52 @@ public class ManagementTicketService : IManagementTicketService
         bool requireCascadingParents,
         CancellationToken cancellationToken)
     {
-        var references = await _uow.Tickets.ValidateReferencesAsync(
-            managementCompanyId,
-            categoryId,
-            priorityId,
-            statusId,
-            customerId,
-            propertyId,
-            unitId,
-            residentId,
-            vendorId,
-            cancellationToken);
+        var categoryExists = await _uow.Lookups.TicketCategoryExistsAsync(categoryId, cancellationToken);
+        var priorityExists = await _uow.Lookups.TicketPriorityExistsAsync(priorityId, cancellationToken);
+        var statusExists = await _uow.Lookups.TicketStatusExistsAsync(statusId, cancellationToken);
+
+        var customerBelongsToCompany = !customerId.HasValue ||
+                                       await _uow.Customers.ExistsInCompanyAsync(customerId.Value, managementCompanyId, cancellationToken);
+
+        var propertyBelongsToCompany = !propertyId.HasValue ||
+                                       await _uow.Properties.ExistsInCompanyAsync(propertyId.Value, managementCompanyId, cancellationToken);
+
+        var propertyBelongsToCustomer = !propertyId.HasValue || !customerId.HasValue ||
+                                        await _uow.Properties.ExistsInCustomerAsync(propertyId.Value, customerId.Value, cancellationToken);
+
+        var unitBelongsToCompany = !unitId.HasValue ||
+                                   await _uow.Units.ExistsInCompanyAsync(unitId.Value, managementCompanyId, cancellationToken);
+
+        var unitBelongsToProperty = !unitId.HasValue || !propertyId.HasValue ||
+                                    await _uow.Units.ExistsInPropertyAsync(unitId.Value, propertyId.Value, cancellationToken);
+
+        var residentBelongsToCompany = !residentId.HasValue ||
+                                       await _uow.Residents.ExistsInCompanyAsync(residentId.Value, managementCompanyId, cancellationToken);
+
+        var residentLinkedToUnit = !residentId.HasValue || !unitId.HasValue ||
+                                   await _uow.Residents.IsLinkedToUnitAsync(residentId.Value, unitId.Value, cancellationToken);
+
+        var vendorBelongsToCompany = !vendorId.HasValue ||
+                                     await _uow.Vendors.ExistsInCompanyAsync(vendorId.Value, managementCompanyId, cancellationToken);
 
         var failures = new List<ValidationFailureModel>();
 
-        if (!references.CategoryExists)
+        if (!categoryExists)
         {
             failures.Add(Failure("TicketCategoryId", T("InvalidTicketCategory", "Selected ticket category is invalid.")));
         }
 
-        if (!references.PriorityExists)
+        if (!priorityExists)
         {
             failures.Add(Failure("TicketPriorityId", T("InvalidTicketPriority", "Selected ticket priority is invalid.")));
         }
 
-        if (!references.StatusExists)
+        if (!statusExists)
         {
             failures.Add(Failure("TicketStatusId", T("InvalidTicketStatus", "Selected ticket status is invalid.")));
         }
 
-        if (!references.CustomerBelongsToCompany)
+        if (!customerBelongsToCompany)
         {
             failures.Add(Failure("CustomerId", T("InvalidTicketCustomer", "Selected customer is invalid.")));
         }
@@ -599,7 +615,7 @@ public class ManagementTicketService : IManagementTicketService
             failures.Add(Failure("CustomerId", T("TicketCustomerRequiredForProperty", "Select a customer before selecting a property.")));
         }
 
-        if (!references.PropertyBelongsToCompany || !references.PropertyBelongsToCustomer)
+        if (!propertyBelongsToCompany || !propertyBelongsToCustomer)
         {
             failures.Add(Failure("PropertyId", T("InvalidTicketProperty", "Selected property is invalid for this customer.")));
         }
@@ -609,17 +625,17 @@ public class ManagementTicketService : IManagementTicketService
             failures.Add(Failure("PropertyId", T("TicketPropertyRequiredForUnit", "Select a property before selecting a unit.")));
         }
 
-        if (!references.UnitBelongsToCompany || !references.UnitBelongsToProperty)
+        if (!unitBelongsToCompany || !unitBelongsToProperty)
         {
             failures.Add(Failure("UnitId", T("InvalidTicketUnit", "Selected unit is invalid for this property.")));
         }
 
-        if (!references.ResidentBelongsToCompany || !references.ResidentLinkedToUnit)
+        if (!residentBelongsToCompany || !residentLinkedToUnit)
         {
             failures.Add(Failure("ResidentId", T("InvalidTicketResident", "Selected resident is invalid for this unit.")));
         }
 
-        if (!references.VendorBelongsToCompany)
+        if (!vendorBelongsToCompany)
         {
             failures.Add(Failure("VendorId", T("InvalidTicketVendor", "Selected vendor is invalid.")));
         }

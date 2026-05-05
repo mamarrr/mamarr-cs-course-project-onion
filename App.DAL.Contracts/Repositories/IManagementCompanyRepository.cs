@@ -1,5 +1,4 @@
 using Base.DAL.Contracts;
-using App.DAL.DTO.Lookups;
 using App.DAL.DTO.ManagementCompanies;
 
 namespace App.DAL.Contracts.Repositories;
@@ -69,13 +68,6 @@ public interface IManagementCompanyRepository : IBaseRepository<ManagementCompan
     Task<IReadOnlyList<ManagementCompanyMembershipDalDto>> FindMembersByIdsAndCompanyAsync(
         Guid managementCompanyId,
         IReadOnlyCollection<Guid> membershipIds,
-        CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<LookupDalDto>> AllManagementCompanyRolesAsync(
-        CancellationToken cancellationToken = default);
-
-    Task<LookupDalDto?> FindManagementCompanyRoleByIdAsync(
-        Guid roleId,
         CancellationToken cancellationToken = default);
 
     Task<Guid?> FindAppUserIdByEmailAsync(

@@ -1,4 +1,5 @@
 using App.DAL.DTO.Customers;
+using App.DAL.DTO.Tickets;
 using Base.DAL.Contracts;
 
 namespace App.DAL.Contracts.Repositories;
@@ -24,6 +25,15 @@ public interface ICustomerRepository : IBaseRepository<CustomerDalDto>
     Task<bool> CustomerSlugExistsInCompanyAsync(
         Guid managementCompanyId,
         string slug,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> ExistsInCompanyAsync(
+        Guid customerId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<TicketOptionDalDto>> OptionsForTicketAsync(
+        Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
     Task<CustomerWorkspaceDalDto?> FirstWorkspaceByCompanyAndSlugAsync(

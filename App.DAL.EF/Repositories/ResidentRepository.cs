@@ -1,5 +1,7 @@
 using App.DAL.Contracts.Repositories;
+using App.DAL.DTO.Leases;
 using App.DAL.DTO.Residents;
+using App.DAL.DTO.Tickets;
 using App.DAL.EF.Mappers.Residents;
 using App.Domain;
 using Base.DAL.EF;
@@ -11,6 +13,8 @@ public class ResidentRepository :
     BaseRepository<ResidentDalDto, Resident, AppDbContext>,
     IResidentRepository
 {
+    private const int MaxLeaseAssignmentSearchResults = 20;
+
     private readonly AppDbContext _dbContext;
 
     public ResidentRepository(AppDbContext dbContext, ResidentDalMapper mapper)
@@ -172,6 +176,78 @@ public class ResidentRepository :
             .AnyAsync(
                 entity => entity.Id == residentId && entity.ManagementCompanyId == managementCompanyId,
                 cancellationToken);
+    }
+
+    public Task<bool> IsLinkedToUnitAsync(
+        Guid residentId,
+        Guid unitId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Leases
+            .AsNoTracking()
+            .AnyAsync(
+                lease => lease.ResidentId == residentId && lease.UnitId == unitId && lease.IsActive,
+                cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<TicketOptionDalDto>> OptionsForTicketAsync(
+        Guid managementCompanyId,
+        Guid? unitId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Residents
+            .AsNoTracking()
+            .Where(resident => resident.ManagementCompanyId == managementCompanyId && resident.IsActive);
+
+        if (unitId.HasValue)
+        {
+            query = query.Where(resident => resident.Leases!.Any(lease => lease.UnitId == unitId.Value && lease.IsActive));
+        }
+
+        return await query
+            .OrderBy(resident => resident.LastName)
+            .ThenBy(resident => resident.FirstName)
+            .Select(resident => new TicketOptionDalDto
+            {
+                Id = resident.Id,
+                Label = resident.FirstName + " " + resident.LastName
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<LeaseResidentSearchItemDalDto>> SearchForLeaseAssignmentAsync(
+        Guid managementCompanyId,
+        string? searchTerm,
+        CancellationToken cancellationToken = default)
+    {
+        var normalizedSearch = searchTerm?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedSearch))
+        {
+            return Array.Empty<LeaseResidentSearchItemDalDto>();
+        }
+
+        var pattern = $"%{normalizedSearch}%";
+
+        return await _dbContext.Residents
+            .AsNoTracking()
+            .Where(entity => entity.ManagementCompanyId == managementCompanyId)
+            .Where(entity =>
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.FirstName, pattern) ||
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.LastName, pattern) ||
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.FirstName + " " + entity.LastName, pattern) ||
+                Microsoft.EntityFrameworkCore.EF.Functions.ILike(entity.IdCode, pattern))
+            .OrderBy(entity => entity.FirstName)
+            .ThenBy(entity => entity.LastName)
+            .ThenBy(entity => entity.IdCode)
+            .Take(MaxLeaseAssignmentSearchResults)
+            .Select(entity => new LeaseResidentSearchItemDalDto
+            {
+                ResidentId = entity.Id,
+                FullName = string.Join(" ", new[] { entity.FirstName, entity.LastName }.Where(value => !string.IsNullOrWhiteSpace(value))),
+                IdCode = entity.IdCode,
+                IsActive = entity.IsActive
+            })
+            .ToListAsync(cancellationToken);
     }
 
     public Task<ResidentDalDto> AddAsync(

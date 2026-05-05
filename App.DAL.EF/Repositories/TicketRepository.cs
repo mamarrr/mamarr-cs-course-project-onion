@@ -1,16 +1,21 @@
 using App.DAL.Contracts.Repositories;
 using App.DAL.DTO.Tickets;
+using App.DAL.EF.Mappers.Tickets;
 using App.Domain;
+using Base.DAL.EF;
 using Base.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
-public class TicketRepository : ITicketRepository
+public class TicketRepository :
+    BaseRepository<TicketDalDto, Ticket, AppDbContext>,
+    ITicketRepository
 {
     private readonly AppDbContext _dbContext;
 
-    public TicketRepository(AppDbContext dbContext)
+    public TicketRepository(AppDbContext dbContext, TicketDalMapper mapper)
+        : base(dbContext, mapper)
     {
         _dbContext = dbContext;
     }
@@ -236,243 +241,6 @@ public class TicketRepository : ITicketRepository
             .AnyAsync(ticket => ticket.TicketNr.ToLower() == normalized, cancellationToken);
     }
 
-    public Task<TicketOptionDalDto?> FindStatusByCodeAsync(
-        string code,
-        CancellationToken cancellationToken = default)
-    {
-        var normalized = code.Trim();
-        return _dbContext.TicketStatuses
-            .AsNoTracking()
-            .Where(status => status.Code == normalized)
-            .Select(status => new TicketOptionDalDto
-            {
-                Id = status.Id,
-                Code = status.Code,
-                Label = status.Label.ToString()
-            })
-            .FirstOrDefaultAsync(cancellationToken);
-    }
-
-    public Task<TicketOptionDalDto?> FindStatusByIdAsync(
-        Guid statusId,
-        CancellationToken cancellationToken = default)
-    {
-        return _dbContext.TicketStatuses
-            .AsNoTracking()
-            .Where(status => status.Id == statusId)
-            .Select(status => new TicketOptionDalDto
-            {
-                Id = status.Id,
-                Code = status.Code,
-                Label = status.Label.ToString()
-            })
-            .FirstOrDefaultAsync(cancellationToken);
-    }
-
-    public Task<IReadOnlyList<TicketOptionDalDto>> AllStatusesAsync(CancellationToken cancellationToken = default)
-    {
-        return LookupOptions(_dbContext.TicketStatuses).ToListAsync(cancellationToken)
-            .ContinueWith(task => (IReadOnlyList<TicketOptionDalDto>)task.Result, cancellationToken);
-    }
-
-    public Task<IReadOnlyList<TicketOptionDalDto>> AllPrioritiesAsync(CancellationToken cancellationToken = default)
-    {
-        return LookupOptions(_dbContext.TicketPriorities).ToListAsync(cancellationToken)
-            .ContinueWith(task => (IReadOnlyList<TicketOptionDalDto>)task.Result, cancellationToken);
-    }
-
-    public Task<IReadOnlyList<TicketOptionDalDto>> AllCategoriesAsync(CancellationToken cancellationToken = default)
-    {
-        return LookupOptions(_dbContext.TicketCategories).ToListAsync(cancellationToken)
-            .ContinueWith(task => (IReadOnlyList<TicketOptionDalDto>)task.Result, cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<TicketOptionDalDto>> CustomerOptionsAsync(
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default)
-    {
-        return await _dbContext.Customers
-            .AsNoTracking()
-            .Where(customer => customer.ManagementCompanyId == managementCompanyId && customer.IsActive)
-            .OrderBy(customer => customer.Name)
-            .Select(customer => new TicketOptionDalDto
-            {
-                Id = customer.Id,
-                Label = customer.Name
-            })
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<TicketOptionDalDto>> PropertyOptionsAsync(
-        Guid managementCompanyId,
-        Guid? customerId = null,
-        CancellationToken cancellationToken = default)
-    {
-        var query = _dbContext.Properties
-            .AsNoTracking()
-            .Where(property => property.Customer!.ManagementCompanyId == managementCompanyId && property.IsActive);
-
-        if (customerId.HasValue)
-        {
-            query = query.Where(property => property.CustomerId == customerId.Value);
-        }
-
-        return await query
-            .OrderBy(property => property.Label)
-            .Select(property => new TicketOptionDalDto
-            {
-                Id = property.Id,
-                Label = property.Label.ToString()
-            })
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<TicketOptionDalDto>> UnitOptionsAsync(
-        Guid managementCompanyId,
-        Guid? propertyId = null,
-        CancellationToken cancellationToken = default)
-    {
-        var query = _dbContext.Units
-            .AsNoTracking()
-            .Where(unit => unit.Property!.Customer!.ManagementCompanyId == managementCompanyId && unit.IsActive);
-
-        if (propertyId.HasValue)
-        {
-            query = query.Where(unit => unit.PropertyId == propertyId.Value);
-        }
-
-        return await query
-            .OrderBy(unit => unit.UnitNr)
-            .Select(unit => new TicketOptionDalDto
-            {
-                Id = unit.Id,
-                Label = unit.UnitNr
-            })
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<TicketOptionDalDto>> ResidentOptionsAsync(
-        Guid managementCompanyId,
-        Guid? unitId = null,
-        CancellationToken cancellationToken = default)
-    {
-        var query = _dbContext.Residents
-            .AsNoTracking()
-            .Where(resident => resident.ManagementCompanyId == managementCompanyId && resident.IsActive);
-
-        if (unitId.HasValue)
-        {
-            query = query.Where(resident => resident.Leases!.Any(lease => lease.UnitId == unitId.Value && lease.IsActive));
-        }
-
-        return await query
-            .OrderBy(resident => resident.LastName)
-            .ThenBy(resident => resident.FirstName)
-            .Select(resident => new TicketOptionDalDto
-            {
-                Id = resident.Id,
-                Label = resident.FirstName + " " + resident.LastName
-            })
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<TicketOptionDalDto>> VendorOptionsAsync(
-        Guid managementCompanyId,
-        Guid? categoryId = null,
-        CancellationToken cancellationToken = default)
-    {
-        var query = _dbContext.Vendors
-            .AsNoTracking()
-            .Where(vendor => vendor.ManagementCompanyId == managementCompanyId && vendor.IsActive);
-
-        if (categoryId.HasValue)
-        {
-            query = query.Where(vendor => vendor.VendorTicketCategories!
-                .Any(link => link.TicketCategoryId == categoryId.Value && link.IsActive));
-        }
-
-        return await query
-            .OrderBy(vendor => vendor.Name)
-            .Select(vendor => new TicketOptionDalDto
-            {
-                Id = vendor.Id,
-                Label = vendor.Name
-            })
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<TicketReferenceValidationDalDto> ValidateReferencesAsync(
-        Guid managementCompanyId,
-        Guid categoryId,
-        Guid priorityId,
-        Guid statusId,
-        Guid? customerId,
-        Guid? propertyId,
-        Guid? unitId,
-        Guid? residentId,
-        Guid? vendorId,
-        CancellationToken cancellationToken = default)
-    {
-        var categoryExists = await _dbContext.TicketCategories
-            .AsNoTracking()
-            .AnyAsync(category => category.Id == categoryId, cancellationToken);
-
-        var priorityExists = await _dbContext.TicketPriorities
-            .AsNoTracking()
-            .AnyAsync(priority => priority.Id == priorityId, cancellationToken);
-
-        var statusExists = await _dbContext.TicketStatuses
-            .AsNoTracking()
-            .AnyAsync(status => status.Id == statusId, cancellationToken);
-
-        var customerBelongs = !customerId.HasValue || await _dbContext.Customers
-            .AsNoTracking()
-            .AnyAsync(customer => customer.Id == customerId.Value && customer.ManagementCompanyId == managementCompanyId, cancellationToken);
-
-        var propertyBelongs = !propertyId.HasValue || await _dbContext.Properties
-            .AsNoTracking()
-            .AnyAsync(property => property.Id == propertyId.Value && property.Customer!.ManagementCompanyId == managementCompanyId, cancellationToken);
-
-        var propertyBelongsToCustomer = !propertyId.HasValue || !customerId.HasValue || await _dbContext.Properties
-            .AsNoTracking()
-            .AnyAsync(property => property.Id == propertyId.Value && property.CustomerId == customerId.Value, cancellationToken);
-
-        var unitBelongs = !unitId.HasValue || await _dbContext.Units
-            .AsNoTracking()
-            .AnyAsync(unit => unit.Id == unitId.Value && unit.Property!.Customer!.ManagementCompanyId == managementCompanyId, cancellationToken);
-
-        var unitBelongsToProperty = !unitId.HasValue || !propertyId.HasValue || await _dbContext.Units
-            .AsNoTracking()
-            .AnyAsync(unit => unit.Id == unitId.Value && unit.PropertyId == propertyId.Value, cancellationToken);
-
-        var residentBelongs = !residentId.HasValue || await _dbContext.Residents
-            .AsNoTracking()
-            .AnyAsync(resident => resident.Id == residentId.Value && resident.ManagementCompanyId == managementCompanyId, cancellationToken);
-
-        var residentLinkedToUnit = !residentId.HasValue || !unitId.HasValue || await _dbContext.Leases
-            .AsNoTracking()
-            .AnyAsync(lease => lease.ResidentId == residentId.Value && lease.UnitId == unitId.Value && lease.IsActive, cancellationToken);
-
-        var vendorBelongs = !vendorId.HasValue || await _dbContext.Vendors
-            .AsNoTracking()
-            .AnyAsync(vendor => vendor.Id == vendorId.Value && vendor.ManagementCompanyId == managementCompanyId, cancellationToken);
-
-        return new TicketReferenceValidationDalDto
-        {
-            CategoryExists = categoryExists,
-            PriorityExists = priorityExists,
-            StatusExists = statusExists,
-            CustomerBelongsToCompany = customerBelongs,
-            PropertyBelongsToCompany = propertyBelongs,
-            PropertyBelongsToCustomer = propertyBelongsToCustomer,
-            UnitBelongsToCompany = unitBelongs,
-            UnitBelongsToProperty = unitBelongsToProperty,
-            ResidentBelongsToCompany = residentBelongs,
-            ResidentLinkedToUnit = residentLinkedToUnit,
-            VendorBelongsToCompany = vendorBelongs
-        };
-    }
-
     public Task<Guid> AddAsync(
         TicketCreateDalDto dto,
         CancellationToken cancellationToken = default)
@@ -590,17 +358,4 @@ public class TicketRepository : ITicketRepository
         return true;
     }
 
-    private static IQueryable<TicketOptionDalDto> LookupOptions<TLookup>(IQueryable<TLookup> query)
-        where TLookup : BaseEntity, Contracts.ILookUpEntity
-    {
-        return query
-            .AsNoTracking()
-            .OrderBy(lookup => lookup.Code)
-            .Select(lookup => new TicketOptionDalDto
-            {
-                Id = lookup.Id,
-                Code = lookup.Code,
-                Label = lookup.Label.ToString()
-            });
-    }
 }

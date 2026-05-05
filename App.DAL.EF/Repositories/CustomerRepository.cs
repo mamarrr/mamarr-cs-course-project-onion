@@ -1,5 +1,6 @@
 using App.DAL.Contracts.Repositories;
 using App.DAL.DTO.Customers;
+using App.DAL.DTO.Tickets;
 using App.DAL.EF.Mappers.Customers;
 using App.Domain;
 using Base.DAL.EF;
@@ -137,6 +138,34 @@ public class CustomerRepository :
             .AsNoTracking()
             .Where(c => c.ManagementCompanyId == managementCompanyId)
             .AnyAsync(c => c.Slug.ToLower() == normalizedSlug, cancellationToken);
+    }
+
+    public Task<bool> ExistsInCompanyAsync(
+        Guid customerId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Customers
+            .AsNoTracking()
+            .AnyAsync(
+                customer => customer.Id == customerId && customer.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<TicketOptionDalDto>> OptionsForTicketAsync(
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Customers
+            .AsNoTracking()
+            .Where(customer => customer.ManagementCompanyId == managementCompanyId && customer.IsActive)
+            .OrderBy(customer => customer.Name)
+            .Select(customer => new TicketOptionDalDto
+            {
+                Id = customer.Id,
+                Label = customer.Name
+            })
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<CustomerWorkspaceDalDto?> FirstWorkspaceByCompanyAndSlugAsync(

@@ -91,7 +91,7 @@ public class PropertyWorkspaceService : IPropertyWorkspaceService
     public async Task<Result<IReadOnlyList<PropertyTypeOptionModel>>> GetPropertyTypeOptionsAsync(
         CancellationToken cancellationToken = default)
     {
-        var options = await _uow.Properties.AllPropertyTypeOptionsAsync(cancellationToken);
+        var options = await _uow.Lookups.AllPropertyTypeOptionsAsync(cancellationToken);
 
         return Result.Ok((IReadOnlyList<PropertyTypeOptionModel>)options
             .Select(PropertyBllMapper.MapTypeOption)
@@ -114,7 +114,7 @@ public class PropertyWorkspaceService : IPropertyWorkspaceService
             return Result.Fail(customer.Errors);
         }
 
-        var propertyTypeExists = await _uow.Properties.PropertyTypeExistsAsync(
+        var propertyTypeExists = await _uow.Lookups.PropertyTypeExistsAsync(
             command.PropertyTypeId,
             cancellationToken);
         if (!propertyTypeExists)

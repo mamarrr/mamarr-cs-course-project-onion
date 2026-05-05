@@ -1,4 +1,6 @@
+using App.DAL.DTO.Leases;
 using App.DAL.DTO.Properties;
+using App.DAL.DTO.Tickets;
 using Base.DAL.Contracts;
 
 namespace App.DAL.Contracts.Repositories;
@@ -7,9 +9,6 @@ public interface IPropertyRepository : IBaseRepository<PropertyDalDto>
 {
     Task<IReadOnlyList<PropertyListItemDalDto>> AllByCustomerAsync(
         Guid customerId,
-        CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<PropertyTypeOptionDalDto>> AllPropertyTypeOptionsAsync(
         CancellationToken cancellationToken = default);
 
     Task<PropertyWorkspaceDalDto?> FirstWorkspaceByCustomerAndSlugAsync(
@@ -22,10 +21,6 @@ public interface IPropertyRepository : IBaseRepository<PropertyDalDto>
         Guid customerId,
         CancellationToken cancellationToken = default);
 
-    Task<bool> PropertyTypeExistsAsync(
-        Guid propertyTypeId,
-        CancellationToken cancellationToken = default);
-
     Task<bool> SlugExistsForCustomerAsync(
         Guid customerId,
         string slug,
@@ -35,6 +30,21 @@ public interface IPropertyRepository : IBaseRepository<PropertyDalDto>
     Task<bool> ExistsInCompanyAsync(
         Guid propertyId,
         Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> ExistsInCustomerAsync(
+        Guid propertyId,
+        Guid customerId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<TicketOptionDalDto>> OptionsForTicketAsync(
+        Guid managementCompanyId,
+        Guid? customerId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<LeasePropertySearchItemDalDto>> SearchForLeaseAssignmentAsync(
+        Guid managementCompanyId,
+        string? searchTerm,
         CancellationToken cancellationToken = default);
 
     Task<PropertyDalDto> AddAsync(

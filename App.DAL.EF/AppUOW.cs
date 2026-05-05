@@ -6,7 +6,9 @@ using App.DAL.EF.Mappers.Leases;
 using App.DAL.EF.Mappers.ManagementCompanies;
 using App.DAL.EF.Mappers.Properties;
 using App.DAL.EF.Mappers.Residents;
+using App.DAL.EF.Mappers.Tickets;
 using App.DAL.EF.Mappers.Units;
+using App.DAL.EF.Mappers.Vendors;
 using App.DAL.EF.Repositories;
 using Base.DAL.EF;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -24,6 +26,8 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private readonly ResidentDalMapper _residentMapper = new();
     private readonly UnitDalMapper _unitMapper = new();
     private readonly LeaseDalMapper _leaseMapper = new();
+    private readonly TicketDalMapper _ticketMapper = new();
+    private readonly VendorDalMapper _vendorMapper = new();
     private IContactRepository? _contacts;
     private ICustomerRepository? _customers;
     private IManagementCompanyRepository? _managementCompanies;
@@ -34,6 +38,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private IUnitRepository? _units;
     private ILeaseRepository? _leases;
     private ITicketRepository? _tickets;
+    private IVendorRepository? _vendors;
 
     public AppUOW(AppDbContext dbContext) : base(dbContext)
     {
@@ -58,7 +63,9 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
 
     public ILeaseRepository Leases => _leases ??= new LeaseRepository(UowDbContext, _leaseMapper);
 
-    public ITicketRepository Tickets => _tickets ??= new TicketRepository(UowDbContext);
+    public ITicketRepository Tickets => _tickets ??= new TicketRepository(UowDbContext, _ticketMapper);
+
+    public IVendorRepository Vendors => _vendors ??= new VendorRepository(UowDbContext, _vendorMapper);
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

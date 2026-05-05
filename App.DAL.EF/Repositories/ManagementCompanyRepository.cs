@@ -1,5 +1,4 @@
 using App.DAL.Contracts.Repositories;
-using App.DAL.DTO.Lookups;
 using App.DAL.DTO.ManagementCompanies;
 using App.DAL.EF.Mappers.ManagementCompanies;
 using App.Domain;
@@ -316,36 +315,6 @@ public class ManagementCompanyRepository :
             .Where(membership => membership.ManagementCompanyId == managementCompanyId
                                  && membershipIds.Contains(membership.Id))
             .ToListAsync(cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<LookupDalDto>> AllManagementCompanyRolesAsync(
-        CancellationToken cancellationToken = default)
-    {
-        return await _dbContext.ManagementCompanyRoles
-            .AsNoTracking()
-            .OrderBy(role => role.Code)
-            .Select(role => new LookupDalDto
-            {
-                Id = role.Id,
-                Code = role.Code,
-                Label = role.Label.ToString()
-            })
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<LookupDalDto?> FindManagementCompanyRoleByIdAsync(
-        Guid roleId,
-        CancellationToken cancellationToken = default)
-    {
-        return await _dbContext.ManagementCompanyRoles
-            .AsNoTracking()
-            .Select(role => new LookupDalDto
-            {
-                Id = role.Id,
-                Code = role.Code,
-                Label = role.Label.ToString()
-            })
-            .FirstOrDefaultAsync(role => role.Id == roleId, cancellationToken);
     }
 
     public async Task<Guid?> FindAppUserIdByEmailAsync(

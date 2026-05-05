@@ -1,4 +1,6 @@
 using App.DAL.Contracts.Repositories;
+using App.DAL.DTO.Leases;
+using App.DAL.DTO.Tickets;
 using App.DAL.DTO.Units;
 using App.DAL.EF.Mappers.Units;
 using App.Domain;
@@ -178,6 +180,65 @@ public class UnitRepository :
                 entity => entity.Id == unitId
                           && entity.Property!.Customer!.ManagementCompanyId == managementCompanyId,
                 cancellationToken);
+    }
+
+    public Task<bool> ExistsInPropertyAsync(
+        Guid unitId,
+        Guid propertyId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Units
+            .AsNoTracking()
+            .AnyAsync(
+                unit => unit.Id == unitId && unit.PropertyId == propertyId,
+                cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<TicketOptionDalDto>> OptionsForTicketAsync(
+        Guid managementCompanyId,
+        Guid? propertyId = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Units
+            .AsNoTracking()
+            .Where(unit => unit.Property!.Customer!.ManagementCompanyId == managementCompanyId && unit.IsActive);
+
+        if (propertyId.HasValue)
+        {
+            query = query.Where(unit => unit.PropertyId == propertyId.Value);
+        }
+
+        return await query
+            .OrderBy(unit => unit.UnitNr)
+            .Select(unit => new TicketOptionDalDto
+            {
+                Id = unit.Id,
+                Label = unit.UnitNr
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<LeaseUnitOptionDalDto>> ListForLeaseAssignmentAsync(
+        Guid propertyId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Units
+            .AsNoTracking()
+            .Where(entity => entity.PropertyId == propertyId)
+            .Where(entity => entity.Property!.Customer!.ManagementCompanyId == managementCompanyId)
+            .OrderBy(entity => entity.UnitNr)
+            .ThenBy(entity => entity.FloorNr)
+            .ThenBy(entity => entity.Id)
+            .Select(entity => new LeaseUnitOptionDalDto
+            {
+                UnitId = entity.Id,
+                UnitSlug = entity.Slug,
+                UnitNr = entity.UnitNr,
+                FloorNr = entity.FloorNr,
+                IsActive = entity.IsActive
+            })
+            .ToListAsync(cancellationToken);
     }
 
     public Task<UnitDalDto> AddAsync(

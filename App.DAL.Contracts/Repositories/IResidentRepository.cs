@@ -1,4 +1,6 @@
+using App.DAL.DTO.Leases;
 using App.DAL.DTO.Residents;
+using App.DAL.DTO.Tickets;
 using Base.DAL.Contracts;
 
 namespace App.DAL.Contracts.Repositories;
@@ -36,6 +38,21 @@ public interface IResidentRepository : IBaseRepository<ResidentDalDto>
     Task<bool> ExistsInCompanyAsync(
         Guid residentId,
         Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> IsLinkedToUnitAsync(
+        Guid residentId,
+        Guid unitId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<TicketOptionDalDto>> OptionsForTicketAsync(
+        Guid managementCompanyId,
+        Guid? unitId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<LeaseResidentSearchItemDalDto>> SearchForLeaseAssignmentAsync(
+        Guid managementCompanyId,
+        string? searchTerm,
         CancellationToken cancellationToken = default);
 
     Task<ResidentDalDto> AddAsync(

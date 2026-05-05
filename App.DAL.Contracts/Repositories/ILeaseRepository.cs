@@ -66,21 +66,4 @@ public interface ILeaseRepository : IBaseRepository<LeaseDalDto>
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<LeasePropertySearchItemDalDto>> SearchPropertiesAsync(
-        Guid managementCompanyId,
-        string? searchTerm,
-        CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<LeaseUnitOptionDalDto>> ListUnitsForPropertyAsync(
-        Guid propertyId,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<LeaseResidentSearchItemDalDto>> SearchResidentsAsync(
-        Guid managementCompanyId,
-        string? searchTerm,
-        CancellationToken cancellationToken = default);
-
-    Task<IReadOnlyList<LeaseRoleOptionDalDto>> ListLeaseRolesAsync(
-        CancellationToken cancellationToken = default);
 }

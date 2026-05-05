@@ -1,4 +1,27 @@
+using Base.Contracts;
+
 namespace App.DAL.DTO.Tickets;
+
+public class TicketDalDto : IBaseEntity
+{
+    public Guid Id { get; set; }
+    public Guid ManagementCompanyId { get; init; }
+    public string TicketNr { get; init; } = default!;
+    public string Title { get; init; } = default!;
+    public string Description { get; init; } = default!;
+    public string Culture { get; init; } = default!;
+    public Guid TicketCategoryId { get; init; }
+    public Guid TicketStatusId { get; init; }
+    public Guid TicketPriorityId { get; init; }
+    public Guid? CustomerId { get; init; }
+    public Guid? PropertyId { get; init; }
+    public Guid? UnitId { get; init; }
+    public Guid? ResidentId { get; init; }
+    public Guid? VendorId { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public DateTime? DueAt { get; init; }
+    public DateTime? ClosedAt { get; init; }
+}
 
 public class TicketListFilterDalDto
 {
@@ -133,21 +156,6 @@ public class TicketStatusUpdateDalDto
     public Guid ManagementCompanyId { get; init; }
     public Guid TicketStatusId { get; init; }
     public DateTime? ClosedAt { get; init; }
-}
-
-public class TicketReferenceValidationDalDto
-{
-    public bool CategoryExists { get; init; }
-    public bool PriorityExists { get; init; }
-    public bool StatusExists { get; init; }
-    public bool CustomerBelongsToCompany { get; init; }
-    public bool PropertyBelongsToCompany { get; init; }
-    public bool PropertyBelongsToCustomer { get; init; }
-    public bool UnitBelongsToCompany { get; init; }
-    public bool UnitBelongsToProperty { get; init; }
-    public bool ResidentBelongsToCompany { get; init; }
-    public bool ResidentLinkedToUnit { get; init; }
-    public bool VendorBelongsToCompany { get; init; }
 }
 
 public class TicketOptionDalDto
