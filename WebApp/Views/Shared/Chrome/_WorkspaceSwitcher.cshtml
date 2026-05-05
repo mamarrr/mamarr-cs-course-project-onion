@@ -15,7 +15,14 @@
             foreach (var companyContext in Model.ManagementWorkspaceOptions)
             {
                 <li>
-                    <a class="dropdown-item @(companyContext.IsCurrent ? "active" : string.Empty)" asp-area="Public" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="management" asp-route-id="@companyContext.Id" asp-route-returnUrl="@Model.CurrentPathAndQuery">@companyContext.Name</a>
+                    @if (!string.IsNullOrWhiteSpace(companyContext.Url))
+                    {
+                        <a class="dropdown-item @(companyContext.IsCurrent ? "active" : string.Empty)" href="@companyContext.Url">@companyContext.Name</a>
+                    }
+                    else
+                    {
+                        <a class="dropdown-item @(companyContext.IsCurrent ? "active" : string.Empty)" asp-area="Public" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="management" asp-route-id="@companyContext.Id" asp-route-returnUrl="@Model.CurrentPathAndQuery">@companyContext.Name</a>
+                    }
                 </li>
             }
         }
@@ -31,7 +38,14 @@
             foreach (var customerContext in Model.CustomerWorkspaceOptions)
             {
                 <li>
-                    <a class="dropdown-item" asp-area="Public" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="customer" asp-route-id="@customerContext.Id" asp-route-returnUrl="@Model.CurrentPathAndQuery">@customerContext.Name</a>
+                    @if (!string.IsNullOrWhiteSpace(customerContext.Url))
+                    {
+                        <a class="dropdown-item @(customerContext.IsCurrent ? "active" : string.Empty)" href="@customerContext.Url">@customerContext.Name</a>
+                    }
+                    else
+                    {
+                        <a class="dropdown-item @(customerContext.IsCurrent ? "active" : string.Empty)" asp-area="Public" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="customer" asp-route-id="@customerContext.Id" asp-route-returnUrl="@Model.CurrentPathAndQuery">@customerContext.Name</a>
+                    }
                 </li>
             }
         }

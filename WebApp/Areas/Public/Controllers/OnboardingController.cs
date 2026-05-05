@@ -178,28 +178,27 @@ public class OnboardingController : Controller
 
     [Authorize]
     [HttpGet]
-    public async Task<IActionResult> SetContext(string type, Guid? id = null, string? returnUrl = null)
+    public async Task<IActionResult> SetContext(string? type, Guid? id = null, string? returnUrl = null)
     {
+        var normalizedType = type?.Trim().ToLowerInvariant();
+        if (normalizedType is not ("management" or "customer" or "resident"))
+        {
+            return RedirectToSafeContextFallback(returnUrl);
+        }
+
         var appUserId = await _identityAccountService.GetAuthenticatedUserIdAsync(User, HttpContext.RequestAborted);
         if (appUserId == null)
         {
             return RedirectToAction(nameof(Login));
         }
 
-        var cookieOptions = new CookieOptions
-        {
-            Expires = DateTimeOffset.UtcNow.AddYears(1),
-            IsEssential = true,
-            HttpOnly = true,
-            Secure = Request.IsHttps,
-            SameSite = SameSiteMode.Lax
-        };
+        var cookieOptions = CreateContextCookieOptions();
 
         var authorizationResult = await _bll.WorkspaceRedirect.AuthorizeContextSelectionAsync(
             new AuthorizeContextSelectionQuery
             {
                 AppUserId = appUserId.Value,
-                ContextType = type,
+                ContextType = normalizedType!,
                 ContextId = id
             },
             HttpContext.RequestAborted);
@@ -225,12 +224,7 @@ public class OnboardingController : Controller
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-        {
-            return LocalRedirect(returnUrl);
-        }
-
-        return RedirectToAction(nameof(Index));
+        return RedirectToSafeContextFallback(returnUrl);
     }
 
     [Authorize]
@@ -389,6 +383,16 @@ public class OnboardingController : Controller
     private RedirectToRouteResult RedirectToManagementDashboard(string companySlug)
     {
         return RedirectToRoute("management_dashboard", new { companySlug });
+    }
+
+    private IActionResult RedirectToSafeContextFallback(string? returnUrl)
+    {
+        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return LocalRedirect(returnUrl);
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
     private CookieOptions CreateContextCookieOptions()
