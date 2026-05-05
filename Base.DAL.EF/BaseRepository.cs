@@ -72,13 +72,14 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
     /// </summary>
     public virtual void Add(TDALEntity entity)
     {
-        var domainEntity = Mapper.Map(entity);
+        var domainEntity = Mapper.Map(entity)!;
 
         if (typeof(IHasCreatedAtMeta).IsAssignableFrom(typeof(TDomainEntity)))
         {
-            ((IHasCreatedAtMeta)domainEntity!).CreatedAt = DateTime.UtcNow;
+            ((IHasCreatedAtMeta)domainEntity).CreatedAt = DateTime.UtcNow;
         }
-        RepositoryDbSet.Add(Mapper.Map(entity)!);
+        
+        RepositoryDbSet.Add(domainEntity);
     }
 
     private static Dictionary<string, PropertyInfo>? _domainEntityTypePropsLangStr = null;
