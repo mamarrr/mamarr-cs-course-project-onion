@@ -1,5 +1,5 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Residents.Errors;
 using App.BLL.Contracts.Residents.Models;
 using App.Resources.Views;
@@ -19,18 +19,18 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}/residents")]
 public class ResidentsController : Controller
 {
-    private readonly IResidentWorkspaceService _residentWorkspaceService;
+    private readonly IAppBLL _bll;
     private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ILogger<ResidentsController> _logger;
 
     public ResidentsController(
-        IResidentWorkspaceService residentWorkspaceService,
+        IAppBLL bll,
         ResidentMvcMapper residentMapper,
         IAppChromeBuilder appChromeBuilder,
         ILogger<ResidentsController> logger)
     {
-        _residentWorkspaceService = residentWorkspaceService;
+        _bll = bll;
         _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
         _logger = logger;
@@ -39,7 +39,7 @@ public class ResidentsController : Controller
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, CancellationToken cancellationToken)
     {
-        var result = await _residentWorkspaceService.GetResidentsAsync(
+        var result = await _bll.ResidentWorkspaces.GetResidentsAsync(
             _residentMapper.ToResidentsQuery(companySlug, User),
             cancellationToken);
         if (result.IsFailed)
@@ -65,7 +65,7 @@ public class ResidentsController : Controller
             !string.IsNullOrWhiteSpace(vm.AddResident.LastName),
             !string.IsNullOrWhiteSpace(vm.AddResident.IdCode));
 
-        var residents = await _residentWorkspaceService.GetResidentsAsync(
+        var residents = await _bll.ResidentWorkspaces.GetResidentsAsync(
             _residentMapper.ToResidentsQuery(companySlug, User),
             cancellationToken);
         if (residents.IsFailed)
@@ -82,7 +82,7 @@ public class ResidentsController : Controller
             return View(nameof(Index), invalidVm);
         }
 
-        var createResult = await _residentWorkspaceService.CreateAsync(
+        var createResult = await _bll.ResidentWorkspaces.CreateAsync(
             _residentMapper.ToCreateCommand(companySlug, vm.AddResident, User),
             cancellationToken);
 

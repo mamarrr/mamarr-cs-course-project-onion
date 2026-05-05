@@ -1,5 +1,5 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Queries;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
@@ -17,21 +17,18 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}/customers")]
 public class CustomersController : Controller
 {
-    private readonly ICompanyCustomerService _companyCustomerService;
-    private readonly ICustomerAccessService _customerAccessService;
+    private readonly IAppBLL _bll;
     private readonly CompanyCustomerMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ILogger<CustomersController> _logger;
 
     public CustomersController(
-        ICompanyCustomerService companyCustomerService,
-        ICustomerAccessService customerAccessService,
+        IAppBLL bll,
         CompanyCustomerMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder,
         ILogger<CustomersController> logger)
     {
-        _companyCustomerService = companyCustomerService;
-        _customerAccessService = customerAccessService;
+        _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
         _logger = logger;
@@ -88,7 +85,7 @@ public class CustomersController : Controller
             return View(nameof(Index), invalidVm.model);
         }
 
-        var createResult = await _companyCustomerService.CreateCustomerAsync(
+        var createResult = await _bll.CompanyCustomers.CreateCustomerAsync(
             _mapper.ToCommand(companySlug, vm.AddCustomer, User),
             cancellationToken);
 
@@ -149,13 +146,13 @@ public class CustomersController : Controller
         CancellationToken cancellationToken,
         AddManagementCustomerViewModel? addCustomerOverride = null)
     {
-        var company = await _customerAccessService.ResolveCompanyWorkspaceAsync(query, cancellationToken);
+        var company = await _bll.CustomerAccess.ResolveCompanyWorkspaceAsync(query, cancellationToken);
         if (company.IsFailed)
         {
             return (ToMvcErrorResult(company.Errors), null);
         }
 
-        var listResult = await _companyCustomerService.GetCompanyCustomersAsync(query, cancellationToken);
+        var listResult = await _bll.CompanyCustomers.GetCompanyCustomersAsync(query, cancellationToken);
         if (listResult.IsFailed)
         {
             return (ToMvcErrorResult(listResult.Errors), null);

@@ -1,6 +1,6 @@
 using System.Security.Claims;
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.ManagementCompanies.Models;
 using App.Resources.Views;
 using FluentResults;
@@ -18,14 +18,14 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}/profile")]
 public class ProfileController : Controller
 {
-    private readonly IManagementCompanyProfileService _managementCompanyProfileService;
+    private readonly IAppBLL _bll;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public ProfileController(
-        IManagementCompanyProfileService managementCompanyProfileService,
+        IAppBLL bll,
         IAppChromeBuilder appChromeBuilder)
     {
-        _managementCompanyProfileService = managementCompanyProfileService;
+        _bll = bll;
         _appChromeBuilder = appChromeBuilder;
     }
 
@@ -38,7 +38,7 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var profile = await _managementCompanyProfileService.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
+        var profile = await _bll.ManagementCompanyProfiles.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
         if (profile.IsFailed)
         {
             return ToProfileLookupActionResult(profile.Errors);
@@ -60,7 +60,7 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var currentProfile = await _managementCompanyProfileService.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
+        var currentProfile = await _bll.ManagementCompanyProfiles.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
         if (currentProfile.IsFailed)
         {
             return ToProfileLookupActionResult(currentProfile.Errors);
@@ -72,7 +72,7 @@ public class ProfileController : Controller
             return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
-        var result = await _managementCompanyProfileService.UpdateProfileAsync(
+        var result = await _bll.ManagementCompanyProfiles.UpdateProfileAsync(
             appUserId.Value,
             companySlug,
             new CompanyProfileUpdateRequest
@@ -120,7 +120,7 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var currentProfile = await _managementCompanyProfileService.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
+        var currentProfile = await _bll.ManagementCompanyProfiles.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
         if (currentProfile.IsFailed)
         {
             return ToProfileLookupActionResult(currentProfile.Errors);
@@ -133,7 +133,7 @@ public class ProfileController : Controller
             return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
-        var result = await _managementCompanyProfileService.DeleteProfileAsync(appUserId.Value, companySlug, cancellationToken);
+        var result = await _bll.ManagementCompanyProfiles.DeleteProfileAsync(appUserId.Value, companySlug, cancellationToken);
         if (result.IsFailed && result.Errors.OfType<NotFoundError>().Any())
         {
             return NotFound();

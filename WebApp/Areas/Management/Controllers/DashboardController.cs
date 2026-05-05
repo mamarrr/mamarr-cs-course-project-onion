@@ -1,6 +1,6 @@
 using System.Security.Claims;
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.ManagementCompanies;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,14 +16,14 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}")]
 public class DashboardController : Controller
 {
-    private readonly ICompanyMembershipAdminService _companyMembershipAdminService;
+    private readonly IAppBLL _bll;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public DashboardController(
-        ICompanyMembershipAdminService companyMembershipAdminService,
+        IAppBLL bll,
         IAppChromeBuilder appChromeBuilder)
     {
-        _companyMembershipAdminService = companyMembershipAdminService;
+        _bll = bll;
         _appChromeBuilder = appChromeBuilder;
     }
 
@@ -37,7 +37,7 @@ public class DashboardController : Controller
             return Challenge();
         }
 
-        var auth = await _companyMembershipAdminService.AuthorizeManagementAreaAccessAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMembershipAdmin.AuthorizeManagementAreaAccessAsync(appUserId.Value, companySlug, cancellationToken);
         if (auth.IsFailed)
         {
             return ToAuthorizationActionResult(auth.Errors);

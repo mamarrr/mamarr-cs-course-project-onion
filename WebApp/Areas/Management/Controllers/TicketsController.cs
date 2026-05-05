@@ -1,5 +1,5 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Tickets;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
@@ -17,16 +17,16 @@ namespace WebApp.Areas.Management.Controllers;
 [Route("m/{companySlug}/tickets")]
 public class TicketsController : Controller
 {
-    private readonly IManagementTicketService _ticketService;
+    private readonly IAppBLL _bll;
     private readonly ManagementTicketMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public TicketsController(
-        IManagementTicketService ticketService,
+        IAppBLL bll,
         ManagementTicketMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _ticketService = ticketService;
+        _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
     }
@@ -37,7 +37,7 @@ public class TicketsController : Controller
         [FromQuery] TicketFilterViewModel filter,
         CancellationToken cancellationToken)
     {
-        var result = await _ticketService.GetTicketsAsync(
+        var result = await _bll.ManagementTickets.GetTicketsAsync(
             _mapper.ToListQuery(companySlug, filter, User),
             cancellationToken);
 
@@ -77,7 +77,7 @@ public class TicketsController : Controller
             return invalidPage.response ?? View(invalidPage.model);
         }
 
-        var result = await _ticketService.CreateAsync(
+        var result = await _bll.ManagementTickets.CreateAsync(
             _mapper.ToCreateCommand(
                 companySlug,
                 vm.Form,
@@ -106,7 +106,7 @@ public class TicketsController : Controller
         Guid ticketId,
         CancellationToken cancellationToken)
     {
-        var result = await _ticketService.GetDetailsAsync(
+        var result = await _bll.ManagementTickets.GetDetailsAsync(
             _mapper.ToTicketQuery(companySlug, ticketId, User),
             cancellationToken);
 
@@ -148,7 +148,7 @@ public class TicketsController : Controller
             return invalidPage.response ?? View(invalidPage.model);
         }
 
-        var result = await _ticketService.UpdateAsync(
+        var result = await _bll.ManagementTickets.UpdateAsync(
             _mapper.ToUpdateCommand(
                 companySlug,
                 ticketId,
@@ -179,7 +179,7 @@ public class TicketsController : Controller
         Guid ticketId,
         CancellationToken cancellationToken)
     {
-        var result = await _ticketService.DeleteAsync(
+        var result = await _bll.ManagementTickets.DeleteAsync(
             _mapper.ToDeleteCommand(companySlug, ticketId, User),
             cancellationToken);
 
@@ -206,7 +206,7 @@ public class TicketsController : Controller
         Guid ticketId,
         CancellationToken cancellationToken)
     {
-        var result = await _ticketService.AdvanceStatusAsync(
+        var result = await _bll.ManagementTickets.AdvanceStatusAsync(
             _mapper.ToAdvanceCommand(companySlug, ticketId, User),
             cancellationToken);
 
@@ -232,7 +232,7 @@ public class TicketsController : Controller
         Guid? customerId,
         CancellationToken cancellationToken)
     {
-        var options = await _ticketService.GetSelectorOptionsAsync(
+        var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
             _mapper.ToSelectorQuery(companySlug, customerId, null, null, null, User),
             cancellationToken);
 
@@ -247,7 +247,7 @@ public class TicketsController : Controller
         Guid? propertyId,
         CancellationToken cancellationToken)
     {
-        var options = await _ticketService.GetSelectorOptionsAsync(
+        var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
             _mapper.ToSelectorQuery(companySlug, null, propertyId, null, null, User),
             cancellationToken);
 
@@ -262,7 +262,7 @@ public class TicketsController : Controller
         Guid? unitId,
         CancellationToken cancellationToken)
     {
-        var options = await _ticketService.GetSelectorOptionsAsync(
+        var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
             _mapper.ToSelectorQuery(companySlug, null, null, unitId, null, User),
             cancellationToken);
 
@@ -277,7 +277,7 @@ public class TicketsController : Controller
         Guid? categoryId,
         CancellationToken cancellationToken)
     {
-        var options = await _ticketService.GetSelectorOptionsAsync(
+        var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
             _mapper.ToSelectorQuery(companySlug, null, null, null, categoryId, User),
             cancellationToken);
 
@@ -291,7 +291,7 @@ public class TicketsController : Controller
         TicketFormViewModel? formOverride,
         CancellationToken cancellationToken)
     {
-        var result = await _ticketService.GetCreateFormAsync(
+        var result = await _bll.ManagementTickets.GetCreateFormAsync(
             _mapper.ToListQuery(
                 companySlug,
                 new TicketFilterViewModel
@@ -324,7 +324,7 @@ public class TicketsController : Controller
         TicketFormViewModel? formOverride,
         CancellationToken cancellationToken)
     {
-        var result = await _ticketService.GetEditFormAsync(
+        var result = await _bll.ManagementTickets.GetEditFormAsync(
             _mapper.ToTicketQuery(companySlug, ticketId, User),
             cancellationToken);
 
