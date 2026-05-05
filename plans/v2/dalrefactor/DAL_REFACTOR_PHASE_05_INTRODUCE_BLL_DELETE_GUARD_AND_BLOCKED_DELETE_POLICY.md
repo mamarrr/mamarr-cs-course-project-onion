@@ -1,4 +1,4 @@
-# DAL/BLL Refactor Phase 5 — BLL Delete Guard and Blocked-Delete Policy
+# DAL/BLL Refactor Phase 5 — BLL Delete Guard and Generic Blocked-Delete Policy
 
 > Scope file only. Use this together with `DAL_REFACTOR_MASTER_GUIDANCE.md`.
 > Do not implement other phases unless explicitly instructed.
@@ -7,15 +7,30 @@
 
 Replace cross-aggregate cascade delete workflows with blocked-delete validation.
 
-For important business entities, deletion should be blocked when dependent records exist. The user should receive a clear business error explaining why the delete cannot happen.
+Deletion should be blocked when any dependent record exists. The UI does **not** need dependency counts and does **not** need specific dependency names.
 
 The main Phase 5 rule:
 
 ```text
 Delete only the requested entity.
 Do not automatically delete related business entities.
-Block deletion when dependent records exist.
+Block deletion when any dependency exists.
+Return a generic business error.
 ```
+
+Generic error message target:
+
+```text
+Unable to delete because dependent records exist.
+```
+
+or, if slightly more user-friendly:
+
+```text
+Unable to delete this item because it is still referenced by other records.
+```
+
+Do not spend Phase 5 building detailed dependency messages, dependency counts, or UI dependency breakdowns.
 
 ---
 
@@ -43,9 +58,9 @@ Use:
 Delete customer
   -> resolve access/scope
   -> check permission
-  -> check dependencies
-  -> if dependencies exist, return BusinessRuleError
-  -> if no dependencies exist, delete only customer
+  -> check whether any dependency exists
+  -> if dependency exists, return generic BusinessRuleError
+  -> if no dependency exists, delete only customer
 ```
 
 ---
@@ -95,22 +110,23 @@ App.BLL.Contracts/Common/Deletion/IAppDeleteGuard.cs
 App.BLL/Services/Common/Deletion/AppDeleteGuard.cs
 ```
 
-Recommended dependency models:
+Do **not** create count-based dependency DTOs for Phase 5.
+
+No need for:
 
 ```text
-App.BLL.DTO/Common/Deletion/DeleteDependencyModel.cs
-App.BLL.DTO/Common/Deletion/DeleteDependencySummaryModel.cs
-```
-
-or, if clearer, domain-specific BLL models:
-
-```text
+DeleteDependencyModel
+DeleteDependencySummaryModel
 CustomerDeleteDependencySummaryModel
 PropertyDeleteDependencySummaryModel
 UnitDeleteDependencySummaryModel
 ResidentDeleteDependencySummaryModel
 TicketDeleteDependencySummaryModel
 ```
+
+unless a later UI requirement explicitly needs detailed dependency reporting.
+
+For this phase, boolean dependency checks are enough.
 
 ## AppBLL wiring
 
@@ -142,9 +158,8 @@ The delete guard is a BLL helper, not a user-facing application service.
 The delete guard should:
 
 - receive ids and scope ids from BLL services;
-- ask owning repositories for dependency summaries/counts;
-- return whether deletion is allowed;
-- return dependency information for business errors;
+- ask owning repositories whether any delete-blocking dependency exists;
+- return allowed/blocked;
 - use `IAppUOW`;
 - avoid direct EF Core and `AppDbContext` usage.
 
@@ -156,52 +171,86 @@ The delete guard should not:
 - use EF Core APIs directly;
 - know SQL details;
 - be called by repositories;
-- live in `App.DAL.EF`.
+- live in `App.DAL.EF`;
+- return dependency counts;
+- return dependency names for UI display;
+- build detailed dependency reports.
+
+Recommended guard method style:
+
+```text
+CanDeleteUnitAsync(unitId, propertyId, managementCompanyId, cancellationToken)
+CanDeleteTicketAsync(ticketId, managementCompanyId, cancellationToken)
+CanDeletePropertyAsync(propertyId, customerId, managementCompanyId, cancellationToken)
+CanDeleteCustomerAsync(customerId, managementCompanyId, cancellationToken)
+CanDeleteResidentAsync(residentId, managementCompanyId, cancellationToken)
+```
+
+Each guard method can return either:
+
+```text
+Task<bool>
+```
+
+where `true` means delete is allowed, or a small internal result type such as:
+
+```text
+DeleteGuardResult.Allowed
+DeleteGuardResult.Blocked
+```
+
+Do not overbuild this. A boolean is enough unless the project style benefits from a small result object.
 
 ---
 
-# DAL dependency summary responsibilities
+# DAL dependency predicate responsibilities
 
-Repositories should expose focused dependency summary methods owned by the repository for the entity being deleted.
+Repositories should expose focused boolean dependency predicate methods owned by the repository for the entity being deleted.
 
 Examples:
 
 ```text
 IUnitRepository:
-  GetDeleteDependencySummaryAsync(unitId, propertyId, managementCompanyId, cancellationToken)
+  HasDeleteDependenciesAsync(unitId, propertyId, managementCompanyId, cancellationToken)
 
 IPropertyRepository:
-  GetDeleteDependencySummaryAsync(propertyId, customerId, managementCompanyId, cancellationToken)
+  HasDeleteDependenciesAsync(propertyId, customerId, managementCompanyId, cancellationToken)
 
 ICustomerRepository:
-  GetDeleteDependencySummaryAsync(customerId, managementCompanyId, cancellationToken)
+  HasDeleteDependenciesAsync(customerId, managementCompanyId, cancellationToken)
 
 IResidentRepository:
-  GetDeleteDependencySummaryAsync(residentId, managementCompanyId, cancellationToken)
+  HasDeleteDependenciesAsync(residentId, managementCompanyId, cancellationToken)
 
 ITicketRepository:
-  GetDeleteDependencySummaryAsync(ticketId, managementCompanyId, cancellationToken)
+  HasDeleteDependenciesAsync(ticketId, managementCompanyId, cancellationToken)
 ```
 
-Repository dependency summary DTOs should live in DAL DTOs, not BLL DTOs.
-
-Recommended location:
+These methods should return:
 
 ```text
-App.DAL.DTO/Common/Deletion
+Task<bool>
 ```
 
-or domain-specific files such as:
+Meaning:
 
 ```text
-App.DAL.DTO/Units/UnitDeleteDependencySummaryDalDto.cs
-App.DAL.DTO/Properties/PropertyDeleteDependencySummaryDalDto.cs
-App.DAL.DTO/Customers/CustomerDeleteDependencySummaryDalDto.cs
-App.DAL.DTO/Residents/ResidentDeleteDependencySummaryDalDto.cs
-App.DAL.DTO/Tickets/TicketDeleteDependencySummaryDalDto.cs
+true  -> dependency exists, deletion must be blocked
+false -> no known dependency exists, deletion may proceed
 ```
 
-BLL may then map/compose these DAL summaries into BLL errors or BLL dependency models.
+Repository predicate methods should use efficient `AnyAsync(...)` queries.
+
+Do not use `CountAsync(...)` unless there is a real reason. Counting is unnecessary when the UI only needs a generic blocked-delete error.
+
+The repository method should not:
+
+- delete anything;
+- return full child entities;
+- perform BLL authorization;
+- format UI messages;
+- return dependency counts;
+- return BLL DTOs.
 
 ---
 
@@ -215,7 +264,7 @@ Each converted delete method should follow this flow:
 3. Validate delete confirmation input.
 4. Check permissions.
 5. Ask IAppDeleteGuard whether deletion is allowed.
-6. If blocked, return BusinessRuleError with dependency details.
+6. If blocked, return generic BusinessRuleError.
 7. If allowed, call repository RemoveAsync(id, parentId, cancellationToken).
 8. Save changes.
 9. Return success.
@@ -233,13 +282,25 @@ ValidationAppError
 
 Blocked delete should normally return `BusinessRuleError`.
 
-Example user-facing message style:
+Recommended blocked-delete message:
 
 ```text
-Cannot delete this unit because it still has leases and tickets linked to it.
+Unable to delete because dependent records exist.
 ```
 
-If returning dependency details, keep them structured enough for UI later, but do not overbuild UI formatting in this phase.
+or:
+
+```text
+Unable to delete this item because it is still referenced by other records.
+```
+
+Do not return dependency-specific messages such as:
+
+```text
+Cannot delete this unit because it has 3 leases and 2 tickets.
+```
+
+Do not return counts to the UI.
 
 ---
 
@@ -250,7 +311,7 @@ Old cascade deletes often used explicit transactions because one user action del
 After conversion to blocked delete, most delete flows should be:
 
 ```text
-dependency check
+dependency predicate check
 RemoveAsync one entity
 SaveChangesAsync
 ```
@@ -273,10 +334,10 @@ The database should still prevent invalid deletes through FK constraints.
 If an FK violation still occurs:
 
 - catch it at a suitable boundary if the project already has exception handling patterns;
-- return a generic blocked-delete business error;
+- return the same generic blocked-delete business error;
 - do not expose raw FK constraint names to users.
 
-Do not rely only on FK exceptions for normal UX. Prefer explicit dependency checks through the delete guard.
+Do not rely only on FK exceptions for normal UX. Prefer explicit `HasDeleteDependenciesAsync(...)` checks through the delete guard.
 
 ---
 
@@ -316,16 +377,18 @@ Both are good first examples for replacing cascade delete with blocked delete.
 
 For each converted delete workflow:
 
-1. Add DAL dependency summary DTO.
-2. Add repository contract method: `GetDeleteDependencySummaryAsync(...)`.
-3. Implement repository dependency summary with counts/flags only.
-4. Add or update delete guard method.
-5. Inject/pass `IAppDeleteGuard` into the BLL service.
-6. Replace old cascade delete call with guard + base `RemoveAsync`.
+1. Add repository contract method: `HasDeleteDependenciesAsync(...)`.
+2. Implement repository dependency predicate using `AnyAsync(...)`.
+3. Add or update delete guard method.
+4. Inject/pass `IAppDeleteGuard` into the BLL service.
+5. Replace old cascade delete call with guard + base `RemoveAsync`.
+6. Return generic `BusinessRuleError` if the guard blocks deletion.
 7. Remove old custom cascade `DeleteAsync(...)` from repository contract and implementation if no longer needed.
 8. Remove transaction block if the delete now removes only one entity.
 9. Build and test the converted workflow.
 10. Commit/checkpoint before the next slice.
+
+No dependency count DTOs are required.
 
 ---
 
@@ -346,20 +409,22 @@ UnitProfileService.DeleteAsync
   -> resolve unit workspace
   -> confirm unit number
   -> check role
-  -> delete guard checks unit dependencies
-  -> if dependencies exist, return BusinessRuleError
+  -> delete guard checks whether any unit dependency exists
+  -> if dependency exists, return generic BusinessRuleError
   -> if allowed, _uow.Units.RemoveAsync(unitId, propertyId, cancellationToken)
   -> SaveChangesAsync
 ```
 
-Unit dependencies should include at minimum:
+Unit dependency predicate should check whether any of these exist:
 
 ```text
-LeaseCount
-TicketCount
+leases
+tickets
 ```
 
-If scheduled work/work logs are only reachable through tickets, they do not need to be direct unit blockers separately.
+Implementation should use `AnyAsync(...)` and short-circuit where practical.
+
+If scheduled work/work logs are only reachable through tickets, they do not need to be checked separately for unit deletion.
 
 After conversion:
 
@@ -385,18 +450,20 @@ New behavior:
 ```text
 ManagementTicketService.DeleteAsync
   -> resolve company access
-  -> delete guard checks ticket dependencies
-  -> if scheduled work or work logs exist, return BusinessRuleError
+  -> delete guard checks whether any ticket dependency exists
+  -> if dependency exists, return generic BusinessRuleError
   -> if allowed, _uow.Tickets.RemoveAsync(ticketId, managementCompanyId, cancellationToken)
   -> SaveChangesAsync
 ```
 
-Ticket dependencies should include:
+Ticket dependency predicate should check whether any of these exist:
 
 ```text
-ScheduledWorkCount
-WorkLogCount, through scheduled work
+scheduled work
+work logs through scheduled work
 ```
+
+Do not delete scheduled work or work logs automatically.
 
 After conversion:
 
@@ -423,18 +490,18 @@ PropertyProfileService.DeleteAsync
   -> resolve property workspace
   -> confirm property name
   -> check role
-  -> delete guard checks property dependencies
-  -> if dependencies exist, return BusinessRuleError
+  -> delete guard checks whether any property dependency exists
+  -> if dependency exists, return generic BusinessRuleError
   -> if allowed, _uow.Properties.RemoveAsync(propertyId, customerId, cancellationToken)
   -> SaveChangesAsync
 ```
 
-Property dependencies should include:
+Property dependency predicate should check whether any of these exist:
 
 ```text
-UnitCount
-LeaseCount
-TicketCount
+units
+leases
+tickets
 ```
 
 ---
@@ -455,20 +522,20 @@ CustomerProfileService.DeleteAsync
   -> resolve customer access
   -> confirm customer name
   -> check role
-  -> delete guard checks customer dependencies
-  -> if dependencies exist, return BusinessRuleError
+  -> delete guard checks whether any customer dependency exists
+  -> if dependency exists, return generic BusinessRuleError
   -> if allowed, _uow.Customers.RemoveAsync(customerId, managementCompanyId, cancellationToken)
   -> SaveChangesAsync
 ```
 
-Customer dependencies should include:
+Customer dependency predicate should check whether any of these exist:
 
 ```text
-PropertyCount
-UnitCount
-LeaseCount
-TicketCount
-CustomerRepresentativeCount
+properties
+units
+leases
+tickets
+customer representatives
 ```
 
 ---
@@ -489,20 +556,20 @@ ResidentProfileService.DeleteAsync
   -> resolve resident workspace
   -> confirm resident id code
   -> check role
-  -> delete guard checks resident dependencies
-  -> if dependencies exist, return BusinessRuleError
+  -> delete guard checks whether any resident dependency exists
+  -> if dependency exists, return generic BusinessRuleError
   -> if allowed, _uow.Residents.RemoveAsync(residentId, managementCompanyId, cancellationToken)
   -> SaveChangesAsync
 ```
 
-Resident dependencies should include:
+Resident dependency predicate should check whether any of these exist:
 
 ```text
-LeaseCount
-TicketCount
-ResidentUserCount
-ResidentContactCount
-CustomerRepresentativeLinkCount
+leases
+tickets
+resident users
+resident contacts
+customer representative links
 ```
 
 ---
@@ -517,7 +584,11 @@ Do not rewrite all BLL services at once.
 
 Do not change database schema unless FK behavior is clearly wrong.
 
-Do not handle UI formatting beyond returning useful business errors/results.
+Do not create count-based dependency DTOs.
+
+Do not return dependency counts to UI.
+
+Do not return dependency-specific UI messages unless a later requirement asks for that.
 
 Do not introduce a new result/error pattern unrelated to the current `FluentResults` style.
 
@@ -531,11 +602,11 @@ Phase 5 is complete when:
 
 - `IAppDeleteGuard` and `AppDeleteGuard` exist.
 - Delete guard checks dependencies through repositories and `IAppUOW`.
-- Dependency summary methods exist on owning repositories for converted workflows.
-- Converted delete methods return `BusinessRuleError` when dependencies exist.
+- Boolean dependency predicate methods exist on owning repositories for converted workflows.
+- Converted delete methods return generic `BusinessRuleError` when any dependency exists.
 - Converted delete methods delete only the requested entity when allowed.
 - Converted delete methods use base `RemoveAsync` where possible.
 - Converted repository cascade `DeleteAsync` methods are removed once no longer needed.
 - Explicit transaction blocks are removed from simple converted deletes.
-- User-facing/business errors clearly explain why deletion is blocked.
+- No dependency counts are returned to UI.
 - Build succeeds.
