@@ -299,9 +299,4 @@ public class ManagementTicketMvcMapper
         var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : Guid.Empty;
     }
-
-    public static string CurrentCultureName()
-    {
-        return CultureInfo.CurrentUICulture.Name;
-    }
 }

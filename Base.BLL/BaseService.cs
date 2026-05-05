@@ -29,9 +29,9 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
     protected readonly TRepository ServiceRepository;
     protected readonly IBaseMapper<TBLLEntity, TDALEntity> Mapper;
 
-    public BaseService(TRepository serviceRepository, TUOW serviceBLL, IBaseMapper<TBLLEntity, TDALEntity> mapper)
+    public BaseService(TRepository serviceRepository, TUOW serviceUOW, IBaseMapper<TBLLEntity, TDALEntity> mapper)
     {
-        ServiceUOW = serviceBLL;
+        ServiceUOW = serviceUOW;
         ServiceRepository = serviceRepository;
         Mapper = mapper;
     }
