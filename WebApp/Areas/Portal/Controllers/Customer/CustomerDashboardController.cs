@@ -22,22 +22,19 @@ public class CustomerDashboardController : Controller
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly ILogger<CustomerDashboardController> _logger;
-    private readonly IWebHostEnvironment _webHostEnvironment;
 
     public CustomerDashboardController(
         IAppBLL bll,
         CustomerWorkspaceApiMapper mapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver,
-        ILogger<CustomerDashboardController> logger,
-        IWebHostEnvironment webHostEnvironment)
+        ILogger<CustomerDashboardController> logger)
     {
         _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
         _logger = logger;
-        _webHostEnvironment = webHostEnvironment;
     }
 
     [HttpGet("")]
@@ -71,8 +68,6 @@ public class CustomerDashboardController : Controller
         string currentSection,
         CancellationToken cancellationToken)
     {
-        LogViewCandidates(currentSection);
-
         var appUserId = GetAppUserId();
         if (appUserId is null)
         {
@@ -105,7 +100,9 @@ public class CustomerDashboardController : Controller
             CompanySlug = result.Value.CompanySlug,
             CompanyName = result.Value.CompanyName,
             CustomerSlug = result.Value.CustomerSlug,
-            CustomerName = result.Value.CustomerName
+            CustomerName = result.Value.CustomerName,
+            CurrentSection = currentSection,
+            CurrentSectionLabel = sectionTitle
         };
 
         _logger.LogInformation(
@@ -138,31 +135,6 @@ public class CustomerDashboardController : Controller
                 CurrentLevel = WorkspaceLevel.Customer
             },
             cancellationToken);
-    }
-
-    private void LogViewCandidates(string currentSection)
-    {
-        var relativeCandidates = new[]
-        {
-            "Areas/Portal/Views/Customer/CustomerDashboard/Index.cshtml",
-            "Areas/Portal/Views/Customer/Dashboard/Index.cshtml",
-            "Areas/Portal/Views/Customer/Shared/Index.cshtml",
-            "Views/Shared/Index.cshtml"
-        };
-
-        foreach (var relativePath in relativeCandidates)
-        {
-            var physicalPath = Path.Combine(
-                _webHostEnvironment.ContentRootPath,
-                relativePath.Replace('/', Path.DirectorySeparatorChar));
-
-            _logger.LogInformation(
-                "Customer dashboard view candidate. Section={Section}, RelativePath={RelativePath}, PhysicalPath={PhysicalPath}, Exists={Exists}",
-                currentSection,
-                relativePath,
-                physicalPath,
-                System.IO.File.Exists(physicalPath));
-        }
     }
 
     private IActionResult ToMvcErrorResult(IReadOnlyList<FluentResults.IError> errors)

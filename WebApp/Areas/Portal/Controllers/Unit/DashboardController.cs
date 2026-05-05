@@ -84,20 +84,20 @@ public class DashboardController : Controller
         }
 
         var context = access.context!;
-        ViewData["Title"] = T("UnitDashboard", "Unit dashboard");
-        ViewData["CurrentSectionLabel"] = currentSection switch
+        var currentSectionLabel = currentSection switch
         {
             "Details" => T("Details", "Details"),
             "Tenants" => T("Tenants", "Tenants"),
             "Tickets" => UiText.Tickets,
             _ => UiText.Dashboard
         };
+        var title = T("UnitDashboard", "Unit dashboard");
 
         var vm = new DashboardPageViewModel
         {
             AppChrome = await BuildAppChromeAsync(
                 context,
-                ViewData["Title"] as string ?? T("UnitDashboard", "Unit dashboard"),
+                title,
                 currentSection,
                 cancellationToken),
             CompanySlug = context.CompanySlug,
@@ -108,7 +108,8 @@ public class DashboardController : Controller
             PropertyName = context.PropertyName,
             UnitSlug = context.UnitSlug,
             UnitName = context.UnitNr,
-            CurrentSection = currentSection
+            CurrentSection = currentSection,
+            CurrentSectionLabel = currentSectionLabel
         };
 
         return View("Index", vm);

@@ -14,5 +14,6 @@ public class DashboardPageViewModel : IAppChromePage
     public string UnitSlug { get; init; } = string.Empty;
     public string UnitName { get; init; } = string.Empty;
     public string CurrentSection { get; init; } = string.Empty;
+    public string CurrentSectionLabel { get; init; } = string.Empty;
 }
 

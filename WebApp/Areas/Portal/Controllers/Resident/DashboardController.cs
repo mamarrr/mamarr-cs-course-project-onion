@@ -109,7 +109,8 @@ public class DashboardController : Controller
             ResidentIdCode = context.ResidentIdCode,
             ResidentDisplayName = residentDisplayName,
             ResidentSupportingText = residentSupportingText,
-            CurrentSection = currentSection
+            CurrentSection = currentSection,
+            CurrentSectionLabel = currentSectionLabel
         };
 
         return View("Index", vm);

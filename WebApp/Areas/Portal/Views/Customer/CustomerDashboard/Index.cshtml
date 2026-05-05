@@ -1,7 +1,6 @@
 @model WebApp.ViewModels.Customer.CustomerDashboard.DashboardPageViewModel
 @{
     Layout = "~/Views/Shared/_AppChromeLayout.cshtml";
-    var currentSectionLabel = (ViewData["CurrentSectionLabel"] as string) ?? App.Resources.Views.UiText.Dashboard;
 }
 
 <div class="management-grid management-grid-2">
@@ -12,8 +11,8 @@
     </section>
 
     <section class="management-card">
-        <h2>@currentSectionLabel</h2>
-        <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.CustomerSectionPlaceholder, currentSectionLabel)</p>
+        <h2>@Model.CurrentSectionLabel</h2>
+        <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.CustomerSectionPlaceholder, Model.CurrentSectionLabel)</p>
     </section>
 
     <section class="management-card">

@@ -1,7 +1,4 @@
 @model WebApp.ViewModels.Property.DashboardPageViewModel
-@{
-    var currentSectionLabel = (ViewData["CurrentSectionLabel"] as string) ?? App.Resources.Views.UiText.Dashboard;
-}
 
 <section class="management-card mb-4">
     <p class="management-eyebrow mb-2">@App.Resources.Views.UiText.PropertyDashboard</p>
@@ -10,7 +7,7 @@
 </section>
 
 <section class="management-card">
-    <h3>@currentSectionLabel</h3>
-    <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.PropertySectionPlaceholder, currentSectionLabel)</p>
+    <h3>@Model.CurrentSectionLabel</h3>
+    <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.PropertySectionPlaceholder, Model.CurrentSectionLabel)</p>
 </section>
 

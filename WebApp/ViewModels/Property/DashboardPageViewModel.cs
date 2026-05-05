@@ -12,4 +12,5 @@ public class DashboardPageViewModel : IAppChromePage
     public string PropertySlug { get; init; } = string.Empty;
     public string PropertyName { get; init; } = string.Empty;
     public string CurrentSection { get; init; } = string.Empty;
+    public string CurrentSectionLabel { get; init; } = string.Empty;
 }

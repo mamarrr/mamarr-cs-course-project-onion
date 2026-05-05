@@ -108,7 +108,8 @@ public class DashboardController : Controller
             CustomerName = result.Value.CustomerName,
             PropertySlug = result.Value.PropertySlug,
             PropertyName = result.Value.PropertyName,
-            CurrentSection = currentSection
+            CurrentSection = currentSection,
+            CurrentSectionLabel = currentSectionLabel
         };
 
         return View("Index", vm);
