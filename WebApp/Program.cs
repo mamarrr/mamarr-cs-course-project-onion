@@ -22,6 +22,7 @@ using WebApp.UI.Breadcrumbs;
 using WebApp.UI.Chrome;
 using WebApp.UI.Culture;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.UserMenu;
 using WebApp.UI.Workspace;
 
@@ -55,11 +56,13 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddAppBll();
 builder.Services.AddWebAppMappers();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IIdentityAccountService, IdentityAccountService>();
 builder.Services.AddScoped<IAppChromeBuilder, AppChromeBuilder>();
 builder.Services.AddScoped<IWorkspaceResolver, WorkspaceResolver>();
 builder.Services.AddScoped<IBreadcrumbBuilder, BreadcrumbBuilder>();
 builder.Services.AddScoped<INavigationBuilder, NavigationBuilder>();
+builder.Services.AddScoped<ICurrentPortalContextResolver, CurrentPortalContextResolver>();
 builder.Services.AddScoped<ICultureOptionsBuilder, CultureOptionsBuilder>();
 builder.Services.AddScoped<IUserMenuBuilder, UserMenuBuilder>();
 
