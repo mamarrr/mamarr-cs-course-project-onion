@@ -83,7 +83,7 @@ public class OnboardingContextGuardMiddleware
             return;
         }
 
-        context.Response.Redirect("/Onboarding");
+        context.Response.Redirect("/onboarding");
     }
 
     private static bool ShouldSkipPath(PathString path)
@@ -91,7 +91,18 @@ public class OnboardingContextGuardMiddleware
         if (!path.HasValue) return true;
 
         if (path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path == PathString.FromUriComponent("/")) return true;
         if (path.StartsWithSegments("/Onboarding", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/onboarding", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/login", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/register", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/logout", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/set-language", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/set-context", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/privacy", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/home", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/access-denied", StringComparison.OrdinalIgnoreCase)) return true;
+        if (path.StartsWithSegments("/error", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/Home/SetLanguage", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/Admin", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/Identity", StringComparison.OrdinalIgnoreCase)) return true;

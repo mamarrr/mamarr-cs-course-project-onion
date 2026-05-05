@@ -13,7 +13,7 @@
 <header>
     <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
         <div class="container">
-            <a class="navbar-brand" asp-area="" asp-controller="Onboarding" asp-action="Index">Fixvia</a>
+            <a class="navbar-brand" asp-area="Public" asp-controller="Onboarding" asp-action="Index">Fixvia</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                     aria-controls="navbarSupportedContent"
                     aria-expanded="false" aria-label="Toggle navigation">
@@ -22,14 +22,14 @@
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                 <ul class="navbar-nav flex-grow-1">
                     <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">@App.Resources.Views.UiText.Privacy</a>
+                        <a class="nav-link text-dark" asp-area="Public" asp-controller="Home" asp-action="Privacy">@App.Resources.Views.UiText.Privacy</a>
                     </li>
                     <partial name="_LanguageSelection"/>
                 </ul>
                 @if (User.Identity?.IsAuthenticated ?? false)
                 {
                     <div class="ms-auto">
-                        <form asp-controller="Onboarding" asp-action="Logout" method="post" class="d-inline">
+                        <form asp-area="Public" asp-controller="Onboarding" asp-action="Logout" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
                             <button type="submit" class="btn btn-outline-secondary btn-sm">@App.Resources.Views.UiText.Logout</button>
                         </form>
@@ -47,7 +47,7 @@
 
 <footer class="border-top footer text-muted">
     <div class="container">
-        &copy; 2026 - Fixvia - <a asp-area="" asp-controller="Home" asp-action="Privacy">@App.Resources.Views.UiText.Privacy</a>
+        &copy; 2026 - Fixvia - <a asp-area="Public" asp-controller="Home" asp-action="Privacy">@App.Resources.Views.UiText.Privacy</a>
         | @Thread.CurrentThread.CurrentUICulture.Name
     </div>
 </footer>

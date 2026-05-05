@@ -13,8 +13,9 @@ using WebApp.Mappers.Mvc.Onboarding;
 using WebApp.Services.Identity;
 using WebApp.ViewModels.Onboarding;
 
-namespace WebApp.Controllers;
+namespace WebApp.Areas.Public.Controllers;
 
+[Area("Public")]
 public class OnboardingController : Controller
 {
     private readonly IAppBLL _bll;

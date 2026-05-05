@@ -25,9 +25,9 @@
             @await Html.PartialAsync("~/Views/Shared/Chrome/_Sidebar.cshtml", chrome.NavigationItems)
 
             <div class="management-sidebar-footer">
-                <a class="management-btn management-sidebar-cta" asp-area="" asp-controller="Onboarding" asp-action="Index" asp-route-showChooser="true">@App.Resources.Views.UiText.NewContext</a>
+                <a class="management-btn management-sidebar-cta" asp-area="Public" asp-controller="Onboarding" asp-action="Index" asp-route-showChooser="true">@App.Resources.Views.UiText.NewContext</a>
                 @await Html.PartialAsync("~/Views/Shared/Chrome/_CultureSelector.cshtml", chrome)
-                <a class="management-sidebar-link" asp-area="" asp-controller="Home" asp-action="Privacy">@App.Resources.Views.UiText.Privacy</a>
+                <a class="management-sidebar-link" asp-area="Public" asp-controller="Home" asp-action="Privacy">@App.Resources.Views.UiText.Privacy</a>
             </div>
         </aside>
 

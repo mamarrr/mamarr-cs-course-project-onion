@@ -15,7 +15,7 @@
             foreach (var companyContext in Model.ManagementWorkspaceOptions)
             {
                 <li>
-                    <a class="dropdown-item @(companyContext.IsCurrent ? "active" : string.Empty)" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="management" asp-route-id="@companyContext.Id" asp-route-returnUrl="@Model.CurrentPathAndQuery">@companyContext.Name</a>
+                    <a class="dropdown-item @(companyContext.IsCurrent ? "active" : string.Empty)" asp-area="Public" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="management" asp-route-id="@companyContext.Id" asp-route-returnUrl="@Model.CurrentPathAndQuery">@companyContext.Name</a>
                 </li>
             }
         }
@@ -31,7 +31,7 @@
             foreach (var customerContext in Model.CustomerWorkspaceOptions)
             {
                 <li>
-                    <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="customer" asp-route-id="@customerContext.Id" asp-route-returnUrl="@Model.CurrentPathAndQuery">@customerContext.Name</a>
+                    <a class="dropdown-item" asp-area="Public" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="customer" asp-route-id="@customerContext.Id" asp-route-returnUrl="@Model.CurrentPathAndQuery">@customerContext.Name</a>
                 </li>
             }
         }
@@ -41,7 +41,7 @@
         @if (Model.Workspace.HasResidentContext)
         {
             <li>
-                <a class="dropdown-item" asp-area="" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="resident" asp-route-returnUrl="@Model.CurrentPathAndQuery">@App.Resources.Views.UiText.ResidentDashboard</a>
+                <a class="dropdown-item" asp-area="Public" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="resident" asp-route-returnUrl="@Model.CurrentPathAndQuery">@App.Resources.Views.UiText.ResidentDashboard</a>
             </li>
         }
         else

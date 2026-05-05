@@ -5,7 +5,7 @@
     @foreach (var item in Model.CultureOptions)
     {
         <a class="management-language-link @(item.IsCurrent ? "active" : string.Empty)"
-           asp-area=""
+           asp-area="Public"
            asp-controller="Home"
            asp-action="SetLanguage"
            asp-route-culture="@item.Value"

@@ -50,7 +50,7 @@ builder.Services.AddIdentity<AppUser, AppRole>(options => options.SignIn.Require
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.AccessDeniedPath = "/Home/AccessDenied";
+    options.AccessDeniedPath = "/access-denied";
 });
 
 builder.Services.AddAppBll();
@@ -69,7 +69,7 @@ builder.Services
     .AddCookie(options =>
     {
         options.SlidingExpiration = true;
-        options.AccessDeniedPath = "/Home/AccessDenied";
+        options.AccessDeniedPath = "/access-denied";
     })
     .AddJwtBearer(cfg =>
     {
@@ -161,7 +161,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/error");
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
@@ -212,13 +212,104 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 app.MapControllerRoute(
-        name: "areas",
-        pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}")
+        name: "public_root",
+        pattern: "",
+        defaults: new { area = "Public", controller = "Onboarding", action = "Index" })
     .WithStaticAssets();
 
 app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Onboarding}/{action=Index}/{id?}")
+        name: "public_onboarding",
+        pattern: "onboarding",
+        defaults: new { area = "Public", controller = "Onboarding", action = "Index" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_login",
+        pattern: "login",
+        defaults: new { area = "Public", controller = "Onboarding", action = "Login" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_register",
+        pattern: "register",
+        defaults: new { area = "Public", controller = "Onboarding", action = "Register" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_logout",
+        pattern: "logout",
+        defaults: new { area = "Public", controller = "Onboarding", action = "Logout" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_set_language",
+        pattern: "set-language",
+        defaults: new { area = "Public", controller = "Home", action = "SetLanguage" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_set_context",
+        pattern: "set-context",
+        defaults: new { area = "Public", controller = "Onboarding", action = "SetContext" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_new_management_company",
+        pattern: "onboarding/new-management-company",
+        defaults: new { area = "Public", controller = "Onboarding", action = "NewManagementCompany" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_join_management_company",
+        pattern: "onboarding/join-management-company",
+        defaults: new { area = "Public", controller = "Onboarding", action = "JoinManagementCompany" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_resident_access",
+        pattern: "onboarding/resident-access",
+        defaults: new { area = "Public", controller = "Onboarding", action = "ResidentAccess" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_home",
+        pattern: "home",
+        defaults: new { area = "Public", controller = "Home", action = "Index" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_privacy",
+        pattern: "privacy",
+        defaults: new { area = "Public", controller = "Home", action = "Privacy" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_access_denied",
+        pattern: "access-denied",
+        defaults: new { area = "Public", controller = "Home", action = "AccessDenied" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_error",
+        pattern: "error",
+        defaults: new { area = "Public", controller = "Home", action = "Error" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_legacy_onboarding",
+        pattern: "Onboarding/{action=Index}/{id?}",
+        defaults: new { area = "Public", controller = "Onboarding" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "public_legacy_home",
+        pattern: "Home/{action=Index}/{id?}",
+        defaults: new { area = "Public", controller = "Home" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+        name: "areas",
+        pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 app.Run();

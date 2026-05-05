@@ -160,7 +160,7 @@ public class ProfileController : Controller
         }
 
         TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
-        return RedirectToAction("Index", "Onboarding", new { area = "", showChooser = true });
+        return RedirectToAction("Index", "Onboarding", new { area = "Public", showChooser = true });
     }
 
     private async Task<ProfilePageViewModel> BuildViewModelAsync(
