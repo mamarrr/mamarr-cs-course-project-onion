@@ -70,7 +70,7 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
     /// <summary>
     /// Mapper needs to deal with string -> LangStr conversion 
     /// </summary>
-    public virtual void Add(TDALEntity entity)
+    public virtual TKey Add(TDALEntity entity)
     {
         var domainEntity = Mapper.Map(entity)!;
 
@@ -79,7 +79,9 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
             ((IHasCreatedAtMeta)domainEntity).CreatedAt = DateTime.UtcNow;
         }
         
+        
         RepositoryDbSet.Add(domainEntity);
+        return domainEntity.Id;
     }
 
     private static Dictionary<string, PropertyInfo>? _domainEntityTypePropsLangStr = null;

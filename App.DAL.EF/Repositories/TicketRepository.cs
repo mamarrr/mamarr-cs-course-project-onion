@@ -241,34 +241,6 @@ public class TicketRepository :
             .AnyAsync(ticket => ticket.TicketNr.ToLower() == normalized, cancellationToken);
     }
 
-    public Task<Guid> AddAsync(
-        TicketCreateDalDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        var ticket = new Ticket
-        {
-            Id = Guid.NewGuid(),
-            ManagementCompanyId = dto.ManagementCompanyId,
-            TicketNr = dto.TicketNr,
-            Title = new LangStr(dto.Title, dto.Culture),
-            Description = new LangStr(dto.Description, dto.Culture),
-            TicketCategoryId = dto.TicketCategoryId,
-            TicketStatusId = dto.TicketStatusId,
-            TicketPriorityId = dto.TicketPriorityId,
-            CustomerId = dto.CustomerId,
-            PropertyId = dto.PropertyId,
-            UnitId = dto.UnitId,
-            ResidentId = dto.ResidentId,
-            VendorId = dto.VendorId,
-            DueAt = dto.DueAt,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _dbContext.Tickets.Add(ticket);
-
-        return Task.FromResult(ticket.Id);
-    }
-
     public override async Task<TicketDalDto> UpdateAsync(
         TicketDalDto dto,
         Guid parentId = default,
@@ -288,8 +260,6 @@ public class TicketRepository :
         }
 
         ticket.TicketNr = dto.TicketNr;
-        ticket.Title.SetTranslation(dto.Title, dto.Culture);
-        ticket.Description.SetTranslation(dto.Description, dto.Culture);
         ticket.TicketCategoryId = dto.TicketCategoryId;
         ticket.TicketStatusId = dto.TicketStatusId;
         ticket.TicketPriorityId = dto.TicketPriorityId;
@@ -300,6 +270,38 @@ public class TicketRepository :
         ticket.VendorId = dto.VendorId;
         ticket.DueAt = dto.DueAt;
         ticket.ClosedAt = dto.ClosedAt;
+        
+        if (string.IsNullOrWhiteSpace(dto.Title))
+        {
+            ticket.Title = null!;
+            _dbContext.Entry(ticket).Property(entity => entity.Title).IsModified = true;
+        }
+        else if (ticket.Title is null)
+        {
+            ticket.Title = new LangStr(dto.Title.Trim());
+            _dbContext.Entry(ticket).Property(entity => entity.Title).IsModified = true;
+        }
+        else
+        {
+            ticket.Title.SetTranslation(dto.Title.Trim());
+            _dbContext.Entry(ticket).Property(entity => entity.Title).IsModified = true;
+        }
+        
+        if (string.IsNullOrWhiteSpace(dto.Description))
+        {
+            ticket.Description = null!;
+            _dbContext.Entry(ticket).Property(entity => entity.Description).IsModified = true;
+        }
+        else if (ticket.Description is null)
+        {
+            ticket.Description = new LangStr(dto.Description.Trim());
+            _dbContext.Entry(ticket).Property(entity => entity.Description).IsModified = true;
+        }
+        else
+        {
+            ticket.Description.SetTranslation(dto.Description.Trim());
+            _dbContext.Entry(ticket).Property(entity => entity.Description).IsModified = true;
+        }
 
         return Mapper.Map(ticket)!;
     }

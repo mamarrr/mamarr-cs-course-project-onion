@@ -283,14 +283,13 @@ public class ManagementTicketService : IManagementTicketService
             return Result.Fail(new ConflictError(T("TicketNumberAlreadyExists", "Ticket number already exists in this company.")));
         }
 
-        var ticketId = await _uow.Tickets.AddAsync(
-            new TicketCreateDalDto
+        var ticketId = _uow.Tickets.Add(
+            new TicketDalDto
             {
                 ManagementCompanyId = workspace.Value.ManagementCompanyId,
                 TicketNr = normalized.TicketNr,
                 Title = normalized.Title,
                 Description = normalized.Description,
-                Culture = normalized.Culture,
                 TicketCategoryId = command.TicketCategoryId,
                 TicketStatusId = createdStatus.Id,
                 TicketPriorityId = command.TicketPriorityId,
@@ -300,8 +299,7 @@ public class ManagementTicketService : IManagementTicketService
                 ResidentId = command.ResidentId,
                 VendorId = command.VendorId,
                 DueAt = command.DueAt
-            },
-            cancellationToken);
+            });
 
         await _uow.SaveChangesAsync(cancellationToken);
         return Result.Ok(ticketId);
@@ -393,7 +391,6 @@ public class ManagementTicketService : IManagementTicketService
                 TicketNr = normalized.TicketNr,
                 Title = normalized.Title,
                 Description = normalized.Description,
-                Culture = normalized.Culture,
                 TicketCategoryId = command.TicketCategoryId,
                 TicketStatusId = command.TicketStatusId,
                 TicketPriorityId = command.TicketPriorityId,

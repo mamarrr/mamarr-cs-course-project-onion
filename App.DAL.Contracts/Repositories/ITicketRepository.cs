@@ -31,10 +31,6 @@ public interface ITicketRepository : IBaseRepository<TicketDalDto>
         Guid? exceptTicketId = null,
         CancellationToken cancellationToken = default);
 
-    Task<Guid> AddAsync(
-        TicketCreateDalDto dto,
-        CancellationToken cancellationToken = default);
-
     Task<bool> UpdateStatusAsync(
         TicketStatusUpdateDalDto dto,
         CancellationToken cancellationToken = default);

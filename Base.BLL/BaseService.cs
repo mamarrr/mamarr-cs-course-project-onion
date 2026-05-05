@@ -55,9 +55,9 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
         return Mapper.Map(res);
     }
 
-    public virtual void Add(TBLLEntity entity)
+    public virtual TKey Add(TBLLEntity entity)
     {
-        ServiceRepository.Add(Mapper.Map(entity)!);
+        return ServiceRepository.Add(Mapper.Map(entity)!);
     }
 
     public virtual async Task<TBLLEntity> UpdateAsync(TBLLEntity entity, TKey parentId, CancellationToken cancellationToken = default)

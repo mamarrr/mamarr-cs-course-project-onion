@@ -15,7 +15,7 @@ public interface IBaseRepository<TKey, TEntity>
     Task<IEnumerable<TEntity>> AllAsync(TKey parentId = default!, CancellationToken cancellationToken = default);
     Task<TEntity?> FindAsync(TKey id, TKey parentId = default!, CancellationToken cancellationToken = default);
 
-    void Add(TEntity entity);
+    TKey Add(TEntity entity);
 
     Task<TEntity> UpdateAsync(TEntity entity, TKey parentId = default!, CancellationToken cancellationToken = default);
 
