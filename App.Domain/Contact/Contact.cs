@@ -5,7 +5,7 @@ using Base.Domain;
 
 namespace App.Domain;
 
-public class Contact : BaseEntity, IManagementCompanyId
+public class Contact : BaseEntity, IManagementCompanyId, IHasCreatedAtMeta
 {
     [Required]
     [StringLength(255, MinimumLength = 1)]

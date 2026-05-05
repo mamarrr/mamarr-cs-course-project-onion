@@ -124,7 +124,6 @@ namespace WebApp.Areas_Admin_Controllers
                 entity.BillingEmail = customer.BillingEmail;
                 entity.BillingAddress = customer.BillingAddress;
                 entity.Phone = customer.Phone;
-                entity.IsActive = customer.IsActive;
                 entity.CreatedAt = customer.CreatedAt;
                 entity.ManagementCompanyId = customer.ManagementCompanyId;
 

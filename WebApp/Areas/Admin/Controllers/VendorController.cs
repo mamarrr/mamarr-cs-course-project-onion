@@ -114,7 +114,6 @@ namespace WebApp.Areas_Admin_Controllers
 
                 entity.Name = vendor.Name;
                 entity.RegistryCode = vendor.RegistryCode;
-                entity.IsActive = vendor.IsActive;
                 entity.CreatedAt = vendor.CreatedAt;
                 entity.ManagementCompanyId = vendor.ManagementCompanyId;
                 entity.Notes.SetTranslation(notes);

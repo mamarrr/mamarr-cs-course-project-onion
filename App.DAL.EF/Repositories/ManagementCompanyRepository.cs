@@ -40,7 +40,7 @@ public class ManagementCompanyRepository :
                 Phone = c.Phone,
                 Address = c.Address,
                 CreatedAt = c.CreatedAt,
-                IsActive = c.IsActive
+                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -55,7 +55,6 @@ public class ManagementCompanyRepository :
         return await _dbContext.ManagementCompanyUsers
             .AsNoTracking()
             .Where(mcu => mcu.ManagementCompanyId == managementCompanyId && mcu.AppUserId == appUserId)
-            .Where(mcu => mcu.IsActive)
             .Where(mcu => mcu.ValidFrom <= today)
             .Where(mcu => !mcu.ValidTo.HasValue || mcu.ValidTo.Value >= today)
             .Select(mcu => mcu.ManagementCompanyRole!.Code)
@@ -81,7 +80,7 @@ public class ManagementCompanyRepository :
                 Email = c.Email,
                 Phone = c.Phone,
                 Address = c.Address,
-                IsActive = c.IsActive
+                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -105,7 +104,7 @@ public class ManagementCompanyRepository :
                 Email = c.Email,
                 Phone = c.Phone,
                 Address = c.Address,
-                IsActive = c.IsActive
+                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -119,7 +118,6 @@ public class ManagementCompanyRepository :
         var normalized = registryCode.Trim();
         return await _dbContext.ManagementCompanies
             .AsNoTracking()
-            .Where(company => company.IsActive)
             .Where(company => company.RegistryCode == normalized)
             .Select(company => new ManagementCompanyDalDto
             {
@@ -132,7 +130,7 @@ public class ManagementCompanyRepository :
                 Phone = company.Phone,
                 Address = company.Address,
                 CreatedAt = company.CreatedAt,
-                IsActive = company.IsActive
+                IsActive = true
             })
             .SingleOrDefaultAsync(cancellationToken);
     }
@@ -172,8 +170,7 @@ public class ManagementCompanyRepository :
             Phone = dto.Phone,
             Address = dto.Address,
             CreatedAt = dto.CreatedAt,
-            IsActive = dto.IsActive
-        };
+            };
 
         _dbContext.ManagementCompanies.Add(company);
         return Task.FromResult(new ManagementCompanyDalDto
@@ -187,7 +184,7 @@ public class ManagementCompanyRepository :
             Phone = company.Phone,
             Address = company.Address,
             CreatedAt = company.CreatedAt,
-            IsActive = company.IsActive
+            IsActive = true
         });
     }
 
@@ -200,10 +197,9 @@ public class ManagementCompanyRepository :
         return await _dbContext.ManagementCompanyUsers
             .AsNoTracking()
             .Where(membership => membership.AppUserId == appUserId)
-            .Where(membership => membership.IsActive)
             .Where(membership => membership.ValidFrom <= today)
             .Where(membership => !membership.ValidTo.HasValue || membership.ValidTo.Value >= today)
-            .Where(membership => membership.ManagementCompany != null && membership.ManagementCompany.IsActive)
+            .Where(membership => membership.ManagementCompany != null)
             .OrderBy(membership => membership.ManagementCompany!.Name)
             .Select(membership => new ManagementCompanyContextDalDto
             {
@@ -213,7 +209,7 @@ public class ManagementCompanyRepository :
                 MembershipId = membership.Id,
                 RoleId = membership.ManagementCompanyRoleId,
                 RoleCode = membership.ManagementCompanyRole!.Code,
-                IsActive = membership.IsActive,
+                IsActive = true,
                 ValidFrom = membership.ValidFrom,
                 ValidTo = membership.ValidTo
             })
@@ -231,10 +227,9 @@ public class ManagementCompanyRepository :
             .AsNoTracking()
             .Where(membership => membership.AppUserId == appUserId)
             .Where(membership => membership.ManagementCompanyId == managementCompanyId)
-            .Where(membership => membership.IsActive)
             .Where(membership => membership.ValidFrom <= today)
             .Where(membership => !membership.ValidTo.HasValue || membership.ValidTo.Value >= today)
-            .Where(membership => membership.ManagementCompany != null && membership.ManagementCompany.IsActive)
+            .Where(membership => membership.ManagementCompany != null)
             .Select(membership => new ManagementCompanyContextDalDto
             {
                 ManagementCompanyId = membership.ManagementCompanyId,
@@ -243,7 +238,7 @@ public class ManagementCompanyRepository :
                 MembershipId = membership.Id,
                 RoleId = membership.ManagementCompanyRoleId,
                 RoleCode = membership.ManagementCompanyRole!.Code,
-                IsActive = membership.IsActive,
+                IsActive = true,
                 ValidFrom = membership.ValidFrom,
                 ValidTo = membership.ValidTo
             })
@@ -261,12 +256,10 @@ public class ManagementCompanyRepository :
         return await _dbContext.ManagementCompanyUsers
             .AsNoTracking()
             .Where(membership => membership.AppUserId == appUserId)
-            .Where(membership => membership.IsActive)
             .Where(membership => membership.ValidFrom <= today)
             .Where(membership => !membership.ValidTo.HasValue || membership.ValidTo.Value >= today)
             .AnyAsync(
                 membership => membership.ManagementCompany != null
-                              && membership.ManagementCompany.IsActive
                               && membership.ManagementCompany.Slug == normalizedSlug,
                 cancellationToken);
     }
@@ -338,7 +331,6 @@ public class ManagementCompanyRepository :
         return await _dbContext.ManagementCompanyUsers
             .AsNoTracking()
             .Where(mcu => mcu.ManagementCompanyId == managementCompanyId && mcu.AppUserId == appUserId)
-            .Where(mcu => mcu.IsActive)
             .Where(mcu => mcu.ValidFrom <= today)
             .Where(mcu => !mcu.ValidTo.HasValue || mcu.ValidTo.Value >= today)
             .AnyAsync(cancellationToken);
@@ -379,7 +371,6 @@ public class ManagementCompanyRepository :
             AppUserId = dto.AppUserId,
             ManagementCompanyRoleId = dto.RoleId,
             JobTitle = new LangStr(dto.JobTitle),
-            IsActive = dto.IsActive,
             ValidFrom = dto.ValidFrom,
             ValidTo = dto.ValidTo,
             CreatedAt = dto.CreatedAt
@@ -409,7 +400,6 @@ public class ManagementCompanyRepository :
             _dbContext.Entry(membership).Property(nameof(ManagementCompanyUser.JobTitle)).IsModified = true;
         }
 
-        membership.IsActive = dto.IsActive;
         membership.ValidFrom = dto.ValidFrom;
         membership.ValidTo = dto.ValidTo;
         return true;
@@ -454,7 +444,6 @@ public class ManagementCompanyRepository :
         company.Email = dto.Email;
         company.Phone = dto.Phone;
         company.Address = dto.Address;
-        company.IsActive = dto.IsActive;
         return true;
     }
 
@@ -496,7 +485,6 @@ public class ManagementCompanyRepository :
             .AsNoTracking()
             .Where(membership => membership.ManagementCompanyId == managementCompanyId
                                  && ownerRoleIds.Contains(membership.ManagementCompanyRoleId)
-                                 && membership.IsActive
                                  && membership.ValidFrom <= today
                                  && (!membership.ValidTo.HasValue || membership.ValidTo >= today))
             .CountAsync(cancellationToken);
@@ -638,6 +626,8 @@ public class ManagementCompanyRepository :
 
     private IQueryable<ManagementCompanyMembershipDalDto> MembershipQuery()
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         return _dbContext.ManagementCompanyUsers
             .AsNoTracking()
             .Include(membership => membership.AppUser)
@@ -657,7 +647,7 @@ public class ManagementCompanyRepository :
                 LastName = membership.AppUser == null ? string.Empty : membership.AppUser.LastName,
                 Email = membership.AppUser == null ? string.Empty : membership.AppUser.Email ?? string.Empty,
                 JobTitle = membership.JobTitle.ToString(),
-                IsActive = membership.IsActive,
+                IsActive = membership.ValidFrom <= today && (!membership.ValidTo.HasValue || membership.ValidTo.Value >= today),
                 ValidFrom = membership.ValidFrom,
                 ValidTo = membership.ValidTo
             });

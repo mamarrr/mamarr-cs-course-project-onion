@@ -21,7 +21,6 @@ public class VendorDalMapper : IBaseMapper<VendorDalDto, Vendor>
             Name = entity.Name,
             RegistryCode = entity.RegistryCode,
             Notes = entity.Notes.ToString(),
-            IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt
         };
     }
@@ -40,7 +39,6 @@ public class VendorDalMapper : IBaseMapper<VendorDalDto, Vendor>
             Name = entity.Name,
             RegistryCode = entity.RegistryCode,
             Notes = new LangStr(entity.Notes),
-            IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt
         };
     }

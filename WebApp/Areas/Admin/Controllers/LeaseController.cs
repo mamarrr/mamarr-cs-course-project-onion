@@ -129,7 +129,6 @@ namespace WebApp.Areas_Admin_Controllers
 
                 entity.StartDate = lease.StartDate;
                 entity.EndDate = lease.EndDate;
-                entity.IsActive = lease.IsActive;
                 entity.LeaseRoleId = lease.LeaseRoleId;
                 entity.UnitId = lease.UnitId;
                 entity.ResidentId = lease.ResidentId;

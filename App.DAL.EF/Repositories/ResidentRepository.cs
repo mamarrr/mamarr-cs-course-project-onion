@@ -45,7 +45,7 @@ public class ResidentRepository :
                 LastName = entity.LastName,
                 IdCode = entity.IdCode,
                 PreferredLanguage = entity.PreferredLanguage,
-                IsActive = entity.IsActive
+                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -70,7 +70,7 @@ public class ResidentRepository :
                 LastName = entity.LastName,
                 IdCode = entity.IdCode,
                 PreferredLanguage = entity.PreferredLanguage,
-                IsActive = entity.IsActive
+                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -95,7 +95,7 @@ public class ResidentRepository :
                 LastName = entity.LastName,
                 IdCode = entity.IdCode,
                 PreferredLanguage = entity.PreferredLanguage,
-                IsActive = entity.IsActive
+                IsActive = true
             })
             .ToListAsync(cancellationToken);
 
@@ -106,13 +106,15 @@ public class ResidentRepository :
         Guid appUserId,
         CancellationToken cancellationToken = default)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         var residentContext = await (
                 from residentUser in _dbContext.ResidentUsers.AsNoTracking()
                 join resident in _dbContext.Residents.AsNoTracking()
                     on residentUser.ResidentId equals resident.Id
                 where residentUser.AppUserId == appUserId
-                      && residentUser.IsActive
-                      && resident.IsActive
+                      && residentUser.ValidFrom <= today
+                      && (!residentUser.ValidTo.HasValue || residentUser.ValidTo.Value >= today)
                 orderby resident.LastName, resident.FirstName, resident.IdCode
                 select new ResidentUserContextDalDto
                 {
@@ -144,10 +146,15 @@ public class ResidentRepository :
         Guid appUserId,
         CancellationToken cancellationToken = default)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         return await _dbContext.ResidentUsers
             .AsNoTracking()
             .AnyAsync(
-                residentUser => residentUser.AppUserId == appUserId && residentUser.IsActive,
+                residentUser => residentUser.AppUserId == appUserId
+                                && residentUser.ValidFrom <= today
+                                && (!residentUser.ValidTo.HasValue
+                                    || residentUser.ValidTo.Value >= today),
                 cancellationToken);
     }
 
@@ -183,10 +190,15 @@ public class ResidentRepository :
         Guid unitId,
         CancellationToken cancellationToken = default)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         return _dbContext.Leases
             .AsNoTracking()
             .AnyAsync(
-                lease => lease.ResidentId == residentId && lease.UnitId == unitId && lease.IsActive,
+                lease => lease.ResidentId == residentId
+                         && lease.UnitId == unitId
+                         && lease.StartDate <= today
+                         && (!lease.EndDate.HasValue || lease.EndDate.Value >= today),
                 cancellationToken);
     }
 
@@ -197,11 +209,16 @@ public class ResidentRepository :
     {
         var query = _dbContext.Residents
             .AsNoTracking()
-            .Where(resident => resident.ManagementCompanyId == managementCompanyId && resident.IsActive);
+            .Where(resident => resident.ManagementCompanyId == managementCompanyId);
 
         if (unitId.HasValue)
         {
-            query = query.Where(resident => resident.Leases!.Any(lease => lease.UnitId == unitId.Value && lease.IsActive));
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            query = query.Where(resident => resident.Leases!.Any(
+                lease => lease.UnitId == unitId.Value
+                         && lease.StartDate <= today
+                         && (!lease.EndDate.HasValue || lease.EndDate.Value >= today)));
         }
 
         return await query
@@ -245,7 +262,7 @@ public class ResidentRepository :
                 ResidentId = entity.Id,
                 FullName = string.Join(" ", new[] { entity.FirstName, entity.LastName }.Where(value => !string.IsNullOrWhiteSpace(value))),
                 IdCode = entity.IdCode,
-                IsActive = entity.IsActive
+                IsActive = true
             })
             .ToListAsync(cancellationToken);
     }
@@ -262,7 +279,6 @@ public class ResidentRepository :
             LastName = dto.LastName,
             IdCode = dto.IdCode,
             PreferredLanguage = dto.PreferredLanguage,
-            IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -276,7 +292,7 @@ public class ResidentRepository :
             LastName = resident.LastName,
             IdCode = resident.IdCode,
             PreferredLanguage = resident.PreferredLanguage,
-            IsActive = resident.IsActive,
+            IsActive = true,
             CreatedAt = resident.CreatedAt
         });
     }
@@ -300,7 +316,6 @@ public class ResidentRepository :
         resident.LastName = dto.LastName;
         resident.IdCode = dto.IdCode;
         resident.PreferredLanguage = dto.PreferredLanguage;
-        resident.IsActive = dto.IsActive;
     }
 
     public async Task<bool> DeleteAsync(
@@ -388,10 +403,12 @@ public class ResidentRepository :
         Guid residentId,
         CancellationToken cancellationToken = default)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         return await _dbContext.Leases
             .AsNoTracking()
             .Where(entity => entity.ResidentId == residentId)
-            .OrderByDescending(entity => entity.IsActive)
+            .OrderByDescending(entity => entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today))
             .ThenByDescending(entity => entity.StartDate)
             .Select(entity => new ResidentLeaseSummaryDalDto
             {
@@ -408,7 +425,7 @@ public class ResidentRepository :
                 LeaseRoleLabel = entity.LeaseRole.Label.ToString(),
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                IsActive = entity.IsActive,
+                IsActive = entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today),
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .ToListAsync(cancellationToken);

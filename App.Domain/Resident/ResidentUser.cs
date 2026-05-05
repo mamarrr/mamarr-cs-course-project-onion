@@ -1,12 +1,12 @@
 using Base.Domain;
 using App.Domain.Identity;
+using Base.Contracts;
 
 namespace App.Domain;
 
-public class ResidentUser : BaseEntity
+public class ResidentUser : BaseEntity, IHasCreatedAtMeta
 {
     public DateTime CreatedAt { get; set; }
-    public bool IsActive { get; set; }
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
 

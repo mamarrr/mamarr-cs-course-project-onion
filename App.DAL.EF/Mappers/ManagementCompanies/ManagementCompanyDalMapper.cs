@@ -24,7 +24,6 @@ public class ManagementCompanyDalMapper : IBaseMapper<ManagementCompanyDalDto, M
             Phone = entity.Phone,
             Address = entity.Address,
             CreatedAt = entity.CreatedAt,
-            IsActive = entity.IsActive
         };
     }
 
@@ -46,7 +45,6 @@ public class ManagementCompanyDalMapper : IBaseMapper<ManagementCompanyDalDto, M
             Phone = entity.Phone,
             Address = entity.Address,
             CreatedAt = entity.CreatedAt,
-            IsActive = entity.IsActive
         };
     }
 }

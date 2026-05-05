@@ -5,7 +5,7 @@ using App.Domain;
 
 namespace App.Domain.Identity;
 
-public class AppUser : IdentityUser<Guid>, IBaseEntity
+public class AppUser : IdentityUser<Guid>, IBaseEntity, IHasCreatedAtMeta
 {
     [Required]
     [StringLength(100, MinimumLength = 1)]
@@ -16,7 +16,6 @@ public class AppUser : IdentityUser<Guid>, IBaseEntity
     public string LastName { get; set; } = default!;
     public DateTime CreatedAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
-    public bool IsActive { get; set; }
     public DateTime? ClosedAt { get; set; }
 
     public ICollection<AppRefreshToken>? RefreshTokens { get; set; }

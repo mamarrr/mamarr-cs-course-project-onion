@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Base.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class Unit : BaseEntity
+public class Unit : BaseEntity, IHasCreatedAtMeta
 {
     [Required]
     [StringLength(50, MinimumLength = 1)]
@@ -22,7 +23,6 @@ public class Unit : BaseEntity
     [Display(ResourceType = typeof(App.Resources.Domain.Unit), Name = nameof(App.Resources.Domain.Unit.Notes))]
     [Column(TypeName = "jsonb")]
     public LangStr? Notes { get; set; }
-    public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public Guid PropertyId { get; set; }

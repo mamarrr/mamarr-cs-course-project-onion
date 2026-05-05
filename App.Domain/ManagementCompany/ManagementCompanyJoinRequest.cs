@@ -6,7 +6,7 @@ using Base.Domain;
 
 namespace App.Domain;
 
-public class ManagementCompanyJoinRequest : BaseEntity, IManagementCompanyId
+public class ManagementCompanyJoinRequest : BaseEntity, IManagementCompanyId, IHasCreatedAtMeta
 {
     public Guid AppUserId { get; set; }
     public AppUser? AppUser { get; set; }

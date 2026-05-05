@@ -46,7 +46,7 @@ public class PropertyRepository :
                 PropertyTypeId = property.PropertyTypeId,
                 PropertyTypeCode = property.PropertyType!.Code,
                 PropertyTypeLabel = property.PropertyType.Label.ToString(),
-                IsActive = property.IsActive
+                IsActive = true
             })
             .ToListAsync(cancellationToken);
 
@@ -69,7 +69,7 @@ public class PropertyRepository :
                 CustomerId = property.CustomerId,
                 Name = property.Label.ToString(),
                 Slug = property.Slug,
-                IsActive = property.IsActive
+                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -102,7 +102,7 @@ public class PropertyRepository :
                 PropertyTypeId = property.PropertyTypeId,
                 PropertyTypeCode = property.PropertyType!.Code,
                 PropertyTypeLabel = property.PropertyType.Label.ToString(),
-                IsActive = property.IsActive
+                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -155,7 +155,7 @@ public class PropertyRepository :
     {
         var query = _dbContext.Properties
             .AsNoTracking()
-            .Where(property => property.Customer!.ManagementCompanyId == managementCompanyId && property.IsActive);
+            .Where(property => property.Customer!.ManagementCompanyId == managementCompanyId);
 
         if (customerId.HasValue)
         {
@@ -245,7 +245,6 @@ public class PropertyRepository :
             City = dto.City,
             PostalCode = dto.PostalCode,
             Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : new LangStr(dto.Notes.Trim()),
-            IsActive = dto.IsActive,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -262,7 +261,7 @@ public class PropertyRepository :
             City = property.City,
             PostalCode = property.PostalCode,
             Notes = property.Notes?.ToString(),
-            IsActive = property.IsActive,
+            IsActive = true,
             CreatedAt = property.CreatedAt
         });
     }
@@ -288,8 +287,6 @@ public class PropertyRepository :
         property.AddressLine = dto.AddressLine;
         property.City = dto.City;
         property.PostalCode = dto.PostalCode;
-        property.IsActive = dto.IsActive;
-
         if (string.IsNullOrWhiteSpace(dto.Notes))
         {
             property.Notes = null;

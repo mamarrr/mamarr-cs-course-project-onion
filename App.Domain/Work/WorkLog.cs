@@ -2,10 +2,11 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Base.Domain;
 using App.Domain.Identity;
+using Base.Contracts;
 
 namespace App.Domain;
 
-public class WorkLog : BaseEntity
+public class WorkLog : BaseEntity, IHasCreatedAtMeta
 {
     public DateTime CreatedAt { get; set; }
     public DateTime? WorkStart { get; set; }

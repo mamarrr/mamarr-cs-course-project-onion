@@ -751,8 +751,8 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasDatabaseName("ix_lease_resident_id_fk");
 
         builder.Entity<Lease>()
-            .HasIndex(e => new { e.ResidentId, e.UnitId, e.IsActive, e.StartDate })
-            .HasDatabaseName("ix_lease_resident_unit_active_start_date");
+            .HasIndex(e => new { e.ResidentId, e.UnitId, e.StartDate })
+            .HasDatabaseName("ix_lease_resident_unit_start_date");
  
         builder.Entity<Vendor>()
             .HasIndex(e => e.ManagementCompanyId)
@@ -878,18 +878,15 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
 
         builder.Entity<Customer>()
             .HasIndex(e => e.ManagementCompanyId)
-            .HasDatabaseName("ix_customer_active_by_company")
-            .HasFilter("\"IsActive\" = TRUE");
+            .HasDatabaseName("ix_customer_by_company");
 
         builder.Entity<Resident>()
             .HasIndex(e => e.ManagementCompanyId)
-            .HasDatabaseName("ix_resident_active_by_company")
-            .HasFilter("\"IsActive\" = TRUE");
+            .HasDatabaseName("ix_resident_by_company");
 
         builder.Entity<Vendor>()
             .HasIndex(e => e.ManagementCompanyId)
-            .HasDatabaseName("ix_vendor_active_by_company")
-            .HasFilter("\"IsActive\" = TRUE");
+            .HasDatabaseName("ix_vendor_by_company");
 
         builder.Entity<VendorContact>()
             .HasIndex(e => e.VendorId)

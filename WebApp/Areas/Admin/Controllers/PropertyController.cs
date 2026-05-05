@@ -129,7 +129,6 @@ namespace WebApp.Areas_Admin_Controllers
                 entity.AddressLine = property.AddressLine;
                 entity.City = property.City;
                 entity.PostalCode = property.PostalCode;
-                entity.IsActive = property.IsActive;
                 entity.CreatedAt = property.CreatedAt;
                 entity.PropertyTypeId = property.PropertyTypeId;
                 entity.CustomerId = property.CustomerId;

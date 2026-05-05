@@ -129,7 +129,6 @@ namespace WebApp.Areas_Admin_Controllers
 
                 entity.ValidFrom = customerRepresentative.ValidFrom;
                 entity.ValidTo = customerRepresentative.ValidTo;
-                entity.IsActive = customerRepresentative.IsActive;
                 entity.CreatedAt = customerRepresentative.CreatedAt;
                 entity.CustomerRepresentativeRoleId = customerRepresentative.CustomerRepresentativeRoleId;
                 entity.CustomerId = customerRepresentative.CustomerId;

@@ -4,7 +4,7 @@ using Base.Domain;
 
 namespace App.Domain;
 
-public class Resident : BaseEntity, IManagementCompanyId
+public class Resident : BaseEntity, IManagementCompanyId, IHasCreatedAtMeta
 {
     [Required]
     [StringLength(100, MinimumLength = 1)]
@@ -20,7 +20,6 @@ public class Resident : BaseEntity, IManagementCompanyId
 
     [StringLength(20, MinimumLength = 1)]
     public string? PreferredLanguage { get; set; }
-    public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public Guid ManagementCompanyId { get; set; }

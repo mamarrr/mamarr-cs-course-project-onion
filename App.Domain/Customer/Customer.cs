@@ -5,7 +5,7 @@ using Base.Domain;
 
 namespace App.Domain;
 
-public class Customer : BaseEntity, IManagementCompanyId
+public class Customer : BaseEntity, IManagementCompanyId, IHasCreatedAtMeta
 {
     [Required]
     [StringLength(200, MinimumLength = 1)]
@@ -32,7 +32,6 @@ public class Customer : BaseEntity, IManagementCompanyId
     [Display(ResourceType = typeof(App.Resources.Domain.Customer), Name = nameof(App.Resources.Domain.Customer.Notes))]
     [Column(TypeName = "jsonb")]
     public LangStr? Notes { get; set; }
-    public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public Guid ManagementCompanyId { get; set; }

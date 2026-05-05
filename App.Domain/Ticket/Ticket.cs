@@ -5,7 +5,7 @@ using Base.Domain;
 
 namespace App.Domain;
 
-public class Ticket : BaseEntity, IManagementCompanyId
+public class Ticket : BaseEntity, IManagementCompanyId, IHasCreatedAtMeta
 {
     [Required]
     [StringLength(20, MinimumLength = 1)]

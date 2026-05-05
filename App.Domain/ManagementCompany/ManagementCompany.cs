@@ -1,9 +1,10 @@
 using System.ComponentModel.DataAnnotations;
+using Base.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class ManagementCompany : BaseEntity
+public class ManagementCompany : BaseEntity, IHasCreatedAtMeta
 {
     [Required]
     [StringLength(200, MinimumLength = 1)]
@@ -34,7 +35,6 @@ public class ManagementCompany : BaseEntity
     [StringLength(300, MinimumLength = 1)]
     public string Address { get; set; } = default!;
     public DateTime CreatedAt { get; set; }
-    public bool IsActive { get; set; }
 
     public ICollection<ManagementCompanyUser>? ManagementCompanyUsers { get; set; }
     public ICollection<ManagementCompanyJoinRequest>? JoinRequests { get; set; }

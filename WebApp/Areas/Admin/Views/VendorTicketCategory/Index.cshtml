@@ -16,9 +16,6 @@
                 @Html.DisplayNameFor(model => model.Notes)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.IsActive)
-            </th>
-            <th>
                 @Html.DisplayNameFor(model => model.Vendor)
             </th>
             <th>
@@ -32,9 +29,6 @@
         <tr>
             <td>
                 @(item.Notes?.ToString())
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsActive)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Vendor!.Name)

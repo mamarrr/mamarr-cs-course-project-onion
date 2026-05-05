@@ -25,7 +25,6 @@ public class CustomerDalMapper : IBaseMapper<CustomerDalDto, Customer>
             BillingAddress = entity.BillingAddress,
             Phone = entity.Phone,
             Notes = entity.Notes?.ToString(),
-            IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt
         };
     }
@@ -48,7 +47,6 @@ public class CustomerDalMapper : IBaseMapper<CustomerDalDto, Customer>
             BillingAddress = entity.BillingAddress,
             Phone = entity.Phone,
             Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim()),
-            IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt
         };
     }

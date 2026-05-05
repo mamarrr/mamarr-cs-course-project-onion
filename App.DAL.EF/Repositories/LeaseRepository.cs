@@ -25,11 +25,13 @@ public class LeaseRepository :
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         return await _dbContext.Leases
             .AsNoTracking()
             .Where(entity => entity.ResidentId == residentId)
             .Where(entity => entity.Resident!.ManagementCompanyId == managementCompanyId)
-            .OrderByDescending(entity => entity.IsActive)
+            .OrderByDescending(entity => entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today))
             .ThenByDescending(entity => entity.StartDate)
             .ThenBy(entity => entity.EndDate)
             .Select(entity => new ResidentLeaseDalDto
@@ -47,7 +49,7 @@ public class LeaseRepository :
                 LeaseRoleLabel = entity.LeaseRole.Label.ToString(),
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                IsActive = entity.IsActive,
+                IsActive = entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today),
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .ToListAsync(cancellationToken);
@@ -59,12 +61,14 @@ public class LeaseRepository :
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         return await _dbContext.Leases
             .AsNoTracking()
             .Where(entity => entity.UnitId == unitId)
             .Where(entity => entity.Unit!.PropertyId == propertyId)
             .Where(entity => entity.Resident!.ManagementCompanyId == managementCompanyId)
-            .OrderByDescending(entity => entity.IsActive)
+            .OrderByDescending(entity => entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today))
             .ThenByDescending(entity => entity.StartDate)
             .ThenBy(entity => entity.EndDate)
             .Select(entity => new UnitLeaseDalDto
@@ -80,7 +84,7 @@ public class LeaseRepository :
                 LeaseRoleLabel = entity.LeaseRole.Label.ToString(),
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                IsActive = entity.IsActive,
+                IsActive = entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today),
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .ToListAsync(cancellationToken);
@@ -92,6 +96,8 @@ public class LeaseRepository :
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         return LeaseDetailsQuery()
             .Where(entity => entity.Id == leaseId)
             .Where(entity => entity.ResidentId == residentId)
@@ -104,7 +110,7 @@ public class LeaseRepository :
                 UnitId = entity.UnitId,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                IsActive = entity.IsActive,
+                IsActive = entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today),
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -117,6 +123,8 @@ public class LeaseRepository :
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         return LeaseDetailsQuery()
             .Where(entity => entity.Id == leaseId)
             .Where(entity => entity.UnitId == unitId)
@@ -130,7 +138,7 @@ public class LeaseRepository :
                 UnitId = entity.UnitId,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                IsActive = entity.IsActive,
+                IsActive = entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today),
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -145,7 +153,7 @@ public class LeaseRepository :
     {
         return _dbContext.Leases
             .AsNoTracking()
-            .Where(entity => entity.ResidentId == residentId && entity.UnitId == unitId && entity.IsActive)
+            .Where(entity => entity.ResidentId == residentId && entity.UnitId == unitId)
             .Where(entity => !exceptLeaseId.HasValue || entity.Id != exceptLeaseId.Value)
             .AnyAsync(entity => !entity.EndDate.HasValue || entity.EndDate.Value >= startDate, cancellationToken);
     }
@@ -162,7 +170,6 @@ public class LeaseRepository :
             LeaseRoleId = dto.LeaseRoleId,
             StartDate = dto.StartDate,
             EndDate = dto.EndDate,
-            IsActive = dto.IsActive,
             Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : new LangStr(dto.Notes.Trim())
         };
 
@@ -175,7 +182,8 @@ public class LeaseRepository :
             LeaseRoleId = lease.LeaseRoleId,
             StartDate = lease.StartDate,
             EndDate = lease.EndDate,
-            IsActive = lease.IsActive,
+            IsActive = lease.StartDate <= DateOnly.FromDateTime(DateTime.UtcNow)
+                       && (!lease.EndDate.HasValue || lease.EndDate.Value >= DateOnly.FromDateTime(DateTime.UtcNow)),
             Notes = lease.Notes == null ? null : lease.Notes.ToString()
         });
     }
@@ -286,8 +294,6 @@ public class LeaseRepository :
         lease.LeaseRoleId = dto.LeaseRoleId;
         lease.StartDate = dto.StartDate;
         lease.EndDate = dto.EndDate;
-        lease.IsActive = dto.IsActive;
-
         if (string.IsNullOrWhiteSpace(dto.Notes))
         {
             lease.Notes = null;

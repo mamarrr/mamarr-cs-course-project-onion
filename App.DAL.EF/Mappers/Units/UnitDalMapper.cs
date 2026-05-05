@@ -23,7 +23,6 @@ public class UnitDalMapper : IBaseMapper<UnitDalDto, Unit>
             FloorNr = entity.FloorNr,
             SizeM2 = entity.SizeM2,
             Notes = entity.Notes?.ToString(),
-            IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt
         };
     }
@@ -44,7 +43,6 @@ public class UnitDalMapper : IBaseMapper<UnitDalDto, Unit>
             FloorNr = entity.FloorNr,
             SizeM2 = entity.SizeM2,
             Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim()),
-            IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt
         };
     }

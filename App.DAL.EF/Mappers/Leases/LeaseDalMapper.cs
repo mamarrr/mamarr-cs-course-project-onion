@@ -22,7 +22,6 @@ public class LeaseDalMapper : IBaseMapper<LeaseDalDto, Lease>
             LeaseRoleId = entity.LeaseRoleId,
             StartDate = entity.StartDate,
             EndDate = entity.EndDate,
-            IsActive = entity.IsActive,
             Notes = entity.Notes?.ToString()
         };
     }
@@ -42,7 +41,6 @@ public class LeaseDalMapper : IBaseMapper<LeaseDalDto, Lease>
             LeaseRoleId = entity.LeaseRoleId,
             StartDate = entity.StartDate,
             EndDate = entity.EndDate,
-            IsActive = entity.IsActive,
             Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim())
         };
     }

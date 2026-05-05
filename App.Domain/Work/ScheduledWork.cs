@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Base.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class ScheduledWork : BaseEntity
+public class ScheduledWork : BaseEntity, IHasCreatedAtMeta
 {
     public DateTime ScheduledStart { get; set; }
     public DateTime? ScheduledEnd { get; set; }

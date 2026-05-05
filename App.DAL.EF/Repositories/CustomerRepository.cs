@@ -40,7 +40,7 @@ public class CustomerRepository :
                 BillingEmail = c.BillingEmail,
                 BillingAddress = c.BillingAddress,
                 Phone = c.Phone,
-                IsActive = c.IsActive
+                IsActive = true
             })
             .ToListAsync(cancellationToken);
 
@@ -65,7 +65,7 @@ public class CustomerRepository :
                 BillingEmail = c.BillingEmail,
                 BillingAddress = c.BillingAddress,
                 Phone = c.Phone,
-                IsActive = c.IsActive
+                IsActive = true
             })
             .ToListAsync(cancellationToken);
 
@@ -105,7 +105,6 @@ public class CustomerRepository :
             BillingEmail = dto.BillingEmail,
             BillingAddress = dto.BillingAddress,
             Phone = dto.Phone,
-            IsActive = dto.IsActive,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -122,7 +121,7 @@ public class CustomerRepository :
             BillingAddress = customer.BillingAddress,
             Phone = customer.Phone,
             Notes = customer.Notes?.ToString(),
-            IsActive = customer.IsActive,
+            IsActive = true,
             CreatedAt = customer.CreatedAt
         });
     }
@@ -158,7 +157,7 @@ public class CustomerRepository :
     {
         return await _dbContext.Customers
             .AsNoTracking()
-            .Where(customer => customer.ManagementCompanyId == managementCompanyId && customer.IsActive)
+            .Where(customer => customer.ManagementCompanyId == managementCompanyId)
             .OrderBy(customer => customer.Name)
             .Select(customer => new TicketOptionDalDto
             {
@@ -186,7 +185,7 @@ public class CustomerRepository :
                 CompanyName = c.ManagementCompany.Name,
                 Name = c.Name,
                 Slug = c.Slug,
-                IsActive = c.IsActive
+                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -197,6 +196,8 @@ public class CustomerRepository :
         Guid appUserId,
         CancellationToken cancellationToken = default)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         return await (
                 from residentUser in _dbContext.ResidentUsers.AsNoTracking()
                 join customerRepresentative in _dbContext.CustomerRepresentatives.AsNoTracking()
@@ -204,9 +205,10 @@ public class CustomerRepository :
                 join customer in _dbContext.Customers.AsNoTracking()
                     on customerRepresentative.CustomerId equals customer.Id
                 where residentUser.AppUserId == appUserId
-                      && residentUser.IsActive
-                      && customerRepresentative.IsActive
-                      && customer.IsActive
+                      && residentUser.ValidFrom <= today
+                      && (!residentUser.ValidTo.HasValue || residentUser.ValidTo.Value >= today)
+                      && customerRepresentative.ValidFrom <= today
+                      && (!customerRepresentative.ValidTo.HasValue || customerRepresentative.ValidTo.Value >= today)
                 select new CustomerUserContextDalDto
                 {
                     CustomerId = customer.Id,
@@ -222,13 +224,17 @@ public class CustomerRepository :
         Guid customerId,
         CancellationToken cancellationToken = default)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
         return await (
                 from residentUser in _dbContext.ResidentUsers.AsNoTracking()
                 join customerRepresentative in _dbContext.CustomerRepresentatives.AsNoTracking()
                     on residentUser.ResidentId equals customerRepresentative.ResidentId
                 where residentUser.AppUserId == appUserId
-                      && residentUser.IsActive
-                      && customerRepresentative.IsActive
+                      && residentUser.ValidFrom <= today
+                      && (!residentUser.ValidTo.HasValue || residentUser.ValidTo.Value >= today)
+                      && customerRepresentative.ValidFrom <= today
+                      && (!customerRepresentative.ValidTo.HasValue || customerRepresentative.ValidTo.Value >= today)
                       && customerRepresentative.CustomerId == customerId
                 select customerRepresentative.Id)
             .AnyAsync(cancellationToken);
@@ -257,7 +263,7 @@ public class CustomerRepository :
                 BillingEmail = c.BillingEmail,
                 BillingAddress = c.BillingAddress,
                 Phone = c.Phone,
-                IsActive = c.IsActive
+                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -284,7 +290,7 @@ public class CustomerRepository :
                 BillingEmail = c.BillingEmail,
                 BillingAddress = c.BillingAddress,
                 Phone = c.Phone,
-                IsActive = c.IsActive
+                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -316,7 +322,6 @@ public class CustomerRepository :
         return await _dbContext.ManagementCompanyUsers
             .AsNoTracking()
             .Where(mcu => mcu.ManagementCompanyId == managementCompanyId && mcu.AppUserId == appUserId)
-            .Where(mcu => mcu.IsActive)
             .Where(mcu => mcu.ValidFrom <= today)
             .Where(mcu => !mcu.ValidTo.HasValue || mcu.ValidTo.Value >= today)
             .Select(mcu => mcu.ManagementCompanyRole!.Code)
@@ -343,7 +348,6 @@ public class CustomerRepository :
         customer.BillingEmail = dto.BillingEmail;
         customer.BillingAddress = dto.BillingAddress;
         customer.Phone = dto.Phone;
-        customer.IsActive = dto.IsActive;
     }
 
     public async Task<bool> DeleteAsync(

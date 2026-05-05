@@ -39,12 +39,12 @@ public class VendorRepository :
     {
         var query = _dbContext.Vendors
             .AsNoTracking()
-            .Where(vendor => vendor.ManagementCompanyId == managementCompanyId && vendor.IsActive);
+            .Where(vendor => vendor.ManagementCompanyId == managementCompanyId);
 
         if (categoryId.HasValue)
         {
             query = query.Where(vendor => vendor.VendorTicketCategories!
-                .Any(link => link.TicketCategoryId == categoryId.Value && link.IsActive));
+                .Any(link => link.TicketCategoryId == categoryId.Value));
         }
 
         return await query

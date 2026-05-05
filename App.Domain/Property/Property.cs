@@ -5,7 +5,7 @@ using Base.Domain;
 
 namespace App.Domain;
 
-public class Property : BaseEntity, ICustomerId
+public class Property : BaseEntity, ICustomerId, IHasCreatedAtMeta
 {
     [Required]
     [Display(ResourceType = typeof(App.Resources.Domain.Property), Name = nameof(App.Resources.Domain.Property.Label))]
@@ -31,7 +31,6 @@ public class Property : BaseEntity, ICustomerId
     [Display(ResourceType = typeof(App.Resources.Domain.Property), Name = nameof(App.Resources.Domain.Property.Notes))]
     [Column(TypeName = "jsonb")]
     public LangStr? Notes { get; set; }
-    public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public Guid PropertyTypeId { get; set; }

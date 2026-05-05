@@ -6,7 +6,7 @@ using Base.Contracts;
 
 namespace App.Domain;
 
-public class ManagementCompanyUser : BaseEntity, IManagementCompanyId
+public class ManagementCompanyUser : BaseEntity, IManagementCompanyId, IHasCreatedAtMeta
 {
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
@@ -14,7 +14,6 @@ public class ManagementCompanyUser : BaseEntity, IManagementCompanyId
     [Display(ResourceType = typeof(App.Resources.Domain.ManagementCompanyUser), Name = nameof(App.Resources.Domain.ManagementCompanyUser.JobTitle))]
     [Column(TypeName = "jsonb")]
     public LangStr JobTitle { get; set; } = default!;
-    public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public Guid ManagementCompanyId { get; set; }

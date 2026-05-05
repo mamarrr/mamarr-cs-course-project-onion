@@ -25,7 +25,6 @@ public class PropertyDalMapper : IBaseMapper<PropertyDalDto, Property>
             City = entity.City,
             PostalCode = entity.PostalCode,
             Notes = entity.Notes?.ToString(),
-            IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt
         };
     }
@@ -48,7 +47,7 @@ public class PropertyDalMapper : IBaseMapper<PropertyDalDto, Property>
             City = entity.City,
             PostalCode = entity.PostalCode,
             Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim()),
-            IsActive = entity.IsActive,
+            
             CreatedAt = entity.CreatedAt
         };
     }

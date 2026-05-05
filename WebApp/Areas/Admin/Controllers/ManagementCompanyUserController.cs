@@ -122,7 +122,6 @@ namespace WebApp.Areas_Admin_Controllers
 
                 entity.ValidFrom = managementCompanyUser.ValidFrom;
                 entity.ValidTo = managementCompanyUser.ValidTo;
-                entity.IsActive = managementCompanyUser.IsActive;
                 entity.CreatedAt = managementCompanyUser.CreatedAt;
                 entity.ManagementCompanyId = managementCompanyUser.ManagementCompanyId;
                 entity.AppUserId = managementCompanyUser.AppUserId;

@@ -33,10 +33,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.CreatedAt)
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.IsActive)
-            </th>
-            <th></th>
+<th></th>
         </tr>
     </thead>
     <tbody>
@@ -63,10 +60,7 @@
             <td>
                 @Html.DisplayFor(modelItem => item.CreatedAt)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsActive)
-            </td>
-            <td>
+<td>
                 <a asp-action="Edit" asp-route-id="@item.Id">@App.Resources.Views.AdminScaffoldText.Edit</a> |
                 <a asp-action="Details" asp-route-id="@item.Id">@App.Resources.Views.AdminScaffoldText.Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.Id">@App.Resources.Views.AdminScaffoldText.Delete</a>

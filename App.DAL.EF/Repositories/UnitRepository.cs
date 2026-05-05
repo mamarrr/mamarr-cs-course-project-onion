@@ -75,7 +75,7 @@ public class UnitRepository :
                 FloorNr = entity.FloorNr,
                 SizeM2 = entity.SizeM2,
                 Notes = entity.Notes == null ? null : entity.Notes.ToString(),
-                IsActive = entity.IsActive,
+                IsActive = true,
                 CreatedAt = entity.CreatedAt
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -108,7 +108,7 @@ public class UnitRepository :
                 FloorNr = entity.FloorNr,
                 SizeM2 = entity.SizeM2,
                 Notes = entity.Notes == null ? null : entity.Notes.ToString(),
-                IsActive = entity.IsActive,
+                IsActive = true,
                 CreatedAt = entity.CreatedAt
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -201,7 +201,7 @@ public class UnitRepository :
     {
         var query = _dbContext.Units
             .AsNoTracking()
-            .Where(unit => unit.Property!.Customer!.ManagementCompanyId == managementCompanyId && unit.IsActive);
+            .Where(unit => unit.Property!.Customer!.ManagementCompanyId == managementCompanyId);
 
         if (propertyId.HasValue)
         {
@@ -236,7 +236,7 @@ public class UnitRepository :
                 UnitSlug = entity.Slug,
                 UnitNr = entity.UnitNr,
                 FloorNr = entity.FloorNr,
-                IsActive = entity.IsActive
+                IsActive = true
             })
             .ToListAsync(cancellationToken);
     }
@@ -254,7 +254,6 @@ public class UnitRepository :
             FloorNr = dto.FloorNr,
             SizeM2 = dto.SizeM2,
             Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : new LangStr(dto.Notes.Trim()),
-            IsActive = true,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -269,7 +268,7 @@ public class UnitRepository :
             FloorNr = unit.FloorNr,
             SizeM2 = unit.SizeM2,
             Notes = unit.Notes?.ToString(),
-            IsActive = unit.IsActive,
+            IsActive = true,
             CreatedAt = unit.CreatedAt
         });
     }
@@ -292,8 +291,6 @@ public class UnitRepository :
         unit.UnitNr = dto.UnitNr;
         unit.FloorNr = dto.FloorNr;
         unit.SizeM2 = dto.SizeM2;
-        unit.IsActive = dto.IsActive;
-
         if (string.IsNullOrWhiteSpace(dto.Notes))
         {
             unit.Notes = null;

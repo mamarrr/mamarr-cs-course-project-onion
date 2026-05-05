@@ -5,11 +5,10 @@ using Base.Domain;
 
 namespace App.Domain;
 
-public class CustomerRepresentative : BaseEntity, ICustomerId
+public class CustomerRepresentative : BaseEntity, ICustomerId, IHasCreatedAtMeta
 {
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
-    public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     [Display(ResourceType = typeof(App.Resources.Domain.CustomerRepresentative), Name = nameof(App.Resources.Domain.CustomerRepresentative.Notes))]
     [Column(TypeName = "jsonb")]

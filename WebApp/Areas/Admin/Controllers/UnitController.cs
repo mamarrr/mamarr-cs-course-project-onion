@@ -122,7 +122,6 @@ namespace WebApp.Areas_Admin_Controllers
                 entity.UnitNr = unit.UnitNr;
                 entity.FloorNr = unit.FloorNr;
                 entity.SizeM2 = unit.SizeM2;
-                entity.IsActive = unit.IsActive;
                 entity.CreatedAt = unit.CreatedAt;
                 entity.PropertyId = unit.PropertyId;
 

@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Base.Contracts;
 using Base.Domain;
 
 namespace App.Domain;
 
-public class VendorContact : BaseEntity
+public class VendorContact : BaseEntity, IHasCreatedAtMeta
 {
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
@@ -12,6 +13,8 @@ public class VendorContact : BaseEntity
     public bool IsPrimary { get; set; }
     [StringLength(200, MinimumLength = 1)]
     public string? FullName { get; set; }
+    
+    public DateTime CreatedAt { get; set; }
 
     [StringLength(200, MinimumLength = 1)]
     [Display(ResourceType = typeof(App.Resources.Domain.VendorContact), Name = nameof(App.Resources.Domain.VendorContact.RoleTitle))]
@@ -23,4 +26,5 @@ public class VendorContact : BaseEntity
 
     public Guid VendorId { get; set; }
     public Vendor? Vendor { get; set; }
+    
 }

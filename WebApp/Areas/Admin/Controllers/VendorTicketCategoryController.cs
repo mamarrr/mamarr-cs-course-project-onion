@@ -122,8 +122,7 @@ namespace WebApp.Areas_Admin_Controllers
                 if (entity == null) return NotFound();
 
                 var notes = Request.Form[nameof(VendorTicketCategory.Notes)].ToString();
-
-                entity.IsActive = vendorTicketCategory.IsActive;
+                
                 entity.VendorId = vendorTicketCategory.VendorId;
                 entity.TicketCategoryId = vendorTicketCategory.TicketCategoryId;
 
