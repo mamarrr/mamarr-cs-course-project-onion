@@ -13,11 +13,19 @@ public class CustomerWorkspaceApiMapper
         string customerSlug,
         ClaimsPrincipal user)
     {
+        return ToQuery(companySlug, customerSlug, GetAppUserId(user));
+    }
+
+    public GetCustomerWorkspaceQuery ToQuery(
+        string companySlug,
+        string customerSlug,
+        Guid appUserId)
+    {
         return new GetCustomerWorkspaceQuery
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 

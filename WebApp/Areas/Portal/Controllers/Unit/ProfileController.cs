@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Unit;
 
@@ -21,15 +22,18 @@ public class ProfileController : Controller
     private readonly IAppBLL _bll;
     private readonly UnitMvcMapper _unitMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public ProfileController(
         IAppBLL bll,
         UnitMvcMapper unitMapper,
-        IAppChromeBuilder appChromeBuilder)
+        IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
         _unitMapper = unitMapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
     }
 
     [HttpGet("")]
@@ -40,8 +44,14 @@ public class ProfileController : Controller
         string unitSlug,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var profile = await _bll.UnitProfiles.GetAsync(
-            _unitMapper.ToProfileQuery(companySlug, customerSlug, propertySlug, unitSlug, User),
+            _unitMapper.ToProfileQuery(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -61,8 +71,14 @@ public class ProfileController : Controller
         UnitProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var profile = await _bll.UnitProfiles.GetAsync(
-            _unitMapper.ToProfileQuery(companySlug, customerSlug, propertySlug, unitSlug, User),
+            _unitMapper.ToProfileQuery(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -76,7 +92,7 @@ public class ProfileController : Controller
         }
 
         var result = await _bll.UnitProfiles.UpdateAsync(
-            _unitMapper.ToUpdateCommand(companySlug, customerSlug, propertySlug, unitSlug, edit, User),
+            _unitMapper.ToUpdateCommand(companySlug, customerSlug, propertySlug, unitSlug, edit, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -100,8 +116,14 @@ public class ProfileController : Controller
         UnitProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var profile = await _bll.UnitProfiles.GetAsync(
-            _unitMapper.ToProfileQuery(companySlug, customerSlug, propertySlug, unitSlug, User),
+            _unitMapper.ToProfileQuery(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -109,7 +131,7 @@ public class ProfileController : Controller
         }
 
         var result = await _bll.UnitProfiles.DeleteAsync(
-            _unitMapper.ToDeleteCommand(companySlug, customerSlug, propertySlug, unitSlug, edit, User),
+            _unitMapper.ToDeleteCommand(companySlug, customerSlug, propertySlug, unitSlug, edit, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -206,5 +228,10 @@ public class ProfileController : Controller
             ForbiddenError => Forbid(),
             _ => BadRequest()
         };
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 }

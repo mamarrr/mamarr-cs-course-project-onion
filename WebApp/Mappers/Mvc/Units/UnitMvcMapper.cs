@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using App.BLL.Contracts.Units.Commands;
 using App.BLL.Contracts.Units.Models;
 using App.BLL.Contracts.Units.Queries;
@@ -14,7 +13,7 @@ public class UnitMvcMapper
         string customerSlug,
         string propertySlug,
         string unitSlug,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetUnitDashboardQuery
         {
@@ -22,7 +21,7 @@ public class UnitMvcMapper
             CustomerSlug = customerSlug,
             PropertySlug = propertySlug,
             UnitSlug = unitSlug,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
@@ -30,14 +29,14 @@ public class UnitMvcMapper
         string companySlug,
         string customerSlug,
         string propertySlug,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetPropertyUnitsQuery
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
             PropertySlug = propertySlug,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
@@ -46,7 +45,7 @@ public class UnitMvcMapper
         string customerSlug,
         string propertySlug,
         string unitSlug,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetUnitProfileQuery
         {
@@ -54,7 +53,7 @@ public class UnitMvcMapper
             CustomerSlug = customerSlug,
             PropertySlug = propertySlug,
             UnitSlug = unitSlug,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
@@ -63,14 +62,14 @@ public class UnitMvcMapper
         string customerSlug,
         string propertySlug,
         AddUnitViewModel vm,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new CreateUnitCommand
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
             PropertySlug = propertySlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             UnitNr = vm.UnitNr,
             FloorNr = vm.FloorNr,
             SizeM2 = vm.SizeM2,
@@ -84,7 +83,7 @@ public class UnitMvcMapper
         string propertySlug,
         string unitSlug,
         UnitProfileEditViewModel edit,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new UpdateUnitCommand
         {
@@ -92,7 +91,7 @@ public class UnitMvcMapper
             CustomerSlug = customerSlug,
             PropertySlug = propertySlug,
             UnitSlug = unitSlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             UnitNr = edit.UnitNr,
             FloorNr = edit.FloorNr,
             SizeM2 = edit.SizeM2,
@@ -106,7 +105,7 @@ public class UnitMvcMapper
         string propertySlug,
         string unitSlug,
         UnitProfileEditViewModel edit,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new DeleteUnitCommand
         {
@@ -114,7 +113,7 @@ public class UnitMvcMapper
             CustomerSlug = customerSlug,
             PropertySlug = propertySlug,
             UnitSlug = unitSlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             ConfirmationUnitNr = edit.DeleteConfirmation ?? string.Empty
         };
     }
@@ -130,9 +129,4 @@ public class UnitMvcMapper
         };
     }
 
-    private static Guid GetAppUserId(ClaimsPrincipal user)
-    {
-        var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : Guid.Empty;
-    }
 }

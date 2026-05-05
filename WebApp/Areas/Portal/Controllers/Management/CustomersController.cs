@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Customers;
 
@@ -20,24 +21,33 @@ public class CustomersController : Controller
     private readonly IAppBLL _bll;
     private readonly CompanyCustomerMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly ILogger<CustomersController> _logger;
 
     public CustomersController(
         IAppBLL bll,
         CompanyCustomerMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver,
         ILogger<CustomersController> logger)
     {
         _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
         _logger = logger;
     }
 
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, CancellationToken cancellationToken)
     {
-        var query = _mapper.ToQuery(companySlug, User);
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
+        var query = _mapper.ToQuery(companySlug, appUserId.Value);
         var pageVm = await BuildPageViewModelAsync(query, cancellationToken);
         if (pageVm.response is not null)
         {
@@ -54,6 +64,12 @@ public class CustomersController : Controller
         CustomersPageViewModel vm,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         _logger.LogInformation(
             "Management customers add started for companySlug={CompanySlug}, hasName={HasName}, hasRegistryCode={HasRegistryCode}",
             companySlug,
@@ -74,7 +90,7 @@ public class CustomersController : Controller
                 modelErrors);
 
             var invalidVm = await BuildPageViewModelAsync(
-                _mapper.ToQuery(companySlug, User),
+                _mapper.ToQuery(companySlug, appUserId.Value),
                 cancellationToken,
                 vm.AddCustomer);
             if (invalidVm.response is not null)
@@ -86,7 +102,7 @@ public class CustomersController : Controller
         }
 
         var createResult = await _bll.CompanyCustomers.CreateCustomerAsync(
-            _mapper.ToCommand(companySlug, vm.AddCustomer, User),
+            _mapper.ToCommand(companySlug, vm.AddCustomer, appUserId.Value),
             cancellationToken);
 
         if (createResult.IsFailed)
@@ -121,7 +137,7 @@ public class CustomersController : Controller
             }
 
             var invalidVm = await BuildPageViewModelAsync(
-                _mapper.ToQuery(companySlug, User),
+                _mapper.ToQuery(companySlug, appUserId.Value),
                 cancellationToken,
                 vm.AddCustomer);
             if (invalidVm.response is not null)
@@ -191,6 +207,11 @@ public class CustomersController : Controller
             ForbiddenError => Forbid(),
             _ => BadRequest()
         };
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 
     private static string T(string key, string fallback)

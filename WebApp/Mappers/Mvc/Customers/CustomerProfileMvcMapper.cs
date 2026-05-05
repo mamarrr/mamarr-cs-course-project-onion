@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using App.BLL.Contracts.Customers.Commands;
 using App.BLL.Contracts.Customers.Models;
 using App.BLL.Contracts.Customers.Queries;
@@ -11,13 +10,13 @@ public class CustomerProfileMvcMapper
     public GetCustomerProfileQuery ToQuery(
         string companySlug,
         string customerSlug,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetCustomerProfileQuery
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
@@ -25,13 +24,13 @@ public class CustomerProfileMvcMapper
         string companySlug,
         string customerSlug,
         CustomerProfileEditViewModel edit,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new UpdateCustomerProfileCommand
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             Name = edit.Name,
             RegistryCode = edit.RegistryCode,
             BillingEmail = edit.BillingEmail,
@@ -44,13 +43,13 @@ public class CustomerProfileMvcMapper
         string companySlug,
         string customerSlug,
         CustomerProfileEditViewModel edit,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new DeleteCustomerCommand
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             ConfirmationName = edit.DeleteConfirmation ?? string.Empty
         };
     }
@@ -67,9 +66,4 @@ public class CustomerProfileMvcMapper
         };
     }
 
-    private static Guid GetAppUserId(ClaimsPrincipal user)
-    {
-        var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : Guid.Empty;
-    }
 }

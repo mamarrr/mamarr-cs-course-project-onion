@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Property;
 
@@ -21,15 +22,18 @@ public class DashboardController : Controller
     private readonly IAppBLL _bll;
     private readonly PropertyMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public DashboardController(
         IAppBLL bll,
         PropertyMvcMapper mapper,
-        IAppChromeBuilder appChromeBuilder)
+        IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
     }
 
     [HttpGet("")]
@@ -69,8 +73,14 @@ public class DashboardController : Controller
         string currentSection,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.PropertyWorkspaces.GetWorkspaceAsync(
-            _mapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
+            _mapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, appUserId.Value),
             cancellationToken);
         if (result.IsFailed)
         {
@@ -138,6 +148,11 @@ public class DashboardController : Controller
             ForbiddenError => Forbid(),
             _ => BadRequest()
         };
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 
     private static string T(string key, string fallback)

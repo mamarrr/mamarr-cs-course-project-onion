@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using App.BLL.Contracts.Customers.Commands;
 using App.BLL.Contracts.Customers.Models;
 using App.BLL.Contracts.Customers.Queries;
@@ -10,24 +9,24 @@ public class CompanyCustomerMvcMapper
 {
     public GetCompanyCustomersQuery ToQuery(
         string companySlug,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetCompanyCustomersQuery
         {
             CompanySlug = companySlug,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
     public CreateCustomerCommand ToCommand(
         string companySlug,
         AddManagementCustomerViewModel vm,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new CreateCustomerCommand
         {
             CompanySlug = companySlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             Name = vm.Name,
             RegistryCode = vm.RegistryCode,
             BillingEmail = vm.BillingEmail,
@@ -55,9 +54,4 @@ public class CompanyCustomerMvcMapper
         }).ToList();
     }
 
-    private static Guid GetAppUserId(ClaimsPrincipal user)
-    {
-        var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : Guid.Empty;
-    }
 }

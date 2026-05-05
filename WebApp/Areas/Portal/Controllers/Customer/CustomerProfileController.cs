@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Customer.CustomerProfile;
 
@@ -22,22 +23,31 @@ public class CustomerProfileController : Controller
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly CustomerProfileMvcMapper _mapper;
     private readonly IAppBLL _bll;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public CustomerProfileController(
         IAppChromeBuilder appChromeBuilder,
         CustomerProfileMvcMapper mapper,
-        IAppBLL bll)
+        IAppBLL bll,
+        ICurrentPortalContextResolver portalContextResolver)
     {
         _appChromeBuilder = appChromeBuilder;
         _mapper = mapper;
         _bll = bll;
+        _portalContextResolver = portalContextResolver;
     }
 
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.CustomerProfiles.GetAsync(
-            _mapper.ToQuery(companySlug, customerSlug, User),
+            _mapper.ToQuery(companySlug, customerSlug, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -56,8 +66,14 @@ public class CustomerProfileController : Controller
         CustomerProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var currentProfile = await _bll.CustomerProfiles.GetAsync(
-            _mapper.ToQuery(companySlug, customerSlug, User),
+            _mapper.ToQuery(companySlug, customerSlug, appUserId.Value),
             cancellationToken);
 
         if (currentProfile.IsFailed)
@@ -72,7 +88,7 @@ public class CustomerProfileController : Controller
         }
 
         var result = await _bll.CustomerProfiles.UpdateAsync(
-            _mapper.ToCommand(companySlug, customerSlug, edit, User),
+            _mapper.ToCommand(companySlug, customerSlug, edit, appUserId.Value),
             cancellationToken);
 
         if (result.IsSuccess)
@@ -99,8 +115,14 @@ public class CustomerProfileController : Controller
         CustomerProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var currentProfile = await _bll.CustomerProfiles.GetAsync(
-            _mapper.ToQuery(companySlug, customerSlug, User),
+            _mapper.ToQuery(companySlug, customerSlug, appUserId.Value),
             cancellationToken);
 
         if (currentProfile.IsFailed)
@@ -109,7 +131,7 @@ public class CustomerProfileController : Controller
         }
 
         var result = await _bll.CustomerProfiles.DeleteAsync(
-            _mapper.ToDeleteCommand(companySlug, customerSlug, edit, User),
+            _mapper.ToDeleteCommand(companySlug, customerSlug, edit, appUserId.Value),
             cancellationToken);
 
         if (result.IsSuccess)
@@ -211,5 +233,10 @@ public class CustomerProfileController : Controller
             error is NotFoundError
             || error is ForbiddenError
             || error is UnauthorizedError);
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 }

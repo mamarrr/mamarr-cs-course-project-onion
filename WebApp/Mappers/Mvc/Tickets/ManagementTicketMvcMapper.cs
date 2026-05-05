@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Security.Claims;
 using App.BLL.Contracts.Tickets.Commands;
 using App.BLL.Contracts.Tickets.Models;
 using App.BLL.Contracts.Tickets.Queries;
@@ -13,12 +12,12 @@ public class ManagementTicketMvcMapper
     public GetManagementTicketsQuery ToListQuery(
         string companySlug,
         TicketFilterViewModel filter,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetManagementTicketsQuery
         {
             CompanySlug = companySlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             Search = filter.Search,
             StatusId = filter.StatusId,
             PriorityId = filter.PriorityId,
@@ -35,13 +34,13 @@ public class ManagementTicketMvcMapper
     public GetManagementTicketQuery ToTicketQuery(
         string companySlug,
         Guid ticketId,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetManagementTicketQuery
         {
             CompanySlug = companySlug,
             TicketId = ticketId,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
@@ -51,12 +50,12 @@ public class ManagementTicketMvcMapper
         Guid? propertyId,
         Guid? unitId,
         Guid? categoryId,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetManagementTicketSelectorOptionsQuery
         {
             CompanySlug = companySlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             CustomerId = customerId,
             PropertyId = propertyId,
             UnitId = unitId,
@@ -67,12 +66,12 @@ public class ManagementTicketMvcMapper
     public CreateManagementTicketCommand ToCreateCommand(
         string companySlug,
         TicketFormViewModel form,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new CreateManagementTicketCommand
         {
             CompanySlug = companySlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             TicketNr = form.TicketNr,
             Title = form.Title,
             Description = form.Description,
@@ -91,12 +90,12 @@ public class ManagementTicketMvcMapper
         string companySlug,
         Guid ticketId,
         TicketFormViewModel form,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new UpdateManagementTicketCommand
         {
             CompanySlug = companySlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             TicketId = ticketId,
             TicketNr = form.TicketNr,
             Title = form.Title,
@@ -116,26 +115,26 @@ public class ManagementTicketMvcMapper
     public DeleteManagementTicketCommand ToDeleteCommand(
         string companySlug,
         Guid ticketId,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new DeleteManagementTicketCommand
         {
             CompanySlug = companySlug,
             TicketId = ticketId,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
     public AdvanceManagementTicketStatusCommand ToAdvanceCommand(
         string companySlug,
         Guid ticketId,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new AdvanceManagementTicketStatusCommand
         {
             CompanySlug = companySlug,
             TicketId = ticketId,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
@@ -294,9 +293,4 @@ public class ManagementTicketMvcMapper
             .ToList();
     }
 
-    private static Guid GetAppUserId(ClaimsPrincipal user)
-    {
-        var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : Guid.Empty;
-    }
 }

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using App.BLL.Contracts.Properties.Commands;
 using App.BLL.Contracts.Properties.Models;
 using App.BLL.Contracts.Properties.Queries;
@@ -13,27 +12,27 @@ public class PropertyMvcMapper
         string companySlug,
         string customerSlug,
         string propertySlug,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetPropertyWorkspaceQuery
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
             PropertySlug = propertySlug,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
     public GetPropertyWorkspaceQuery ToCustomerPropertiesQuery(
         string companySlug,
         string customerSlug,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetPropertyWorkspaceQuery
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
@@ -41,14 +40,14 @@ public class PropertyMvcMapper
         string companySlug,
         string customerSlug,
         string propertySlug,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetPropertyProfileQuery
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
             PropertySlug = propertySlug,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
@@ -56,13 +55,13 @@ public class PropertyMvcMapper
         string companySlug,
         string customerSlug,
         AddPropertyViewModel vm,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new CreatePropertyCommand
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             Name = vm.Name,
             AddressLine = vm.AddressLine,
             City = vm.City,
@@ -77,14 +76,14 @@ public class PropertyMvcMapper
         string customerSlug,
         string propertySlug,
         PropertyProfileEditViewModel edit,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new UpdatePropertyProfileCommand
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
             PropertySlug = propertySlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             Name = edit.Name,
             AddressLine = edit.AddressLine,
             City = edit.City,
@@ -98,14 +97,14 @@ public class PropertyMvcMapper
         string customerSlug,
         string propertySlug,
         PropertyProfileEditViewModel edit,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new DeletePropertyCommand
         {
             CompanySlug = companySlug,
             CustomerSlug = customerSlug,
             PropertySlug = propertySlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             ConfirmationName = edit.DeleteConfirmation ?? string.Empty
         };
     }
@@ -147,9 +146,4 @@ public class PropertyMvcMapper
         };
     }
 
-    private static Guid GetAppUserId(ClaimsPrincipal user)
-    {
-        var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : Guid.Empty;
-    }
 }

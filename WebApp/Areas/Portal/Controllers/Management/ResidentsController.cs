@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Residents;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Residents;
 
@@ -22,25 +23,34 @@ public class ResidentsController : Controller
     private readonly IAppBLL _bll;
     private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly ILogger<ResidentsController> _logger;
 
     public ResidentsController(
         IAppBLL bll,
         ResidentMvcMapper residentMapper,
         IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver,
         ILogger<ResidentsController> logger)
     {
         _bll = bll;
         _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
         _logger = logger;
     }
 
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.ResidentWorkspaces.GetResidentsAsync(
-            _residentMapper.ToResidentsQuery(companySlug, User),
+            _residentMapper.ToResidentsQuery(companySlug, appUserId.Value),
             cancellationToken);
         if (result.IsFailed)
         {
@@ -58,6 +68,12 @@ public class ResidentsController : Controller
         ResidentsPageViewModel vm,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         _logger.LogInformation(
             "Management residents add started for companySlug={CompanySlug}, hasFirstName={HasFirstName}, hasLastName={HasLastName}, hasIdCode={HasIdCode}",
             companySlug,
@@ -66,7 +82,7 @@ public class ResidentsController : Controller
             !string.IsNullOrWhiteSpace(vm.AddResident.IdCode));
 
         var residents = await _bll.ResidentWorkspaces.GetResidentsAsync(
-            _residentMapper.ToResidentsQuery(companySlug, User),
+            _residentMapper.ToResidentsQuery(companySlug, appUserId.Value),
             cancellationToken);
         if (residents.IsFailed)
         {
@@ -83,7 +99,7 @@ public class ResidentsController : Controller
         }
 
         var createResult = await _bll.ResidentWorkspaces.CreateAsync(
-            _residentMapper.ToCreateCommand(companySlug, vm.AddResident, User),
+            _residentMapper.ToCreateCommand(companySlug, vm.AddResident, appUserId.Value),
             cancellationToken);
 
         if (createResult.IsFailed)
@@ -183,6 +199,11 @@ public class ResidentsController : Controller
         }
 
         ModelState.AddModelError(string.Empty, errors.FirstOrDefault()?.Message ?? T("UnableToAddResident", "Unable to add resident."));
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 
     private static string T(string key, string fallback)

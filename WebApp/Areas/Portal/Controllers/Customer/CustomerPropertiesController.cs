@@ -10,6 +10,7 @@ using WebApp.Mappers.Api.Customers;
 using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Customer.CustomerProperties;
 
@@ -24,6 +25,7 @@ public class CustomerPropertiesController : Controller
     private readonly CustomerWorkspaceApiMapper _customerMapper;
     private readonly PropertyMvcMapper _propertyMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly ILogger<CustomerPropertiesController> _logger;
 
     public CustomerPropertiesController(
@@ -31,25 +33,33 @@ public class CustomerPropertiesController : Controller
         CustomerWorkspaceApiMapper customerMapper,
         PropertyMvcMapper propertyMapper,
         IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver,
         ILogger<CustomerPropertiesController> logger)
     {
         _bll = bll;
         _customerMapper = customerMapper;
         _propertyMapper = propertyMapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
         _logger = logger;
     }
 
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
-        var customer = await ResolveCustomerAsync(companySlug, customerSlug, cancellationToken);
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
+        var customer = await ResolveCustomerAsync(companySlug, customerSlug, appUserId.Value, cancellationToken);
         if (customer.response is not null)
         {
             return customer.response;
         }
 
-        var vm = await BuildPageViewModelAsync(customer.context!, companySlug, customerSlug, cancellationToken);
+        var vm = await BuildPageViewModelAsync(customer.context!, companySlug, customerSlug, appUserId.Value, cancellationToken);
         return View(vm);
     }
 
@@ -61,7 +71,13 @@ public class CustomerPropertiesController : Controller
         PropertiesPageViewModel vm,
         CancellationToken cancellationToken)
     {
-        var customer = await ResolveCustomerAsync(companySlug, customerSlug, cancellationToken);
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
+        var customer = await ResolveCustomerAsync(companySlug, customerSlug, appUserId.Value, cancellationToken);
         if (customer.response is not null)
         {
             return customer.response;
@@ -69,18 +85,18 @@ public class CustomerPropertiesController : Controller
 
         if (!ModelState.IsValid)
         {
-            var invalidVm = await BuildPageViewModelAsync(customer.context!, companySlug, customerSlug, cancellationToken, vm.AddProperty);
+            var invalidVm = await BuildPageViewModelAsync(customer.context!, companySlug, customerSlug, appUserId.Value, cancellationToken, vm.AddProperty);
             return View(nameof(Index), invalidVm);
         }
 
         var createResult = await _bll.PropertyWorkspaces.CreateAsync(
-            _propertyMapper.ToCreateCommand(companySlug, customerSlug, vm.AddProperty, User),
+            _propertyMapper.ToCreateCommand(companySlug, customerSlug, vm.AddProperty, appUserId.Value),
             cancellationToken);
 
         if (createResult.IsFailed)
         {
             ApplyErrors(createResult.Errors, ModelState);
-            var invalidVm = await BuildPageViewModelAsync(customer.context!, companySlug, customerSlug, cancellationToken, vm.AddProperty);
+            var invalidVm = await BuildPageViewModelAsync(customer.context!, companySlug, customerSlug, appUserId.Value, cancellationToken, vm.AddProperty);
             return View(nameof(Index), invalidVm);
         }
 
@@ -98,10 +114,11 @@ public class CustomerPropertiesController : Controller
     private async Task<(IActionResult? response, CustomerWorkspaceModel? context)> ResolveCustomerAsync(
         string companySlug,
         string customerSlug,
+        Guid appUserId,
         CancellationToken cancellationToken)
     {
         var result = await _bll.CustomerWorkspaces.GetWorkspaceAsync(
-            _customerMapper.ToQuery(companySlug, customerSlug, User),
+            _customerMapper.ToQuery(companySlug, customerSlug, appUserId),
             cancellationToken);
 
         return result.IsFailed
@@ -113,11 +130,12 @@ public class CustomerPropertiesController : Controller
         CustomerWorkspaceModel context,
         string companySlug,
         string customerSlug,
+        Guid appUserId,
         CancellationToken cancellationToken,
         AddPropertyViewModel? addPropertyOverride = null)
     {
         var listResult = await _bll.PropertyWorkspaces.GetCustomerPropertiesAsync(
-            _propertyMapper.ToCustomerPropertiesQuery(companySlug, customerSlug, User),
+            _propertyMapper.ToCustomerPropertiesQuery(companySlug, customerSlug, appUserId),
             cancellationToken);
 
         var propertyTypeResult = await _bll.PropertyWorkspaces.GetPropertyTypeOptionsAsync(cancellationToken);
@@ -192,6 +210,11 @@ public class CustomerPropertiesController : Controller
         }
 
         modelState.AddModelError(string.Empty, errors.FirstOrDefault()?.Message ?? T("UnableToAddProperty", "Unable to add property."));
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 
     private static string T(string key, string fallback)

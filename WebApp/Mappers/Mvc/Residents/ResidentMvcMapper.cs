@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using App.BLL.Contracts.Residents.Commands;
 using App.BLL.Contracts.Residents.Models;
 using App.BLL.Contracts.Residents.Queries;
@@ -11,37 +10,37 @@ public class ResidentMvcMapper
 {
     public GetResidentsQuery ToResidentsQuery(
         string companySlug,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetResidentsQuery
         {
             CompanySlug = companySlug,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
     public GetResidentProfileQuery ToResidentQuery(
         string companySlug,
         string residentIdCode,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new GetResidentProfileQuery
         {
             CompanySlug = companySlug,
             ResidentIdCode = residentIdCode,
-            UserId = GetAppUserId(user)
+            UserId = appUserId
         };
     }
 
     public CreateResidentCommand ToCreateCommand(
         string companySlug,
         AddManagementResidentViewModel vm,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new CreateResidentCommand
         {
             CompanySlug = companySlug,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             FirstName = vm.FirstName,
             LastName = vm.LastName,
             IdCode = vm.IdCode,
@@ -53,13 +52,13 @@ public class ResidentMvcMapper
         string companySlug,
         string residentIdCode,
         ResidentProfileEditViewModel edit,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new UpdateResidentProfileCommand
         {
             CompanySlug = companySlug,
             ResidentIdCode = residentIdCode,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             FirstName = edit.FirstName,
             LastName = edit.LastName,
             IdCode = edit.IdCode,
@@ -71,13 +70,13 @@ public class ResidentMvcMapper
         string companySlug,
         string residentIdCode,
         ResidentProfileEditViewModel edit,
-        ClaimsPrincipal user)
+        Guid appUserId)
     {
         return new DeleteResidentCommand
         {
             CompanySlug = companySlug,
             ResidentIdCode = residentIdCode,
-            UserId = GetAppUserId(user),
+            UserId = appUserId,
             ConfirmationIdCode = edit.DeleteConfirmation ?? string.Empty
         };
     }
@@ -93,9 +92,4 @@ public class ResidentMvcMapper
         };
     }
 
-    private static Guid GetAppUserId(ClaimsPrincipal user)
-    {
-        var userIdValue = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : Guid.Empty;
-    }
 }

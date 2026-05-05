@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Residents;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Resident;
 
@@ -21,15 +22,18 @@ public class DashboardController : Controller
     private readonly IAppBLL _bll;
     private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public DashboardController(
         IAppBLL bll,
         ResidentMvcMapper residentMapper,
-        IAppChromeBuilder appChromeBuilder)
+        IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
         _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
     }
 
     [HttpGet("")]
@@ -62,8 +66,14 @@ public class DashboardController : Controller
         string currentSection,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var workspace = await _bll.ResidentAccess.ResolveResidentWorkspaceAsync(
-            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, appUserId.Value),
             cancellationToken);
         if (workspace.IsFailed)
         {
@@ -142,6 +152,11 @@ public class DashboardController : Controller
             ForbiddenError => Forbid(),
             _ => BadRequest()
         };
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 
     private static string T(string key, string fallback)

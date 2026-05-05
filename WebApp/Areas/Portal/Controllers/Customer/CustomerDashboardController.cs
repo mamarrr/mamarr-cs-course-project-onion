@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using WebApp.Mappers.Api.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Customer.CustomerDashboard;
 
@@ -19,6 +20,7 @@ public class CustomerDashboardController : Controller
     private readonly IAppBLL _bll;
     private readonly CustomerWorkspaceApiMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly ILogger<CustomerDashboardController> _logger;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
@@ -26,12 +28,14 @@ public class CustomerDashboardController : Controller
         IAppBLL bll,
         CustomerWorkspaceApiMapper mapper,
         IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver,
         ILogger<CustomerDashboardController> logger,
         IWebHostEnvironment webHostEnvironment)
     {
         _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
         _logger = logger;
         _webHostEnvironment = webHostEnvironment;
     }
@@ -69,8 +73,14 @@ public class CustomerDashboardController : Controller
     {
         LogViewCandidates(currentSection);
 
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.CustomerWorkspaces.GetWorkspaceAsync(
-            _mapper.ToQuery(companySlug, customerSlug, User),
+            _mapper.ToQuery(companySlug, customerSlug, appUserId.Value),
             cancellationToken);
         if (result.IsFailed)
         {
@@ -165,6 +175,11 @@ public class CustomerDashboardController : Controller
             ForbiddenError => Forbid(),
             _ => BadRequest()
         };
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 
     private static string T(string key, string fallback)

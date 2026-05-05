@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Unit;
 
@@ -21,15 +22,18 @@ public class DashboardController : Controller
     private readonly IAppBLL _bll;
     private readonly UnitMvcMapper _unitMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public DashboardController(
         IAppBLL bll,
         UnitMvcMapper unitMapper,
-        IAppChromeBuilder appChromeBuilder)
+        IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
         _unitMapper = unitMapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
     }
 
     [HttpGet("")]
@@ -143,8 +147,14 @@ public class DashboardController : Controller
         string unitSlug,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return (Challenge(), null);
+        }
+
         var unitAccess = await _bll.UnitAccess.ResolveUnitWorkspaceAsync(
-            _unitMapper.ToDashboardQuery(companySlug, customerSlug, propertySlug, unitSlug, User),
+            _unitMapper.ToDashboardQuery(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
             cancellationToken);
         if (unitAccess.IsFailed)
         {
@@ -157,6 +167,11 @@ public class DashboardController : Controller
     private static string T(string key, string fallback)
     {
         return UiText.ResourceManager.GetString(key) ?? fallback;
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 
     private IActionResult ToMvcErrorResult(IReadOnlyList<IError> errors)

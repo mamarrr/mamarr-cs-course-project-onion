@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Tickets;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Tickets;
 
@@ -20,15 +21,18 @@ public class TicketsController : Controller
     private readonly IAppBLL _bll;
     private readonly ManagementTicketMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public TicketsController(
         IAppBLL bll,
         ManagementTicketMvcMapper mapper,
-        IAppChromeBuilder appChromeBuilder)
+        IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
     }
 
     [HttpGet("")]
@@ -37,8 +41,14 @@ public class TicketsController : Controller
         [FromQuery] TicketFilterViewModel filter,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.ManagementTickets.GetTicketsAsync(
-            _mapper.ToListQuery(companySlug, filter, User),
+            _mapper.ToListQuery(companySlug, filter, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -77,11 +87,17 @@ public class TicketsController : Controller
             return invalidPage.response ?? View(invalidPage.model);
         }
 
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.ManagementTickets.CreateAsync(
             _mapper.ToCreateCommand(
                 companySlug,
                 vm.Form,
-                User),
+                appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -106,8 +122,14 @@ public class TicketsController : Controller
         Guid ticketId,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.ManagementTickets.GetDetailsAsync(
-            _mapper.ToTicketQuery(companySlug, ticketId, User),
+            _mapper.ToTicketQuery(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -148,12 +170,18 @@ public class TicketsController : Controller
             return invalidPage.response ?? View(invalidPage.model);
         }
 
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.ManagementTickets.UpdateAsync(
             _mapper.ToUpdateCommand(
                 companySlug,
                 ticketId,
                 vm.Form,
-                User),
+                appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -179,8 +207,14 @@ public class TicketsController : Controller
         Guid ticketId,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.ManagementTickets.DeleteAsync(
-            _mapper.ToDeleteCommand(companySlug, ticketId, User),
+            _mapper.ToDeleteCommand(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -206,8 +240,14 @@ public class TicketsController : Controller
         Guid ticketId,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.ManagementTickets.AdvanceStatusAsync(
-            _mapper.ToAdvanceCommand(companySlug, ticketId, User),
+            _mapper.ToAdvanceCommand(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -232,8 +272,14 @@ public class TicketsController : Controller
         Guid? customerId,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorQuery(companySlug, customerId, null, null, null, User),
+            _mapper.ToSelectorQuery(companySlug, customerId, null, null, null, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
@@ -247,8 +293,14 @@ public class TicketsController : Controller
         Guid? propertyId,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorQuery(companySlug, null, propertyId, null, null, User),
+            _mapper.ToSelectorQuery(companySlug, null, propertyId, null, null, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
@@ -262,8 +314,14 @@ public class TicketsController : Controller
         Guid? unitId,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorQuery(companySlug, null, null, unitId, null, User),
+            _mapper.ToSelectorQuery(companySlug, null, null, unitId, null, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
@@ -277,8 +335,14 @@ public class TicketsController : Controller
         Guid? categoryId,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorQuery(companySlug, null, null, null, categoryId, User),
+            _mapper.ToSelectorQuery(companySlug, null, null, null, categoryId, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
@@ -291,6 +355,12 @@ public class TicketsController : Controller
         TicketFormViewModel? formOverride,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return (Challenge(), null);
+        }
+
         var result = await _bll.ManagementTickets.GetCreateFormAsync(
             _mapper.ToListQuery(
                 companySlug,
@@ -301,7 +371,7 @@ public class TicketsController : Controller
                     UnitId = formOverride?.UnitId,
                     CategoryId = formOverride?.TicketCategoryId == Guid.Empty ? null : formOverride?.TicketCategoryId
                 },
-                User),
+                appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -324,8 +394,14 @@ public class TicketsController : Controller
         TicketFormViewModel? formOverride,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return (Challenge(), null);
+        }
+
         var result = await _bll.ManagementTickets.GetEditFormAsync(
-            _mapper.ToTicketQuery(companySlug, ticketId, User),
+            _mapper.ToTicketQuery(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -392,6 +468,11 @@ public class TicketsController : Controller
     private static bool IsAuthorizationError(IReadOnlyList<IError> errors)
     {
         return errors.Any(error => error is UnauthorizedError or ForbiddenError or NotFoundError);
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 
     private IActionResult ToMvcErrorResult(IReadOnlyList<IError> errors)

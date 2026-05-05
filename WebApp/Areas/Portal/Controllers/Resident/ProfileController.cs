@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Residents;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Resident;
 
@@ -22,22 +23,31 @@ public class ProfileController : Controller
     private readonly IAppBLL _bll;
     private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public ProfileController(
         IAppBLL bll,
         ResidentMvcMapper residentMapper,
-        IAppChromeBuilder appChromeBuilder)
+        IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
         _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
     }
 
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, string residentIdCode, CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var result = await _bll.ResidentProfiles.GetAsync(
-            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -56,8 +66,14 @@ public class ProfileController : Controller
         ResidentProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var profile = await _bll.ResidentProfiles.GetAsync(
-            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -71,7 +87,7 @@ public class ProfileController : Controller
         }
 
         var result = await _bll.ResidentProfiles.UpdateAsync(
-            _residentMapper.ToUpdateCommand(companySlug, residentIdCode, edit, User),
+            _residentMapper.ToUpdateCommand(companySlug, residentIdCode, edit, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -98,8 +114,14 @@ public class ProfileController : Controller
         ResidentProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var profile = await _bll.ResidentProfiles.GetAsync(
-            _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
+            _residentMapper.ToResidentQuery(companySlug, residentIdCode, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -107,7 +129,7 @@ public class ProfileController : Controller
         }
 
         var result = await _bll.ResidentProfiles.DeleteAsync(
-            _residentMapper.ToDeleteCommand(companySlug, residentIdCode, edit, User),
+            _residentMapper.ToDeleteCommand(companySlug, residentIdCode, edit, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -257,5 +279,10 @@ public class ProfileController : Controller
                 $"{nameof(ProfilePageViewModel.Edit)}.{nameof(ResidentProfileEditViewModel.IdCode)}",
             _ => string.Empty
         };
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 }

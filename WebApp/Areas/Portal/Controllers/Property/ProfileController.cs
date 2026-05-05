@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Property;
 
@@ -22,15 +23,18 @@ public class ProfileController : Controller
     private readonly IAppBLL _bll;
     private readonly PropertyMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public ProfileController(
         IAppBLL bll,
         PropertyMvcMapper mapper,
-        IAppChromeBuilder appChromeBuilder)
+        IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
     }
 
     [HttpGet("")]
@@ -40,8 +44,14 @@ public class ProfileController : Controller
         string propertySlug,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var profile = await _bll.PropertyProfiles.GetAsync(
-            _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, User),
+            _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -60,8 +70,14 @@ public class ProfileController : Controller
         PropertyProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var profile = await _bll.PropertyProfiles.GetAsync(
-            _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, User),
+            _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -75,7 +91,7 @@ public class ProfileController : Controller
         }
 
         var result = await _bll.PropertyProfiles.UpdateAsync(
-            _mapper.ToUpdateCommand(companySlug, customerSlug, propertySlug, edit, User),
+            _mapper.ToUpdateCommand(companySlug, customerSlug, propertySlug, edit, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -103,8 +119,14 @@ public class ProfileController : Controller
         PropertyProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return Challenge();
+        }
+
         var profile = await _bll.PropertyProfiles.GetAsync(
-            _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, User),
+            _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -112,7 +134,7 @@ public class ProfileController : Controller
         }
 
         var result = await _bll.PropertyProfiles.DeleteAsync(
-            _mapper.ToDeleteCommand(companySlug, customerSlug, propertySlug, edit, User),
+            _mapper.ToDeleteCommand(companySlug, customerSlug, propertySlug, edit, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -204,5 +226,10 @@ public class ProfileController : Controller
         }
 
         modelState.AddModelError(string.Empty, errors.FirstOrDefault()?.Message ?? UiText.UnableToUpdateProfile);
+    }
+
+    private Guid? GetAppUserId()
+    {
+        return _portalContextResolver.Resolve().AppUserId;
     }
 }
