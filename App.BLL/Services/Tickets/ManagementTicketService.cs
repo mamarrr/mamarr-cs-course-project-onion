@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Queries;
@@ -18,13 +19,16 @@ public class ManagementTicketService : IManagementTicketService
 
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IAppUOW _uow;
+    private readonly IAppDeleteGuard _deleteGuard;
 
     public ManagementTicketService(
         ICustomerAccessService customerAccessService,
-        IAppUOW uow)
+        IAppUOW uow,
+        IAppDeleteGuard deleteGuard)
     {
         _customerAccessService = customerAccessService;
         _uow = uow;
+        _deleteGuard = deleteGuard;
     }
 
     public async Task<Result<ManagementTicketsModel>> GetTicketsAsync(
@@ -419,15 +423,28 @@ public class ManagementTicketService : IManagementTicketService
             return Result.Fail(workspace.Errors);
         }
 
-        var deleted = await _uow.Tickets.DeleteAsync(
+        var ticket = await _uow.Tickets.FindDetailsAsync(
             command.TicketId,
             workspace.Value.ManagementCompanyId,
             cancellationToken);
-
-        if (!deleted)
+        if (ticket is null)
         {
             return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
         }
+
+        var canDelete = await _deleteGuard.CanDeleteTicketAsync(
+            command.TicketId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!canDelete)
+        {
+            return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
+        }
+
+        await _uow.Tickets.RemoveAsync(
+            command.TicketId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
 
         await _uow.SaveChangesAsync(cancellationToken);
         return Result.Ok();
@@ -836,6 +853,13 @@ public class ManagementTicketService : IManagementTicketService
     private static string T(string key, string fallback)
     {
         return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
+    }
+
+    private static string DeleteBlockedMessage()
+    {
+        return T(
+            "UnableToDeleteBecauseDependentRecordsExist",
+            "Unable to delete because dependent records exist.");
     }
 
     private sealed record NormalizedCreate(

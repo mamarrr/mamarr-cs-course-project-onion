@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Units;
 using App.BLL.Contracts.Units.Commands;
@@ -21,13 +22,16 @@ public class UnitProfileService : IUnitProfileService
 
     private readonly IUnitAccessService _unitAccessService;
     private readonly IAppUOW _uow;
+    private readonly IAppDeleteGuard _deleteGuard;
 
     public UnitProfileService(
         IUnitAccessService unitAccessService,
-        IAppUOW uow)
+        IAppUOW uow,
+        IAppDeleteGuard deleteGuard)
     {
         _unitAccessService = unitAccessService;
         _uow = uow;
+        _deleteGuard = deleteGuard;
     }
 
     public async Task<Result<UnitProfileModel>> GetAsync(
@@ -146,30 +150,23 @@ public class UnitProfileService : IUnitProfileService
             return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
-        await _uow.BeginTransactionAsync(cancellationToken);
-        try
+        var canDelete = await _deleteGuard.CanDeleteUnitAsync(
+            workspace.Value.UnitId,
+            workspace.Value.PropertyId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!canDelete)
         {
-            var deleted = await _uow.Units.DeleteAsync(
-                workspace.Value.UnitId,
-                workspace.Value.PropertyId,
-                workspace.Value.ManagementCompanyId,
-                cancellationToken);
-
-            if (!deleted)
-            {
-                await _uow.RollbackTransactionAsync(cancellationToken);
-                return Result.Fail(new NotFoundError("Unit profile was not found."));
-            }
-
-            await _uow.SaveChangesAsync(cancellationToken);
-            await _uow.CommitTransactionAsync(cancellationToken);
-            return Result.Ok();
+            return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
         }
-        catch
-        {
-            await _uow.RollbackTransactionAsync(cancellationToken);
-            throw;
-        }
+
+        await _uow.Units.RemoveAsync(
+            workspace.Value.UnitId,
+            workspace.Value.PropertyId,
+            cancellationToken);
+
+        await _uow.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
     }
 
     private async Task<Result<UnitWorkspaceModel>> ResolveWorkspaceAsync(
@@ -224,5 +221,11 @@ public class UnitProfileService : IUnitProfileService
                         App.Resources.Views.UiText.UnitNr)
                 }
             ]));
+    }
+
+    private static string DeleteBlockedMessage()
+    {
+        return App.Resources.Views.UiText.ResourceManager.GetString("UnableToDeleteBecauseDependentRecordsExist")
+               ?? "Unable to delete because dependent records exist.";
     }
 }

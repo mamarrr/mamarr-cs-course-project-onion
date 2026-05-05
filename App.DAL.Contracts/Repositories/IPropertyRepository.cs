@@ -47,7 +47,7 @@ public interface IPropertyRepository : IBaseRepository<PropertyDalDto>
         string? searchTerm,
         CancellationToken cancellationToken = default);
 
-    Task<bool> DeleteAsync(
+    Task<bool> HasDeleteDependenciesAsync(
         Guid propertyId,
         Guid customerId,
         Guid managementCompanyId,

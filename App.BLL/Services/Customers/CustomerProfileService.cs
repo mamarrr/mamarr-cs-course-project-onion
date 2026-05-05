@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Commands;
@@ -23,13 +24,16 @@ public class CustomerProfileService : ICustomerProfileService
 
     private readonly ICustomerAccessService _customerAccessService;
     private readonly IAppUOW _uow;
+    private readonly IAppDeleteGuard _deleteGuard;
 
     public CustomerProfileService(
         ICustomerAccessService customerAccessService,
-        IAppUOW uow)
+        IAppUOW uow,
+        IAppDeleteGuard deleteGuard)
     {
         _customerAccessService = customerAccessService;
         _uow = uow;
+        _deleteGuard = deleteGuard;
     }
 
     public async Task<Result<CustomerProfileModel>> GetAsync(
@@ -163,29 +167,22 @@ public class CustomerProfileService : ICustomerProfileService
             return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
-        await _uow.BeginTransactionAsync(cancellationToken);
-        try
+        var canDelete = await _deleteGuard.CanDeleteCustomerAsync(
+            access.Value.CustomerId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!canDelete)
         {
-            var deleted = await _uow.Customers.DeleteAsync(
-                access.Value.CustomerId,
-                access.Value.ManagementCompanyId,
-                cancellationToken);
-
-            if (!deleted)
-            {
-                await _uow.RollbackTransactionAsync(cancellationToken);
-                return Result.Fail(new NotFoundError("Customer profile was not found."));
-            }
-
-            await _uow.SaveChangesAsync(cancellationToken);
-            await _uow.CommitTransactionAsync(cancellationToken);
-            return Result.Ok();
+            return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
         }
-        catch
-        {
-            await _uow.RollbackTransactionAsync(cancellationToken);
-            throw;
-        }
+
+        await _uow.Customers.RemoveAsync(
+            access.Value.CustomerId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+
+        await _uow.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
     }
 
     private async Task<Result<CustomerAccessContext>> ResolveAccessAsync(
@@ -277,4 +274,10 @@ public class CustomerProfileService : ICustomerProfileService
         string? BillingEmail,
         string? BillingAddress,
         string? Phone);
+
+    private static string DeleteBlockedMessage()
+    {
+        return App.Resources.Views.UiText.ResourceManager.GetString("UnableToDeleteBecauseDependentRecordsExist")
+               ?? "Unable to delete because dependent records exist.";
+    }
 }

@@ -67,7 +67,7 @@ public interface ICustomerRepository : IBaseRepository<CustomerDalDto>
         Guid appUserId,
         CancellationToken cancellationToken = default);
 
-    Task<bool> DeleteAsync(
+    Task<bool> HasDeleteDependenciesAsync(
         Guid customerId,
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);

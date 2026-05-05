@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Properties.Commands;
@@ -21,13 +22,16 @@ public class PropertyProfileService : IPropertyProfileService
 
     private readonly IPropertyWorkspaceService _propertyWorkspaceService;
     private readonly IAppUOW _uow;
+    private readonly IAppDeleteGuard _deleteGuard;
 
     public PropertyProfileService(
         IPropertyWorkspaceService propertyWorkspaceService,
-        IAppUOW uow)
+        IAppUOW uow,
+        IAppDeleteGuard deleteGuard)
     {
         _propertyWorkspaceService = propertyWorkspaceService;
         _uow = uow;
+        _deleteGuard = deleteGuard;
     }
 
     public async Task<Result<PropertyProfileModel>> GetAsync(
@@ -149,30 +153,23 @@ public class PropertyProfileService : IPropertyProfileService
             return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
-        await _uow.BeginTransactionAsync(cancellationToken);
-        try
+        var canDelete = await _deleteGuard.CanDeletePropertyAsync(
+            workspace.Value.PropertyId,
+            workspace.Value.CustomerId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!canDelete)
         {
-            var deleted = await _uow.Properties.DeleteAsync(
-                workspace.Value.PropertyId,
-                workspace.Value.CustomerId,
-                workspace.Value.ManagementCompanyId,
-                cancellationToken);
-
-            if (!deleted)
-            {
-                await _uow.RollbackTransactionAsync(cancellationToken);
-                return Result.Fail(new NotFoundError("Property profile was not found."));
-            }
-
-            await _uow.SaveChangesAsync(cancellationToken);
-            await _uow.CommitTransactionAsync(cancellationToken);
-            return Result.Ok();
+            return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
         }
-        catch
-        {
-            await _uow.RollbackTransactionAsync(cancellationToken);
-            throw;
-        }
+
+        await _uow.Properties.RemoveAsync(
+            workspace.Value.PropertyId,
+            workspace.Value.CustomerId,
+            cancellationToken);
+
+        await _uow.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
     }
 
     private async Task<Result<PropertyWorkspaceModel>> ResolveWorkspaceAsync(
@@ -255,4 +252,10 @@ public class PropertyProfileService : IPropertyProfileService
         string City,
         string PostalCode,
         string? Notes);
+
+    private static string DeleteBlockedMessage()
+    {
+        return App.Resources.Views.UiText.ResourceManager.GetString("UnableToDeleteBecauseDependentRecordsExist")
+               ?? "Unable to delete because dependent records exist.";
+    }
 }

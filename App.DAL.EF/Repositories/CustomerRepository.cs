@@ -338,92 +338,68 @@ public class CustomerRepository :
         return Mapper.Map(customer)!;
     }
 
-    public async Task<bool> DeleteAsync(
+    public async Task<bool> HasDeleteDependenciesAsync(
         Guid customerId,
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var customer = await _dbContext.Customers
+        var propertyExists = await _dbContext.Properties
             .AsNoTracking()
-            .Where(c => c.Id == customerId && c.ManagementCompanyId == managementCompanyId)
-            .Select(c => new { c.Id })
-            .FirstOrDefaultAsync(cancellationToken);
+            .AnyAsync(
+                property => property.CustomerId == customerId
+                            && property.Customer!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
 
-        if (customer is null)
+        if (propertyExists)
         {
-            return false;
+            return true;
         }
 
-        var propertyIds = await _dbContext.Properties
-            .Where(p => p.CustomerId == customer.Id)
-            .Select(p => p.Id)
-            .ToListAsync(cancellationToken);
+        var unitExists = await _dbContext.Units
+            .AsNoTracking()
+            .AnyAsync(
+                unit => unit.Property!.CustomerId == customerId
+                        && unit.Property.Customer!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
 
-        var unitIds = await _dbContext.Units
-            .Where(u => propertyIds.Contains(u.PropertyId))
-            .Select(u => u.Id)
-            .ToListAsync(cancellationToken);
-
-        var ticketIds = await _dbContext.Tickets
-            .Where(t => (t.CustomerId.HasValue && t.CustomerId.Value == customer.Id)
-                        || (t.PropertyId.HasValue && propertyIds.Contains(t.PropertyId.Value))
-                        || (t.UnitId.HasValue && unitIds.Contains(t.UnitId.Value)))
-            .Where(t => t.ManagementCompanyId == managementCompanyId)
-            .Select(t => t.Id)
-            .ToListAsync(cancellationToken);
-
-        await DeleteTicketsAsync(ticketIds, cancellationToken);
-
-        await _dbContext.CustomerRepresentatives
-            .Where(cr => cr.CustomerId == customer.Id)
-            .ExecuteDeleteAsync(cancellationToken);
-
-        await _dbContext.Leases
-            .Where(l => unitIds.Contains(l.UnitId))
-            .ExecuteDeleteAsync(cancellationToken);
-
-        await _dbContext.Units
-            .Where(u => unitIds.Contains(u.Id))
-            .ExecuteDeleteAsync(cancellationToken);
-
-        await _dbContext.Properties
-            .Where(p => propertyIds.Contains(p.Id))
-            .ExecuteDeleteAsync(cancellationToken);
-
-        await _dbContext.Customers
-            .Where(c => c.Id == customer.Id && c.ManagementCompanyId == managementCompanyId)
-            .ExecuteDeleteAsync(cancellationToken);
-
-        return true;
-    }
-
-    private async Task DeleteTicketsAsync(
-        IReadOnlyCollection<Guid> ticketIds,
-        CancellationToken cancellationToken)
-    {
-        if (ticketIds.Count == 0)
+        if (unitExists)
         {
-            return;
+            return true;
         }
 
-        var scheduledWorkIds = await _dbContext.ScheduledWorks
-            .Where(sw => ticketIds.Contains(sw.TicketId))
-            .Select(sw => sw.Id)
-            .ToListAsync(cancellationToken);
+        var leaseExists = await _dbContext.Leases
+            .AsNoTracking()
+            .AnyAsync(
+                lease => lease.Unit!.Property!.CustomerId == customerId
+                         && lease.Unit.Property.Customer!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
 
-        if (scheduledWorkIds.Count > 0)
+        if (leaseExists)
         {
-            await _dbContext.WorkLogs
-                .Where(wl => scheduledWorkIds.Contains(wl.ScheduledWorkId))
-                .ExecuteDeleteAsync(cancellationToken);
-
-            await _dbContext.ScheduledWorks
-                .Where(sw => scheduledWorkIds.Contains(sw.Id))
-                .ExecuteDeleteAsync(cancellationToken);
+            return true;
         }
 
-        await _dbContext.Tickets
-            .Where(t => ticketIds.Contains(t.Id))
-            .ExecuteDeleteAsync(cancellationToken);
+        var ticketExists = await _dbContext.Tickets
+            .AsNoTracking()
+            .AnyAsync(
+                ticket => ticket.ManagementCompanyId == managementCompanyId
+                          && ((ticket.CustomerId.HasValue && ticket.CustomerId.Value == customerId)
+                              || (ticket.PropertyId.HasValue
+                                  && ticket.Property!.CustomerId == customerId)
+                              || (ticket.UnitId.HasValue
+                                  && ticket.Unit!.Property!.CustomerId == customerId)),
+                cancellationToken);
+
+        if (ticketExists)
+        {
+            return true;
+        }
+
+        return await _dbContext.CustomerRepresentatives
+            .AsNoTracking()
+            .AnyAsync(
+                representative => representative.CustomerId == customerId
+                                  && representative.Customer!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
     }
 }

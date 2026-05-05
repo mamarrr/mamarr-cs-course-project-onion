@@ -35,7 +35,7 @@ public interface ITicketRepository : IBaseRepository<TicketDalDto>
         TicketStatusUpdateDalDto dto,
         CancellationToken cancellationToken = default);
 
-    Task<bool> DeleteAsync(
+    Task<bool> HasDeleteDependenciesAsync(
         Guid ticketId,
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);

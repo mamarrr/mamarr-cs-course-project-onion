@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Residents.Commands;
@@ -22,13 +23,16 @@ public class ResidentProfileService : IResidentProfileService
 
     private readonly IResidentAccessService _residentAccessService;
     private readonly IAppUOW _uow;
+    private readonly IAppDeleteGuard _deleteGuard;
 
     public ResidentProfileService(
         IResidentAccessService residentAccessService,
-        IAppUOW uow)
+        IAppUOW uow,
+        IAppDeleteGuard deleteGuard)
     {
         _residentAccessService = residentAccessService;
         _uow = uow;
+        _deleteGuard = deleteGuard;
     }
 
     public async Task<Result<ResidentProfileModel>> GetAsync(
@@ -160,28 +164,22 @@ public class ResidentProfileService : IResidentProfileService
             return Result.Fail(new ForbiddenError("Access denied."));
         }
 
-        await _uow.BeginTransactionAsync(cancellationToken);
-        try
+        var canDelete = await _deleteGuard.CanDeleteResidentAsync(
+            workspace.Value.ResidentId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!canDelete)
         {
-            var deleted = await _uow.Residents.DeleteAsync(
-                workspace.Value.ResidentId,
-                workspace.Value.ManagementCompanyId,
-                cancellationToken);
-            if (!deleted)
-            {
-                await _uow.RollbackTransactionAsync(cancellationToken);
-                return Result.Fail(new NotFoundError("Resident profile was not found."));
-            }
+            return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
+        }
 
-            await _uow.SaveChangesAsync(cancellationToken);
-            await _uow.CommitTransactionAsync(cancellationToken);
-            return Result.Ok();
-        }
-        catch
-        {
-            await _uow.RollbackTransactionAsync(cancellationToken);
-            throw;
-        }
+        await _uow.Residents.RemoveAsync(
+            workspace.Value.ResidentId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+
+        await _uow.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
     }
 
     private async Task<Result<ResidentProfileModel>> GetProfileAsync(
@@ -229,5 +227,11 @@ public class ResidentProfileService : IResidentProfileService
             PropertyName = propertyName,
             ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace("{0}", displayName)
         };
+    }
+
+    private static string DeleteBlockedMessage()
+    {
+        return App.Resources.Views.UiText.ResourceManager.GetString("UnableToDeleteBecauseDependentRecordsExist")
+               ?? "Unable to delete because dependent records exist.";
     }
 }

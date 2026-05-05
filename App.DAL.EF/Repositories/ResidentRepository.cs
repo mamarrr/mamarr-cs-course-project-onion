@@ -267,57 +267,65 @@ public class ResidentRepository :
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> DeleteAsync(
+    public async Task<bool> HasDeleteDependenciesAsync(
         Guid residentId,
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var resident = await _dbContext.Residents
+        var leaseExists = await _dbContext.Leases
             .AsNoTracking()
-            .Where(entity => entity.Id == residentId && entity.ManagementCompanyId == managementCompanyId)
-            .Select(entity => new { entity.Id })
-            .FirstOrDefaultAsync(cancellationToken);
+            .AnyAsync(
+                lease => lease.ResidentId == residentId
+                         && lease.Resident!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
 
-        if (resident is null)
+        if (leaseExists)
         {
-            return false;
+            return true;
         }
 
-        var ticketIds = await _dbContext.Tickets
-            .Where(ticket => ticket.ResidentId == resident.Id && ticket.ManagementCompanyId == managementCompanyId)
-            .Select(ticket => ticket.Id)
-            .ToListAsync(cancellationToken);
+        var ticketExists = await _dbContext.Tickets
+            .AsNoTracking()
+            .AnyAsync(
+                ticket => ticket.ResidentId == residentId
+                          && ticket.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
 
-        await DeleteTicketsAsync(ticketIds, cancellationToken);
+        if (ticketExists)
+        {
+            return true;
+        }
 
-        await _dbContext.CustomerRepresentatives
-            .Where(entity => entity.ResidentId == resident.Id)
-            .ExecuteDeleteAsync(cancellationToken);
+        var residentUserExists = await _dbContext.ResidentUsers
+            .AsNoTracking()
+            .AnyAsync(
+                residentUser => residentUser.ResidentId == residentId
+                                && residentUser.Resident!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
 
-        await _dbContext.Leases
-            .Where(entity => entity.ResidentId == resident.Id)
-            .ExecuteDeleteAsync(cancellationToken);
+        if (residentUserExists)
+        {
+            return true;
+        }
 
-        await _dbContext.ResidentUsers
-            .Where(entity => entity.ResidentId == resident.Id)
-            .ExecuteDeleteAsync(cancellationToken);
+        var residentContactExists = await _dbContext.ResidentContacts
+            .AsNoTracking()
+            .AnyAsync(
+                residentContact => residentContact.ResidentId == residentId
+                                   && residentContact.Resident!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
 
-        var residentContactIds = await _dbContext.ResidentContacts
-            .Where(entity => entity.ResidentId == resident.Id)
-            .Select(entity => entity.ContactId)
-            .ToListAsync(cancellationToken);
+        if (residentContactExists)
+        {
+            return true;
+        }
 
-        await _dbContext.ResidentContacts
-            .Where(entity => entity.ResidentId == resident.Id)
-            .ExecuteDeleteAsync(cancellationToken);
-
-        await DeleteContactsIfOrphanedAsync(residentContactIds, cancellationToken);
-
-        await _dbContext.Residents
-            .Where(entity => entity.Id == resident.Id)
-            .ExecuteDeleteAsync(cancellationToken);
-
-        return true;
+        return await _dbContext.CustomerRepresentatives
+            .AsNoTracking()
+            .AnyAsync(
+                representative => representative.ResidentId == residentId
+                                  && representative.Resident!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
     }
 
     public async Task<IReadOnlyList<ResidentContactDalDto>> ContactsByResidentAsync(
@@ -379,62 +387,4 @@ public class ResidentRepository :
             .ToListAsync(cancellationToken);
     }
 
-    private async Task DeleteTicketsAsync(
-        IReadOnlyCollection<Guid> ticketIds,
-        CancellationToken cancellationToken)
-    {
-        if (ticketIds.Count == 0)
-        {
-            return;
-        }
-
-        var scheduledWorkIds = await _dbContext.ScheduledWorks
-            .Where(entity => ticketIds.Contains(entity.TicketId))
-            .Select(entity => entity.Id)
-            .ToListAsync(cancellationToken);
-
-        if (scheduledWorkIds.Count > 0)
-        {
-            await _dbContext.WorkLogs
-                .Where(entity => scheduledWorkIds.Contains(entity.ScheduledWorkId))
-                .ExecuteDeleteAsync(cancellationToken);
-
-            await _dbContext.ScheduledWorks
-                .Where(entity => scheduledWorkIds.Contains(entity.Id))
-                .ExecuteDeleteAsync(cancellationToken);
-        }
-
-        await _dbContext.Tickets
-            .Where(entity => ticketIds.Contains(entity.Id))
-            .ExecuteDeleteAsync(cancellationToken);
-    }
-
-    private async Task DeleteContactsIfOrphanedAsync(
-        IReadOnlyCollection<Guid> contactIds,
-        CancellationToken cancellationToken)
-    {
-        if (contactIds.Count == 0)
-        {
-            return;
-        }
-
-        var stillLinkedContactIds = await _dbContext.ResidentContacts
-            .Where(entity => contactIds.Contains(entity.ContactId))
-            .Select(entity => entity.ContactId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
-        var orphanedContactIds = contactIds
-            .Except(stillLinkedContactIds)
-            .ToList();
-
-        if (orphanedContactIds.Count == 0)
-        {
-            return;
-        }
-
-        await _dbContext.Contacts
-            .Where(entity => orphanedContactIds.Contains(entity.Id))
-            .ExecuteDeleteAsync(cancellationToken);
-    }
 }

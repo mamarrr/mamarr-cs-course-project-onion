@@ -211,6 +211,7 @@
   <data name="UnableToAddLease" xml:space="preserve"><value>Unable to add lease.</value></data>
   <data name="UnableToUpdateLease" xml:space="preserve"><value>Unable to update lease.</value></data>
   <data name="UnableToDeleteLease" xml:space="preserve"><value>Unable to delete lease.</value></data>
+  <data name="UnableToDeleteBecauseDependentRecordsExist" xml:space="preserve"><value>Unable to delete because dependent records exist.</value></data>
   <data name="UnableToLoadLease" xml:space="preserve"><value>Unable to load lease.</value></data>
   <data name="UnableToLoadProperty" xml:space="preserve"><value>Unable to load property.</value></data>
   <data name="UnableToLoadResident" xml:space="preserve"><value>Unable to load resident.</value></data>

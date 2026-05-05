@@ -1,4 +1,5 @@
 ﻿using App.BLL.Contracts;
+using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
@@ -8,6 +9,7 @@ using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
 using App.BLL.Services.Customers;
+using App.BLL.Services.Common.Deletion;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
 using App.BLL.Services.Onboarding.Account;
@@ -49,8 +51,11 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private ILeaseAssignmentService? _leaseAssignments;
     private ILeaseLookupService? _leaseLookups;
     private IManagementTicketService? _managementTickets;
+    private IAppDeleteGuard? _deleteGuard;
 
     
+    private IAppDeleteGuard DeleteGuard =>
+        _deleteGuard ??= new AppDeleteGuard(UOW);
 
     public IAccountOnboardingService AccountOnboarding =>
         _accountOnboarding ??= new AccountOnboardingService(UOW);
@@ -82,25 +87,25 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
         _customerAccess ??= new CustomerAccessService(UOW);
 
     public ICustomerProfileService CustomerProfiles =>
-        _customerProfiles ??= new CustomerProfileService(CustomerAccess, UOW);
+        _customerProfiles ??= new CustomerProfileService(CustomerAccess, UOW, DeleteGuard);
 
     public ICustomerWorkspaceService CustomerWorkspaces =>
         _customerWorkspaces ??= new CustomerWorkspaceService(CustomerAccess);
 
     public IPropertyProfileService PropertyProfiles =>
-        _propertyProfiles ??= new PropertyProfileService(PropertyWorkspaces, UOW);
+        _propertyProfiles ??= new PropertyProfileService(PropertyWorkspaces, UOW, DeleteGuard);
 
     public IPropertyWorkspaceService PropertyWorkspaces =>
         _propertyWorkspaces ??= new PropertyWorkspaceService(CustomerAccess, UOW);
 
     public IResidentProfileService ResidentProfiles =>
-        _residentProfiles ??= new ResidentProfileService(ResidentAccess, UOW);
+        _residentProfiles ??= new ResidentProfileService(ResidentAccess, UOW, DeleteGuard);
 
     public IResidentWorkspaceService ResidentWorkspaces =>
         _residentWorkspaces ??= new ResidentWorkspaceService(ResidentAccess, UOW);
 
     public IUnitProfileService UnitProfiles =>
-        _unitProfiles ??= new UnitProfileService(UnitAccess, UOW);
+        _unitProfiles ??= new UnitProfileService(UnitAccess, UOW, DeleteGuard);
 
     public IUnitWorkspaceService UnitWorkspaces =>
         _unitWorkspaces ??= new UnitWorkspaceService(PropertyWorkspaces, UnitAccess, UOW);
@@ -112,7 +117,7 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
         _leaseLookups ??= new LeaseLookupService(UOW);
 
     public IManagementTicketService ManagementTickets =>
-        _managementTickets ??= new ManagementTicketService(CustomerAccess, UOW);
+        _managementTickets ??= new ManagementTicketService(CustomerAccess, UOW, DeleteGuard);
 
     public IResidentAccessService ResidentAccess =>
         _residentAccess ??= new ResidentAccessService(UOW);

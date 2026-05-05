@@ -326,41 +326,28 @@ public class TicketRepository :
         return true;
     }
 
-    public async Task<bool> DeleteAsync(
+    public async Task<bool> HasDeleteDependenciesAsync(
         Guid ticketId,
         Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var exists = await _dbContext.Tickets
+        var scheduledWorkExists = await _dbContext.ScheduledWorks
             .AsNoTracking()
-            .AnyAsync(ticket => ticket.Id == ticketId && ticket.ManagementCompanyId == managementCompanyId, cancellationToken);
+            .AnyAsync(
+                work => work.TicketId == ticketId
+                        && work.Ticket!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
 
-        if (!exists)
+        if (scheduledWorkExists)
         {
-            return false;
+            return true;
         }
 
-        var scheduledWorkIds = await _dbContext.ScheduledWorks
-            .Where(work => work.TicketId == ticketId)
-            .Select(work => work.Id)
-            .ToListAsync(cancellationToken);
-
-        if (scheduledWorkIds.Count > 0)
-        {
-            await _dbContext.WorkLogs
-                .Where(log => scheduledWorkIds.Contains(log.ScheduledWorkId))
-                .ExecuteDeleteAsync(cancellationToken);
-
-            await _dbContext.ScheduledWorks
-                .Where(work => scheduledWorkIds.Contains(work.Id))
-                .ExecuteDeleteAsync(cancellationToken);
-        }
-
-        await _dbContext.Tickets
-            .Where(ticket => ticket.Id == ticketId && ticket.ManagementCompanyId == managementCompanyId)
-            .ExecuteDeleteAsync(cancellationToken);
-
-        return true;
+        return await _dbContext.WorkLogs
+            .AsNoTracking()
+            .AnyAsync(
+                log => log.ScheduledWork!.TicketId == ticketId
+                       && log.ScheduledWork.Ticket!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
     }
-
 }

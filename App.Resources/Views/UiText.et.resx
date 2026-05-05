@@ -204,6 +204,7 @@
   <data name="UnableToAddLease" xml:space="preserve"><value>Üürilepingu lisamine ebaõnnestus.</value></data>
   <data name="UnableToUpdateLease" xml:space="preserve"><value>Üürilepingu uuendamine ebaõnnestus.</value></data>
   <data name="UnableToDeleteLease" xml:space="preserve"><value>Üürilepingu kustutamine ebaõnnestus.</value></data>
+  <data name="UnableToDeleteBecauseDependentRecordsExist" xml:space="preserve"><value>Kustutamine ebaõnnestus, sest seotud kirjed on olemas.</value></data>
   <data name="UnableToLoadLease" xml:space="preserve"><value>Üürilepingu laadimine ebaõnnestus.</value></data>
   <data name="UnableToLoadProperty" xml:space="preserve"><value>Kinnistu laadimine ebaõnnestus.</value></data>
   <data name="UnableToLoadResident" xml:space="preserve"><value>Elaniku laadimine ebaõnnestus.</value></data>
