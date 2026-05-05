@@ -7,8 +7,7 @@
 
     string ResidentLabel(WebApp.ViewModels.Unit.UnitLeaseResidentSearchResultViewModel resident)
     {
-        var statusText = resident.IsActive ? string.Empty : $" ({UiText.Inactive})";
-        return $"{resident.FullName} · {resident.IdCode}{statusText}";
+        return $"{resident.FullName} · {resident.IdCode}";
     }
 
     var selectedResident = Model.ResidentSearchResults.FirstOrDefault(x => x.ResidentId == Model.AddLease.ResidentId);
@@ -79,10 +78,6 @@
                                asp-route-AddLease.ResidentId="@resident.ResidentId">
                                 <div class="fw-semibold">@resident.FullName</div>
                                 <div>@resident.IdCode</div>
-                                @if (!resident.IsActive)
-                                {
-                                    <div class="small @(isSelected ? "text-white-50" : "text-muted")">@UiText.Inactive</div>
-                                }
                             </a>
                         }
                     </div>
@@ -131,11 +126,7 @@
                 <input asp-for="AddLease.EndDate" class="form-control" type="date" />
                 <span asp-validation-for="AddLease.EndDate" class="text-danger"></span>
             </div>
-
-            <div class="col-12 form-check ms-1">
-                <input asp-for="AddLease.IsActive" class="form-check-input" />
-                <label asp-for="AddLease.IsActive" class="form-check-label"></label>
-            </div>
+            
 
             <div class="col-12">
                 <label asp-for="AddLease.Notes" class="form-label"></label>
@@ -188,9 +179,6 @@
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-lg-end gap-2">
-                                <span class="management-badge @(lease.IsActive ? "success" : "warning")">
-                                    @(lease.IsActive ? UiText.Active : UiText.Inactive)
-                                </span>
                                 <div class="d-flex gap-2">
                                     <a class="management-btn ghost"
                                        asp-action="Index"
@@ -249,11 +237,6 @@
                                     <label asp-for="EditLease.EndDate" class="form-label"></label>
                                     <input asp-for="EditLease.EndDate" class="form-control" type="date" value="@((Model.EditLease.LeaseId == lease.LeaseId ? Model.EditLease.EndDate : lease.EndDate)?.ToString("yyyy-MM-dd"))" />
                                     <span asp-validation-for="EditLease.EndDate" class="text-danger"></span>
-                                </div>
-
-                                <div class="col-12 form-check ms-1">
-                                    <input asp-for="EditLease.IsActive" class="form-check-input" checked="@((Model.EditLease.LeaseId == lease.LeaseId ? Model.EditLease.IsActive : lease.IsActive))" />
-                                    <label asp-for="EditLease.IsActive" class="form-check-label"></label>
                                 </div>
 
                                 <div class="col-12">

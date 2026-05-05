@@ -48,16 +48,6 @@
                             <td>@property.City</td>
                             <td>@property.PostalCode</td>
                             <td>@property.PropertyTypeLabel</td>
-                            <td>
-                                @if (property.IsActive)
-                                {
-                                    <span class="management-badge success">@App.Resources.Views.UiText.Active</span>
-                                }
-                                else
-                                {
-                                    <span class="management-badge">@App.Resources.Views.UiText.Inactive</span>
-                                }
-                            </td>
                         </tr>
                     }
                     </tbody>
@@ -120,13 +110,6 @@
                     <label asp-for="AddProperty.Notes" class="form-label"></label>
                     <textarea asp-for="AddProperty.Notes" class="form-control" rows="4"></textarea>
                     <span asp-validation-for="AddProperty.Notes" class="text-danger"></span>
-                </div>
-
-                <div class="col-12">
-                    <div class="form-check">
-                        <input asp-for="AddProperty.IsActive" class="form-check-input" />
-                        <label asp-for="AddProperty.IsActive" class="form-check-label"></label>
-                    </div>
                 </div>
 
                 <div class="col-12">

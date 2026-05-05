@@ -8,7 +8,6 @@ public class CreateLeaseFromResidentCommand : GetResidentLeasesQuery
     public Guid LeaseRoleId { get; init; }
     public DateOnly StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
-    public bool IsActive { get; init; }
     public string? Notes { get; init; }
 }
 
@@ -18,7 +17,6 @@ public class CreateLeaseFromUnitCommand : GetUnitLeasesQuery
     public Guid LeaseRoleId { get; init; }
     public DateOnly StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
-    public bool IsActive { get; init; }
     public string? Notes { get; init; }
 }
 
@@ -27,7 +25,6 @@ public class UpdateLeaseFromResidentCommand : GetResidentLeaseQuery
     public Guid LeaseRoleId { get; init; }
     public DateOnly StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
-    public bool IsActive { get; init; }
     public string? Notes { get; init; }
 }
 
@@ -36,7 +33,6 @@ public class UpdateLeaseFromUnitCommand : GetUnitLeaseQuery
     public Guid LeaseRoleId { get; init; }
     public DateOnly StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
-    public bool IsActive { get; init; }
     public string? Notes { get; init; }
 }
 

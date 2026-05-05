@@ -37,7 +37,6 @@ public class CustomerProfileMvcMapper
             BillingEmail = edit.BillingEmail,
             BillingAddress = edit.BillingAddress,
             Phone = edit.Phone,
-            IsActive = edit.IsActive
         };
     }
 
@@ -65,7 +64,6 @@ public class CustomerProfileMvcMapper
             BillingEmail = profile.BillingEmail,
             BillingAddress = profile.BillingAddress,
             Phone = profile.Phone,
-            IsActive = profile.IsActive
         };
     }
 

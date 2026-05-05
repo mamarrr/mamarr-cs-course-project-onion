@@ -111,7 +111,6 @@ public class UnitTenantsController : ProfileApiControllerBase
                 ResidentId = x.ResidentId,
                 FullName = x.FullName,
                 IdCode = x.IdCode,
-                IsActive = x.IsActive
             }).ToList()
         });
     }
@@ -321,7 +320,6 @@ public class UnitTenantsController : ProfileApiControllerBase
             LeaseRoleId = dto.LeaseRoleId!.Value,
             StartDate = dto.StartDate!.Value,
             EndDate = dto.EndDate,
-            IsActive = dto.IsActive,
             Notes = dto.Notes
         };
     }
@@ -350,7 +348,6 @@ public class UnitTenantsController : ProfileApiControllerBase
             LeaseRoleId = dto.LeaseRoleId!.Value,
             StartDate = dto.StartDate!.Value,
             EndDate = dto.EndDate,
-            IsActive = dto.IsActive,
             Notes = dto.Notes
         };
     }

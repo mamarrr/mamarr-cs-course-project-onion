@@ -13,6 +13,6 @@ public class PropertyDalDto : IBaseEntity
     public string City { get; set; } = default!;
     public string PostalCode { get; set; } = default!;
     public string? Notes { get; set; }
-    public bool IsActive { get; set; }
+    
     public DateTime CreatedAt { get; set; }
 }

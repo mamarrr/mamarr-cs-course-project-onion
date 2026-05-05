@@ -59,7 +59,6 @@ public static class UnitBllMapper
             FloorNr = unit.FloorNr,
             SizeM2 = unit.SizeM2,
             Notes = unit.Notes,
-            IsActive = unit.IsActive
         };
     }
 }

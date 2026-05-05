@@ -11,5 +11,4 @@ public class UpdateUnitCommand
     public int? FloorNr { get; init; }
     public decimal? SizeM2 { get; init; }
     public string? Notes { get; init; }
-    public bool IsActive { get; init; }
 }

@@ -45,7 +45,6 @@ public class VendorListItemViewModel
     public string Name { get; set; } = default!;
     public string RegistryCode { get; set; } = default!;
     public string Notes { get; set; } = default!;
-    public bool IsActive { get; set; }
     public int ActiveCategoryCount { get; set; }
     public int AssignedTicketCount { get; set; }
     public int ContactCount { get; set; }
@@ -67,7 +66,6 @@ public class VendorDetailsPageViewModel : IAppChromePage
     public string Name { get; set; } = default!;
     public string RegistryCode { get; set; } = default!;
     public string Notes { get; set; } = default!;
-    public bool IsActive { get; set; }
     public string? TicketSearch { get; set; }
     public VendorFormViewModel Form { get; set; } = new();
     public AddVendorCategoryViewModel CategoryForm { get; set; } = new();
@@ -110,9 +108,7 @@ public class VendorFormViewModel
     [StringLength(4000, MinimumLength = 1, ErrorMessageResourceType = typeof(UiText), ErrorMessageResourceName = nameof(UiText.StringLengthBetween))]
     [Display(Name = "Notes", ResourceType = typeof(UiText))]
     public string Notes { get; set; } = default!;
-
-    [Display(Name = "Active", ResourceType = typeof(UiText))]
-    public bool IsActive { get; set; } = true;
+    
 }
 
 public class AddVendorCategoryViewModel
@@ -190,7 +186,6 @@ public class VendorCategoryViewModel
     public Guid TicketCategoryId { get; set; }
     public string Code { get; set; } = default!;
     public string Label { get; set; } = default!;
-    public bool IsActive { get; set; }
 }
 
 public class VendorTicketViewModel

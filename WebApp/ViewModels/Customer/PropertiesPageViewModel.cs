@@ -40,7 +40,6 @@ public class CustomerPropertyListItemViewModel
     public string City { get; set; } = string.Empty;
     public string PostalCode { get; set; } = string.Empty;
     public string PropertyTypeLabel { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
 }
 
 public class AddPropertyViewModel
@@ -72,9 +71,7 @@ public class AddPropertyViewModel
     [StringLength(2000, MinimumLength = 1, ErrorMessageResourceType = typeof(UiText), ErrorMessageResourceName = nameof(UiText.StringLengthBetween))]
     [Display(Name = "Notes", ResourceType = typeof(UiText))]
     public string? Notes { get; set; }
-
-    [Display(Name = "Active", ResourceType = typeof(UiText))]
-    public bool IsActive { get; set; } = true;
+    
 }
 
 public class PropertyTypeOptionViewModel

@@ -8,7 +8,6 @@ public class CustomerWorkspaceDalDto
     public string CompanyName { get; init; } = default!;
     public string Name { get; init; } = default!;
     public string Slug { get; init; } = default!;
-    public bool IsActive { get; init; }
 }
 
 public class CustomerUserContextDalDto

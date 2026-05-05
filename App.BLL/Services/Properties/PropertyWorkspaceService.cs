@@ -146,7 +146,6 @@ public class PropertyWorkspaceService : IPropertyWorkspaceService
             PostalCode = normalized.PostalCode,
             PropertyTypeId = command.PropertyTypeId,
             Notes = normalized.Notes,
-            IsActive = command.IsActive
         };
 
         var created = await _uow.Properties.AddAsync(createDto, cancellationToken);

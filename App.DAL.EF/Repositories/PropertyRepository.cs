@@ -46,7 +46,6 @@ public class PropertyRepository :
                 PropertyTypeId = property.PropertyTypeId,
                 PropertyTypeCode = property.PropertyType!.Code,
                 PropertyTypeLabel = property.PropertyType.Label.ToString(),
-                IsActive = true
             })
             .ToListAsync(cancellationToken);
 
@@ -69,7 +68,7 @@ public class PropertyRepository :
                 CustomerId = property.CustomerId,
                 Name = property.Label.ToString(),
                 Slug = property.Slug,
-                IsActive = true
+                
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -102,7 +101,7 @@ public class PropertyRepository :
                 PropertyTypeId = property.PropertyTypeId,
                 PropertyTypeCode = property.PropertyType!.Code,
                 PropertyTypeLabel = property.PropertyType.Label.ToString(),
-                IsActive = true
+                
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -261,7 +260,6 @@ public class PropertyRepository :
             City = property.City,
             PostalCode = property.PostalCode,
             Notes = property.Notes?.ToString(),
-            IsActive = true,
             CreatedAt = property.CreatedAt
         });
     }

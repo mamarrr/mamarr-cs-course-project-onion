@@ -21,7 +21,6 @@ public class UnitProfileDto
     public int? FloorNr { get; set; }
     public decimal? SizeM2 { get; set; }
     public string? Notes { get; set; }
-    public bool IsActive { get; set; }
     public ApiRouteContextDto RouteContext { get; set; } = new();
 }
 
@@ -37,8 +36,7 @@ public class UpdateUnitProfileRequestDto
 
     [MaxLength(2000)]
     public string? Notes { get; set; }
-
-    public bool IsActive { get; set; }
+    
 }
 
 public class DeleteUnitProfileRequestDto

@@ -11,5 +11,5 @@ public class ResidentProfileModel
     public string LastName { get; init; } = default!;
     public string FullName { get; init; } = default!;
     public string? PreferredLanguage { get; init; }
-    public bool IsActive { get; init; }
+    
 }

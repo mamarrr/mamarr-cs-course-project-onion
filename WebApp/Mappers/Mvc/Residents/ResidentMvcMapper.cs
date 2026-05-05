@@ -64,7 +64,6 @@ public class ResidentMvcMapper
             LastName = edit.LastName,
             IdCode = edit.IdCode,
             PreferredLanguage = edit.PreferredLanguage,
-            IsActive = edit.IsActive
         };
     }
 
@@ -91,7 +90,6 @@ public class ResidentMvcMapper
             LastName = profile.LastName,
             IdCode = profile.ResidentIdCode,
             PreferredLanguage = profile.PreferredLanguage,
-            IsActive = profile.IsActive
         };
     }
 

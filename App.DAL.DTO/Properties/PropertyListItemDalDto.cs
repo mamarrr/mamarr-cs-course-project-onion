@@ -13,5 +13,5 @@ public class PropertyListItemDalDto
     public Guid PropertyTypeId { get; init; }
     public string PropertyTypeCode { get; init; } = default!;
     public string PropertyTypeLabel { get; init; } = default!;
-    public bool IsActive { get; init; }
+    
 }

@@ -49,7 +49,6 @@ public class LeaseRepository :
                 LeaseRoleLabel = entity.LeaseRole.Label.ToString(),
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                IsActive = entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today),
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .ToListAsync(cancellationToken);
@@ -84,7 +83,6 @@ public class LeaseRepository :
                 LeaseRoleLabel = entity.LeaseRole.Label.ToString(),
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                IsActive = entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today),
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .ToListAsync(cancellationToken);
@@ -110,7 +108,6 @@ public class LeaseRepository :
                 UnitId = entity.UnitId,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                IsActive = entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today),
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -138,7 +135,6 @@ public class LeaseRepository :
                 UnitId = entity.UnitId,
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                IsActive = entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today),
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -182,8 +178,6 @@ public class LeaseRepository :
             LeaseRoleId = lease.LeaseRoleId,
             StartDate = lease.StartDate,
             EndDate = lease.EndDate,
-            IsActive = lease.StartDate <= DateOnly.FromDateTime(DateTime.UtcNow)
-                       && (!lease.EndDate.HasValue || lease.EndDate.Value >= DateOnly.FromDateTime(DateTime.UtcNow)),
             Notes = lease.Notes == null ? null : lease.Notes.ToString()
         });
     }

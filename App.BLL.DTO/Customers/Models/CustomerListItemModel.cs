@@ -12,6 +12,5 @@ public class CustomerListItemModel
     public string? BillingEmail { get; init; }
     public string? BillingAddress { get; init; }
     public string? Phone { get; init; }
-    public bool IsActive { get; init; }
     public IReadOnlyList<CustomerPropertyLinkModel> Properties { get; init; } = Array.Empty<CustomerPropertyLinkModel>();
 }

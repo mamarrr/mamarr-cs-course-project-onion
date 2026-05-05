@@ -21,7 +21,6 @@ public static class ResidentBllMapper
             LastName = resident.LastName,
             FullName = BuildFullName(resident.FirstName, resident.LastName),
             PreferredLanguage = resident.PreferredLanguage,
-            IsActive = resident.IsActive
         };
     }
 
@@ -38,7 +37,6 @@ public static class ResidentBllMapper
             LastName = resident.LastName,
             FullName = BuildFullName(resident.FirstName, resident.LastName),
             PreferredLanguage = resident.PreferredLanguage,
-            IsActive = resident.IsActive
         };
     }
 
@@ -52,7 +50,6 @@ public static class ResidentBllMapper
             FullName = BuildFullName(resident.FirstName, resident.LastName),
             IdCode = resident.IdCode,
             PreferredLanguage = resident.PreferredLanguage,
-            IsActive = resident.IsActive
         };
     }
 
@@ -91,7 +88,6 @@ public static class ResidentBllMapper
             LeaseRoleLabel = lease.LeaseRoleLabel,
             StartDate = lease.StartDate,
             EndDate = lease.EndDate,
-            IsActive = lease.IsActive,
             Notes = lease.Notes
         };
     }

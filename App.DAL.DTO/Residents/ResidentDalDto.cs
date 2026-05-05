@@ -10,7 +10,7 @@ public class ResidentDalDto : IBaseEntity
     public string LastName { get; init; } = default!;
     public string IdCode { get; init; } = default!;
     public string? PreferredLanguage { get; init; }
-    public bool IsActive { get; init; }
+    
     public DateTime CreatedAt { get; init; }
 }
 

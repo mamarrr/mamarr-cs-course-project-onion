@@ -24,7 +24,6 @@ public class LeaseApiMapper
             LeaseRoleLabel = item.LeaseRoleLabel,
             StartDate = item.StartDate,
             EndDate = item.EndDate,
-            IsActive = item.IsActive,
             Notes = item.Notes
         };
     }
@@ -44,7 +43,6 @@ public class LeaseApiMapper
             LeaseRoleLabel = item.LeaseRoleLabel,
             StartDate = item.StartDate,
             EndDate = item.EndDate,
-            IsActive = item.IsActive,
             Notes = item.Notes
         };
     }

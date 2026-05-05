@@ -133,7 +133,6 @@ public class ResidentsController : Controller
                     FullName = x.FullName,
                     IdCode = x.IdCode,
                     PreferredLanguage = x.PreferredLanguage,
-                    IsActive = x.IsActive
                 })
                 .ToList(),
             AddResident = addResidentOverride ?? new AddManagementResidentViewModel()

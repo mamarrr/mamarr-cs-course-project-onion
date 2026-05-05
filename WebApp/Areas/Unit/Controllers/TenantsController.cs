@@ -94,7 +94,6 @@ public class TenantsController : Controller
             ResidentId = x.ResidentId,
             FullName = x.FullName,
             IdCode = x.IdCode,
-            IsActive = x.IsActive
         }));
     }
 
@@ -271,7 +270,6 @@ public class TenantsController : Controller
                     LeaseRoleId = selectedLease.LeaseRoleId,
                     StartDate = selectedLease.StartDate,
                     EndDate = selectedLease.EndDate,
-                    IsActive = selectedLease.IsActive,
                     Notes = selectedLease.Notes
                 };
             }
@@ -302,7 +300,6 @@ public class TenantsController : Controller
                 ResidentId = x.ResidentId,
                 FullName = x.FullName,
                 IdCode = x.IdCode,
-                IsActive = x.IsActive
             }).ToList(),
             AddLease = addOverride ?? new AddUnitLeaseViewModel(),
             EditLease = editLease
@@ -415,7 +412,6 @@ public class TenantsController : Controller
             LeaseRoleId = vm.LeaseRoleId!.Value,
             StartDate = DateOnly.FromDateTime(vm.StartDate),
             EndDate = vm.EndDate.HasValue ? DateOnly.FromDateTime(vm.EndDate.Value) : null,
-            IsActive = vm.IsActive,
             Notes = vm.Notes
         };
     }
@@ -444,7 +440,6 @@ public class TenantsController : Controller
             LeaseRoleId = vm.LeaseRoleId!.Value,
             StartDate = DateOnly.FromDateTime(vm.StartDate),
             EndDate = vm.EndDate.HasValue ? DateOnly.FromDateTime(vm.EndDate.Value) : null,
-            IsActive = vm.IsActive,
             Notes = vm.Notes
         };
     }

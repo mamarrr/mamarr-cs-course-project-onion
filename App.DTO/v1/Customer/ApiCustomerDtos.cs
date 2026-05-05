@@ -25,7 +25,6 @@ public class CustomerPropertySummaryDto
     public Guid PropertyTypeId { get; set; }
     public string PropertyTypeCode { get; set; } = string.Empty;
     public string PropertyTypeLabel { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
     public ApiRouteContextDto RouteContext { get; set; } = new();
 }
 
@@ -43,7 +42,6 @@ public class CustomerProfileDto
     public string? BillingEmail { get; set; }
     public string? BillingAddress { get; set; }
     public string? Phone { get; set; }
-    public bool IsActive { get; set; }
     public ApiRouteContextDto RouteContext { get; set; } = new();
 }
 
@@ -66,8 +64,7 @@ public class UpdateCustomerProfileRequestDto
 
     [MaxLength(64)]
     public string? Phone { get; set; }
-
-    public bool IsActive { get; set; }
+    
 }
 
 public class DeleteCustomerProfileRequestDto

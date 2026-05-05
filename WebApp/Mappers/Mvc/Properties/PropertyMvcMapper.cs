@@ -69,7 +69,6 @@ public class PropertyMvcMapper
             PostalCode = vm.PostalCode,
             PropertyTypeId = vm.PropertyTypeId ?? Guid.Empty,
             Notes = vm.Notes,
-            IsActive = vm.IsActive
         };
     }
 
@@ -91,7 +90,6 @@ public class PropertyMvcMapper
             City = edit.City,
             PostalCode = edit.PostalCode,
             Notes = edit.Notes,
-            IsActive = edit.IsActive
         };
     }
 
@@ -124,7 +122,6 @@ public class PropertyMvcMapper
             City = property.City,
             PostalCode = property.PostalCode,
             PropertyTypeLabel = property.PropertyTypeLabel,
-            IsActive = property.IsActive
         }).ToList();
     }
 
@@ -147,7 +144,6 @@ public class PropertyMvcMapper
             City = profile.City,
             PostalCode = profile.PostalCode,
             Notes = profile.Notes,
-            IsActive = profile.IsActive
         };
     }
 

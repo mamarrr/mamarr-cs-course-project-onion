@@ -19,7 +19,6 @@ public static class CustomerProfileBllMapper
             BillingEmail = dto.BillingEmail,
             BillingAddress = dto.BillingAddress,
             Phone = dto.Phone,
-            IsActive = dto.IsActive
         };
     }
 }

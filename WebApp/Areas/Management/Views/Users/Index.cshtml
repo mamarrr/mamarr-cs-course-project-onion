@@ -70,10 +70,7 @@
                 <input asp-for="AddUser.ValidTo" class="form-control" type="date" />
                 <span asp-validation-for="AddUser.ValidTo" class="text-danger"></span>
             </div>
-            <div class="col-12 form-check ms-2">
-                <input asp-for="AddUser.IsActive" class="form-check-input" />
-                <label asp-for="AddUser.IsActive" class="form-check-label"></label>
-            </div>
+            
             <div class="col-12">
                 <button type="submit" class="management-btn">@UiText.AddCompanyUser</button>
             </div>
@@ -190,9 +187,6 @@
                             <td>@member.JobTitle</td>
                             <td>
                                 <div class="d-flex flex-column gap-1 align-items-start">
-                                    <span class="management-badge @(member.IsActive ? "success" : "warning")">
-                                        @(member.IsActive ? UiText.Active : UiText.Inactive)
-                                    </span>
                                     @if (!member.IsEffective)
                                     {
                                         <span class="management-badge warning">@UiText.NotCurrentlyEffective</span>

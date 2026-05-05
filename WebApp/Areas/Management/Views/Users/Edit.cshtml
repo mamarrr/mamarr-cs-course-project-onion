@@ -87,14 +87,6 @@
             <input asp-for="ValidTo" class="form-control" type="date" />
             <span asp-validation-for="ValidTo" class="text-danger"></span>
         </div>
-        <div class="col-12 form-check ms-2">
-            <input asp-for="IsActive" class="form-check-input" disabled="@(!Model.CanDeactivate)" />
-            <label asp-for="IsActive" class="form-check-label"></label>
-            @if (!Model.CanDeactivate)
-            {
-                <input asp-for="IsActive" type="hidden" />
-            }
-        </div>
         <div class="col-12 d-flex gap-2">
             <button type="submit" class="management-btn">@UiText.SaveChanges</button>
             <a class="management-btn ghost" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">@UiText.Cancel</a>

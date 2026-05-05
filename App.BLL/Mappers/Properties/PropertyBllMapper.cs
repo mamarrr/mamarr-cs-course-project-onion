@@ -41,7 +41,6 @@ public static class PropertyBllMapper
             PropertyTypeId = property.PropertyTypeId,
             PropertyTypeCode = property.PropertyTypeCode,
             PropertyTypeLabel = property.PropertyTypeLabel,
-            IsActive = property.IsActive
         };
     }
 
@@ -65,7 +64,6 @@ public static class PropertyBllMapper
             PropertyTypeId = property.PropertyTypeId,
             PropertyTypeCode = property.PropertyTypeCode,
             PropertyTypeLabel = property.PropertyTypeLabel,
-            IsActive = property.IsActive
         };
     }
 

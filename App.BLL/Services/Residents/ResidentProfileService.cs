@@ -96,7 +96,6 @@ public class ResidentProfileService : IResidentProfileService
                 LastName = normalizedLastName,
                 IdCode = normalizedIdCode,
                 PreferredLanguage = normalizedPreferredLanguage,
-                IsActive = command.IsActive
             },
             cancellationToken);
 

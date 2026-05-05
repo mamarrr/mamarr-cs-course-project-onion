@@ -20,7 +20,6 @@ public class ResidentLeaseModel
     public string LeaseRoleLabel { get; init; } = default!;
     public DateOnly StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
-    public bool IsActive { get; init; }
     public string? Notes { get; init; }
 }
 
@@ -42,7 +41,6 @@ public class UnitLeaseModel
     public string LeaseRoleLabel { get; init; } = default!;
     public DateOnly StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
-    public bool IsActive { get; init; }
     public string? Notes { get; init; }
 }
 
@@ -54,7 +52,6 @@ public class LeaseModel
     public Guid UnitId { get; init; }
     public DateOnly StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
-    public bool IsActive { get; init; }
     public string? Notes { get; init; }
 }
 
@@ -92,7 +89,6 @@ public class LeaseUnitOptionModel
     public string UnitSlug { get; init; } = default!;
     public string UnitNr { get; init; } = default!;
     public int? FloorNr { get; init; }
-    public bool IsActive { get; init; }
 }
 
 public class LeaseResidentSearchResultModel
@@ -105,7 +101,6 @@ public class LeaseResidentSearchItemModel
     public Guid ResidentId { get; init; }
     public string FullName { get; init; } = default!;
     public string IdCode { get; init; } = default!;
-    public bool IsActive { get; init; }
 }
 
 public class LeaseRoleOptionsModel

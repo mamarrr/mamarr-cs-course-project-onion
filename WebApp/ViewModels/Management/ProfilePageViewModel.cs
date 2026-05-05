@@ -40,9 +40,6 @@ public class ManagementCompanyProfileEditViewModel
     [Display(Name = nameof(UiText.Address), ResourceType = typeof(UiText))]
     public string Address { get; set; } = string.Empty;
 
-    [Display(Name = nameof(UiText.Active), ResourceType = typeof(UiText))]
-    public bool IsActive { get; set; }
-
     [Display(Name = nameof(UiText.DeleteConfirmation), ResourceType = typeof(UiText))]
     public string? DeleteConfirmation { get; set; }
 }

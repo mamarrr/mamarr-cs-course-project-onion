@@ -83,7 +83,6 @@ public class ProfileController : Controller
                 Email = edit.Email,
                 Phone = edit.Phone,
                 Address = edit.Address,
-                IsActive = edit.IsActive
             },
             cancellationToken);
 
@@ -196,7 +195,6 @@ public class ProfileController : Controller
                 Email = profile.Email,
                 Phone = profile.Phone,
                 Address = profile.Address,
-                IsActive = profile.IsActive
             }
         };
     }

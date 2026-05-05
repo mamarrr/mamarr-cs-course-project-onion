@@ -40,7 +40,6 @@ public class CustomerRepository :
                 BillingEmail = c.BillingEmail,
                 BillingAddress = c.BillingAddress,
                 Phone = c.Phone,
-                IsActive = true
             })
             .ToListAsync(cancellationToken);
 
@@ -65,7 +64,6 @@ public class CustomerRepository :
                 BillingEmail = c.BillingEmail,
                 BillingAddress = c.BillingAddress,
                 Phone = c.Phone,
-                IsActive = true
             })
             .ToListAsync(cancellationToken);
 
@@ -121,7 +119,6 @@ public class CustomerRepository :
             BillingAddress = customer.BillingAddress,
             Phone = customer.Phone,
             Notes = customer.Notes?.ToString(),
-            IsActive = true,
             CreatedAt = customer.CreatedAt
         });
     }
@@ -185,7 +182,6 @@ public class CustomerRepository :
                 CompanyName = c.ManagementCompany.Name,
                 Name = c.Name,
                 Slug = c.Slug,
-                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -263,7 +259,6 @@ public class CustomerRepository :
                 BillingEmail = c.BillingEmail,
                 BillingAddress = c.BillingAddress,
                 Phone = c.Phone,
-                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -290,7 +285,6 @@ public class CustomerRepository :
                 BillingEmail = c.BillingEmail,
                 BillingAddress = c.BillingAddress,
                 Phone = c.Phone,
-                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 

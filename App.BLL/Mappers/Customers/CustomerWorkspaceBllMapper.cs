@@ -48,7 +48,6 @@ public static class CustomerWorkspaceBllMapper
             BillingEmail = customer.BillingEmail,
             BillingAddress = customer.BillingAddress,
             Phone = customer.Phone,
-            IsActive = customer.IsActive,
             Properties = propertyLinks
         };
     }
@@ -70,7 +69,6 @@ public static class CustomerWorkspaceBllMapper
             BillingEmail = source.BillingEmail,
             BillingAddress = source.BillingAddress,
             Phone = source.Phone,
-            IsActive = customer.IsActive
         };
     }
 }

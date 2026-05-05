@@ -97,7 +97,6 @@ public class UnitMvcMapper
             FloorNr = edit.FloorNr,
             SizeM2 = edit.SizeM2,
             Notes = edit.Notes,
-            IsActive = edit.IsActive
         };
     }
 
@@ -128,7 +127,6 @@ public class UnitMvcMapper
             FloorNr = profile.FloorNr,
             SizeM2 = profile.SizeM2,
             Notes = profile.Notes,
-            IsActive = profile.IsActive
         };
     }
 

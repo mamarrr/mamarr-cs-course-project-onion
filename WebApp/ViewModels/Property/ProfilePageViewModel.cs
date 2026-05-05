@@ -37,9 +37,7 @@ public class PropertyProfileEditViewModel
 
     [Display(Name = nameof(UiText.Notes), ResourceType = typeof(UiText))]
     public string? Notes { get; set; }
-
-    [Display(Name = nameof(UiText.Active), ResourceType = typeof(UiText))]
-    public bool IsActive { get; set; }
+    
 
     [Display(Name = nameof(UiText.DeleteConfirmation), ResourceType = typeof(UiText))]
     public string? DeleteConfirmation { get; set; }

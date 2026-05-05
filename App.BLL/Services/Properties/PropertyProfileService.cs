@@ -90,7 +90,6 @@ public class PropertyProfileService : IPropertyProfileService
                 City = normalized.City,
                 PostalCode = normalized.PostalCode,
                 Notes = normalized.Notes,
-                IsActive = command.IsActive
             },
             cancellationToken);
 

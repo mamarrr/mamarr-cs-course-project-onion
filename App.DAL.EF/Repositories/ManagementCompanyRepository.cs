@@ -40,7 +40,6 @@ public class ManagementCompanyRepository :
                 Phone = c.Phone,
                 Address = c.Address,
                 CreatedAt = c.CreatedAt,
-                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -80,7 +79,6 @@ public class ManagementCompanyRepository :
                 Email = c.Email,
                 Phone = c.Phone,
                 Address = c.Address,
-                IsActive = true
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -104,7 +102,7 @@ public class ManagementCompanyRepository :
                 Email = c.Email,
                 Phone = c.Phone,
                 Address = c.Address,
-                IsActive = true
+                
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -130,7 +128,7 @@ public class ManagementCompanyRepository :
                 Phone = company.Phone,
                 Address = company.Address,
                 CreatedAt = company.CreatedAt,
-                IsActive = true
+                
             })
             .SingleOrDefaultAsync(cancellationToken);
     }
@@ -184,7 +182,7 @@ public class ManagementCompanyRepository :
             Phone = company.Phone,
             Address = company.Address,
             CreatedAt = company.CreatedAt,
-            IsActive = true
+            
         });
     }
 
@@ -209,7 +207,6 @@ public class ManagementCompanyRepository :
                 MembershipId = membership.Id,
                 RoleId = membership.ManagementCompanyRoleId,
                 RoleCode = membership.ManagementCompanyRole!.Code,
-                IsActive = true,
                 ValidFrom = membership.ValidFrom,
                 ValidTo = membership.ValidTo
             })
@@ -238,7 +235,6 @@ public class ManagementCompanyRepository :
                 MembershipId = membership.Id,
                 RoleId = membership.ManagementCompanyRoleId,
                 RoleCode = membership.ManagementCompanyRole!.Code,
-                IsActive = true,
                 ValidFrom = membership.ValidFrom,
                 ValidTo = membership.ValidTo
             })
@@ -647,7 +643,6 @@ public class ManagementCompanyRepository :
                 LastName = membership.AppUser == null ? string.Empty : membership.AppUser.LastName,
                 Email = membership.AppUser == null ? string.Empty : membership.AppUser.Email ?? string.Empty,
                 JobTitle = membership.JobTitle.ToString(),
-                IsActive = membership.ValidFrom <= today && (!membership.ValidTo.HasValue || membership.ValidTo.Value >= today),
                 ValidFrom = membership.ValidFrom,
                 ValidTo = membership.ValidTo
             });

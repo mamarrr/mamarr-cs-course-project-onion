@@ -65,7 +65,6 @@ public class ResidentApiMapper
             LastName = dto.LastName,
             IdCode = dto.IdCode,
             PreferredLanguage = dto.PreferredLanguage,
-            IsActive = dto.IsActive
         };
     }
 
@@ -96,7 +95,6 @@ public class ResidentApiMapper
                 FullName = resident.FullName,
                 IdCode = resident.IdCode,
                 PreferredLanguage = resident.PreferredLanguage,
-                IsActive = resident.IsActive,
                 RouteContext = CreateResidentRouteContext(
                     model.CompanySlug,
                     model.CompanyName,
@@ -147,7 +145,6 @@ public class ResidentApiMapper
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 PreferredLanguage = model.PreferredLanguage,
-                IsActive = model.IsActive,
                 RouteContext = CreateResidentRouteContext(
                     model.CompanySlug,
                     model.CompanyName,

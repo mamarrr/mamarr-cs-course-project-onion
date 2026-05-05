@@ -99,7 +99,6 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
                 Email = normalizedEmail,
                 Phone = request.Phone.Trim(),
                 Address = request.Address.Trim(),
-                IsActive = request.IsActive
             },
             cancellationToken);
 
@@ -168,7 +167,6 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
             Email = profile.Email,
             Phone = profile.Phone,
             Address = profile.Address,
-            IsActive = profile.IsActive
         };
     }
 

@@ -11,5 +11,4 @@ public class UpdatePropertyProfileCommand
     public string City { get; init; } = default!;
     public string PostalCode { get; init; } = default!;
     public string? Notes { get; init; }
-    public bool IsActive { get; init; }
 }

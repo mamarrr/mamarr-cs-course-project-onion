@@ -72,7 +72,6 @@ public class UsersController : Controller
             JobTitle = vm.JobTitle,
             ValidFrom = vm.ValidFrom,
             ValidTo = vm.ValidTo,
-            IsActive = vm.IsActive
         }, cancellationToken);
 
         if (result.IsFailed)
@@ -161,7 +160,6 @@ public class UsersController : Controller
         {
             RoleId = vm.RoleId.Value,
             JobTitle = vm.JobTitle,
-            IsActive = vm.IsActive,
             ValidFrom = vm.ValidFrom,
             ValidTo = vm.ValidTo
         }, cancellationToken);
@@ -377,7 +375,6 @@ public class UsersController : Controller
                 RoleLabel = x.RoleLabel,
                 RoleCode = x.RoleCode,
                 JobTitle = x.JobTitle,
-                IsActive = x.IsActive,
                 ValidFrom = x.ValidFrom,
                 ValidTo = x.ValidTo,
                 IsActor = x.IsActor,
@@ -466,7 +463,6 @@ public class UsersController : Controller
             ProtectedReason = data.ProtectedReason,
             RoleId = data.RoleId,
             JobTitle = data.JobTitle,
-            IsActive = data.IsActive,
             ValidFrom = data.ValidFrom,
             ValidTo = data.ValidTo,
             AvailableRoles = await BuildRoleSelectListAsync(data.AvailableRoleOptions, data.RoleId)

@@ -75,7 +75,6 @@ public class UnitRepository :
                 FloorNr = entity.FloorNr,
                 SizeM2 = entity.SizeM2,
                 Notes = entity.Notes == null ? null : entity.Notes.ToString(),
-                IsActive = true,
                 CreatedAt = entity.CreatedAt
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -108,7 +107,6 @@ public class UnitRepository :
                 FloorNr = entity.FloorNr,
                 SizeM2 = entity.SizeM2,
                 Notes = entity.Notes == null ? null : entity.Notes.ToString(),
-                IsActive = true,
                 CreatedAt = entity.CreatedAt
             })
             .FirstOrDefaultAsync(cancellationToken);
@@ -236,7 +234,7 @@ public class UnitRepository :
                 UnitSlug = entity.Slug,
                 UnitNr = entity.UnitNr,
                 FloorNr = entity.FloorNr,
-                IsActive = true
+                
             })
             .ToListAsync(cancellationToken);
     }
@@ -268,7 +266,6 @@ public class UnitRepository :
             FloorNr = unit.FloorNr,
             SizeM2 = unit.SizeM2,
             Notes = unit.Notes?.ToString(),
-            IsActive = true,
             CreatedAt = unit.CreatedAt
         });
     }

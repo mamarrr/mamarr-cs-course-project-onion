@@ -26,8 +26,7 @@ public class CreateCustomerPropertyRequestDto
 
     [MaxLength(2000)]
     public string? Notes { get; set; }
-
-    public bool IsActive { get; set; } = true;
+    
 }
 
 public class CreateCustomerPropertyResponseDto
@@ -92,7 +91,7 @@ public class PropertyProfileDto
     public string City { get; set; } = string.Empty;
     public string PostalCode { get; set; } = string.Empty;
     public string? Notes { get; set; }
-    public bool IsActive { get; set; }
+    
     public ApiRouteContextDto RouteContext { get; set; } = new();
 }
 
@@ -116,8 +115,7 @@ public class UpdatePropertyProfileRequestDto
 
     [MaxLength(2000)]
     public string? Notes { get; set; }
-
-    public bool IsActive { get; set; }
+    
 }
 
 public class DeletePropertyProfileRequestDto

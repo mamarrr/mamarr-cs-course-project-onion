@@ -38,7 +38,6 @@ public class CustomerProfileApiMapper
             BillingEmail = dto.BillingEmail,
             BillingAddress = dto.BillingAddress,
             Phone = dto.Phone,
-            IsActive = dto.IsActive
         };
     }
 
@@ -70,7 +69,6 @@ public class CustomerProfileApiMapper
                 BillingEmail = model.BillingEmail,
                 BillingAddress = model.BillingAddress,
                 Phone = model.Phone,
-                IsActive = model.IsActive,
                 RouteContext = new ApiRouteContextDto
                 {
                     CompanySlug = model.CompanySlug,

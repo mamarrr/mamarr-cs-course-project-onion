@@ -20,7 +20,6 @@ public class ResidentProfileDto
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string? PreferredLanguage { get; set; }
-    public bool IsActive { get; set; }
     public ApiRouteContextDto RouteContext { get; set; } = new();
 }
 
@@ -40,8 +39,7 @@ public class UpdateResidentProfileRequestDto
 
     [MaxLength(32)]
     public string? PreferredLanguage { get; set; }
-
-    public bool IsActive { get; set; }
+    
 }
 
 public class DeleteResidentProfileRequestDto

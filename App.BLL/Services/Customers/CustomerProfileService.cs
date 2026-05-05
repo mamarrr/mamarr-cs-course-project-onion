@@ -103,7 +103,6 @@ public class CustomerProfileService : ICustomerProfileService
                 BillingEmail = normalized.BillingEmail,
                 BillingAddress = normalized.BillingAddress,
                 Phone = normalized.Phone,
-                IsActive = command.IsActive
             },
             cancellationToken);
 

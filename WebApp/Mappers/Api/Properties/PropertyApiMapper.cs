@@ -70,7 +70,6 @@ public class PropertyApiMapper
             PostalCode = dto.PostalCode,
             PropertyTypeId = dto.PropertyTypeId ?? Guid.Empty,
             Notes = dto.Notes,
-            IsActive = dto.IsActive
         };
     }
 
@@ -92,7 +91,6 @@ public class PropertyApiMapper
             City = dto.City,
             PostalCode = dto.PostalCode,
             Notes = dto.Notes,
-            IsActive = dto.IsActive
         };
     }
 
@@ -134,7 +132,6 @@ public class PropertyApiMapper
                 PropertyTypeId = property.PropertyTypeId,
                 PropertyTypeCode = property.PropertyTypeCode,
                 PropertyTypeLabel = property.PropertyTypeLabel,
-                IsActive = property.IsActive,
                 RouteContext = CreatePropertyRouteContext(
                     companySlug,
                     companyName,
@@ -205,7 +202,6 @@ public class PropertyApiMapper
             City = model.City,
             PostalCode = model.PostalCode,
             Notes = model.Notes,
-            IsActive = model.IsActive,
             RouteContext = CreatePropertyRouteContext(
                 model.CompanySlug,
                 model.CompanyName,

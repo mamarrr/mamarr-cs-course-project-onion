@@ -23,7 +23,6 @@ public class UnitTenantLeaseDto
     public string LeaseRoleLabel { get; set; } = string.Empty;
     public DateOnly StartDate { get; set; }
     public DateOnly? EndDate { get; set; }
-    public bool IsActive { get; set; }
     public string? Notes { get; set; }
 }
 
@@ -37,7 +36,6 @@ public class UnitResidentSearchResultDto
     public Guid ResidentId { get; set; }
     public string FullName { get; set; } = string.Empty;
     public string IdCode { get; set; } = string.Empty;
-    public bool IsActive { get; set; }
 }
 
 public class CreateUnitLeaseRequestDto
@@ -52,8 +50,7 @@ public class CreateUnitLeaseRequestDto
     public DateOnly? StartDate { get; set; }
 
     public DateOnly? EndDate { get; set; }
-
-    public bool IsActive { get; set; } = true;
+    
 
     [MaxLength(2000)]
     public string? Notes { get; set; }
@@ -68,8 +65,7 @@ public class UpdateUnitLeaseRequestDto
     public DateOnly? StartDate { get; set; }
 
     public DateOnly? EndDate { get; set; }
-
-    public bool IsActive { get; set; } = true;
+    
 
     [MaxLength(2000)]
     public string? Notes { get; set; }

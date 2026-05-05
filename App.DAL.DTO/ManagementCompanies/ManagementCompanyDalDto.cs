@@ -13,7 +13,7 @@ public class ManagementCompanyDalDto : IBaseEntity
     public string Phone { get; init; } = default!;
     public string Address { get; init; } = default!;
     public DateTime CreatedAt { get; init; }
-    public bool IsActive { get; init; }
+    
 }
 
 public class ManagementCompanyCreateDalDto
@@ -27,7 +27,7 @@ public class ManagementCompanyCreateDalDto
     public string Phone { get; init; } = default!;
     public string Address { get; init; } = default!;
     public DateTime CreatedAt { get; init; }
-    public bool IsActive { get; init; }
+    
 }
 
 public class ManagementCompanyContextDalDto
@@ -38,7 +38,7 @@ public class ManagementCompanyContextDalDto
     public Guid MembershipId { get; init; }
     public Guid RoleId { get; init; }
     public string RoleCode { get; init; } = default!;
-    public bool IsActive { get; init; }
+    
     public DateOnly ValidFrom { get; init; }
     public DateOnly? ValidTo { get; init; }
 }
@@ -53,7 +53,7 @@ public class ManagementCompanyProfileDalDto : IBaseEntity
     public string Email { get; init; } = default!;
     public string Phone { get; init; } = default!;
     public string Address { get; init; } = default!;
-    public bool IsActive { get; init; }
+    
 }
 
 public class ManagementCompanyProfileUpdateDalDto : IBaseEntity
@@ -65,7 +65,7 @@ public class ManagementCompanyProfileUpdateDalDto : IBaseEntity
     public string Email { get; init; } = default!;
     public string Phone { get; init; } = default!;
     public string Address { get; init; } = default!;
-    public bool IsActive { get; init; }
+    
 }
 
 public class ManagementCompanyMembershipDalDto : IBaseEntity
@@ -82,7 +82,7 @@ public class ManagementCompanyMembershipDalDto : IBaseEntity
     public string LastName { get; init; } = default!;
     public string Email { get; init; } = default!;
     public string JobTitle { get; init; } = default!;
-    public bool IsActive { get; init; }
+    
     public DateOnly ValidFrom { get; init; }
     public DateOnly? ValidTo { get; init; }
 }
@@ -94,7 +94,7 @@ public class ManagementCompanyMembershipCreateDalDto
     public Guid AppUserId { get; init; }
     public Guid RoleId { get; init; }
     public string JobTitle { get; init; } = default!;
-    public bool IsActive { get; init; }
+    
     public DateOnly ValidFrom { get; init; }
     public DateOnly? ValidTo { get; init; }
     public DateTime CreatedAt { get; init; }
@@ -106,7 +106,7 @@ public class ManagementCompanyMembershipUpdateDalDto
     public Guid ManagementCompanyId { get; init; }
     public Guid RoleId { get; init; }
     public string JobTitle { get; init; } = default!;
-    public bool IsActive { get; init; }
+    
     public DateOnly ValidFrom { get; init; }
     public DateOnly? ValidTo { get; init; }
 }

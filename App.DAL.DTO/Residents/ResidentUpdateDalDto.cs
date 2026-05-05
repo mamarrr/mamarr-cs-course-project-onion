@@ -8,5 +8,5 @@ public class ResidentUpdateDalDto
     public string LastName { get; init; } = default!;
     public string IdCode { get; init; } = default!;
     public string? PreferredLanguage { get; init; }
-    public bool IsActive { get; init; }
+    
 }

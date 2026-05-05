@@ -69,7 +69,6 @@ public class AccountOnboardingService : IAccountOnboardingService
                     Phone = command.Phone.Trim(),
                     Address = command.Address.Trim(),
                     CreatedAt = now,
-                    IsActive = true
                 },
                 cancellationToken);
 
@@ -81,7 +80,6 @@ public class AccountOnboardingService : IAccountOnboardingService
                 RoleId = initialRole.Id,
                 JobTitle = "Owner",
                 ValidFrom = DateOnly.FromDateTime(now),
-                IsActive = true,
                 CreatedAt = now
             });
 

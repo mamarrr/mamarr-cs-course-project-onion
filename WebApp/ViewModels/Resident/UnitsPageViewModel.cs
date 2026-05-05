@@ -62,7 +62,7 @@ public class ResidentLeaseListItemViewModel
     public string LeaseRoleLabel { get; set; } = string.Empty;
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
-    public bool IsActive { get; set; }
+    
     public string? Notes { get; set; }
 }
 
@@ -87,7 +87,7 @@ public class ResidentLeaseUnitOptionViewModel
     public Guid UnitId { get; set; }
     public string UnitNr { get; set; } = string.Empty;
     public int? FloorNr { get; set; }
-    public bool IsActive { get; set; }
+    
 }
 
 public class AddResidentLeaseViewModel
@@ -116,8 +116,7 @@ public class AddResidentLeaseViewModel
     [Display(Name = "EndDate", ResourceType = typeof(UiText))]
     public DateTime? EndDate { get; set; }
 
-    [Display(Name = nameof(UiText.Active), ResourceType = typeof(UiText))]
-    public bool IsActive { get; set; } = true;
+    
 
     [StringLength(2000, ErrorMessageResourceType = typeof(UiText), ErrorMessageResourceName = nameof(UiText.StringLengthBetween))]
     [Display(Name = nameof(UiText.Notes), ResourceType = typeof(UiText))]
@@ -142,8 +141,7 @@ public class EditResidentLeaseViewModel
     [Display(Name = "EndDate", ResourceType = typeof(UiText))]
     public DateTime? EndDate { get; set; }
 
-    [Display(Name = nameof(UiText.Active), ResourceType = typeof(UiText))]
-    public bool IsActive { get; set; }
+    
 
     [StringLength(2000, ErrorMessageResourceType = typeof(UiText), ErrorMessageResourceName = nameof(UiText.StringLengthBetween))]
     [Display(Name = nameof(UiText.Notes), ResourceType = typeof(UiText))]

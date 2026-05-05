@@ -25,7 +25,6 @@ public class ManagementUserListItemViewModel
     public string RoleLabel { get; set; } = default!;
     public string RoleCode { get; set; } = default!;
     public string JobTitle { get; set; } = default!;
-    public bool IsActive { get; set; }
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
     public bool IsActor { get; set; }
@@ -63,9 +62,7 @@ public class AddManagementUserViewModel
     [Display(Name = nameof(UiText.ValidTo), ResourceType = typeof(UiText))]
     [DataType(DataType.Date)]
     public DateOnly? ValidTo { get; set; }
-
-    [Display(Name = nameof(UiText.Active), ResourceType = typeof(UiText))]
-    public bool IsActive { get; set; } = true;
+    
 }
 
 public class EditManagementUserViewModel : IAppChromePage
@@ -106,10 +103,7 @@ public class EditManagementUserViewModel : IAppChromePage
     [Display(Name = nameof(UiText.ValidTo), ResourceType = typeof(UiText))]
     [DataType(DataType.Date)]
     public DateOnly? ValidTo { get; set; }
-
-    [Display(Name = nameof(UiText.Active), ResourceType = typeof(UiText))]
-    public bool IsActive { get; set; }
-
+    
     public IReadOnlyList<SelectListItem> AvailableRoles { get; set; } = Array.Empty<SelectListItem>();
 }
 

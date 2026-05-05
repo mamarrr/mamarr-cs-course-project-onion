@@ -98,7 +98,6 @@ public class UnitApiMapper
             FloorNr = dto.FloorNr,
             SizeM2 = dto.SizeM2,
             Notes = dto.Notes,
-            IsActive = dto.IsActive
         };
     }
 
@@ -191,7 +190,6 @@ public class UnitApiMapper
                 FloorNr = model.FloorNr,
                 SizeM2 = model.SizeM2,
                 Notes = model.Notes,
-                IsActive = model.IsActive,
                 RouteContext = CreateUnitRouteContext(
                     model.CompanySlug,
                     model.CompanyName,

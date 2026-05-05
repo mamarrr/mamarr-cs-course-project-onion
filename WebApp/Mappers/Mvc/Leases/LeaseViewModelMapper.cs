@@ -19,7 +19,6 @@ public class LeaseViewModelMapper
             LeaseRoleLabel = lease.LeaseRoleLabel,
             StartDate = lease.StartDate.ToDateTime(TimeOnly.MinValue),
             EndDate = lease.EndDate?.ToDateTime(TimeOnly.MinValue),
-            IsActive = lease.IsActive,
             Notes = lease.Notes
         };
     }
@@ -36,7 +35,6 @@ public class LeaseViewModelMapper
             LeaseRoleLabel = lease.LeaseRoleLabel,
             StartDate = lease.StartDate.ToDateTime(TimeOnly.MinValue),
             EndDate = lease.EndDate?.ToDateTime(TimeOnly.MinValue),
-            IsActive = lease.IsActive,
             Notes = lease.Notes
         };
     }

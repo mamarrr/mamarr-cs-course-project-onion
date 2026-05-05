@@ -69,7 +69,7 @@ public class CompanyMembershipUserListItem
     public string RoleCode { get; set; } = default!;
     public string RoleLabel { get; set; } = default!;
     public string JobTitle { get; set; } = default!;
-    public bool IsActive { get; set; }
+    
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
     public bool IsActor { get; set; }
@@ -97,7 +97,6 @@ public class CompanyMembershipEditModel
     public string RoleCode { get; set; } = default!;
     public string RoleLabel { get; set; } = default!;
     public string JobTitle { get; set; } = default!;
-    public bool IsActive { get; set; }
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
     public bool IsOwner { get; set; }
@@ -131,7 +130,7 @@ public class CompanyMembershipAddRequest
     public string JobTitle { get; set; } = default!;
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
-    public bool IsActive { get; set; } = true;
+    
 }
 
 /// <summary>
@@ -141,7 +140,6 @@ public class CompanyMembershipUpdateRequest
 {
     public Guid RoleId { get; set; }
     public string JobTitle { get; set; } = default!;
-    public bool IsActive { get; set; }
     public DateOnly ValidFrom { get; set; }
     public DateOnly? ValidTo { get; set; }
 }

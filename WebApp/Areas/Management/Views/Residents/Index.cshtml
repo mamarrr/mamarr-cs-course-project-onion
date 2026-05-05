@@ -106,11 +106,6 @@
                                    asp-route-residentIdCode="@resident.IdCode">@resident.IdCode</a>
                             </td>
                             <td>@(string.IsNullOrWhiteSpace(resident.PreferredLanguage) ? UiText.NoValuePlaceholder : resident.PreferredLanguage)</td>
-                            <td>
-                                <span class="management-badge @(resident.IsActive ? "success" : "warning")">
-                                    @(resident.IsActive ? UiText.Active : UiText.Inactive)
-                                </span>
-                            </td>
                         </tr>
                     }
                     </tbody>

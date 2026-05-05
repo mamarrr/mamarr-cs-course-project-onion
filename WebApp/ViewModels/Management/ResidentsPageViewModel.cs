@@ -28,7 +28,6 @@ public class ManagementResidentListItemViewModel
     public string FullName { get; set; } = default!;
     public string IdCode { get; set; } = default!;
     public string? PreferredLanguage { get; set; }
-    public bool IsActive { get; set; }
 }
 
 public class AddManagementResidentViewModel

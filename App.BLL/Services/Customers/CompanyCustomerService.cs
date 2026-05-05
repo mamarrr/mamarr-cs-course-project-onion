@@ -120,7 +120,6 @@ public class CompanyCustomerService : ICompanyCustomerService
             BillingEmail = normalized.BillingEmail,
             BillingAddress = normalized.BillingAddress,
             Phone = normalized.Phone,
-            IsActive = true
         };
 
         var created = await _uow.Customers.AddAsync(createDto, cancellationToken);

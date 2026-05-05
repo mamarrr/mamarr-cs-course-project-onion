@@ -10,5 +10,5 @@ public class PropertyCreateDalDto
     public string PostalCode { get; init; } = default!;
     public Guid PropertyTypeId { get; init; }
     public string? Notes { get; init; }
-    public bool IsActive { get; init; } = true;
+    
 }

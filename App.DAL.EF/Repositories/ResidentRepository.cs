@@ -45,7 +45,7 @@ public class ResidentRepository :
                 LastName = entity.LastName,
                 IdCode = entity.IdCode,
                 PreferredLanguage = entity.PreferredLanguage,
-                IsActive = true
+                
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -70,7 +70,7 @@ public class ResidentRepository :
                 LastName = entity.LastName,
                 IdCode = entity.IdCode,
                 PreferredLanguage = entity.PreferredLanguage,
-                IsActive = true
+                
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -95,7 +95,7 @@ public class ResidentRepository :
                 LastName = entity.LastName,
                 IdCode = entity.IdCode,
                 PreferredLanguage = entity.PreferredLanguage,
-                IsActive = true
+                
             })
             .ToListAsync(cancellationToken);
 
@@ -262,7 +262,7 @@ public class ResidentRepository :
                 ResidentId = entity.Id,
                 FullName = string.Join(" ", new[] { entity.FirstName, entity.LastName }.Where(value => !string.IsNullOrWhiteSpace(value))),
                 IdCode = entity.IdCode,
-                IsActive = true
+                
             })
             .ToListAsync(cancellationToken);
     }
@@ -292,7 +292,6 @@ public class ResidentRepository :
             LastName = resident.LastName,
             IdCode = resident.IdCode,
             PreferredLanguage = resident.PreferredLanguage,
-            IsActive = true,
             CreatedAt = resident.CreatedAt
         });
     }
@@ -425,7 +424,6 @@ public class ResidentRepository :
                 LeaseRoleLabel = entity.LeaseRole.Label.ToString(),
                 StartDate = entity.StartDate,
                 EndDate = entity.EndDate,
-                IsActive = entity.StartDate <= today && (!entity.EndDate.HasValue || entity.EndDate.Value >= today),
                 Notes = entity.Notes == null ? null : entity.Notes.ToString()
             })
             .ToListAsync(cancellationToken);

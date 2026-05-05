@@ -60,7 +60,6 @@ public static class LeaseBllMapper
             LeaseRoleLabel = lease.LeaseRoleLabel,
             StartDate = lease.StartDate,
             EndDate = lease.EndDate,
-            IsActive = lease.IsActive,
             Notes = lease.Notes
         };
     }
@@ -80,7 +79,6 @@ public static class LeaseBllMapper
             LeaseRoleLabel = lease.LeaseRoleLabel,
             StartDate = lease.StartDate,
             EndDate = lease.EndDate,
-            IsActive = lease.IsActive,
             Notes = lease.Notes
         };
     }
@@ -95,7 +93,6 @@ public static class LeaseBllMapper
             UnitId = lease.UnitId,
             StartDate = lease.StartDate,
             EndDate = lease.EndDate,
-            IsActive = lease.IsActive,
             Notes = lease.Notes
         };
     }
@@ -124,7 +121,6 @@ public static class LeaseBllMapper
             UnitSlug = unit.UnitSlug,
             UnitNr = unit.UnitNr,
             FloorNr = unit.FloorNr,
-            IsActive = unit.IsActive
         };
     }
 
@@ -135,7 +131,6 @@ public static class LeaseBllMapper
             ResidentId = resident.ResidentId,
             FullName = resident.FullName,
             IdCode = resident.IdCode,
-            IsActive = resident.IsActive
         };
     }
 
@@ -157,7 +152,6 @@ public static class LeaseBllMapper
             LeaseRoleId = command.LeaseRoleId,
             StartDate = command.StartDate,
             EndDate = command.EndDate,
-            IsActive = command.IsActive,
             Notes = command.Notes
         };
     }
@@ -170,7 +164,6 @@ public static class LeaseBllMapper
             LeaseRoleId = command.LeaseRoleId,
             StartDate = command.StartDate,
             EndDate = command.EndDate,
-            IsActive = command.IsActive,
             Notes = command.Notes
         };
     }

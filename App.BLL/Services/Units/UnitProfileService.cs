@@ -89,7 +89,6 @@ public class UnitProfileService : IUnitProfileService
                 FloorNr = command.FloorNr,
                 SizeM2 = command.SizeM2,
                 Notes = string.IsNullOrWhiteSpace(command.Notes) ? null : command.Notes.Trim(),
-                IsActive = command.IsActive
             },
             cancellationToken);
 

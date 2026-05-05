@@ -138,7 +138,6 @@ public class CompanyMembershipAdminService :
             context,
             membership.Id,
             membership.RoleCode,
-            membership.IsActive,
             membership.ValidFrom,
             membership.ValidTo,
             today);
@@ -163,12 +162,11 @@ public class CompanyMembershipAdminService :
             RoleCode = membership.RoleCode,
             RoleLabel = membership.RoleLabel,
             JobTitle = NormalizePossiblySerializedLangStr(membership.JobTitle) ?? string.Empty,
-            IsActive = membership.IsActive,
             ValidFrom = membership.ValidFrom,
             ValidTo = membership.ValidTo,
             IsOwner = IsOwnerRole(membership.RoleCode),
             IsActor = membership.Id == context.ActorMembershipId,
-            IsEffective = IsMembershipEffective(membership.IsActive, membership.ValidFrom, membership.ValidTo, today),
+            IsEffective = IsMembershipEffective(membership.ValidFrom, membership.ValidTo, today),
             CanEdit = capabilities.CanEdit,
             CanDelete = capabilities.CanDelete,
             CanTransferOwnership = capabilities.CanTransferOwnership,
@@ -271,7 +269,6 @@ public class CompanyMembershipAdminService :
             AppUserId = appUserId.Value,
             RoleId = request.RoleId,
             JobTitle = request.JobTitle.Trim(),
-            IsActive = request.IsActive,
             ValidFrom = request.ValidFrom,
             ValidTo = request.ValidTo,
             CreatedAt = DateTime.UtcNow
@@ -326,7 +323,7 @@ public class CompanyMembershipAdminService :
                 CompanyMembershipUserActionBlockReason.SelfProtected));
         }
 
-        if (isSelf && membership.IsActive && !request.IsActive)
+        if (isSelf)
         {
             return Result.Fail(WithBlockReason(
                 new BusinessRuleError("You cannot deactivate your own membership."),
@@ -354,7 +351,6 @@ public class CompanyMembershipAdminService :
                 ManagementCompanyId = context.ManagementCompanyId,
                 RoleId = request.RoleId,
                 JobTitle = request.JobTitle,
-                IsActive = request.IsActive,
                 ValidFrom = request.ValidFrom,
                 ValidTo = request.ValidTo
             },
@@ -424,7 +420,7 @@ public class CompanyMembershipAdminService :
         return Result.Ok((IReadOnlyList<OwnershipTransferCandidate>)members
                 .Where(member => member.Id != context.ActorMembershipId)
                 .Where(member => !IsOwnerRole(member.RoleCode))
-                .Where(member => IsMembershipEffective(member.IsActive, member.ValidFrom, member.ValidTo, today))
+                .Where(member => IsMembershipEffective(member.ValidFrom, member.ValidTo, today))
                 .OrderBy(member => member.LastName)
                 .ThenBy(member => member.FirstName)
                 .Select(member => new OwnershipTransferCandidate
@@ -484,7 +480,7 @@ public class CompanyMembershipAdminService :
         }
 
         if (IsOwnerRole(target.RoleCode)
-            || !IsMembershipEffective(target.IsActive, target.ValidFrom, target.ValidTo, today))
+            || !IsMembershipEffective(target.ValidFrom, target.ValidTo, today))
         {
             return Result.Fail<OwnershipTransferModel>(WithBlockReason(
                 new BusinessRuleError("Ownership transfer target must be an active effective non-owner company member."),
@@ -646,7 +642,6 @@ public class CompanyMembershipAdminService :
                     AppUserId = joinRequest.AppUserId,
                     RoleId = joinRequest.RequestedRoleId,
                     JobTitle = "Employee",
-                    IsActive = true,
                     ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow),
                     CreatedAt = DateTime.UtcNow
                 });
@@ -704,15 +699,8 @@ public class CompanyMembershipAdminService :
                 CompanyMembershipAuthorizationFailureReason.MembershipNotFound));
         }
 
-        if (!actorMembership.IsActive)
-        {
-            return Result.Fail<CompanyMembershipContext>(WithAuthorizationReason(
-                new ForbiddenError("Your company membership is inactive."),
-                CompanyMembershipAuthorizationFailureReason.MembershipInactive));
-        }
-
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        if (!IsMembershipEffective(actorMembership.IsActive, actorMembership.ValidFrom, actorMembership.ValidTo, today))
+        if (!IsMembershipEffective(actorMembership.ValidFrom, actorMembership.ValidTo, today))
         {
             return Result.Fail<CompanyMembershipContext>(WithAuthorizationReason(
                 new ForbiddenError("Your company membership is not currently effective."),
@@ -753,7 +741,6 @@ public class CompanyMembershipAdminService :
             context,
             member.Id,
             member.RoleCode,
-            member.IsActive,
             member.ValidFrom,
             member.ValidTo,
             today);
@@ -768,12 +755,11 @@ public class CompanyMembershipAdminService :
             RoleCode = member.RoleCode,
             RoleLabel = member.RoleLabel,
             JobTitle = NormalizePossiblySerializedLangStr(member.JobTitle) ?? string.Empty,
-            IsActive = member.IsActive,
             ValidFrom = member.ValidFrom,
             ValidTo = member.ValidTo,
             IsActor = member.Id == context.ActorMembershipId,
             IsOwner = IsOwnerRole(member.RoleCode),
-            IsEffective = IsMembershipEffective(member.IsActive, member.ValidFrom, member.ValidTo, today),
+            IsEffective = IsMembershipEffective(member.ValidFrom, member.ValidTo, today),
             CanEdit = capabilities.CanEdit,
             CanDelete = capabilities.CanDelete,
             CanTransferOwnership = capabilities.CanTransferOwnership,
@@ -789,10 +775,9 @@ public class CompanyMembershipAdminService :
         return string.Equals(roleCode, OwnerRoleCode, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static bool IsMembershipEffective(bool isActive, DateOnly validFrom, DateOnly? validTo, DateOnly today)
+    private static bool IsMembershipEffective(DateOnly validFrom, DateOnly? validTo, DateOnly today)
     {
-        return isActive
-               && validFrom <= today
+        return validFrom <= today
                && (!validTo.HasValue || validTo.Value >= today);
     }
 
@@ -860,14 +845,13 @@ public class CompanyMembershipAdminService :
         CompanyAdminAuthorizedContext context,
         Guid membershipId,
         string roleCode,
-        bool isActive,
         DateOnly validFrom,
         DateOnly? validTo,
         DateOnly today)
     {
         var isActor = membershipId == context.ActorMembershipId;
         var isOwner = IsOwnerRole(roleCode);
-        var isEffective = IsMembershipEffective(isActive, validFrom, validTo, today);
+        var isEffective = IsMembershipEffective(validFrom, validTo, today);
 
         if (isOwner)
         {

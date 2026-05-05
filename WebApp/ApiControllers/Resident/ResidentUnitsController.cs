@@ -148,7 +148,6 @@ public class ResidentUnitsController : ProfileApiControllerBase
                 UnitSlug = x.UnitSlug,
                 UnitNr = x.UnitNr,
                 FloorNr = x.FloorNr,
-                IsActive = x.IsActive
             }).ToList()
         });
     }
@@ -366,7 +365,6 @@ public class ResidentUnitsController : ProfileApiControllerBase
             LeaseRoleId = dto.LeaseRoleId!.Value,
             StartDate = dto.StartDate!.Value,
             EndDate = dto.EndDate,
-            IsActive = dto.IsActive,
             Notes = dto.Notes
         };
     }
@@ -389,7 +387,6 @@ public class ResidentUnitsController : ProfileApiControllerBase
             LeaseRoleId = dto.LeaseRoleId!.Value,
             StartDate = dto.StartDate!.Value,
             EndDate = dto.EndDate,
-            IsActive = dto.IsActive,
             Notes = dto.Notes
         };
     }

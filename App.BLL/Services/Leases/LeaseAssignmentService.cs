@@ -125,7 +125,6 @@ public class LeaseAssignmentService : ILeaseAssignmentService
                 LeaseRoleId = command.LeaseRoleId,
                 StartDate = command.StartDate,
                 EndDate = command.EndDate,
-                IsActive = command.IsActive,
                 Notes = command.Notes
             },
             cancellationToken);
@@ -177,7 +176,6 @@ public class LeaseAssignmentService : ILeaseAssignmentService
                 LeaseRoleId = command.LeaseRoleId,
                 StartDate = command.StartDate,
                 EndDate = command.EndDate,
-                IsActive = command.IsActive,
                 Notes = command.Notes
             },
             cancellationToken);

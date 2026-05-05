@@ -43,10 +43,6 @@
                 <input asp-for="Edit.PreferredLanguage" class="form-control" />
                 <span asp-validation-for="Edit.PreferredLanguage" class="text-danger"></span>
             </div>
-            <div class="form-check mb-3">
-                <input asp-for="Edit.IsActive" class="form-check-input" />
-                <label asp-for="Edit.IsActive" class="form-check-label"></label>
-            </div>
             <button type="submit" class="management-btn">@App.Resources.Views.UiText.SaveChanges</button>
         </form>
     </section>
@@ -61,7 +57,6 @@
             <input type="hidden" asp-for="Edit.LastName" />
             <input type="hidden" asp-for="Edit.IdCode" />
             <input type="hidden" asp-for="Edit.PreferredLanguage" />
-            <input type="hidden" asp-for="Edit.IsActive" />
             <div class="mb-3">
                 <label asp-for="Edit.DeleteConfirmation" class="form-label"></label>
                 <input asp-for="Edit.DeleteConfirmation" class="form-control" autocomplete="off" />
