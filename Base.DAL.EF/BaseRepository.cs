@@ -66,9 +66,18 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
         var res = Mapper.Map(domainRes);
         return res;
     }
-
+    
+    /// <summary>
+    /// Mapper needs to deal with string -> LangStr conversion 
+    /// </summary>
     public virtual void Add(TDALEntity entity)
     {
+        var domainEntity = Mapper.Map(entity);
+
+        if (typeof(IHasCreatedAtMeta).IsAssignableFrom(typeof(TDomainEntity)))
+        {
+            ((IHasCreatedAtMeta)domainEntity!).CreatedAt = DateTime.UtcNow;
+        }
         RepositoryDbSet.Add(Mapper.Map(entity)!);
     }
 

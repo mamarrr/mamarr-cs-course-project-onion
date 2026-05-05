@@ -10,6 +10,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
 
+/// <summary>
+/// Since LookupRepository does not inherit from BaseRepository, then if a lookupentity has CreatedAt field and the
+/// repository needs to add a new lookupEntity to the database, then the adding method has to deal with CreatedAt Datetime
+/// correct creation.
+/// </summary>
 public class LookupRepository : ILookupRepository
 {
     private readonly AppDbContext _dbContext;
