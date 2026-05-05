@@ -15,7 +15,7 @@ namespace WebApp.Areas.Portal.Controllers.Unit;
 
 [Area("Portal")]
 [Authorize]
-[Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}")]
+[Route("m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}")]
 public class DashboardController : Controller
 {
     private readonly IAppBLL _bll;

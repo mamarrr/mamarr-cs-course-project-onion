@@ -22,7 +22,7 @@ namespace WebApp.Areas.Portal.Controllers.Unit;
 
 [Area("Portal")]
 [Authorize]
-[Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}/tenants")]
+[Route("m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/tenants")]
 public class TenantsController : Controller
 {
     private const string SuccessTempDataKey = "UnitTenantsSuccess";

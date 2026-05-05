@@ -214,7 +214,7 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
         name: "customer_dashboard",
-        pattern: "m/{companySlug}/c/{customerSlug}",
+        pattern: "m/{companySlug}/customers/{customerSlug}",
         defaults: new { area = "Portal", controller = "CustomerDashboard", action = "Index" })
     .WithStaticAssets();
 

@@ -123,7 +123,7 @@ public class ProfileController : Controller
         }
 
         TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
-        return RedirectToAction("Index", "Residents", new { area = "Management", companySlug });
+        return RedirectToAction("Index", "Residents", new { area = "Portal", companySlug });
     }
 
     private async Task<ProfilePageViewModel> BuildViewModelAsync(

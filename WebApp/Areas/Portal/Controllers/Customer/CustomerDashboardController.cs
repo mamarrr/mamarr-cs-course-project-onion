@@ -13,7 +13,7 @@ namespace WebApp.Areas.Portal.Controllers.Customer;
 
 [Area("Portal")]
 [Authorize]
-[Route("m/{companySlug}/c/{customerSlug}")]
+[Route("m/{companySlug}/customers/{customerSlug}")]
 public class CustomerDashboardController : Controller
 {
     private readonly IAppBLL _bll;

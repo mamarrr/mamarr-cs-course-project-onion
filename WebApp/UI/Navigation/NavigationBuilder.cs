@@ -56,11 +56,11 @@ public class NavigationBuilder : INavigationBuilder
 
         return new List<NavigationItemViewModel>
         {
-            Link(UiText.Dashboard, $"/m/{companySlug}/c/{customerSlug}", Sections.Dashboard, activeSection),
-            Link(UiText.Profile, $"/m/{companySlug}/c/{customerSlug}/profile", Sections.Profile, activeSection),
-            Link(UiText.Tickets, $"/m/{companySlug}/c/{customerSlug}/tickets", Sections.Tickets, activeSection),
-            Link(UiText.Properties, $"/m/{companySlug}/c/{customerSlug}/properties", Sections.Properties, activeSection),
-            Link(T("Residents", "Residents"), $"/m/{companySlug}/c/{customerSlug}/residents", Sections.Residents, activeSection)
+            Link(UiText.Dashboard, $"/m/{companySlug}/customers/{customerSlug}", Sections.Dashboard, activeSection),
+            Link(UiText.Profile, $"/m/{companySlug}/customers/{customerSlug}/profile", Sections.Profile, activeSection),
+            Link(UiText.Tickets, $"/m/{companySlug}/customers/{customerSlug}/tickets", Sections.Tickets, activeSection),
+            Link(UiText.Properties, $"/m/{companySlug}/customers/{customerSlug}/properties", Sections.Properties, activeSection),
+            Link(T("Residents", "Residents"), $"/m/{companySlug}/customers/{customerSlug}/residents", Sections.Residents, activeSection)
         };
     }
 
@@ -74,11 +74,11 @@ public class NavigationBuilder : INavigationBuilder
 
         return new List<NavigationItemViewModel>
         {
-            Link(UiText.Dashboard, $"/m/{companySlug}/c/{customerSlug}/p/{propertySlug}", Sections.Dashboard, activeSection),
-            Link(UiText.Profile, $"/m/{companySlug}/c/{customerSlug}/p/{propertySlug}/profile", Sections.Profile, activeSection),
-            Link(T("Units", "Units"), $"/m/{companySlug}/c/{customerSlug}/p/{propertySlug}/units", Sections.Units, activeSection),
-            Link(UiText.Residents, $"/m/{companySlug}/c/{customerSlug}/p/{propertySlug}/residents", Sections.Residents, activeSection),
-            Link(UiText.Tickets, $"/m/{companySlug}/c/{customerSlug}/p/{propertySlug}/tickets", Sections.Tickets, activeSection)
+            Link(UiText.Dashboard, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}", Sections.Dashboard, activeSection),
+            Link(UiText.Profile, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/profile", Sections.Profile, activeSection),
+            Link(T("Units", "Units"), $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units", Sections.Units, activeSection),
+            Link(UiText.Residents, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/residents", Sections.Residents, activeSection),
+            Link(UiText.Tickets, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/tickets", Sections.Tickets, activeSection)
         };
     }
 
@@ -93,10 +93,10 @@ public class NavigationBuilder : INavigationBuilder
 
         return new List<NavigationItemViewModel>
         {
-            Link(UiText.Dashboard, $"/m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}", Sections.Dashboard, activeSection),
-            Link(UiText.Profile, $"/m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}/profile", Sections.Profile, activeSection),
-            Link(T("Tenants", "Tenants"), $"/m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}/tenants", Sections.Tenants, activeSection),
-            Link(UiText.Tickets, $"/m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}/tickets", Sections.Tickets, activeSection)
+            Link(UiText.Dashboard, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}", Sections.Dashboard, activeSection),
+            Link(UiText.Profile, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/profile", Sections.Profile, activeSection),
+            Link(T("Tenants", "Tenants"), $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/tenants", Sections.Tenants, activeSection),
+            Link(UiText.Tickets, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/tickets", Sections.Tickets, activeSection)
         };
     }
 

@@ -16,7 +16,7 @@ namespace WebApp.Areas.Portal.Controllers.Customer;
 
 [Area("Portal")]
 [Authorize]
-[Route("m/{companySlug}/c/{customerSlug}/profile")]
+[Route("m/{companySlug}/customers/{customerSlug}/profile")]
 public class CustomerProfileController : Controller
 {
     private readonly IAppChromeBuilder _appChromeBuilder;
@@ -115,7 +115,7 @@ public class CustomerProfileController : Controller
         if (result.IsSuccess)
         {
             TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
-            return RedirectToAction("Index", "Dashboard", new { area = "Management", companySlug });
+            return RedirectToAction("Index", "Dashboard", new { area = "Portal", companySlug });
         }
 
         if (HasNonValidationError(result.Errors))

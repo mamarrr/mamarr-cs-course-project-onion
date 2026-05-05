@@ -15,7 +15,7 @@ namespace WebApp.Areas.Portal.Controllers.Property;
 
 [Area("Portal")]
 [Authorize]
-[Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/units")]
+[Route("m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units")]
 public class UnitsController : Controller
 {
     private readonly IAppBLL _bll;
@@ -51,7 +51,7 @@ public class UnitsController : Controller
         return View("~/Areas/Portal/Views/Property/Units/Index.cshtml", vm);
     }
 
-    [HttpPost("/add")]
+    [HttpPost("add")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddUnit(
         string companySlug,

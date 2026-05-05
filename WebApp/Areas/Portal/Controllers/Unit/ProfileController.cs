@@ -15,7 +15,7 @@ namespace WebApp.Areas.Portal.Controllers.Unit;
 
 [Area("Portal")]
 [Authorize]
-[Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}/profile")]
+[Route("m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/profile")]
 public class ProfileController : Controller
 {
     private readonly IAppBLL _bll;
@@ -120,7 +120,7 @@ public class ProfileController : Controller
         }
 
         TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
-        return RedirectToAction("Units", "Units", new { area = "Property", companySlug, customerSlug, propertySlug });
+        return RedirectToAction("Units", "Units", new { area = "Portal", companySlug, customerSlug, propertySlug });
     }
 
     private async Task<ProfilePageViewModel> BuildViewModelAsync(

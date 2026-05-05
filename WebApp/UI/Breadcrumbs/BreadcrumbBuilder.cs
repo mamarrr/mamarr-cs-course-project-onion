@@ -28,7 +28,7 @@ public class BreadcrumbBuilder : IBreadcrumbBuilder
                 Label = workspace.CustomerName ?? workspace.CustomerSlug,
                 Url = workspace.Level == WorkspaceLevel.Customer
                     ? null
-                    : $"/m/{workspace.ManagementCompanySlug}/c/{workspace.CustomerSlug}",
+                    : $"/m/{workspace.ManagementCompanySlug}/customers/{workspace.CustomerSlug}",
                 IsCurrent = workspace.Level == WorkspaceLevel.Customer,
                 Level = WorkspaceLevel.Customer
             });
@@ -41,7 +41,7 @@ public class BreadcrumbBuilder : IBreadcrumbBuilder
                 Label = workspace.PropertyName ?? workspace.PropertySlug,
                 Url = workspace.Level == WorkspaceLevel.Property
                     ? null
-                    : $"/m/{workspace.ManagementCompanySlug}/c/{workspace.CustomerSlug}/p/{workspace.PropertySlug}",
+                    : $"/m/{workspace.ManagementCompanySlug}/customers/{workspace.CustomerSlug}/properties/{workspace.PropertySlug}",
                 IsCurrent = workspace.Level == WorkspaceLevel.Property,
                 Level = WorkspaceLevel.Property
             });
@@ -54,7 +54,7 @@ public class BreadcrumbBuilder : IBreadcrumbBuilder
                 Label = workspace.UnitName ?? workspace.UnitSlug,
                 Url = workspace.Level == WorkspaceLevel.Unit
                     ? null
-                    : $"/m/{workspace.ManagementCompanySlug}/c/{workspace.CustomerSlug}/p/{workspace.PropertySlug}/u/{workspace.UnitSlug}",
+                    : $"/m/{workspace.ManagementCompanySlug}/customers/{workspace.CustomerSlug}/properties/{workspace.PropertySlug}/units/{workspace.UnitSlug}",
                 IsCurrent = workspace.Level == WorkspaceLevel.Unit,
                 Level = WorkspaceLevel.Unit
             });

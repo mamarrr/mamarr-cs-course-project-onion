@@ -17,7 +17,7 @@ namespace WebApp.Areas.Portal.Controllers.Customer;
 
 [Area("Portal")]
 [Authorize]
-[Route("m/{companySlug}/c/{customerSlug}/properties")]
+[Route("m/{companySlug}/customers/{customerSlug}/properties")]
 public class CustomerPropertiesController : Controller
 {
     private readonly IAppBLL _bll;
