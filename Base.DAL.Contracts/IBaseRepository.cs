@@ -17,7 +17,7 @@ public interface IBaseRepository<TKey, TEntity>
 
     void Add(TEntity entity);
 
-    TEntity Update(TEntity entity);
+    Task<TEntity> UpdateAsync(TEntity entity);
 
     void Remove(TEntity entity);
     Task RemoveAsync(TKey id, TKey parentId = default!, CancellationToken cancellationToken = default);

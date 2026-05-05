@@ -1,6 +1,7 @@
 ﻿using Base.BLL.Contracts;
 using Base.Contracts;
 using Base.DAL.Contracts;
+using FluentResults;
 
 namespace Base.BLL;
 
@@ -59,9 +60,9 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
         ServiceRepository.Add(Mapper.Map(entity)!);
     }
 
-    public virtual TBLLEntity Update(TBLLEntity entity)
+    public virtual async Task<TBLLEntity> UpdateAsync(TBLLEntity entity)
     {
-        var res = ServiceRepository.Update(Mapper.Map(entity)!);
+        var res = await ServiceRepository.UpdateAsync(Mapper.Map(entity)!);
         return Mapper.Map(res)!;
     }
 

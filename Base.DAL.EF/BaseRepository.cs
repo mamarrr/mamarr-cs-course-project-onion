@@ -83,9 +83,8 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
     }
 
     private static Dictionary<string, PropertyInfo>? _domainEntityTypePropsLangStr = null;
-    public virtual TDALEntity Update(TDALEntity entity)
+    public virtual async Task<TDALEntity> UpdateAsync(TDALEntity entity)
     {
-        
         var domainEntityType = typeof(TDomainEntity);
 
         _domainEntityTypePropsLangStr ??= domainEntityType
@@ -98,10 +97,27 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
             throw new ApplicationException("Override update method for LangStr containing entities - " +
                                            typeof(TDomainEntity).FullName);
         }
-        
+
+        var domainEntity = Mapper.Map(entity)!;
+
+        if (typeof(IHasCreatedAtMeta).IsAssignableFrom(domainEntityType))
+        {
+            var entityId = entity.Id;
+            var dbEntity = await RepositoryDbSet
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id.Equals(entityId));
+
+            if (dbEntity == null)
+            {
+                throw new ApplicationException($"Entity with id {entityId} not found, repository" + GetType().Name);
+            }
+
+            ((IHasCreatedAtMeta)domainEntity).CreatedAt = ((IHasCreatedAtMeta)dbEntity).CreatedAt;
+        }
+
         return Mapper.Map(
             RepositoryDbSet.Update(
-                Mapper.Map(entity)!
+                domainEntity
             ).Entity
         )!;
     }
