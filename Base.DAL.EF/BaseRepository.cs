@@ -1,6 +1,8 @@
 ﻿
+using System.Reflection;
 using Base.Contracts;
 using Base.DAL.Contracts;
+using Base.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace Base.DAL.EF;
@@ -70,8 +72,23 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
         RepositoryDbSet.Add(Mapper.Map(entity)!);
     }
 
+    private static Dictionary<string, PropertyInfo>? _domainEntityTypePropsLangStr = null;
     public TDALEntity Update(TDALEntity entity)
     {
+        
+        var domainEntityType = typeof(TDomainEntity);
+
+        _domainEntityTypePropsLangStr ??= domainEntityType
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.PropertyType == typeof(LangStr))
+            .ToDictionary(p => p.Name, StringComparer.Ordinal);
+
+        if (_domainEntityTypePropsLangStr.Count > 0)
+        {
+            throw new ApplicationException("Override update method for LangStr containing entities - " +
+                                           typeof(TDomainEntity).FullName);
+        }
+        
         return Mapper.Map(
             RepositoryDbSet.Update(
                 Mapper.Map(entity)!
