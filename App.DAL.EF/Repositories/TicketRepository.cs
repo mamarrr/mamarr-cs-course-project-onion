@@ -269,19 +269,22 @@ public class TicketRepository :
         return Task.FromResult(ticket.Id);
     }
 
-    public async Task<bool> UpdateAsync(
-        TicketUpdateDalDto dto,
+    public override async Task<TicketDalDto> UpdateAsync(
+        TicketDalDto dto,
+        Guid parentId = default,
         CancellationToken cancellationToken = default)
     {
+        var managementCompanyId = parentId == default ? dto.ManagementCompanyId : parentId;
+
         var ticket = await _dbContext.Tickets
             .AsTracking()
             .FirstOrDefaultAsync(
-                entity => entity.Id == dto.Id && entity.ManagementCompanyId == dto.ManagementCompanyId,
+                entity => entity.Id == dto.Id && entity.ManagementCompanyId == managementCompanyId,
                 cancellationToken);
 
         if (ticket is null)
         {
-            return false;
+            throw new ApplicationException($"Ticket with id {dto.Id} was not found.");
         }
 
         ticket.TicketNr = dto.TicketNr;
@@ -298,7 +301,7 @@ public class TicketRepository :
         ticket.DueAt = dto.DueAt;
         ticket.ClosedAt = dto.ClosedAt;
 
-        return true;
+        return Mapper.Map(ticket)!;
     }
 
     public async Task<bool> UpdateStatusAsync(

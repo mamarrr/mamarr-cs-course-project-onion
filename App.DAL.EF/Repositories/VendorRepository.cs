@@ -20,6 +20,32 @@ public class VendorRepository :
         _dbContext = dbContext;
     }
 
+    public override async Task<VendorDalDto> UpdateAsync(
+        VendorDalDto dto,
+        Guid parentId = default,
+        CancellationToken cancellationToken = default)
+    {
+        var managementCompanyId = parentId == default ? dto.ManagementCompanyId : parentId;
+
+        var vendor = await _dbContext.Vendors
+            .AsTracking()
+            .FirstOrDefaultAsync(
+                entity => entity.Id == dto.Id && entity.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
+
+        if (vendor is null)
+        {
+            throw new ApplicationException($"Vendor with id {dto.Id} was not found.");
+        }
+
+        vendor.Name = dto.Name;
+        vendor.RegistryCode = dto.RegistryCode;
+        vendor.Notes.SetTranslation(dto.Notes.Trim());
+        _dbContext.Entry(vendor).Property(entity => entity.Notes).IsModified = true;
+
+        return Mapper.Map(vendor)!;
+    }
+
     public Task<bool> ExistsInCompanyAsync(
         Guid vendorId,
         Guid managementCompanyId,

@@ -80,17 +80,20 @@ public class PropertyProfileService : IPropertyProfileService
         }
 
         var normalized = NormalizeUpdate(command);
-        await _uow.Properties.UpdateProfileAsync(
-            new PropertyUpdateDalDto
+        await _uow.Properties.UpdateAsync(
+            new PropertyDalDto
             {
                 Id = workspace.Value.PropertyId,
                 CustomerId = workspace.Value.CustomerId,
-                Name = normalized.Name,
+                PropertyTypeId = profile.PropertyTypeId,
+                Label = normalized.Name,
+                Slug = profile.Slug,
                 AddressLine = normalized.AddressLine,
                 City = normalized.City,
                 PostalCode = normalized.PostalCode,
                 Notes = normalized.Notes,
             },
+            workspace.Value.CustomerId,
             cancellationToken);
 
         await _uow.SaveChangesAsync(cancellationToken);

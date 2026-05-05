@@ -2,7 +2,6 @@ using App.DAL.Contracts.Repositories;
 using App.DAL.DTO.ManagementCompanies;
 using App.DAL.EF.Mappers.ManagementCompanies;
 using App.Domain;
-using Base.Domain;
 using Base.DAL.EF;
 using Microsoft.EntityFrameworkCore;
 
@@ -96,20 +95,6 @@ public class ManagementCompanyJoinRequestRepository :
                            && request.ManagementCompanyId == managementCompanyId
                            && request.ManagementCompanyJoinRequestStatusId == pendingStatusId,
                 cancellationToken);
-    }
-
-    public void AddJoinRequest(ManagementCompanyJoinRequestCreateDalDto dto)
-    {
-        _dbContext.ManagementCompanyJoinRequests.Add(new ManagementCompanyJoinRequest
-        {
-            Id = dto.Id,
-            AppUserId = dto.AppUserId,
-            ManagementCompanyId = dto.ManagementCompanyId,
-            RequestedManagementCompanyRoleId = dto.RequestedRoleId,
-            ManagementCompanyJoinRequestStatusId = dto.StatusId,
-            Message = string.IsNullOrWhiteSpace(dto.Message) ? null : new LangStr(dto.Message.Trim()),
-            CreatedAt = dto.CreatedAt
-        });
     }
 
     public async Task<bool> SetStatusAsync(

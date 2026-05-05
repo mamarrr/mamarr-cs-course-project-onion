@@ -117,21 +117,21 @@ public class LeaseAssignmentService : ILeaseAssignmentService
             return Result.Fail<LeaseCommandModel>(new ConflictError(DuplicateLeaseMessage()));
         }
 
-        var lease = await _uow.Leases.AddAsync(
-            new LeaseCreateDalDto
-            {
-                ResidentId = command.ResidentId,
-                UnitId = command.UnitId,
-                LeaseRoleId = command.LeaseRoleId,
-                StartDate = command.StartDate,
-                EndDate = command.EndDate,
-                Notes = command.Notes
-            },
-            cancellationToken);
+        var leaseId = Guid.NewGuid();
+        _uow.Leases.Add(new LeaseDalDto
+        {
+            Id = leaseId,
+            ResidentId = command.ResidentId,
+            UnitId = command.UnitId,
+            LeaseRoleId = command.LeaseRoleId,
+            StartDate = command.StartDate,
+            EndDate = command.EndDate,
+            Notes = command.Notes
+        });
 
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return Result.Ok(new LeaseCommandModel { LeaseId = lease.Id });
+        return Result.Ok(new LeaseCommandModel { LeaseId = leaseId });
     }
 
     public async Task<Result<LeaseCommandModel>> CreateFromUnitAsync(
@@ -168,21 +168,21 @@ public class LeaseAssignmentService : ILeaseAssignmentService
             return Result.Fail<LeaseCommandModel>(new ConflictError(DuplicateLeaseMessage()));
         }
 
-        var lease = await _uow.Leases.AddAsync(
-            new LeaseCreateDalDto
-            {
-                ResidentId = command.ResidentId,
-                UnitId = command.UnitId,
-                LeaseRoleId = command.LeaseRoleId,
-                StartDate = command.StartDate,
-                EndDate = command.EndDate,
-                Notes = command.Notes
-            },
-            cancellationToken);
+        var leaseId = Guid.NewGuid();
+        _uow.Leases.Add(new LeaseDalDto
+        {
+            Id = leaseId,
+            ResidentId = command.ResidentId,
+            UnitId = command.UnitId,
+            LeaseRoleId = command.LeaseRoleId,
+            StartDate = command.StartDate,
+            EndDate = command.EndDate,
+            Notes = command.Notes
+        });
 
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return Result.Ok(new LeaseCommandModel { LeaseId = lease.Id });
+        return Result.Ok(new LeaseCommandModel { LeaseId = leaseId });
     }
 
     public async Task<Result<LeaseCommandModel>> UpdateFromResidentAsync(
@@ -223,7 +223,16 @@ public class LeaseAssignmentService : ILeaseAssignmentService
         var updated = await _uow.Leases.UpdateForResidentAsync(
             command.ResidentId,
             command.ManagementCompanyId,
-            LeaseBllMapper.ToUpdateDalDto(command),
+            new LeaseDalDto
+            {
+                Id = command.LeaseId,
+                ResidentId = lease.ResidentId,
+                UnitId = lease.UnitId,
+                LeaseRoleId = command.LeaseRoleId,
+                StartDate = command.StartDate,
+                EndDate = command.EndDate,
+                Notes = command.Notes
+            },
             cancellationToken);
         if (!updated)
         {
@@ -275,7 +284,16 @@ public class LeaseAssignmentService : ILeaseAssignmentService
             command.UnitId,
             command.PropertyId,
             command.ManagementCompanyId,
-            LeaseBllMapper.ToUpdateDalDto(command),
+            new LeaseDalDto
+            {
+                Id = command.LeaseId,
+                ResidentId = lease.ResidentId,
+                UnitId = lease.UnitId,
+                LeaseRoleId = command.LeaseRoleId,
+                StartDate = command.StartDate,
+                EndDate = command.EndDate,
+                Notes = command.Notes
+            },
             cancellationToken);
         if (!updated)
         {

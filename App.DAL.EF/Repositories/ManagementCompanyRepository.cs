@@ -39,7 +39,6 @@ public class ManagementCompanyRepository :
                 Email = c.Email,
                 Phone = c.Phone,
                 Address = c.Address,
-                CreatedAt = c.CreatedAt,
             })
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -127,8 +126,6 @@ public class ManagementCompanyRepository :
                 Email = company.Email,
                 Phone = company.Phone,
                 Address = company.Address,
-                CreatedAt = company.CreatedAt,
-                
             })
             .SingleOrDefaultAsync(cancellationToken);
     }
@@ -151,39 +148,6 @@ public class ManagementCompanyRepository :
             .AsNoTracking()
             .Select(company => company.Slug)
             .ToListAsync(cancellationToken);
-    }
-
-    public Task<ManagementCompanyDalDto> AddManagementCompanyAsync(
-        ManagementCompanyCreateDalDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        var company = new ManagementCompany
-        {
-            Id = dto.Id,
-            Name = dto.Name,
-            Slug = dto.Slug,
-            RegistryCode = dto.RegistryCode,
-            VatNumber = dto.VatNumber,
-            Email = dto.Email,
-            Phone = dto.Phone,
-            Address = dto.Address,
-            CreatedAt = dto.CreatedAt,
-            };
-
-        _dbContext.ManagementCompanies.Add(company);
-        return Task.FromResult(new ManagementCompanyDalDto
-        {
-            Id = company.Id,
-            Name = company.Name,
-            Slug = company.Slug,
-            RegistryCode = company.RegistryCode,
-            VatNumber = company.VatNumber,
-            Email = company.Email,
-            Phone = company.Phone,
-            Address = company.Address,
-            CreatedAt = company.CreatedAt,
-            
-        });
     }
 
     public async Task<IReadOnlyList<ManagementCompanyContextDalDto>> ActiveUserManagementContextsAsync(
@@ -418,28 +382,6 @@ public class ManagementCompanyRepository :
         }
 
         _dbContext.ManagementCompanyUsers.Remove(membership);
-        return true;
-    }
-
-    public async Task<bool> UpdateProfileAsync(
-        ManagementCompanyProfileUpdateDalDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        var company = await _dbContext.ManagementCompanies
-            .AsTracking()
-            .FirstOrDefaultAsync(company => company.Id == dto.Id, cancellationToken);
-
-        if (company is null)
-        {
-            return false;
-        }
-
-        company.Name = dto.Name;
-        company.RegistryCode = dto.RegistryCode;
-        company.VatNumber = dto.VatNumber;
-        company.Email = dto.Email;
-        company.Phone = dto.Phone;
-        company.Address = dto.Address;
         return true;
     }
 

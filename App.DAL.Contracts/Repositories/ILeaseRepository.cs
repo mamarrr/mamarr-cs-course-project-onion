@@ -36,21 +36,17 @@ public interface ILeaseRepository : IBaseRepository<LeaseDalDto>
         Guid? exceptLeaseId = null,
         CancellationToken cancellationToken = default);
 
-    Task<LeaseDalDto> AddAsync(
-        LeaseCreateDalDto dto,
-        CancellationToken cancellationToken = default);
-
     Task<bool> UpdateForResidentAsync(
         Guid residentId,
         Guid managementCompanyId,
-        LeaseUpdateDalDto dto,
+        LeaseDalDto dto,
         CancellationToken cancellationToken = default);
 
     Task<bool> UpdateForUnitAsync(
         Guid unitId,
         Guid propertyId,
         Guid managementCompanyId,
-        LeaseUpdateDalDto dto,
+        LeaseDalDto dto,
         CancellationToken cancellationToken = default);
 
     Task<bool> DeleteForResidentAsync(

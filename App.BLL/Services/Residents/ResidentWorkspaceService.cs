@@ -106,21 +106,21 @@ public class ResidentWorkspaceService : IResidentWorkspaceService
                 nameof(command.IdCode)));
         }
 
-        var created = await _uow.Residents.AddAsync(
-            new ResidentCreateDalDto
-            {
-                ManagementCompanyId = company.Value.ManagementCompanyId,
-                FirstName = normalizedFirstName,
-                LastName = normalizedLastName,
-                IdCode = normalizedIdCode,
-                PreferredLanguage = normalizedPreferredLanguage
-            },
-            cancellationToken);
+        var residentId = Guid.NewGuid();
+        _uow.Residents.Add(new ResidentDalDto
+        {
+            Id = residentId,
+            ManagementCompanyId = company.Value.ManagementCompanyId,
+            FirstName = normalizedFirstName,
+            LastName = normalizedLastName,
+            IdCode = normalizedIdCode,
+            PreferredLanguage = normalizedPreferredLanguage
+        });
 
         await _uow.SaveChangesAsync(cancellationToken);
 
         var profile = await _uow.Residents.FindProfileAsync(
-            created.Id,
+            residentId,
             company.Value.ManagementCompanyId,
             cancellationToken);
 

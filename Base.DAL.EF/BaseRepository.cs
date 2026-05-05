@@ -83,7 +83,9 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
     }
 
     private static Dictionary<string, PropertyInfo>? _domainEntityTypePropsLangStr = null;
-    public virtual async Task<TDALEntity> UpdateAsync(TDALEntity entity)
+    public virtual async Task<TDALEntity> UpdateAsync(TDALEntity entity,
+        TKey parentId = default!,
+        CancellationToken cancellationToken = default)
     {
         var domainEntityType = typeof(TDomainEntity);
 
@@ -100,16 +102,23 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
 
         var domainEntity = Mapper.Map(entity)!;
 
+        var query = RepositoryDbSet.AsQueryable();
+        if (!parentId.Equals(default))
+        {
+            query = ApplyIdorRestrictions(query, parentId);
+        }
+
         if (typeof(IHasCreatedAtMeta).IsAssignableFrom(domainEntityType))
         {
             var entityId = entity.Id;
-            var dbEntity = await RepositoryDbSet
+            var dbEntity = await query
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Id.Equals(entityId));
+                .FirstOrDefaultAsync(e => e.Id.Equals(entityId), cancellationToken);
 
             if (dbEntity == null)
             {
-                throw new ApplicationException($"Entity with id {entityId} not found, repository" + GetType().Name);
+                throw new InvalidOperationException(
+                    $"Entity with id {entityId} not found in repository {GetType().Name}.");
             }
 
             ((IHasCreatedAtMeta)domainEntity).CreatedAt = ((IHasCreatedAtMeta)dbEntity).CreatedAt;
@@ -145,13 +154,13 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
         }
     }
 
-    private IQueryable<TDomainEntity> ApplyIdorRestrictions(IQueryable<TDomainEntity> query, TKey parentId)
+    protected IQueryable<TDomainEntity> ApplyIdorRestrictions(IQueryable<TDomainEntity> query, TKey parentId)
     {
         var res = CheckManagementCompanyId(query, parentId);
         res = CheckCustomerId(res, parentId);
         return res;
     }
-    private IQueryable<TDomainEntity> CheckManagementCompanyId(IQueryable<TDomainEntity> query, TKey parentId)
+    protected IQueryable<TDomainEntity> CheckManagementCompanyId(IQueryable<TDomainEntity> query, TKey parentId)
     {
         if (typeof(IManagementCompanyId<TKey>).IsAssignableFrom(typeof(TDomainEntity)))
         {
@@ -160,7 +169,7 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
         return query;
     }
 
-    private IQueryable<TDomainEntity> CheckCustomerId(IQueryable<TDomainEntity> query, TKey parentId)
+    protected IQueryable<TDomainEntity> CheckCustomerId(IQueryable<TDomainEntity> query, TKey parentId)
     {
         if (typeof(ICustomerId<TKey>).IsAssignableFrom(typeof(TDomainEntity)))
         {

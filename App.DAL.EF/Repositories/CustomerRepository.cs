@@ -4,6 +4,7 @@ using App.DAL.DTO.Tickets;
 using App.DAL.EF.Mappers.Customers;
 using App.Domain;
 using Base.DAL.EF;
+using Base.Domain;
 using Microsoft.EntityFrameworkCore;
 
 namespace App.DAL.EF.Repositories;
@@ -87,40 +88,6 @@ public class CustomerRepository :
             .ToListAsync(cancellationToken);
 
         return properties;
-    }
-
-    public Task<CustomerDalDto> AddAsync(
-        CustomerCreateDalDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        var customer = new Customer
-        {
-            Id = Guid.NewGuid(),
-            ManagementCompanyId = dto.ManagementCompanyId,
-            Name = dto.Name,
-            Slug = dto.Slug,
-            RegistryCode = dto.RegistryCode,
-            BillingEmail = dto.BillingEmail,
-            BillingAddress = dto.BillingAddress,
-            Phone = dto.Phone,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _dbContext.Customers.Add(customer);
-
-        return Task.FromResult(new CustomerDalDto
-        {
-            Id = customer.Id,
-            ManagementCompanyId = customer.ManagementCompanyId,
-            Name = customer.Name,
-            Slug = customer.Slug,
-            RegistryCode = customer.RegistryCode,
-            BillingEmail = customer.BillingEmail,
-            BillingAddress = customer.BillingAddress,
-            Phone = customer.Phone,
-            Notes = customer.Notes?.ToString(),
-            CreatedAt = customer.CreatedAt
-        });
     }
 
     public async Task<bool> CustomerSlugExistsInCompanyAsync(
@@ -322,26 +289,53 @@ public class CustomerRepository :
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task UpdateProfileAsync(
-        CustomerUpdateDalDto dto,
+    public override async Task<CustomerDalDto> UpdateAsync(
+        CustomerDalDto dto,
+        Guid parentId = default,
         CancellationToken cancellationToken = default)
     {
+        var managementCompanyId = parentId == default ? dto.ManagementCompanyId : parentId;
+
         var customer = await _dbContext.Customers
             .AsTracking()
             .FirstOrDefaultAsync(
-                c => c.Id == dto.Id && c.ManagementCompanyId == dto.ManagementCompanyId,
+                c => c.Id == dto.Id && c.ManagementCompanyId == managementCompanyId,
                 cancellationToken);
 
         if (customer is null)
         {
-            return;
+            throw new ApplicationException($"Customer with id {dto.Id} was not found.");
         }
 
         customer.Name = dto.Name;
+        customer.Slug = dto.Slug;
         customer.RegistryCode = dto.RegistryCode;
         customer.BillingEmail = dto.BillingEmail;
         customer.BillingAddress = dto.BillingAddress;
         customer.Phone = dto.Phone;
+
+        if (dto.Notes is null)
+        {
+            return Mapper.Map(customer)!;
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.Notes))
+        {
+            customer.Notes = null;
+            _dbContext.Entry(customer).Property(entity => entity.Notes).IsModified = true;
+        }
+        else if (customer.Notes is null)
+        {
+            customer.Notes = new LangStr(dto.Notes.Trim());
+            _dbContext.Entry(customer).Property(entity => entity.Notes).IsModified = true;
+        }
+        else
+        {
+            customer.Notes.SetTranslation(dto.Notes.Trim());
+            _dbContext.Entry(customer).Property(entity => entity.Notes).IsModified = true;
+        }
+
+        return Mapper.Map(customer)!;
     }
 
     public async Task<bool> DeleteAsync(

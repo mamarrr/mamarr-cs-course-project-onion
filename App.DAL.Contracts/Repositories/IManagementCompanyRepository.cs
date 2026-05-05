@@ -33,10 +33,6 @@ public interface IManagementCompanyRepository : IBaseRepository<ManagementCompan
     Task<IReadOnlyList<string>> AllSlugsAsync(
         CancellationToken cancellationToken = default);
 
-    Task<ManagementCompanyDalDto> AddManagementCompanyAsync(
-        ManagementCompanyCreateDalDto dto,
-        CancellationToken cancellationToken = default);
-
     Task<IReadOnlyList<ManagementCompanyContextDalDto>> ActiveUserManagementContextsAsync(
         Guid appUserId,
         CancellationToken cancellationToken = default);
@@ -98,10 +94,6 @@ public interface IManagementCompanyRepository : IBaseRepository<ManagementCompan
     Task<bool> RemoveMembershipAsync(
         Guid membershipId,
         Guid managementCompanyId,
-        CancellationToken cancellationToken = default);
-
-    Task<bool> UpdateProfileAsync(
-        ManagementCompanyProfileUpdateDalDto dto,
         CancellationToken cancellationToken = default);
 
     Task<bool> SetMembershipRoleAsync(

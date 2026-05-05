@@ -1,10 +1,9 @@
-using Base.Contracts;
+using Base.Domain;
 
 namespace App.DAL.DTO.Customers;
 
-public class CustomerDalDto : IBaseEntity
+public class CustomerDalDto : BaseEntity
 {
-    public Guid Id { get; set; }
     public Guid ManagementCompanyId { get; set; }
     public string Name { get; set; } = default!;
     public string Slug { get; set; } = default!;
@@ -13,6 +12,4 @@ public class CustomerDalDto : IBaseEntity
     public string? BillingAddress { get; set; }
     public string? Phone { get; set; }
     public string? Notes { get; set; }
-    
-    public DateTime CreatedAt { get; set; }
 }

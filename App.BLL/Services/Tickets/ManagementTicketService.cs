@@ -385,8 +385,8 @@ public class ManagementTicketService : IManagementTicketService
             return Result.Fail(new ConflictError(T("TicketNumberAlreadyExists", "Ticket number already exists in this company.")));
         }
 
-        var updated = await _uow.Tickets.UpdateAsync(
-            new TicketUpdateDalDto
+        await _uow.Tickets.UpdateAsync(
+            new TicketDalDto
             {
                 Id = command.TicketId,
                 ManagementCompanyId = workspace.Value.ManagementCompanyId,
@@ -405,12 +405,8 @@ public class ManagementTicketService : IManagementTicketService
                 DueAt = command.DueAt,
                 ClosedAt = targetStatus.Code == TicketWorkflowConstants.Closed ? DateTime.UtcNow : null
             },
+            workspace.Value.ManagementCompanyId,
             cancellationToken);
-
-        if (!updated)
-        {
-            return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
-        }
 
         await _uow.SaveChangesAsync(cancellationToken);
         return Result.Ok();

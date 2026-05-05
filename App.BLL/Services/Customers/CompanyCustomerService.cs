@@ -111,8 +111,10 @@ public class CompanyCustomerService : ICompanyCustomerService
             SlugGenerator.GenerateSlug(normalized.Name),
             customers.Select(customer => customer.Slug));
 
-        var createDto = new CustomerCreateDalDto
+        var customerId = Guid.NewGuid();
+        var createDto = new CustomerDalDto
         {
+            Id = customerId,
             ManagementCompanyId = access.Value.ManagementCompanyId,
             Name = normalized.Name,
             Slug = slug,
@@ -122,10 +124,10 @@ public class CompanyCustomerService : ICompanyCustomerService
             Phone = normalized.Phone,
         };
 
-        var created = await _uow.Customers.AddAsync(createDto, cancellationToken);
+        _uow.Customers.Add(createDto);
         await _uow.SaveChangesAsync(cancellationToken);
 
-        return Result.Ok(CustomerWorkspaceBllMapper.MapCreated(created, access.Value, createDto));
+        return Result.Ok(CustomerWorkspaceBllMapper.MapCreated(createDto, access.Value));
     }
 
     private static Result Validate(CreateCustomerCommand command)

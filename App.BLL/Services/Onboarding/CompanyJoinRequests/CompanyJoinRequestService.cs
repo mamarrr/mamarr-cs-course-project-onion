@@ -75,7 +75,7 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
         }
 
         var requestId = Guid.NewGuid();
-        _uow.ManagementCompanyJoinRequests.AddJoinRequest(new ManagementCompanyJoinRequestCreateDalDto
+        _uow.ManagementCompanyJoinRequests.Add(new ManagementCompanyJoinRequestDalDto
         {
             Id = requestId,
             AppUserId = command.AppUserId,
@@ -83,7 +83,6 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             RequestedRoleId = command.RequestedRoleId,
             StatusId = pendingStatus.Id,
             Message = string.IsNullOrWhiteSpace(command.Message) ? null : command.Message.Trim(),
-            CreatedAt = DateTime.UtcNow
         });
 
         try

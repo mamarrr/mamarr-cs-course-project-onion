@@ -136,10 +136,12 @@ public class PropertyWorkspaceService : IPropertyWorkspaceService
             SlugGenerator.GenerateSlug(normalized.Name),
             properties.Select(property => property.Slug));
 
-        var createDto = new PropertyCreateDalDto
+        var propertyId = Guid.NewGuid();
+        var createDto = new PropertyDalDto
         {
+            Id = propertyId,
             CustomerId = customer.Value.CustomerId,
-            Name = normalized.Name,
+            Label = normalized.Name,
             Slug = slug,
             AddressLine = normalized.AddressLine,
             City = normalized.City,
@@ -148,11 +150,11 @@ public class PropertyWorkspaceService : IPropertyWorkspaceService
             Notes = normalized.Notes,
         };
 
-        var created = await _uow.Properties.AddAsync(createDto, cancellationToken);
+        _uow.Properties.Add(createDto);
         await _uow.SaveChangesAsync(cancellationToken);
 
         var profile = await _uow.Properties.FindProfileAsync(
-            created.Id,
+            propertyId,
             customer.Value.CustomerId,
             cancellationToken);
 

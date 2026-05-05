@@ -23,7 +23,6 @@ public class ManagementCompanyDalMapper : IBaseMapper<ManagementCompanyDalDto, M
             Email = entity.Email,
             Phone = entity.Phone,
             Address = entity.Address,
-            CreatedAt = entity.CreatedAt,
         };
     }
 
@@ -44,7 +43,6 @@ public class ManagementCompanyDalMapper : IBaseMapper<ManagementCompanyDalDto, M
             Email = entity.Email,
             Phone = entity.Phone,
             Address = entity.Address,
-            CreatedAt = entity.CreatedAt,
         };
     }
 }

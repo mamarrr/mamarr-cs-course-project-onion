@@ -20,8 +20,7 @@ public class ResidentDalMapper : IBaseMapper<ResidentDalDto, Resident>
             FirstName = entity.FirstName,
             LastName = entity.LastName,
             IdCode = entity.IdCode,
-            PreferredLanguage = entity.PreferredLanguage,
-            CreatedAt = entity.CreatedAt
+            PreferredLanguage = entity.PreferredLanguage
         };
     }
 
@@ -39,8 +38,7 @@ public class ResidentDalMapper : IBaseMapper<ResidentDalDto, Resident>
             FirstName = entity.FirstName,
             LastName = entity.LastName,
             IdCode = entity.IdCode,
-            PreferredLanguage = entity.PreferredLanguage,
-            CreatedAt = entity.CreatedAt
+            PreferredLanguage = entity.PreferredLanguage
         };
     }
 }

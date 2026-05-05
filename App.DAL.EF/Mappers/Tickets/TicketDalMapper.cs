@@ -30,7 +30,6 @@ public class TicketDalMapper : IBaseMapper<TicketDalDto, Ticket>
             UnitId = entity.UnitId,
             ResidentId = entity.ResidentId,
             VendorId = entity.VendorId,
-            CreatedAt = entity.CreatedAt,
             DueAt = entity.DueAt,
             ClosedAt = entity.ClosedAt
         };
@@ -58,7 +57,6 @@ public class TicketDalMapper : IBaseMapper<TicketDalDto, Ticket>
             UnitId = entity.UnitId,
             ResidentId = entity.ResidentId,
             VendorId = entity.VendorId,
-            CreatedAt = entity.CreatedAt,
             DueAt = entity.DueAt,
             ClosedAt = entity.ClosedAt
         };

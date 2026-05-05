@@ -229,57 +229,27 @@ public class PropertyRepository :
             .ToList();
     }
 
-    public Task<PropertyDalDto> AddAsync(
-        PropertyCreateDalDto dto,
+    public override async Task<PropertyDalDto> UpdateAsync(
+        PropertyDalDto dto,
+        Guid parentId = default,
         CancellationToken cancellationToken = default)
     {
-        var property = new Property
-        {
-            Id = Guid.NewGuid(),
-            CustomerId = dto.CustomerId,
-            PropertyTypeId = dto.PropertyTypeId,
-            Label = dto.Name,
-            Slug = dto.Slug,
-            AddressLine = dto.AddressLine,
-            City = dto.City,
-            PostalCode = dto.PostalCode,
-            Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : new LangStr(dto.Notes.Trim()),
-            CreatedAt = DateTime.UtcNow
-        };
+        var customerId = parentId == default ? dto.CustomerId : parentId;
 
-        _dbContext.Properties.Add(property);
-
-        return Task.FromResult(new PropertyDalDto
-        {
-            Id = property.Id,
-            CustomerId = property.CustomerId,
-            PropertyTypeId = property.PropertyTypeId,
-            Label = property.Label.ToString(),
-            Slug = property.Slug,
-            AddressLine = property.AddressLine,
-            City = property.City,
-            PostalCode = property.PostalCode,
-            Notes = property.Notes?.ToString(),
-            CreatedAt = property.CreatedAt
-        });
-    }
-
-    public async Task UpdateProfileAsync(
-        PropertyUpdateDalDto dto,
-        CancellationToken cancellationToken = default)
-    {
         var property = await _dbContext.Properties
             .AsTracking()
             .FirstOrDefaultAsync(
-                entity => entity.Id == dto.Id && entity.CustomerId == dto.CustomerId,
+                entity => entity.Id == dto.Id && entity.CustomerId == customerId,
                 cancellationToken);
 
         if (property is null)
         {
-            return;
+            throw new ApplicationException($"Property with id {dto.Id} was not found.");
         }
 
-        property.Label.SetTranslation(dto.Name);
+        property.PropertyTypeId = dto.PropertyTypeId;
+        property.Slug = dto.Slug;
+        property.Label.SetTranslation(dto.Label);
         _dbContext.Entry(property).Property(entity => entity.Label).IsModified = true;
 
         property.AddressLine = dto.AddressLine;
@@ -299,6 +269,8 @@ public class PropertyRepository :
             property.Notes.SetTranslation(dto.Notes.Trim());
             _dbContext.Entry(property).Property(entity => entity.Notes).IsModified = true;
         }
+
+        return Mapper.Map(property)!;
     }
 
     public async Task<bool> DeleteAsync(

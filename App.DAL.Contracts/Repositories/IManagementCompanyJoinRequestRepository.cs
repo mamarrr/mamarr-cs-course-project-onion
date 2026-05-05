@@ -21,8 +21,6 @@ public interface IManagementCompanyJoinRequestRepository : IBaseRepository<Manag
         Guid pendingStatusId,
         CancellationToken cancellationToken = default);
 
-    void AddJoinRequest(ManagementCompanyJoinRequestCreateDalDto dto);
-
     Task<bool> SetStatusAsync(
         Guid requestId,
         Guid managementCompanyId,

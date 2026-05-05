@@ -54,8 +54,7 @@ public static class CustomerWorkspaceBllMapper
 
     public static CompanyCustomerModel MapCreated(
         CustomerDalDto customer,
-        CompanyWorkspaceModel company,
-        CustomerCreateDalDto source)
+        CompanyWorkspaceModel company)
     {
         return new CompanyCustomerModel
         {
@@ -66,9 +65,9 @@ public static class CustomerWorkspaceBllMapper
             CustomerSlug = customer.Slug,
             Name = customer.Name,
             RegistryCode = customer.RegistryCode,
-            BillingEmail = source.BillingEmail,
-            BillingAddress = source.BillingAddress,
-            Phone = source.Phone,
+            BillingEmail = customer.BillingEmail,
+            BillingAddress = customer.BillingAddress,
+            Phone = customer.Phone,
         };
     }
 }

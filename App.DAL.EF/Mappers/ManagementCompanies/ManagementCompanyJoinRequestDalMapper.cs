@@ -23,7 +23,6 @@ public class ManagementCompanyJoinRequestDalMapper :
             RequestedRoleId = entity.RequestedManagementCompanyRoleId,
             StatusId = entity.ManagementCompanyJoinRequestStatusId,
             Message = entity.Message?.ToString(),
-            CreatedAt = entity.CreatedAt,
             ResolvedAt = entity.ResolvedAt,
             ResolvedByAppUserId = entity.ResolvedByAppUserId
         };
@@ -44,7 +43,6 @@ public class ManagementCompanyJoinRequestDalMapper :
             RequestedManagementCompanyRoleId = entity.RequestedRoleId,
             ManagementCompanyJoinRequestStatusId = entity.StatusId,
             Message = string.IsNullOrWhiteSpace(entity.Message) ? null : new LangStr(entity.Message.Trim()),
-            CreatedAt = entity.CreatedAt,
             ResolvedAt = entity.ResolvedAt,
             ResolvedByAppUserId = entity.ResolvedByAppUserId
         };

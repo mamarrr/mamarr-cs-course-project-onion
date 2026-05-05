@@ -57,20 +57,18 @@ public class AccountOnboardingService : IAccountOnboardingService
                 await _uow.ManagementCompanies.AllSlugsAsync(cancellationToken));
 
             var companyId = Guid.NewGuid();
-            var company = await _uow.ManagementCompanies.AddManagementCompanyAsync(
-                new ManagementCompanyCreateDalDto
-                {
-                    Id = companyId,
-                    Name = companyName,
-                    Slug = companySlug,
-                    RegistryCode = registryCode,
-                    VatNumber = command.VatNumber.Trim(),
-                    Email = command.Email.Trim(),
-                    Phone = command.Phone.Trim(),
-                    Address = command.Address.Trim(),
-                    CreatedAt = now,
-                },
-                cancellationToken);
+            var company = new ManagementCompanyDalDto
+            {
+                Id = companyId,
+                Name = companyName,
+                Slug = companySlug,
+                RegistryCode = registryCode,
+                VatNumber = command.VatNumber.Trim(),
+                Email = command.Email.Trim(),
+                Phone = command.Phone.Trim(),
+                Address = command.Address.Trim(),
+            };
+            _uow.ManagementCompanies.Add(company);
 
             _uow.ManagementCompanies.AddMembership(new ManagementCompanyMembershipCreateDalDto
             {

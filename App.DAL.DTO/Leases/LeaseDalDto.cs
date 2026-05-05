@@ -1,10 +1,9 @@
-using Base.Contracts;
+using Base.Domain;
 
 namespace App.DAL.DTO.Leases;
 
-public class LeaseDalDto : IBaseEntity
+public class LeaseDalDto : BaseEntity
 {
-    public Guid Id { get; set; }
     public Guid UnitId { get; init; }
     public Guid ResidentId { get; init; }
     public Guid LeaseRoleId { get; init; }

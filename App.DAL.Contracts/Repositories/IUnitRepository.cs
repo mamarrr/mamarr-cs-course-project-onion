@@ -61,14 +61,6 @@ public interface IUnitRepository : IBaseRepository<UnitDalDto>
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
-    Task<UnitDalDto> AddAsync(
-        UnitCreateDalDto dto,
-        CancellationToken cancellationToken = default);
-
-    Task UpdateAsync(
-        UnitUpdateDalDto dto,
-        CancellationToken cancellationToken = default);
-
     Task<bool> DeleteAsync(
         Guid unitId,
         Guid propertyId,

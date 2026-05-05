@@ -47,14 +47,6 @@ public interface IPropertyRepository : IBaseRepository<PropertyDalDto>
         string? searchTerm,
         CancellationToken cancellationToken = default);
 
-    Task<PropertyDalDto> AddAsync(
-        PropertyCreateDalDto dto,
-        CancellationToken cancellationToken = default);
-
-    Task UpdateProfileAsync(
-        PropertyUpdateDalDto dto,
-        CancellationToken cancellationToken = default);
-
     Task<bool> DeleteAsync(
         Guid propertyId,
         Guid customerId,

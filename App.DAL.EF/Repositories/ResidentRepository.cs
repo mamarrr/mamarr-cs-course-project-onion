@@ -267,56 +267,6 @@ public class ResidentRepository :
             .ToListAsync(cancellationToken);
     }
 
-    public Task<ResidentDalDto> AddAsync(
-        ResidentCreateDalDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        var resident = new Resident
-        {
-            Id = Guid.NewGuid(),
-            ManagementCompanyId = dto.ManagementCompanyId,
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
-            IdCode = dto.IdCode,
-            PreferredLanguage = dto.PreferredLanguage,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _dbContext.Residents.Add(resident);
-
-        return Task.FromResult(new ResidentDalDto
-        {
-            Id = resident.Id,
-            ManagementCompanyId = resident.ManagementCompanyId,
-            FirstName = resident.FirstName,
-            LastName = resident.LastName,
-            IdCode = resident.IdCode,
-            PreferredLanguage = resident.PreferredLanguage,
-            CreatedAt = resident.CreatedAt
-        });
-    }
-
-    public async Task UpdateAsync(
-        ResidentUpdateDalDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        var resident = await _dbContext.Residents
-            .AsTracking()
-            .FirstOrDefaultAsync(
-                entity => entity.Id == dto.Id && entity.ManagementCompanyId == dto.ManagementCompanyId,
-                cancellationToken);
-
-        if (resident is null)
-        {
-            return;
-        }
-
-        resident.FirstName = dto.FirstName;
-        resident.LastName = dto.LastName;
-        resident.IdCode = dto.IdCode;
-        resident.PreferredLanguage = dto.PreferredLanguage;
-    }
-
     public async Task<bool> DeleteAsync(
         Guid residentId,
         Guid managementCompanyId,

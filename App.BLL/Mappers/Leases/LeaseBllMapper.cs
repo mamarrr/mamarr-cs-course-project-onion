@@ -144,27 +144,4 @@ public static class LeaseBllMapper
         };
     }
 
-    public static LeaseUpdateDalDto ToUpdateDalDto(UpdateLeaseFromResidentCommand command)
-    {
-        return new LeaseUpdateDalDto
-        {
-            LeaseId = command.LeaseId,
-            LeaseRoleId = command.LeaseRoleId,
-            StartDate = command.StartDate,
-            EndDate = command.EndDate,
-            Notes = command.Notes
-        };
-    }
-
-    public static LeaseUpdateDalDto ToUpdateDalDto(UpdateLeaseFromUnitCommand command)
-    {
-        return new LeaseUpdateDalDto
-        {
-            LeaseId = command.LeaseId,
-            LeaseRoleId = command.LeaseRoleId,
-            StartDate = command.StartDate,
-            EndDate = command.EndDate,
-            Notes = command.Notes
-        };
-    }
 }

@@ -18,10 +18,6 @@ public interface ICustomerRepository : IBaseRepository<CustomerDalDto>
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
-    Task<CustomerDalDto> AddAsync(
-        CustomerCreateDalDto dto,
-        CancellationToken cancellationToken = default);
-
     Task<bool> CustomerSlugExistsInCompanyAsync(
         Guid managementCompanyId,
         string slug,
@@ -69,10 +65,6 @@ public interface ICustomerRepository : IBaseRepository<CustomerDalDto>
     Task<string?> FindActiveManagementCompanyRoleCodeAsync(
         Guid managementCompanyId,
         Guid appUserId,
-        CancellationToken cancellationToken = default);
-
-    Task UpdateProfileAsync(
-        CustomerUpdateDalDto dto,
         CancellationToken cancellationToken = default);
 
     Task<bool> DeleteAsync(

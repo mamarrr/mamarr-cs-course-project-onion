@@ -81,15 +81,17 @@ public class UnitProfileService : IUnitProfileService
         }
 
         await _uow.Units.UpdateAsync(
-            new UnitUpdateDalDto
+            new UnitDalDto
             {
                 Id = workspace.Value.UnitId,
                 PropertyId = workspace.Value.PropertyId,
                 UnitNr = command.UnitNr.Trim(),
+                Slug = profile.Slug,
                 FloorNr = command.FloorNr,
                 SizeM2 = command.SizeM2,
                 Notes = string.IsNullOrWhiteSpace(command.Notes) ? null : command.Notes.Trim(),
             },
+            workspace.Value.PropertyId,
             cancellationToken);
 
         await _uow.SaveChangesAsync(cancellationToken);

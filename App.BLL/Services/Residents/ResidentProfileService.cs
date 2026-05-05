@@ -88,7 +88,7 @@ public class ResidentProfileService : IResidentProfileService
         }
 
         await _uow.Residents.UpdateAsync(
-            new ResidentUpdateDalDto
+            new ResidentDalDto
             {
                 Id = workspace.Value.ResidentId,
                 ManagementCompanyId = workspace.Value.ManagementCompanyId,
@@ -97,6 +97,7 @@ public class ResidentProfileService : IResidentProfileService
                 IdCode = normalizedIdCode,
                 PreferredLanguage = normalizedPreferredLanguage,
             },
+            workspace.Value.ManagementCompanyId,
             cancellationToken);
 
         await _uow.SaveChangesAsync(cancellationToken);

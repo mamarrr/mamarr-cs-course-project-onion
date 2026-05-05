@@ -239,53 +239,26 @@ public class UnitRepository :
             .ToListAsync(cancellationToken);
     }
 
-    public Task<UnitDalDto> AddAsync(
-        UnitCreateDalDto dto,
+    public override async Task<UnitDalDto> UpdateAsync(
+        UnitDalDto dto,
+        Guid parentId = default,
         CancellationToken cancellationToken = default)
     {
-        var unit = new Unit
-        {
-            Id = Guid.NewGuid(),
-            PropertyId = dto.PropertyId,
-            UnitNr = dto.UnitNr,
-            Slug = dto.Slug,
-            FloorNr = dto.FloorNr,
-            SizeM2 = dto.SizeM2,
-            Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : new LangStr(dto.Notes.Trim()),
-            CreatedAt = DateTime.UtcNow
-        };
+        var propertyId = parentId == default ? dto.PropertyId : parentId;
 
-        _dbContext.Units.Add(unit);
-
-        return Task.FromResult(new UnitDalDto
-        {
-            Id = unit.Id,
-            PropertyId = unit.PropertyId,
-            UnitNr = unit.UnitNr,
-            Slug = unit.Slug,
-            FloorNr = unit.FloorNr,
-            SizeM2 = unit.SizeM2,
-            Notes = unit.Notes?.ToString(),
-            CreatedAt = unit.CreatedAt
-        });
-    }
-
-    public async Task UpdateAsync(
-        UnitUpdateDalDto dto,
-        CancellationToken cancellationToken = default)
-    {
         var unit = await _dbContext.Units
             .AsTracking()
             .FirstOrDefaultAsync(
-                entity => entity.Id == dto.Id && entity.PropertyId == dto.PropertyId,
+                entity => entity.Id == dto.Id && entity.PropertyId == propertyId,
                 cancellationToken);
 
         if (unit is null)
         {
-            return;
+            throw new ApplicationException($"Unit with id {dto.Id} was not found.");
         }
 
         unit.UnitNr = dto.UnitNr;
+        unit.Slug = dto.Slug;
         unit.FloorNr = dto.FloorNr;
         unit.SizeM2 = dto.SizeM2;
         if (string.IsNullOrWhiteSpace(dto.Notes))
@@ -303,6 +276,8 @@ public class UnitRepository :
             unit.Notes.SetTranslation(dto.Notes.Trim());
             _dbContext.Entry(unit).Property(entity => entity.Notes).IsModified = true;
         }
+
+        return Mapper.Map(unit)!;
     }
 
     public async Task<bool> DeleteAsync(

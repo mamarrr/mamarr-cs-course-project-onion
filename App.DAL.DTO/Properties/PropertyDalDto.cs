@@ -1,10 +1,9 @@
-using Base.Contracts;
+using Base.Domain;
 
 namespace App.DAL.DTO.Properties;
 
-public class PropertyDalDto : IBaseEntity
+public class PropertyDalDto : BaseEntity
 {
-    public Guid Id { get; set; }
     public Guid CustomerId { get; set; }
     public Guid PropertyTypeId { get; set; }
     public string Label { get; set; } = default!;
@@ -13,6 +12,4 @@ public class PropertyDalDto : IBaseEntity
     public string City { get; set; } = default!;
     public string PostalCode { get; set; } = default!;
     public string? Notes { get; set; }
-    
-    public DateTime CreatedAt { get; set; }
 }

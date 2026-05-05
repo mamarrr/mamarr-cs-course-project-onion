@@ -21,7 +21,6 @@ public class ContactDalMapper : IBaseMapper<ContactDalDto, Contact>
             ManagementCompanyId = entity.ManagementCompanyId,
             ContactTypeId = entity.ContactTypeId,
             ContactValue = entity.ContactValue,
-            CreatedAt = entity.CreatedAt,
             Notes = entity.Notes?.ToString()
         };
     }
@@ -39,7 +38,6 @@ public class ContactDalMapper : IBaseMapper<ContactDalDto, Contact>
             ManagementCompanyId = entity.ManagementCompanyId,
             ContactTypeId = entity.ContactTypeId,
             ContactValue = entity.ContactValue,
-            CreatedAt = entity.CreatedAt,
             Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim())
         };
     }

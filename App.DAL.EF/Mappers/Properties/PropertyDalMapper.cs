@@ -24,8 +24,7 @@ public class PropertyDalMapper : IBaseMapper<PropertyDalDto, Property>
             AddressLine = entity.AddressLine,
             City = entity.City,
             PostalCode = entity.PostalCode,
-            Notes = entity.Notes?.ToString(),
-            CreatedAt = entity.CreatedAt
+            Notes = entity.Notes?.ToString()
         };
     }
 
@@ -46,9 +45,7 @@ public class PropertyDalMapper : IBaseMapper<PropertyDalDto, Property>
             AddressLine = entity.AddressLine,
             City = entity.City,
             PostalCode = entity.PostalCode,
-            Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim()),
-            
-            CreatedAt = entity.CreatedAt
+            Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim())
         };
     }
 }

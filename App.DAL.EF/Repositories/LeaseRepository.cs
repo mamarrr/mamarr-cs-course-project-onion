@@ -154,44 +154,16 @@ public class LeaseRepository :
             .AnyAsync(entity => !entity.EndDate.HasValue || entity.EndDate.Value >= startDate, cancellationToken);
     }
 
-    public Task<LeaseDalDto> AddAsync(
-        LeaseCreateDalDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        var lease = new Lease
-        {
-            Id = Guid.NewGuid(),
-            UnitId = dto.UnitId,
-            ResidentId = dto.ResidentId,
-            LeaseRoleId = dto.LeaseRoleId,
-            StartDate = dto.StartDate,
-            EndDate = dto.EndDate,
-            Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : new LangStr(dto.Notes.Trim())
-        };
-
-        _dbContext.Leases.Add(lease);
-        return Task.FromResult(new LeaseDalDto
-        {
-            Id = lease.Id,
-            UnitId = lease.UnitId,
-            ResidentId = lease.ResidentId,
-            LeaseRoleId = lease.LeaseRoleId,
-            StartDate = lease.StartDate,
-            EndDate = lease.EndDate,
-            Notes = lease.Notes == null ? null : lease.Notes.ToString()
-        });
-    }
-
     public async Task<bool> UpdateForResidentAsync(
         Guid residentId,
         Guid managementCompanyId,
-        LeaseUpdateDalDto dto,
+        LeaseDalDto dto,
         CancellationToken cancellationToken = default)
     {
         var lease = await _dbContext.Leases
             .AsTracking()
             .FirstOrDefaultAsync(
-                entity => entity.Id == dto.LeaseId
+                entity => entity.Id == dto.Id
                           && entity.ResidentId == residentId
                           && entity.Resident!.ManagementCompanyId == managementCompanyId,
                 cancellationToken);
@@ -209,13 +181,13 @@ public class LeaseRepository :
         Guid unitId,
         Guid propertyId,
         Guid managementCompanyId,
-        LeaseUpdateDalDto dto,
+        LeaseDalDto dto,
         CancellationToken cancellationToken = default)
     {
         var lease = await _dbContext.Leases
             .AsTracking()
             .FirstOrDefaultAsync(
-                entity => entity.Id == dto.LeaseId
+                entity => entity.Id == dto.Id
                           && entity.UnitId == unitId
                           && entity.Unit!.PropertyId == propertyId
                           && entity.Resident!.ManagementCompanyId == managementCompanyId,
@@ -283,7 +255,7 @@ public class LeaseRepository :
         return _dbContext.Leases.AsNoTracking();
     }
 
-    private void ApplyUpdate(Lease lease, LeaseUpdateDalDto dto)
+    private void ApplyUpdate(Lease lease, LeaseDalDto dto)
     {
         lease.LeaseRoleId = dto.LeaseRoleId;
         lease.StartDate = dto.StartDate;

@@ -1,10 +1,9 @@
-using Base.Contracts;
+using Base.Domain;
 
 namespace App.DAL.DTO.Tickets;
 
-public class TicketDalDto : IBaseEntity
+public class TicketDalDto : BaseEntity
 {
-    public Guid Id { get; set; }
     public Guid ManagementCompanyId { get; init; }
     public string TicketNr { get; init; } = default!;
     public string Title { get; init; } = default!;
@@ -18,7 +17,6 @@ public class TicketDalDto : IBaseEntity
     public Guid? UnitId { get; init; }
     public Guid? ResidentId { get; init; }
     public Guid? VendorId { get; init; }
-    public DateTime CreatedAt { get; init; }
     public DateTime? DueAt { get; init; }
     public DateTime? ClosedAt { get; init; }
 }
@@ -128,26 +126,6 @@ public class TicketCreateDalDto
     public Guid? ResidentId { get; init; }
     public Guid? VendorId { get; init; }
     public DateTime? DueAt { get; init; }
-}
-
-public class TicketUpdateDalDto
-{
-    public Guid Id { get; init; }
-    public Guid ManagementCompanyId { get; init; }
-    public string TicketNr { get; init; } = default!;
-    public string Title { get; init; } = default!;
-    public string Description { get; init; } = default!;
-    public string Culture { get; init; } = default!;
-    public Guid TicketCategoryId { get; init; }
-    public Guid TicketStatusId { get; init; }
-    public Guid TicketPriorityId { get; init; }
-    public Guid? CustomerId { get; init; }
-    public Guid? PropertyId { get; init; }
-    public Guid? UnitId { get; init; }
-    public Guid? ResidentId { get; init; }
-    public Guid? VendorId { get; init; }
-    public DateTime? DueAt { get; init; }
-    public DateTime? ClosedAt { get; init; }
 }
 
 public class TicketStatusUpdateDalDto

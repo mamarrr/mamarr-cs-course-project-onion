@@ -22,8 +22,7 @@ public class UnitDalMapper : IBaseMapper<UnitDalDto, Unit>
             Slug = entity.Slug,
             FloorNr = entity.FloorNr,
             SizeM2 = entity.SizeM2,
-            Notes = entity.Notes?.ToString(),
-            CreatedAt = entity.CreatedAt
+            Notes = entity.Notes?.ToString()
         };
     }
 
@@ -42,8 +41,7 @@ public class UnitDalMapper : IBaseMapper<UnitDalDto, Unit>
             Slug = entity.Slug,
             FloorNr = entity.FloorNr,
             SizeM2 = entity.SizeM2,
-            Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim()),
-            CreatedAt = entity.CreatedAt
+            Notes = string.IsNullOrWhiteSpace(entity.Notes) ? null : new LangStr(entity.Notes.Trim())
         };
     }
 }

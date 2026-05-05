@@ -93,17 +93,19 @@ public class CustomerProfileService : ICustomerProfileService
                 nameof(command.RegistryCode)));
         }
 
-        await _uow.Customers.UpdateProfileAsync(
-            new CustomerUpdateDalDto
+        await _uow.Customers.UpdateAsync(
+            new CustomerDalDto
             {
                 Id = access.Value.CustomerId,
                 ManagementCompanyId = access.Value.ManagementCompanyId,
                 Name = normalized.Name,
+                Slug = profile.Slug,
                 RegistryCode = normalized.RegistryCode,
                 BillingEmail = normalized.BillingEmail,
                 BillingAddress = normalized.BillingAddress,
                 Phone = normalized.Phone,
             },
+            access.Value.ManagementCompanyId,
             cancellationToken);
 
         await _uow.SaveChangesAsync(cancellationToken);

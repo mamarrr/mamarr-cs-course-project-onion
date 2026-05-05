@@ -89,10 +89,19 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
                 nameof(request.RegistryCode)));
         }
 
-        var updated = await _uow.ManagementCompanies.UpdateProfileAsync(
-            new ManagementCompanyProfileUpdateDalDto
+        var profile = await _uow.ManagementCompanies.FirstProfileByIdAsync(
+            auth.Value.ManagementCompanyId,
+            cancellationToken);
+        if (profile is null)
+        {
+            return Result.Fail(new NotFoundError("Management company profile was not found."));
+        }
+
+        await _uow.ManagementCompanies.UpdateAsync(
+            new ManagementCompanyDalDto
             {
                 Id = auth.Value.ManagementCompanyId,
+                Slug = profile.Slug,
                 Name = request.Name.Trim(),
                 RegistryCode = normalizedRegistryCode,
                 VatNumber = request.VatNumber.Trim(),
@@ -100,12 +109,7 @@ public class ManagementCompanyProfileService : IManagementCompanyProfileService
                 Phone = request.Phone.Trim(),
                 Address = request.Address.Trim(),
             },
-            cancellationToken);
-
-        if (!updated)
-        {
-            return Result.Fail(new NotFoundError("Management company profile was not found."));
-        }
+            cancellationToken: cancellationToken);
 
         await _uow.SaveChangesAsync(cancellationToken);
 

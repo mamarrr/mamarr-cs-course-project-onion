@@ -20,8 +20,7 @@ public class VendorDalMapper : IBaseMapper<VendorDalDto, Vendor>
             ManagementCompanyId = entity.ManagementCompanyId,
             Name = entity.Name,
             RegistryCode = entity.RegistryCode,
-            Notes = entity.Notes.ToString(),
-            CreatedAt = entity.CreatedAt
+            Notes = entity.Notes.ToString()
         };
     }
 
@@ -38,8 +37,7 @@ public class VendorDalMapper : IBaseMapper<VendorDalDto, Vendor>
             ManagementCompanyId = entity.ManagementCompanyId,
             Name = entity.Name,
             RegistryCode = entity.RegistryCode,
-            Notes = new LangStr(entity.Notes),
-            CreatedAt = entity.CreatedAt
+            Notes = new LangStr(entity.Notes)
         };
     }
 }

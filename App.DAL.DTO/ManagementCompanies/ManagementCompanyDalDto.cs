@@ -1,10 +1,9 @@
-using Base.Contracts;
+using Base.Domain;
 
 namespace App.DAL.DTO.ManagementCompanies;
 
-public class ManagementCompanyDalDto : IBaseEntity
+public class ManagementCompanyDalDto : BaseEntity
 {
-    public Guid Id { get; set; }
     public string Name { get; init; } = default!;
     public string Slug { get; init; } = default!;
     public string RegistryCode { get; init; } = default!;
@@ -12,22 +11,6 @@ public class ManagementCompanyDalDto : IBaseEntity
     public string Email { get; init; } = default!;
     public string Phone { get; init; } = default!;
     public string Address { get; init; } = default!;
-    public DateTime CreatedAt { get; init; }
-    
-}
-
-public class ManagementCompanyCreateDalDto
-{
-    public Guid Id { get; init; }
-    public string Name { get; init; } = default!;
-    public string Slug { get; init; } = default!;
-    public string RegistryCode { get; init; } = default!;
-    public string VatNumber { get; init; } = default!;
-    public string Email { get; init; } = default!;
-    public string Phone { get; init; } = default!;
-    public string Address { get; init; } = default!;
-    public DateTime CreatedAt { get; init; }
-    
 }
 
 public class ManagementCompanyContextDalDto
@@ -43,9 +26,8 @@ public class ManagementCompanyContextDalDto
     public DateOnly? ValidTo { get; init; }
 }
 
-public class ManagementCompanyProfileDalDto : IBaseEntity
+public class ManagementCompanyProfileDalDto : BaseEntity
 {
-    public Guid Id { get; set; }
     public string Slug { get; init; } = default!;
     public string Name { get; init; } = default!;
     public string RegistryCode { get; init; } = default!;
@@ -56,21 +38,8 @@ public class ManagementCompanyProfileDalDto : IBaseEntity
     
 }
 
-public class ManagementCompanyProfileUpdateDalDto : IBaseEntity
+public class ManagementCompanyMembershipDalDto : BaseEntity
 {
-    public Guid Id { get; set; }
-    public string Name { get; init; } = default!;
-    public string RegistryCode { get; init; } = default!;
-    public string VatNumber { get; init; } = default!;
-    public string Email { get; init; } = default!;
-    public string Phone { get; init; } = default!;
-    public string Address { get; init; } = default!;
-    
-}
-
-public class ManagementCompanyMembershipDalDto : IBaseEntity
-{
-    public Guid Id { get; set; }
     public Guid ManagementCompanyId { get; init; }
     public Guid AppUserId { get; init; }
     public string CompanySlug { get; init; } = default!;
@@ -111,22 +80,19 @@ public class ManagementCompanyMembershipUpdateDalDto
     public DateOnly? ValidTo { get; init; }
 }
 
-public class ManagementCompanyJoinRequestDalDto : IBaseEntity
+public class ManagementCompanyJoinRequestDalDto : BaseEntity
 {
-    public Guid Id { get; set; }
     public Guid AppUserId { get; init; }
     public Guid ManagementCompanyId { get; init; }
     public Guid RequestedRoleId { get; init; }
     public Guid StatusId { get; init; }
     public string? Message { get; init; }
-    public DateTime CreatedAt { get; init; }
     public DateTime? ResolvedAt { get; init; }
     public Guid? ResolvedByAppUserId { get; init; }
 }
 
-public class ManagementCompanyJoinRequestDetailsDalDto : IBaseEntity
+public class ManagementCompanyJoinRequestDetailsDalDto : BaseEntity
 {
-    public Guid Id { get; set; }
     public Guid AppUserId { get; init; }
     public string RequesterFirstName { get; init; } = default!;
     public string RequesterLastName { get; init; } = default!;
@@ -142,15 +108,4 @@ public class ManagementCompanyJoinRequestDetailsDalDto : IBaseEntity
     public DateTime CreatedAt { get; init; }
     public DateTime? ResolvedAt { get; init; }
     public Guid? ResolvedByAppUserId { get; init; }
-}
-
-public class ManagementCompanyJoinRequestCreateDalDto
-{
-    public Guid Id { get; init; }
-    public Guid AppUserId { get; init; }
-    public Guid ManagementCompanyId { get; init; }
-    public Guid RequestedRoleId { get; init; }
-    public Guid StatusId { get; init; }
-    public string? Message { get; init; }
-    public DateTime CreatedAt { get; init; }
 }

@@ -55,14 +55,6 @@ public interface IResidentRepository : IBaseRepository<ResidentDalDto>
         string? searchTerm,
         CancellationToken cancellationToken = default);
 
-    Task<ResidentDalDto> AddAsync(
-        ResidentCreateDalDto dto,
-        CancellationToken cancellationToken = default);
-
-    Task UpdateAsync(
-        ResidentUpdateDalDto dto,
-        CancellationToken cancellationToken = default);
-
     Task<bool> DeleteAsync(
         Guid residentId,
         Guid managementCompanyId,

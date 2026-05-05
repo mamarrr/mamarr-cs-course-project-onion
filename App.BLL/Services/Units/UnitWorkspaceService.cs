@@ -115,22 +115,22 @@ public class UnitWorkspaceService : IUnitWorkspaceService
             cancellationToken);
         var uniqueSlug = SlugGenerator.EnsureUniqueSlug(baseSlug, existingSlugs);
 
-        var created = await _uow.Units.AddAsync(
-            new UnitCreateDalDto
-            {
-                PropertyId = property.Value.PropertyId,
-                UnitNr = normalizedUnitNr,
-                Slug = uniqueSlug,
-                FloorNr = command.FloorNr,
-                SizeM2 = command.SizeM2,
-                Notes = string.IsNullOrWhiteSpace(command.Notes) ? null : command.Notes.Trim()
-            },
-            cancellationToken);
+        var unitId = Guid.NewGuid();
+        _uow.Units.Add(new UnitDalDto
+        {
+            Id = unitId,
+            PropertyId = property.Value.PropertyId,
+            UnitNr = normalizedUnitNr,
+            Slug = uniqueSlug,
+            FloorNr = command.FloorNr,
+            SizeM2 = command.SizeM2,
+            Notes = string.IsNullOrWhiteSpace(command.Notes) ? null : command.Notes.Trim()
+        });
 
         await _uow.SaveChangesAsync(cancellationToken);
 
         var profile = await _uow.Units.FindProfileAsync(
-            created.Id,
+            unitId,
             property.Value.PropertyId,
             cancellationToken);
 
