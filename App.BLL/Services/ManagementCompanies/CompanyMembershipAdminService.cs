@@ -271,7 +271,6 @@ public class CompanyMembershipAdminService :
             JobTitle = request.JobTitle.Trim(),
             ValidFrom = request.ValidFrom,
             ValidTo = request.ValidTo,
-            CreatedAt = DateTime.UtcNow
         });
 
         await _uow.SaveChangesAsync(cancellationToken);
@@ -643,7 +642,6 @@ public class CompanyMembershipAdminService :
                     RoleId = joinRequest.RequestedRoleId,
                     JobTitle = "Employee",
                     ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow),
-                    CreatedAt = DateTime.UtcNow
                 });
             }
 

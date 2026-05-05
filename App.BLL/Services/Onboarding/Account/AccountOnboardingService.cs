@@ -78,7 +78,6 @@ public class AccountOnboardingService : IAccountOnboardingService
                 RoleId = initialRole.Id,
                 JobTitle = "Owner",
                 ValidFrom = DateOnly.FromDateTime(now),
-                CreatedAt = now
             });
 
             await _uow.SaveChangesAsync(cancellationToken);

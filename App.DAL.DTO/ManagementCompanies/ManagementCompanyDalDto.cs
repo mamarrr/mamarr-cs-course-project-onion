@@ -66,7 +66,6 @@ public class ManagementCompanyMembershipCreateDalDto
     
     public DateOnly ValidFrom { get; init; }
     public DateOnly? ValidTo { get; init; }
-    public DateTime CreatedAt { get; init; }
 }
 
 public class ManagementCompanyMembershipUpdateDalDto

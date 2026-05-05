@@ -333,7 +333,6 @@ public class ManagementCompanyRepository :
             JobTitle = new LangStr(dto.JobTitle),
             ValidFrom = dto.ValidFrom,
             ValidTo = dto.ValidTo,
-            CreatedAt = dto.CreatedAt
         });
     }
 
