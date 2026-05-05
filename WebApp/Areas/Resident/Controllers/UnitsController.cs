@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Leases;
@@ -16,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using WebApp.Mappers.Mvc.Leases;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Resident;
 
@@ -31,15 +31,18 @@ public class UnitsController : Controller
 
     private readonly IAppBLL _bll;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly LeaseViewModelMapper _leaseMapper;
 
     public UnitsController(
         IAppBLL bll,
         IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver,
         LeaseViewModelMapper leaseMapper)
     {
         _bll = bll;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
         _leaseMapper = leaseMapper;
     }
 
@@ -389,8 +392,7 @@ public class UnitsController : Controller
 
     private Guid? GetAppUserId()
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+        return _portalContextResolver.Resolve().AppUserId;
     }
 
     private static void ApplyCreateErrors(IReadOnlyList<IError> errors, ModelStateDictionary modelState)

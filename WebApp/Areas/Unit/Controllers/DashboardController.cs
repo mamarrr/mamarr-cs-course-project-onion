@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Units.Models;
