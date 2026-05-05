@@ -1,0 +1,96 @@
+@model WebApp.ViewModels.Property.UnitsPageViewModel
+
+@if (TempData["PropertyUnitsSuccess"] is string successMessage && !string.IsNullOrWhiteSpace(successMessage))
+{
+    <div class="alert alert-success" role="alert">@successMessage</div>
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <h2 class="mb-3">@App.Resources.Views.UiText.Units</h2>
+
+        @if (Model.Units.Count == 0)
+        {
+            <p class="management-muted mb-0">@App.Resources.Views.UiText.NoUnitsFound</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th>@App.Resources.Views.UiText.UnitNr</th>
+                        <th>@App.Resources.Views.UiText.FloorNr</th>
+                        <th>@App.Resources.Views.UiText.SizeM2</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var unit in Model.Units)
+                    {
+                        <tr>
+                            <td>
+                                <a href="@($"/m/{Model.CompanySlug}/c/{Model.CustomerSlug}/p/{Model.PropertySlug}/u/{unit.UnitSlug}")">
+                                    @unit.UnitNr
+                                </a>
+                            </td>
+                            <td>@(unit.FloorNr?.ToString() ?? "-")</td>
+                            <td>@(unit.SizeM2?.ToString("0.##") ?? "-")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <h2 class="mb-3">@App.Resources.Views.UiText.AddUnit</h2>
+
+        <form asp-area="Portal"
+              asp-controller="Units"
+              asp-action="AddUnit"
+              asp-route-companySlug="@Model.CompanySlug"
+              asp-route-customerSlug="@Model.CustomerSlug"
+              asp-route-propertySlug="@Model.PropertySlug"
+              method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="AddUnit.UnitNr" class="form-label">@App.Resources.Views.UiText.UnitNr</label>
+                    <input asp-for="AddUnit.UnitNr" class="form-control" />
+                    <span asp-validation-for="AddUnit.UnitNr" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="AddUnit.FloorNr" class="form-label">@App.Resources.Views.UiText.FloorNr</label>
+                    <input asp-for="AddUnit.FloorNr" class="form-control" />
+                    <span asp-validation-for="AddUnit.FloorNr" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="AddUnit.SizeM2" class="form-label">@App.Resources.Views.UiText.SizeM2</label>
+                    <input asp-for="AddUnit.SizeM2" class="form-control" />
+                    <span asp-validation-for="AddUnit.SizeM2" class="text-danger"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="AddUnit.Notes" class="form-label"></label>
+                    <textarea asp-for="AddUnit.Notes" class="form-control" rows="4"></textarea>
+                    <span asp-validation-for="AddUnit.Notes" class="text-danger"></span>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="management-btn primary">@App.Resources.Views.UiText.AddUnit</button>
+                </div>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

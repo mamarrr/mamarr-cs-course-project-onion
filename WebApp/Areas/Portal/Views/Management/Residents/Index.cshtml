@@ -1,0 +1,119 @@
+@model WebApp.ViewModels.Management.Residents.ResidentsPageViewModel
+@using App.Resources.Views
+@{
+    ViewData["Title"] = UiText.Residents;
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@UiText.Residents</p>
+                <h2 class="mb-2">@UiText.Residents</h2>
+                <p class="management-muted mb-0">@string.Format(UiText.ResidentsPageIntro, Model.CompanyName)</p>
+            </div>
+            <div class="d-flex flex-column align-items-lg-end gap-2">
+                <span class="management-badge @(Model.Residents.Count > 0 ? "success" : "warning")">
+                    @string.Format(UiText.ActiveRecords, Model.Residents.Count)
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <section class="management-card">
+        <h2>@UiText.AddResident</h2>
+        <p class="management-muted">@UiText.AddResidentDescription</p>
+
+        @if (TempData["ManagementResidentsSuccess"] is string successMessage)
+        {
+            <div class="alert alert-success" role="alert">@successMessage</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <form method="post" asp-action="Add" asp-route-companySlug="@Model.CompanySlug" class="row g-3">
+            @Html.AntiForgeryToken()
+
+            <div class="col-md-6">
+                <label asp-for="AddResident.FirstName" class="form-label"></label>
+                <input asp-for="AddResident.FirstName" class="form-control" />
+                <span asp-validation-for="AddResident.FirstName" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddResident.LastName" class="form-label"></label>
+                <input asp-for="AddResident.LastName" class="form-control" />
+                <span asp-validation-for="AddResident.LastName" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddResident.IdCode" class="form-label"></label>
+                <input asp-for="AddResident.IdCode" class="form-control" />
+                <span asp-validation-for="AddResident.IdCode" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddResident.PreferredLanguage" class="form-label"></label>
+                <input asp-for="AddResident.PreferredLanguage" class="form-control" />
+                <span asp-validation-for="AddResident.PreferredLanguage" class="text-danger"></span>
+            </div>
+            <div class="col-12">
+                <button type="submit" class="management-btn">@UiText.AddResident</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="management-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="mb-1">@UiText.CurrentResidents</h2>
+                <p class="management-muted mb-0">@UiText.CurrentResidentsDescription</p>
+            </div>
+        </div>
+
+        @if (Model.Residents.Count == 0)
+        {
+            <div class="border rounded p-3 bg-light-subtle">
+                <strong>@UiText.NoResidentsFound</strong>
+                <p class="management-muted mb-0">@UiText.NoResidentsFoundDescription</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>@UiText.Name</th>
+                        <th>@UiText.IdCode</th>
+                        <th>@UiText.PreferredLanguage</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var resident in Model.Residents)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-area="Portal"
+                                   asp-controller="Dashboard"
+                                   asp-action="Index"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-residentIdCode="@resident.IdCode">@resident.FullName</a>
+                            </td>
+                            <td>
+                                <a asp-area="Portal"
+                                   asp-controller="Dashboard"
+                                   asp-action="Index"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-residentIdCode="@resident.IdCode">@resident.IdCode</a>
+                            </td>
+                            <td>@(string.IsNullOrWhiteSpace(resident.PreferredLanguage) ? UiText.NoValuePlaceholder : resident.PreferredLanguage)</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

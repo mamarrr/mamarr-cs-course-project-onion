@@ -1,0 +1,157 @@
+@model WebApp.ViewModels.Management.Tickets.TicketDetailsPageViewModel
+@using App.Resources.Views
+@{
+    ViewData["Title"] = Model.TicketNr;
+    string Empty(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+}
+
+<div class="management-grid management-grid-2">
+    @if (TempData["ManagementTicketsSuccess"] is string successMessage)
+    {
+        <div class="alert alert-success" role="alert" style="grid-column: 1 / -1;">@successMessage</div>
+    }
+
+    @if (TempData["ManagementTicketsError"] is string errorMessage)
+    {
+        <div class="alert alert-danger" role="alert" style="grid-column: 1 / -1;">@errorMessage</div>
+    }
+
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-start">
+            <div>
+                <p class="management-eyebrow mb-2">@Model.TicketNr</p>
+                <h2 class="mb-2">@Model.Title</h2>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="management-badge">@Model.StatusLabel</span>
+                    <span class="management-badge">@Model.PriorityLabel</span>
+                    <span class="management-badge">@Model.CategoryLabel</span>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                @if (!string.IsNullOrWhiteSpace(Model.NextStatusLabel))
+                {
+                    <form method="post"
+                          asp-action="AdvanceStatus"
+                          asp-route-companySlug="@Model.CompanySlug"
+                          asp-route-ticketId="@Model.TicketId">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="management-btn">
+                            @string.Format(UiText.AdvanceToStatus, Model.NextStatusLabel)
+                        </button>
+                    </form>
+                }
+                <a class="btn btn-outline-secondary"
+                   asp-action="Edit"
+                   asp-route-companySlug="@Model.CompanySlug"
+                   asp-route-ticketId="@Model.TicketId">@UiText.Edit</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="management-card">
+        <h2>@UiText.TicketDescription</h2>
+        <p class="mb-0">@Model.Description</p>
+    </section>
+
+    <section class="management-card">
+        <h2>@UiText.TicketDates</h2>
+        <dl class="row mb-0">
+            <dt class="col-sm-4">@UiText.CreatedAt</dt>
+            <dd class="col-sm-8">@Model.CreatedAt.ToString("g")</dd>
+            <dt class="col-sm-4">@UiText.DueAt</dt>
+            <dd class="col-sm-8">@(Model.DueAt?.ToString("g") ?? "-")</dd>
+            <dt class="col-sm-4">@UiText.ClosedAt</dt>
+            <dd class="col-sm-8">@(Model.ClosedAt?.ToString("g") ?? "-")</dd>
+        </dl>
+    </section>
+
+    <section class="management-card">
+        <h2>@UiText.TicketContext</h2>
+        <dl class="row mb-0">
+            <dt class="col-sm-4">@UiText.Customers</dt>
+            <dd class="col-sm-8">
+                @if (!string.IsNullOrWhiteSpace(Model.CustomerName) && !string.IsNullOrWhiteSpace(Model.CustomerSlug))
+                {
+                    <a asp-area="Portal"
+                       asp-controller="CustomerDashboard"
+                       asp-action="Index"
+                       asp-route-companySlug="@Model.CompanySlug"
+                       asp-route-customerSlug="@Model.CustomerSlug">@Model.CustomerName</a>
+                }
+                else
+                {
+                    @Empty(Model.CustomerName)
+                }
+            </dd>
+            <dt class="col-sm-4">@UiText.Property</dt>
+            <dd class="col-sm-8">
+                @if (!string.IsNullOrWhiteSpace(Model.PropertyName)
+                     && !string.IsNullOrWhiteSpace(Model.CustomerSlug)
+                     && !string.IsNullOrWhiteSpace(Model.PropertySlug))
+                {
+                    <a asp-area="Portal"
+                       asp-controller="Dashboard"
+                       asp-action="Index"
+                       asp-route-companySlug="@Model.CompanySlug"
+                       asp-route-customerSlug="@Model.CustomerSlug"
+                       asp-route-propertySlug="@Model.PropertySlug">@Model.PropertyName</a>
+                }
+                else
+                {
+                    @Empty(Model.PropertyName)
+                }
+            </dd>
+            <dt class="col-sm-4">@UiText.Unit</dt>
+            <dd class="col-sm-8">
+                @if (!string.IsNullOrWhiteSpace(Model.UnitNr)
+                     && !string.IsNullOrWhiteSpace(Model.CustomerSlug)
+                     && !string.IsNullOrWhiteSpace(Model.PropertySlug)
+                     && !string.IsNullOrWhiteSpace(Model.UnitSlug))
+                {
+                    <a asp-area="Portal"
+                       asp-controller="Dashboard"
+                       asp-action="Index"
+                       asp-route-companySlug="@Model.CompanySlug"
+                       asp-route-customerSlug="@Model.CustomerSlug"
+                       asp-route-propertySlug="@Model.PropertySlug"
+                       asp-route-unitSlug="@Model.UnitSlug">@Model.UnitNr</a>
+                }
+                else
+                {
+                    @Empty(Model.UnitNr)
+                }
+            </dd>
+            <dt class="col-sm-4">@UiText.Resident</dt>
+            <dd class="col-sm-8">
+                @if (!string.IsNullOrWhiteSpace(Model.ResidentName) && !string.IsNullOrWhiteSpace(Model.ResidentIdCode))
+                {
+                    <a asp-area="Portal"
+                       asp-controller="Dashboard"
+                       asp-action="Index"
+                       asp-route-companySlug="@Model.CompanySlug"
+                       asp-route-residentIdCode="@Model.ResidentIdCode">@Model.ResidentName</a>
+                }
+                else
+                {
+                    @Empty(Model.ResidentName)
+                }
+            </dd>
+            <dt class="col-sm-4">@UiText.Vendors</dt>
+            <dd class="col-sm-8">@Empty(Model.VendorName)</dd>
+        </dl>
+    </section>
+
+    <section class="management-card">
+        <h2>@UiText.DangerZone</h2>
+        <p class="management-muted">@UiText.DeleteTicketDescription</p>
+        <form method="post"
+              asp-action="Delete"
+              asp-route-companySlug="@Model.CompanySlug"
+              asp-route-ticketId="@Model.TicketId">
+            @Html.AntiForgeryToken()
+            <button type="submit"
+                    class="btn btn-outline-danger"
+                    onclick="return confirm('@UiText.DeleteTicketConfirmation');">@UiText.Delete</button>
+        </form>
+    </section>
+</div>

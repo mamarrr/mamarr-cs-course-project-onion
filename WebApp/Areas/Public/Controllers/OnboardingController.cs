@@ -217,11 +217,11 @@ public class OnboardingController : Controller
                 case "customer":
                 Response.Cookies.Append("ctx.type", "customer", cookieOptions);
                 Response.Cookies.Append("ctx.customer.id", authorizationResult.Value.CustomerId!.Value.ToString(), cookieOptions);
-                return RedirectToAction("Index", "Dashboard", new { area = "Customer" });
+                return RedirectToAction(nameof(Index), new { showChooser = true });
 
                 case "resident":
                 Response.Cookies.Append("ctx.type", "resident", cookieOptions);
-                return RedirectToAction("Index", "Dashboard", new { area = "Resident" });
+                return RedirectToAction(nameof(Index), new { showChooser = true });
             }
         }
 
@@ -380,8 +380,8 @@ public class OnboardingController : Controller
             WorkspaceRedirectDestination.Home => RedirectToAction("Index", "Home"),
             WorkspaceRedirectDestination.ManagementDashboard when !string.IsNullOrWhiteSpace(redirectTarget.Value.CompanySlug)
                 => RedirectToManagementDashboard(redirectTarget.Value.CompanySlug!),
-            WorkspaceRedirectDestination.CustomerDashboard => RedirectToAction("Index", "Dashboard", new { area = "Customer" }),
-            WorkspaceRedirectDestination.ResidentDashboard => RedirectToAction("Index", "Dashboard", new { area = "Resident" }),
+            WorkspaceRedirectDestination.CustomerDashboard => RedirectToAction(nameof(Index), new { showChooser = true }),
+            WorkspaceRedirectDestination.ResidentDashboard => RedirectToAction(nameof(Index), new { showChooser = true }),
             _ => null
         };
     }

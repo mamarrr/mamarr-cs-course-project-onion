@@ -150,7 +150,11 @@ builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwa
 builder.Services.AddSwaggerGen();
 
 builder.Services
-    .AddControllersWithViews();
+    .AddControllersWithViews()
+    .AddRazorOptions(options =>
+    {
+        options.ViewLocationExpanders.Add(new PortalFeatureViewLocationExpander());
+    });
 
 // ==============================================
 var app = builder.Build();
@@ -205,13 +209,13 @@ app.MapStaticAssets();
 app.MapControllerRoute(
         name: "management_dashboard",
         pattern: "m/{companySlug}",
-        defaults: new { area = "Management", controller = "Dashboard", action = "Index" })
+        defaults: new { area = "Portal", controller = "Dashboard", action = "Index" })
     .WithStaticAssets();
 
 app.MapControllerRoute(
         name: "customer_dashboard",
         pattern: "m/{companySlug}/c/{customerSlug}",
-        defaults: new { area = "Customer", controller = "CustomerDashboard", action = "Index" })
+        defaults: new { area = "Portal", controller = "CustomerDashboard", action = "Index" })
     .WithStaticAssets();
 
 app.MapControllerRoute(
