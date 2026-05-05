@@ -138,52 +138,6 @@ public class LeaseRepository :
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task<bool> LeaseRoleExistsAsync(
-        Guid leaseRoleId,
-        CancellationToken cancellationToken = default)
-    {
-        return _dbContext.LeaseRoles
-            .AsNoTracking()
-            .AnyAsync(entity => entity.Id == leaseRoleId, cancellationToken);
-    }
-
-    public Task<bool> UnitExistsInCompanyAsync(
-        Guid unitId,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default)
-    {
-        return _dbContext.Units
-            .AsNoTracking()
-            .AnyAsync(
-                entity => entity.Id == unitId
-                          && entity.Property!.Customer!.ManagementCompanyId == managementCompanyId,
-                cancellationToken);
-    }
-
-    public Task<bool> ResidentExistsInCompanyAsync(
-        Guid residentId,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default)
-    {
-        return _dbContext.Residents
-            .AsNoTracking()
-            .AnyAsync(
-                entity => entity.Id == residentId && entity.ManagementCompanyId == managementCompanyId,
-                cancellationToken);
-    }
-
-    public Task<bool> PropertyExistsInCompanyAsync(
-        Guid propertyId,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default)
-    {
-        return _dbContext.Properties
-            .AsNoTracking()
-            .AnyAsync(
-                entity => entity.Id == propertyId && entity.Customer!.ManagementCompanyId == managementCompanyId,
-                cancellationToken);
-    }
-
     public Task<bool> HasOverlappingActiveLeaseAsync(
         Guid residentId,
         Guid unitId,

@@ -29,25 +29,6 @@ public interface ILeaseRepository : IBaseRepository<LeaseDalDto>
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
-    Task<bool> LeaseRoleExistsAsync(
-        Guid leaseRoleId,
-        CancellationToken cancellationToken = default);
-
-    Task<bool> UnitExistsInCompanyAsync(
-        Guid unitId,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default);
-
-    Task<bool> ResidentExistsInCompanyAsync(
-        Guid residentId,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default);
-
-    Task<bool> PropertyExistsInCompanyAsync(
-        Guid propertyId,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default);
-
     Task<bool> HasOverlappingActiveLeaseAsync(
         Guid residentId,
         Guid unitId,

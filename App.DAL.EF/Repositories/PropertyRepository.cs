@@ -144,6 +144,18 @@ public class PropertyRepository :
             .AnyAsync(property => property.Slug.ToLower() == normalizedSlug, cancellationToken);
     }
 
+    public Task<bool> ExistsInCompanyAsync(
+        Guid propertyId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Properties
+            .AsNoTracking()
+            .AnyAsync(
+                entity => entity.Id == propertyId && entity.Customer!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
+    }
+
     public Task<PropertyDalDto> AddAsync(
         PropertyCreateDalDto dto,
         CancellationToken cancellationToken = default)

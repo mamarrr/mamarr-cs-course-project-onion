@@ -59,6 +59,15 @@ public class LookupRepository : ILookupRepository
         return FindByCodeAsync<LeaseRole>(code, cancellationToken);
     }
 
+    public Task<bool> LeaseRoleExistsAsync(
+        Guid leaseRoleId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.LeaseRoles
+            .AsNoTracking()
+            .AnyAsync(entity => entity.Id == leaseRoleId, cancellationToken);
+    }
+
     public Task<LookupDalDto?> FindPropertyTypeByCodeAsync(
         string code,
         CancellationToken cancellationToken = default)

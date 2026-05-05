@@ -36,7 +36,7 @@ public class LeaseLookupService : ILeaseLookupService
         GetLeaseUnitsForPropertyQuery query,
         CancellationToken cancellationToken = default)
     {
-        var propertyExists = await _uow.Leases.PropertyExistsInCompanyAsync(
+        var propertyExists = await _uow.Properties.ExistsInCompanyAsync(
             query.PropertyId,
             query.ManagementCompanyId,
             cancellationToken);

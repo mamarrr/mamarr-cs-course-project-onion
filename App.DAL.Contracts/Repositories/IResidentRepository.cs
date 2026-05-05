@@ -33,6 +33,11 @@ public interface IResidentRepository : IBaseRepository<ResidentDalDto>
         Guid? exceptResidentId = null,
         CancellationToken cancellationToken = default);
 
+    Task<bool> ExistsInCompanyAsync(
+        Guid residentId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
     Task<ResidentDalDto> AddAsync(
         ResidentCreateDalDto dto,
         CancellationToken cancellationToken = default);

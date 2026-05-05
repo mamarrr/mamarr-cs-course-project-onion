@@ -167,6 +167,19 @@ public class UnitRepository :
             .AnyAsync(unit => unit.Slug.ToLower() == normalizedSlug, cancellationToken);
     }
 
+    public Task<bool> ExistsInCompanyAsync(
+        Guid unitId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Units
+            .AsNoTracking()
+            .AnyAsync(
+                entity => entity.Id == unitId
+                          && entity.Property!.Customer!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
+    }
+
     public Task<UnitDalDto> AddAsync(
         UnitCreateDalDto dto,
         CancellationToken cancellationToken = default)

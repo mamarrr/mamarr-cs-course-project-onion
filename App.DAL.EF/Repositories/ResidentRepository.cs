@@ -162,6 +162,18 @@ public class ResidentRepository :
             .AnyAsync(entity => entity.IdCode.ToLower() == normalizedIdCode, cancellationToken);
     }
 
+    public Task<bool> ExistsInCompanyAsync(
+        Guid residentId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Residents
+            .AsNoTracking()
+            .AnyAsync(
+                entity => entity.Id == residentId && entity.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
+    }
+
     public Task<ResidentDalDto> AddAsync(
         ResidentCreateDalDto dto,
         CancellationToken cancellationToken = default)

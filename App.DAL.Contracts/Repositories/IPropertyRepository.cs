@@ -32,6 +32,11 @@ public interface IPropertyRepository : IBaseRepository<PropertyDalDto>
         Guid? exceptPropertyId = null,
         CancellationToken cancellationToken = default);
 
+    Task<bool> ExistsInCompanyAsync(
+        Guid propertyId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
     Task<PropertyDalDto> AddAsync(
         PropertyCreateDalDto dto,
         CancellationToken cancellationToken = default);

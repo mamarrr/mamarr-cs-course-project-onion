@@ -23,6 +23,10 @@ public interface ILookupRepository
         string code,
         CancellationToken cancellationToken = default);
 
+    Task<bool> LeaseRoleExistsAsync(
+        Guid leaseRoleId,
+        CancellationToken cancellationToken = default);
+
     Task<LookupDalDto?> FindPropertyTypeByCodeAsync(
         string code,
         CancellationToken cancellationToken = default);

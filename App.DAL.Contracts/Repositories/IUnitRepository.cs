@@ -39,6 +39,11 @@ public interface IUnitRepository : IBaseRepository<UnitDalDto>
         Guid? exceptUnitId = null,
         CancellationToken cancellationToken = default);
 
+    Task<bool> ExistsInCompanyAsync(
+        Guid unitId,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken = default);
+
     Task<UnitDalDto> AddAsync(
         UnitCreateDalDto dto,
         CancellationToken cancellationToken = default);
