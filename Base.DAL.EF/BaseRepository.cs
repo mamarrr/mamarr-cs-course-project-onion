@@ -83,7 +83,7 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
     }
 
     private static Dictionary<string, PropertyInfo>? _domainEntityTypePropsLangStr = null;
-    public TDALEntity Update(TDALEntity entity)
+    public virtual TDALEntity Update(TDALEntity entity)
     {
         
         var domainEntityType = typeof(TDomainEntity);
@@ -106,12 +106,12 @@ public class BaseRepository<TKey, TDALEntity, TDomainEntity, TDbContext> : IBase
         )!;
     }
 
-    public void Remove(TDALEntity entity)
+    public virtual void Remove(TDALEntity entity)
     {
         RepositoryDbSet.Remove(Mapper.Map(entity)!);
     }
 
-    public async Task RemoveAsync(
+    public virtual async Task RemoveAsync(
         TKey id,
         TKey parentId = default!,
         CancellationToken cancellationToken = default)
