@@ -1,26 +1,29 @@
-using System.Security.Claims;
 using App.BLL.Contracts;
 using App.BLL.Contracts.Onboarding.Queries;
 using WebApp.UI.Chrome;
+using WebApp.UI.PortalContext;
 
 namespace WebApp.UI.Workspace;
 
 public class WorkspaceResolver : IWorkspaceResolver
 {
     private readonly IAppBLL _bll;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
 
-    public WorkspaceResolver(IAppBLL bll)
+    public WorkspaceResolver(
+        IAppBLL bll,
+        ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
+        _portalContextResolver = portalContextResolver;
     }
 
     public async Task<WorkspaceResolutionResult> ResolveAsync(
         AppChromeRequest request,
         CancellationToken cancellationToken = default)
     {
-        var appUserIdValue = request.User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (!Guid.TryParse(appUserIdValue, out var appUserId))
+        var portalContext = _portalContextResolver.Resolve();
+        if (!portalContext.IsAuthenticated)
         {
             return new WorkspaceResolutionResult
             {
@@ -31,7 +34,7 @@ public class WorkspaceResolver : IWorkspaceResolver
         var catalogResult = await _bll.WorkspaceCatalog.GetWorkspaceCatalogAsync(
             new GetWorkspaceCatalogQuery
             {
-                AppUserId = appUserId,
+                AppUserId = portalContext.AppUserId!.Value,
                 CompanySlug = request.ManagementCompanySlug ?? string.Empty
             },
             cancellationToken);

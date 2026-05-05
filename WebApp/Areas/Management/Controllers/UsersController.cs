@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.ManagementCompanies.Models;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
+using WebApp.UI.PortalContext;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Users;
 
@@ -20,14 +20,17 @@ public class UsersController : Controller
 {
     private readonly IAppBLL _bll;
     private readonly IAppChromeBuilder _appChromeBuilder;
+    private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public UsersController(
         IAppBLL bll,
         IAppChromeBuilder appChromeBuilder,
+        ICurrentPortalContextResolver portalContextResolver,
         ILogger<UsersController> logger)
     {
         _bll = bll;
         _appChromeBuilder = appChromeBuilder;
+        _portalContextResolver = portalContextResolver;
     }
 
     [HttpGet("")]
@@ -533,8 +536,7 @@ public class UsersController : Controller
 
     private Guid? GetAppUserId()
     {
-        var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return Guid.TryParse(userIdValue, out var appUserId) ? appUserId : null;
+        return _portalContextResolver.Resolve().AppUserId;
     }
 
     private static string ErrorMessage(IReadOnlyList<IError> errors, string fallback)
