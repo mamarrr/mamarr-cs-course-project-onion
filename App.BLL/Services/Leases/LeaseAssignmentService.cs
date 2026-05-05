@@ -117,10 +117,8 @@ public class LeaseAssignmentService : ILeaseAssignmentService
             return Result.Fail<LeaseCommandModel>(new ConflictError(DuplicateLeaseMessage()));
         }
 
-        var leaseId = Guid.NewGuid();
-        _uow.Leases.Add(new LeaseDalDto
+        var leaseId = _uow.Leases.Add(new LeaseDalDto
         {
-            Id = leaseId,
             ResidentId = command.ResidentId,
             UnitId = command.UnitId,
             LeaseRoleId = command.LeaseRoleId,
@@ -168,10 +166,8 @@ public class LeaseAssignmentService : ILeaseAssignmentService
             return Result.Fail<LeaseCommandModel>(new ConflictError(DuplicateLeaseMessage()));
         }
 
-        var leaseId = Guid.NewGuid();
-        _uow.Leases.Add(new LeaseDalDto
+        var leaseId = _uow.Leases.Add(new LeaseDalDto
         {
-            Id = leaseId,
             ResidentId = command.ResidentId,
             UnitId = command.UnitId,
             LeaseRoleId = command.LeaseRoleId,

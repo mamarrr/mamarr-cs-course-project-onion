@@ -74,10 +74,8 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             return Result.Fail(L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists."));
         }
 
-        var requestId = Guid.NewGuid();
-        _uow.ManagementCompanyJoinRequests.Add(new ManagementCompanyJoinRequestDalDto
+        var requestId = _uow.ManagementCompanyJoinRequests.Add(new ManagementCompanyJoinRequestDalDto
         {
-            Id = requestId,
             AppUserId = command.AppUserId,
             ManagementCompanyId = company.Id,
             RequestedRoleId = command.RequestedRoleId,

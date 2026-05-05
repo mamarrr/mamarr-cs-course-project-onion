@@ -106,10 +106,8 @@ public class ResidentWorkspaceService : IResidentWorkspaceService
                 nameof(command.IdCode)));
         }
 
-        var residentId = Guid.NewGuid();
-        _uow.Residents.Add(new ResidentDalDto
+        var residentId = _uow.Residents.Add(new ResidentDalDto
         {
-            Id = residentId,
             ManagementCompanyId = company.Value.ManagementCompanyId,
             FirstName = normalizedFirstName,
             LastName = normalizedLastName,

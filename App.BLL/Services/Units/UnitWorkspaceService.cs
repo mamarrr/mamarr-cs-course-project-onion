@@ -115,10 +115,8 @@ public class UnitWorkspaceService : IUnitWorkspaceService
             cancellationToken);
         var uniqueSlug = SlugGenerator.EnsureUniqueSlug(baseSlug, existingSlugs);
 
-        var unitId = Guid.NewGuid();
-        _uow.Units.Add(new UnitDalDto
+        var unitId = _uow.Units.Add(new UnitDalDto
         {
-            Id = unitId,
             PropertyId = property.Value.PropertyId,
             UnitNr = normalizedUnitNr,
             Slug = uniqueSlug,
