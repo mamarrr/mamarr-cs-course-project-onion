@@ -26,7 +26,7 @@ Phase 1 classified which repository methods are generic CRUD candidates, project
 
 Phase 3 already moved many ownership-mismatched methods to their correct repositories.
 
-Phase 4 now focuses on method shape and reuse of `BaseRepository`.
+Phase 4 now focuses on method shape, canonical DTO shape, and reuse of `BaseRepository`.
 
 Use this file together with:
 
@@ -42,11 +42,11 @@ Canonical DAL DTOs are now the DTOs used for simple CRUD.
 For each repository:
 
 ```text
-Add      -> canonical TDalEntity
-All      -> canonical TDalEntity collection
-Find     -> canonical TDalEntity?
-Remove   -> id / optional parentId
-Update   -> canonical TDalEntity, only if generic update is safe
+Add       -> canonical TDalEntity
+All       -> canonical TDalEntity collection
+Find      -> canonical TDalEntity?
+Remove    -> id / optional parentId
+Update    -> canonical TDalEntity, through UpdateAsync when generic update is safe
 ```
 
 Do not keep separate CRUD-only DTOs such as:
@@ -60,11 +60,19 @@ when they are only duplicates of the canonical DTO without metadata.
 
 If a DTO exists only because older code had metadata fields like `CreatedAt`, and that metadata is now handled by domain/DAL infrastructure, remove the specialized DTO and use the canonical DTO.
 
+The main point is **standardization**:
+
+```text
+Use the canonical DAL DTO for simple CRUD.
+Use BaseRepository methods for simple CRUD.
+Keep custom repository methods only for meaningful custom behavior.
+```
+
 ---
 
 # BaseRepository stability rule
 
-`BaseRepository` should not be changed during this phase.
+`BaseRepository` should now be treated as stable during this phase.
 
 Only change `BaseRepository` if there is a truly breaking bug.
 
@@ -72,6 +80,7 @@ Examples of breaking bugs:
 
 - `Add` mutates one mapped domain object but adds another mapped object.
 - `CreatedAt` support is not actually applied to the entity being added.
+- `UpdateAsync` fails to preserve infrastructure metadata that the base method is expected to preserve.
 - A base method violates its own contract.
 
 Do not add app-specific behavior to `BaseRepository`.
@@ -81,6 +90,22 @@ Do not add delete orchestration to `BaseRepository`.
 Do not add projection/query behavior to `BaseRepository`.
 
 Do not change `BaseRepository` just to make one complex repository method fit.
+
+## Current implementation assumption
+
+The current base repository is expected to handle `CreatedAt` as infrastructure metadata:
+
+```text
+Add:
+  sets CreatedAt for entities implementing IHasCreatedAtMeta.
+
+UpdateAsync:
+  preserves existing CreatedAt for entities implementing IHasCreatedAtMeta.
+```
+
+This is an implementation detail that supports the main Phase 4 rule: canonical CRUD DTOs should not need to carry metadata just to make persistence work.
+
+Do not reintroduce `CreatedAt` into canonical DTOs just to support create/update.
 
 ---
 
@@ -231,19 +256,22 @@ Do not convert complex cascade-style deletes to base remove unless the current i
 Use base method:
 
 ```text
-Update(TDalEntity entity)
+UpdateAsync(TDalEntity entity)
 ```
 
-only when generic full-entity update is safe.
+when generic base update is safe.
 
-Generic base update is safe only when:
+Generic base update is safe when:
 
-- the entity has no `LangStr` properties;
+- the entity has no direct `LangStr` properties;
 - the update shape is the same as the canonical DTO;
-- full replacement-style update will not wipe protected fields;
+- the canonical DTO represents the full editable scalar state;
+- omitted infrastructure metadata is handled by `BaseRepository`;
 - no special business update rules are needed.
 
-If the domain entity contains any `LangStr` property, do not use generic base update.
+`CreatedAt` by itself is not a reason to keep a custom update if `BaseRepository.UpdateAsync` preserves it.
+
+If the domain entity contains any direct `LangStr` property, do not use generic base update.
 
 For `LangStr` entities, keep a custom repository update method, but it should still accept the canonical DTO where possible:
 
@@ -262,6 +290,15 @@ The custom update method should:
 Do not keep `XxxUpdateDalDto` if it is just the same as `XxxDalDto`.
 
 Keep a specialized update DTO only when the use-case shape is meaningfully different from the canonical DTO.
+
+## Base UpdateAsync scope note
+
+Current base update uses the entity id. If an update requires explicit management-company/customer/property scope checks, either:
+
+- validate scope in BLL before calling base `UpdateAsync`, or
+- keep a custom scoped repository update method.
+
+Do not remove scoped custom update methods if the scope itself is meaningful business/access behavior.
 
 ---
 
@@ -319,11 +356,12 @@ For each slice:
 5. Update the repository contract.
 6. Update the repository implementation.
 7. Replace custom CRUD with inherited base methods where safe.
-8. Keep custom update if the domain entity has `LangStr`.
-9. Keep custom projection/search/option/profile/dashboard methods.
-10. Keep complex delete behavior unchanged unless simple base remove is clearly correct.
-11. Update DAL callers where practical.
-12. Record any BLL/Web compile errors left for later service refactor work.
+8. Use base `UpdateAsync` when the entity has no direct `LangStr` and generic update is safe.
+9. Keep custom update if the domain entity has `LangStr`, scoped update behavior, workflow behavior, or other protected-field behavior.
+10. Keep custom projection/search/option/profile/dashboard methods.
+11. Keep complex delete behavior unchanged unless simple base remove is clearly correct.
+12. Update DAL callers where practical.
+13. Record any BLL/Web compile errors left for later service refactor work.
 
 ---
 
@@ -551,12 +589,12 @@ Use inherited/base if safe:
 
 ```text
 Add(ResidentDalDto)
-Update(ResidentDalDto), only if generic update is safe
+UpdateAsync(ResidentDalDto)
 FindAsync(id, parentId?, cancellationToken)
 AllAsync(parentId?, cancellationToken)
 ```
 
-Since `Resident` has no `LangStr` fields, generic base update may be safe if the canonical DTO represents exactly the editable scalar fields.
+Since `Resident` has no direct `LangStr` fields, generic base `UpdateAsync` may be safe if the canonical DTO represents exactly the editable scalar fields and BLL/custom logic handles required scope/access checks.
 
 Keep custom projection/access methods:
 
@@ -580,6 +618,7 @@ Keep complex delete unchanged until Phase 5.
 ## Acceptance criteria
 
 - Resident simple CRUD uses base methods where parent scope behavior is sufficient.
+- Resident update may use base `UpdateAsync` because `CreatedAt` is preserved by base infrastructure.
 - Projection/access/search methods remain custom.
 - Complex delete is not changed.
 
@@ -724,7 +763,7 @@ Keep custom:
 - member projections;
 - complex cascade delete until Phase 5.
 
-Management company has no `LangStr` fields in the current domain shape, so generic update may be safe only if the canonical DTO exactly represents editable scalar profile fields and no protected fields would be overwritten.
+Management company has no direct `LangStr` fields in the current domain shape, so generic `UpdateAsync` may be safe only if the canonical DTO exactly represents editable scalar profile fields and no workflow/protected fields would be overwritten.
 
 ---
 
@@ -746,6 +785,7 @@ Potential base methods:
 Add(canonical dto)
 FindAsync(...)
 AllAsync(...)
+UpdateAsync(canonical dto), only for simple row edits
 RemoveAsync(...)
 ```
 
@@ -814,7 +854,7 @@ Those belong in projection DTOs.
 
 ## BaseRepository usage
 
-Use base add/update only if safe, but likely keep custom methods because `Ticket` has `LangStr Title` and `LangStr Description`, ticket number generation, status workflows, and validation rules.
+Use base add/update only if safe, but likely keep custom methods because `Ticket` has localized fields, ticket number generation, status workflows, and validation rules.
 
 Likely keep custom:
 
@@ -864,7 +904,7 @@ Remove custom methods when they duplicate base behavior:
 FindAsync(id) returning canonical DTO
 AllAsync(parentId) returning canonical DTO collection
 AddAsync(CreateDto) where CreateDto is now same as canonical DTO
-UpdateAsync(UpdateDto) where UpdateDto is now same as canonical DTO and generic update is safe
+UpdateAsync(UpdateDto) where UpdateDto is now same as canonical DTO and generic base UpdateAsync is safe
 DeleteAsync(id) where it only deletes the entity itself and base RemoveAsync is sufficient
 ```
 
@@ -882,7 +922,8 @@ Phase 4 is complete when:
 - simple CRUD methods use canonical DAL DTOs;
 - redundant create/update DTOs are removed where they duplicate canonical DTOs;
 - canonical DTOs do not carry metadata unless required for read display;
-- custom updates remain for entities containing `LangStr`;
+- base `UpdateAsync` is used for simple non-`LangStr` entities where generic update is safe;
+- custom updates remain for entities containing `LangStr`, scoped workflows, or protected-field behavior not handled by base update;
 - projection/search/workflow methods remain custom;
 - complex delete behavior remains unchanged until Phase 5;
 - DAL contracts and DAL implementations are internally consistent;
