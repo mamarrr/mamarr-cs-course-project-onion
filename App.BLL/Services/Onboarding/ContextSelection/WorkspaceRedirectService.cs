@@ -1,3 +1,4 @@
+using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Commands;
 using App.BLL.Contracts.Onboarding.Models;
@@ -215,6 +216,6 @@ public class WorkspaceRedirectService : IWorkspaceRedirectService, IContextSelec
 
         return authorization.IsSuccess && authorization.Value.Authorized
             ? Result.Ok()
-            : Result.Fail("Workspace context is not available.");
+            : Result.Fail(new ForbiddenError("Workspace context is not available."));
     }
 }

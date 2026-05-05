@@ -1,10 +1,10 @@
 using System.Security.Claims;
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.Leases.Commands;
 using App.BLL.Contracts.Leases.Models;
 using App.BLL.Contracts.Leases.Queries;
-using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Residents.Models;
 using App.BLL.Contracts.Residents.Queries;
 using App.BLL.Mappers.Leases;
@@ -29,22 +29,16 @@ public class UnitsController : Controller
     private const string SuccessTempDataKey = "ResidentUnitsSuccess";
     private const string ErrorTempDataKey = "ResidentUnitsError";
 
-    private readonly IResidentAccessService _residentAccessService;
-    private readonly ILeaseAssignmentService _leaseAssignmentService;
-    private readonly ILeaseLookupService _leaseLookupService;
+    private readonly IAppBLL _bll;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly LeaseViewModelMapper _leaseMapper;
 
     public UnitsController(
-        IResidentAccessService residentAccessService,
-        ILeaseAssignmentService leaseAssignmentService,
-        ILeaseLookupService leaseLookupService,
+        IAppBLL bll,
         IAppChromeBuilder appChromeBuilder,
         LeaseViewModelMapper leaseMapper)
     {
-        _residentAccessService = residentAccessService;
-        _leaseAssignmentService = leaseAssignmentService;
-        _leaseLookupService = leaseLookupService;
+        _bll = bll;
         _appChromeBuilder = appChromeBuilder;
         _leaseMapper = leaseMapper;
     }
@@ -83,7 +77,7 @@ public class UnitsController : Controller
             return access.response;
         }
 
-        var result = await _leaseLookupService.SearchPropertiesAsync(
+        var result = await _bll.LeaseLookups.SearchPropertiesAsync(
             ToSearchPropertiesQuery(access.context!, searchTerm),
             cancellationToken);
 
@@ -111,7 +105,7 @@ public class UnitsController : Controller
             return access.response;
         }
 
-        var result = await _leaseLookupService.ListUnitsForPropertyAsync(
+        var result = await _bll.LeaseLookups.ListUnitsForPropertyAsync(
             ToUnitsForPropertyQuery(access.context!, propertyId),
             cancellationToken);
         if (result.IsFailed)
@@ -154,7 +148,7 @@ public class UnitsController : Controller
             return View("~/Areas/Resident/Views/Units/Index.cshtml", invalidVm);
         }
 
-        var result = await _leaseAssignmentService.CreateFromResidentAsync(
+        var result = await _bll.LeaseAssignments.CreateFromResidentAsync(
             ToCreateCommand(access.context!, vm.AddLease),
             cancellationToken);
 
@@ -201,7 +195,7 @@ public class UnitsController : Controller
             return View("~/Areas/Resident/Views/Units/Index.cshtml", invalidVm);
         }
 
-        var result = await _leaseAssignmentService.UpdateFromResidentAsync(
+        var result = await _bll.LeaseAssignments.UpdateFromResidentAsync(
             ToUpdateCommand(access.context!, leaseId, editVm),
             cancellationToken);
 
@@ -231,7 +225,7 @@ public class UnitsController : Controller
             return access.response;
         }
 
-        var result = await _leaseAssignmentService.DeleteFromResidentAsync(
+        var result = await _bll.LeaseAssignments.DeleteFromResidentAsync(
             ToDeleteCommand(access.context!, leaseId),
             cancellationToken);
 
@@ -256,7 +250,7 @@ public class UnitsController : Controller
             return (Challenge(), null);
         }
 
-        var access = await _residentAccessService.ResolveResidentWorkspaceAsync(
+        var access = await _bll.ResidentAccess.ResolveResidentWorkspaceAsync(
             new GetResidentProfileQuery
             {
                 UserId = appUserId.Value,
@@ -285,21 +279,21 @@ public class UnitsController : Controller
         EditResidentLeaseViewModel? editOverride = null,
         Guid? requestedEditLeaseId = null)
     {
-        var leaseList = await _leaseAssignmentService.ListForResidentAsync(
+        var leaseList = await _bll.LeaseAssignments.ListForResidentAsync(
             LeaseBllMapper.ToResidentLeasesQuery(context),
             cancellationToken);
-        var roleOptions = await _leaseLookupService.ListLeaseRolesAsync(cancellationToken);
+        var roleOptions = await _bll.LeaseLookups.ListLeaseRolesAsync(cancellationToken);
         var propertySearchTerm = addOverride?.PropertySearchTerm;
 
         var propertyResults = string.IsNullOrWhiteSpace(propertySearchTerm)
             ? Array.Empty<LeasePropertySearchItemModel>()
-            : (await _leaseLookupService.SearchPropertiesAsync(ToSearchPropertiesQuery(context, propertySearchTerm), cancellationToken)).Value.Properties;
+            : (await _bll.LeaseLookups.SearchPropertiesAsync(ToSearchPropertiesQuery(context, propertySearchTerm), cancellationToken)).Value.Properties;
 
         var selectedPropertyId = addOverride?.PropertyId;
         IReadOnlyList<LeaseUnitOptionModel> unitOptions = Array.Empty<LeaseUnitOptionModel>();
         if (selectedPropertyId.HasValue)
         {
-            var unitsResult = await _leaseLookupService.ListUnitsForPropertyAsync(
+            var unitsResult = await _bll.LeaseLookups.ListUnitsForPropertyAsync(
                 ToUnitsForPropertyQuery(context, selectedPropertyId.Value),
                 cancellationToken);
             if (unitsResult.IsSuccess)

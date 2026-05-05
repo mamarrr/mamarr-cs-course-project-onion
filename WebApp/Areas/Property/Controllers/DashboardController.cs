@@ -1,5 +1,5 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Properties.Models;
 using App.Resources.Views;
 using FluentResults;
@@ -18,16 +18,16 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}")]
 public class DashboardController : Controller
 {
-    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
+    private readonly IAppBLL _bll;
     private readonly PropertyMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public DashboardController(
-        IPropertyWorkspaceService propertyWorkspaceService,
+        IAppBLL bll,
         PropertyMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _propertyWorkspaceService = propertyWorkspaceService;
+        _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
     }
@@ -69,7 +69,7 @@ public class DashboardController : Controller
         string currentSection,
         CancellationToken cancellationToken)
     {
-        var result = await _propertyWorkspaceService.GetWorkspaceAsync(
+        var result = await _bll.PropertyWorkspaces.GetWorkspaceAsync(
             _mapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
         if (result.IsFailed)

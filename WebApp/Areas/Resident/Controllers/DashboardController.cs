@@ -1,5 +1,5 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Residents.Models;
 using App.Resources.Views;
 using FluentResults;
@@ -18,16 +18,16 @@ namespace WebApp.Areas.Resident.Controllers;
 [Route("m/{companySlug}/r/{residentIdCode}")]
 public class DashboardController : Controller
 {
-    private readonly IResidentAccessService _residentAccessService;
+    private readonly IAppBLL _bll;
     private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public DashboardController(
-        IResidentAccessService residentAccessService,
+        IAppBLL bll,
         ResidentMvcMapper residentMapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _residentAccessService = residentAccessService;
+        _bll = bll;
         _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
     }
@@ -62,7 +62,7 @@ public class DashboardController : Controller
         string currentSection,
         CancellationToken cancellationToken)
     {
-        var workspace = await _residentAccessService.ResolveResidentWorkspaceAsync(
+        var workspace = await _bll.ResidentAccess.ResolveResidentWorkspaceAsync(
             _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
             cancellationToken);
         if (workspace.IsFailed)

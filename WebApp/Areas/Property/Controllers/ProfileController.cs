@@ -1,5 +1,5 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Properties.Models;
 using App.Resources.Views;
 using FluentResults;
@@ -19,16 +19,16 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/profile")]
 public class ProfileController : Controller
 {
-    private readonly IPropertyProfileService _propertyProfileService;
+    private readonly IAppBLL _bll;
     private readonly PropertyMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public ProfileController(
-        IPropertyProfileService propertyProfileService,
+        IAppBLL bll,
         PropertyMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _propertyProfileService = propertyProfileService;
+        _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
     }
@@ -40,7 +40,7 @@ public class ProfileController : Controller
         string propertySlug,
         CancellationToken cancellationToken)
     {
-        var profile = await _propertyProfileService.GetAsync(
+        var profile = await _bll.PropertyProfiles.GetAsync(
             _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
         if (profile.IsFailed)
@@ -60,7 +60,7 @@ public class ProfileController : Controller
         PropertyProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var profile = await _propertyProfileService.GetAsync(
+        var profile = await _bll.PropertyProfiles.GetAsync(
             _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
         if (profile.IsFailed)
@@ -74,7 +74,7 @@ public class ProfileController : Controller
             return View("Index", await BuildViewModelAsync(profile.Value, edit, cancellationToken));
         }
 
-        var result = await _propertyProfileService.UpdateAsync(
+        var result = await _bll.PropertyProfiles.UpdateAsync(
             _mapper.ToUpdateCommand(companySlug, customerSlug, propertySlug, edit, User),
             cancellationToken);
 
@@ -103,7 +103,7 @@ public class ProfileController : Controller
         PropertyProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var profile = await _propertyProfileService.GetAsync(
+        var profile = await _bll.PropertyProfiles.GetAsync(
             _mapper.ToProfileQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
         if (profile.IsFailed)
@@ -111,7 +111,7 @@ public class ProfileController : Controller
             return ToMvcErrorResult(profile.Errors);
         }
 
-        var result = await _propertyProfileService.DeleteAsync(
+        var result = await _bll.PropertyProfiles.DeleteAsync(
             _mapper.ToDeleteCommand(companySlug, customerSlug, propertySlug, edit, User),
             cancellationToken);
 

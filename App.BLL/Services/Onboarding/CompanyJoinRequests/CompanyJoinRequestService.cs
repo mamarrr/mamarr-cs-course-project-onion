@@ -1,4 +1,6 @@
 using System.Globalization;
+using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Commands;
@@ -27,7 +29,15 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
         var registryCode = command.RegistryCode.Trim();
         if (registryCode.Length == 0)
         {
-            return Result.Fail(L("ManagementCompanyWasNotFound", "Management company was not found."));
+            return Result.Fail(new ValidationAppError(
+                "Validation failed.",
+                [
+                    new ValidationFailureModel
+                    {
+                        PropertyName = nameof(command.RegistryCode),
+                        ErrorMessage = L("ManagementCompanyWasNotFound", "Management company was not found.")
+                    }
+                ]));
         }
 
         var company = await _uow.ManagementCompanies.FirstActiveByRegistryCodeAsync(
@@ -35,7 +45,7 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             cancellationToken);
         if (company == null)
         {
-            return Result.Fail(L("ManagementCompanyWasNotFound", "Management company was not found."));
+            return Result.Fail(new NotFoundError(L("ManagementCompanyWasNotFound", "Management company was not found.")));
         }
 
         var role = await _uow.Lookups.FindManagementCompanyRoleByIdAsync(
@@ -43,7 +53,15 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             cancellationToken);
         if (role == null)
         {
-            return Result.Fail(L("SelectedRoleIsInvalid", "Selected role is invalid."));
+            return Result.Fail(new ValidationAppError(
+                "Validation failed.",
+                [
+                    new ValidationFailureModel
+                    {
+                        PropertyName = nameof(command.RequestedRoleId),
+                        ErrorMessage = L("SelectedRoleIsInvalid", "Selected role is invalid.")
+                    }
+                ]));
         }
 
         var membershipExists = await _uow.ManagementCompanies.MembershipExistsAsync(
@@ -52,7 +70,7 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             cancellationToken);
         if (membershipExists)
         {
-            return Result.Fail(L("AlreadyMemberOfThisManagementCompany", "You are already a member of this management company."));
+            return Result.Fail(new ConflictError(L("AlreadyMemberOfThisManagementCompany", "You are already a member of this management company.")));
         }
 
         var pendingStatus = await _uow.Lookups.FindManagementCompanyJoinRequestStatusByCodeAsync(
@@ -71,7 +89,7 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
             cancellationToken);
         if (duplicatePending)
         {
-            return Result.Fail(L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists."));
+            return Result.Fail(new ConflictError(L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists.")));
         }
 
         var requestId = _uow.ManagementCompanyJoinRequests.Add(new ManagementCompanyJoinRequestDalDto
@@ -89,7 +107,7 @@ public class OnboardingCompanyJoinRequestService : IOnboardingCompanyJoinRequest
         }
         catch
         {
-            return Result.Fail(L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists."));
+            return Result.Fail(new ConflictError(L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists.")));
         }
 
         return Result.Ok(new OnboardingJoinRequestModel

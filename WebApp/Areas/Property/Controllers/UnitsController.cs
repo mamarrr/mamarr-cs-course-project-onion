@@ -1,5 +1,5 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Units;
 using App.BLL.Contracts.Units.Models;
 using App.Resources.Views;
 using FluentResults;
@@ -18,16 +18,16 @@ namespace WebApp.Areas.Property.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/units")]
 public class UnitsController : Controller
 {
-    private readonly IUnitWorkspaceService _unitWorkspaceService;
+    private readonly IAppBLL _bll;
     private readonly UnitMvcMapper _unitMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public UnitsController(
-        IUnitWorkspaceService unitWorkspaceService,
+        IAppBLL bll,
         UnitMvcMapper unitMapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _unitWorkspaceService = unitWorkspaceService;
+        _bll = bll;
         _unitMapper = unitMapper;
         _appChromeBuilder = appChromeBuilder;
     }
@@ -39,7 +39,7 @@ public class UnitsController : Controller
         string propertySlug,
         CancellationToken cancellationToken)
     {
-        var result = await _unitWorkspaceService.GetPropertyUnitsAsync(
+        var result = await _bll.UnitWorkspaces.GetPropertyUnitsAsync(
             _unitMapper.ToPropertyUnitsQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
         if (result.IsFailed)
@@ -60,7 +60,7 @@ public class UnitsController : Controller
         UnitsPageViewModel vm,
         CancellationToken cancellationToken)
     {
-        var listResult = await _unitWorkspaceService.GetPropertyUnitsAsync(
+        var listResult = await _bll.UnitWorkspaces.GetPropertyUnitsAsync(
             _unitMapper.ToPropertyUnitsQuery(companySlug, customerSlug, propertySlug, User),
             cancellationToken);
         if (listResult.IsFailed)
@@ -74,7 +74,7 @@ public class UnitsController : Controller
             return View("~/Areas/Property/Views/Units/Index.cshtml", invalidVm);
         }
 
-        var createResult = await _unitWorkspaceService.CreateAsync(
+        var createResult = await _bll.UnitWorkspaces.CreateAsync(
             _unitMapper.ToCreateCommand(companySlug, customerSlug, propertySlug, vm.AddUnit, User),
             cancellationToken);
 

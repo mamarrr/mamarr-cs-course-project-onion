@@ -1,3 +1,4 @@
+using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Onboarding;
 using App.BLL.Contracts.Onboarding.Commands;
 using App.BLL.Contracts.Onboarding.Models;
@@ -27,7 +28,7 @@ public class AccountOnboardingService : IAccountOnboardingService
     {
         if (command.AppUserId == Guid.Empty)
         {
-            return Result.Fail("Authenticated user is required.");
+            return Result.Fail(new UnauthorizedError("Authenticated user is required."));
         }
 
         var registryCode = command.RegistryCode.Trim();
@@ -36,7 +37,7 @@ public class AccountOnboardingService : IAccountOnboardingService
             cancellationToken);
         if (registryCodeExists)
         {
-            return Result.Fail("Management company with the same registry code already exists.");
+            return Result.Fail(new ConflictError("Management company with the same registry code already exists."));
         }
 
         var initialRole = await _uow.Lookups.FindManagementCompanyRoleByCodeAsync(
@@ -44,7 +45,7 @@ public class AccountOnboardingService : IAccountOnboardingService
             cancellationToken);
         if (initialRole == null)
         {
-            return Result.Fail($"Initial management role '{InitialManagementRoleCode}' was not found.");
+            return Result.Fail(new BusinessRuleError($"Initial management role '{InitialManagementRoleCode}' was not found."));
         }
 
         await _uow.BeginTransactionAsync(cancellationToken);
@@ -93,7 +94,7 @@ public class AccountOnboardingService : IAccountOnboardingService
         catch
         {
             await _uow.RollbackTransactionAsync(cancellationToken);
-            return Result.Fail("Failed to create management company due to data conflict.");
+            return Result.Fail(new ConflictError("Failed to create management company due to data conflict."));
         }
     }
 

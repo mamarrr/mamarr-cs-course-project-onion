@@ -1,5 +1,5 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Errors;
 using App.BLL.Contracts.Customers.Models;
 using App.Resources.Views;
@@ -21,22 +21,22 @@ public class CustomerProfileController : Controller
 {
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly CustomerProfileMvcMapper _mapper;
-    private readonly ICustomerProfileService _customerProfileService;
+    private readonly IAppBLL _bll;
 
     public CustomerProfileController(
         IAppChromeBuilder appChromeBuilder,
         CustomerProfileMvcMapper mapper,
-        ICustomerProfileService customerProfileService)
+        IAppBLL bll)
     {
         _appChromeBuilder = appChromeBuilder;
         _mapper = mapper;
-        _customerProfileService = customerProfileService;
+        _bll = bll;
     }
 
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
-        var result = await _customerProfileService.GetAsync(
+        var result = await _bll.CustomerProfiles.GetAsync(
             _mapper.ToQuery(companySlug, customerSlug, User),
             cancellationToken);
 
@@ -56,7 +56,7 @@ public class CustomerProfileController : Controller
         CustomerProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var currentProfile = await _customerProfileService.GetAsync(
+        var currentProfile = await _bll.CustomerProfiles.GetAsync(
             _mapper.ToQuery(companySlug, customerSlug, User),
             cancellationToken);
 
@@ -71,7 +71,7 @@ public class CustomerProfileController : Controller
             return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
-        var result = await _customerProfileService.UpdateAsync(
+        var result = await _bll.CustomerProfiles.UpdateAsync(
             _mapper.ToCommand(companySlug, customerSlug, edit, User),
             cancellationToken);
 
@@ -99,7 +99,7 @@ public class CustomerProfileController : Controller
         CustomerProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var currentProfile = await _customerProfileService.GetAsync(
+        var currentProfile = await _bll.CustomerProfiles.GetAsync(
             _mapper.ToQuery(companySlug, customerSlug, User),
             cancellationToken);
 
@@ -108,7 +108,7 @@ public class CustomerProfileController : Controller
             return ToMvcErrorResult(currentProfile.Errors);
         }
 
-        var result = await _customerProfileService.DeleteAsync(
+        var result = await _bll.CustomerProfiles.DeleteAsync(
             _mapper.ToDeleteCommand(companySlug, customerSlug, edit, User),
             cancellationToken);
 

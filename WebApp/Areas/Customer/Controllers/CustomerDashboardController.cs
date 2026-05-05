@@ -1,5 +1,5 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Customers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -16,20 +16,20 @@ namespace WebApp.Areas.Customer.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}")]
 public class CustomerDashboardController : Controller
 {
-    private readonly ICustomerWorkspaceService _customerWorkspaceService;
+    private readonly IAppBLL _bll;
     private readonly CustomerWorkspaceApiMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ILogger<CustomerDashboardController> _logger;
     private readonly IWebHostEnvironment _webHostEnvironment;
 
     public CustomerDashboardController(
-        ICustomerWorkspaceService customerWorkspaceService,
+        IAppBLL bll,
         CustomerWorkspaceApiMapper mapper,
         IAppChromeBuilder appChromeBuilder,
         ILogger<CustomerDashboardController> logger,
         IWebHostEnvironment webHostEnvironment)
     {
-        _customerWorkspaceService = customerWorkspaceService;
+        _bll = bll;
         _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
         _logger = logger;
@@ -69,7 +69,7 @@ public class CustomerDashboardController : Controller
     {
         LogViewCandidates(currentSection);
 
-        var result = await _customerWorkspaceService.GetWorkspaceAsync(
+        var result = await _bll.CustomerWorkspaces.GetWorkspaceAsync(
             _mapper.ToQuery(companySlug, customerSlug, User),
             cancellationToken);
         if (result.IsFailed)

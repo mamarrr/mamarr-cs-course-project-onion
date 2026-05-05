@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using App.BLL.Contracts.Onboarding;
+using App.BLL.Contracts;
 using App.BLL.Contracts.Onboarding.Queries;
 using WebApp.UI.Chrome;
 
@@ -7,11 +7,11 @@ namespace WebApp.UI.Workspace;
 
 public class WorkspaceResolver : IWorkspaceResolver
 {
-    private readonly IWorkspaceCatalogService _userWorkspaceCatalogService;
+    private readonly IAppBLL _bll;
 
-    public WorkspaceResolver(IWorkspaceCatalogService userWorkspaceCatalogService)
+    public WorkspaceResolver(IAppBLL bll)
     {
-        _userWorkspaceCatalogService = userWorkspaceCatalogService;
+        _bll = bll;
     }
 
     public async Task<WorkspaceResolutionResult> ResolveAsync(
@@ -28,7 +28,7 @@ public class WorkspaceResolver : IWorkspaceResolver
             };
         }
 
-        var catalogResult = await _userWorkspaceCatalogService.GetWorkspaceCatalogAsync(
+        var catalogResult = await _bll.WorkspaceCatalog.GetWorkspaceCatalogAsync(
             new GetWorkspaceCatalogQuery
             {
                 AppUserId = appUserId,

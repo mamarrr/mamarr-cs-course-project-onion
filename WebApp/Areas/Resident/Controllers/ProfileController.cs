@@ -1,5 +1,5 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Residents.Errors;
 using App.BLL.Contracts.Residents.Models;
 using App.Resources.Views;
@@ -19,16 +19,16 @@ namespace WebApp.Areas.Resident.Controllers;
 [Route("m/{companySlug}/r/{residentIdCode}/profile")]
 public class ProfileController : Controller
 {
-    private readonly IResidentProfileService _residentProfileService;
+    private readonly IAppBLL _bll;
     private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public ProfileController(
-        IResidentProfileService residentProfileService,
+        IAppBLL bll,
         ResidentMvcMapper residentMapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _residentProfileService = residentProfileService;
+        _bll = bll;
         _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
     }
@@ -36,7 +36,7 @@ public class ProfileController : Controller
     [HttpGet("")]
     public async Task<IActionResult> Index(string companySlug, string residentIdCode, CancellationToken cancellationToken)
     {
-        var result = await _residentProfileService.GetAsync(
+        var result = await _bll.ResidentProfiles.GetAsync(
             _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
             cancellationToken);
 
@@ -56,7 +56,7 @@ public class ProfileController : Controller
         ResidentProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var profile = await _residentProfileService.GetAsync(
+        var profile = await _bll.ResidentProfiles.GetAsync(
             _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
             cancellationToken);
         if (profile.IsFailed)
@@ -70,7 +70,7 @@ public class ProfileController : Controller
             return View("Index", await BuildViewModelAsync(profile.Value, edit, cancellationToken));
         }
 
-        var result = await _residentProfileService.UpdateAsync(
+        var result = await _bll.ResidentProfiles.UpdateAsync(
             _residentMapper.ToUpdateCommand(companySlug, residentIdCode, edit, User),
             cancellationToken);
 
@@ -98,7 +98,7 @@ public class ProfileController : Controller
         ResidentProfileEditViewModel edit,
         CancellationToken cancellationToken)
     {
-        var profile = await _residentProfileService.GetAsync(
+        var profile = await _bll.ResidentProfiles.GetAsync(
             _residentMapper.ToResidentQuery(companySlug, residentIdCode, User),
             cancellationToken);
         if (profile.IsFailed)
@@ -106,7 +106,7 @@ public class ProfileController : Controller
             return ToFailureResult(profile.Errors);
         }
 
-        var result = await _residentProfileService.DeleteAsync(
+        var result = await _bll.ResidentProfiles.DeleteAsync(
             _residentMapper.ToDeleteCommand(companySlug, residentIdCode, edit, User),
             cancellationToken);
 

@@ -1,6 +1,6 @@
 using System.Security.Claims;
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Units;
 using App.BLL.Contracts.Units.Models;
 using App.Resources.Views;
 using FluentResults;
@@ -19,16 +19,16 @@ namespace WebApp.Areas.Unit.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/p/{propertySlug}/u/{unitSlug}")]
 public class DashboardController : Controller
 {
-    private readonly IUnitAccessService _unitAccessService;
+    private readonly IAppBLL _bll;
     private readonly UnitMvcMapper _unitMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
 
     public DashboardController(
-        IUnitAccessService unitAccessService,
+        IAppBLL bll,
         UnitMvcMapper unitMapper,
         IAppChromeBuilder appChromeBuilder)
     {
-        _unitAccessService = unitAccessService;
+        _bll = bll;
         _unitMapper = unitMapper;
         _appChromeBuilder = appChromeBuilder;
     }
@@ -144,7 +144,7 @@ public class DashboardController : Controller
         string unitSlug,
         CancellationToken cancellationToken)
     {
-        var unitAccess = await _unitAccessService.ResolveUnitWorkspaceAsync(
+        var unitAccess = await _bll.UnitAccess.ResolveUnitWorkspaceAsync(
             _unitMapper.ToDashboardQuery(companySlug, customerSlug, propertySlug, unitSlug, User),
             cancellationToken);
         if (unitAccess.IsFailed)

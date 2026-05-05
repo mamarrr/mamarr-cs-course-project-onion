@@ -1,7 +1,6 @@
+using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Customers.Models;
-using App.BLL.Contracts.Properties;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
@@ -21,23 +20,20 @@ namespace WebApp.Areas.Customer.Controllers;
 [Route("m/{companySlug}/c/{customerSlug}/properties")]
 public class CustomerPropertiesController : Controller
 {
-    private readonly ICustomerWorkspaceService _customerWorkspaceService;
-    private readonly IPropertyWorkspaceService _propertyWorkspaceService;
+    private readonly IAppBLL _bll;
     private readonly CustomerWorkspaceApiMapper _customerMapper;
     private readonly PropertyMvcMapper _propertyMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ILogger<CustomerPropertiesController> _logger;
 
     public CustomerPropertiesController(
-        ICustomerWorkspaceService customerWorkspaceService,
-        IPropertyWorkspaceService propertyWorkspaceService,
+        IAppBLL bll,
         CustomerWorkspaceApiMapper customerMapper,
         PropertyMvcMapper propertyMapper,
         IAppChromeBuilder appChromeBuilder,
         ILogger<CustomerPropertiesController> logger)
     {
-        _customerWorkspaceService = customerWorkspaceService;
-        _propertyWorkspaceService = propertyWorkspaceService;
+        _bll = bll;
         _customerMapper = customerMapper;
         _propertyMapper = propertyMapper;
         _appChromeBuilder = appChromeBuilder;
@@ -77,7 +73,7 @@ public class CustomerPropertiesController : Controller
             return View(nameof(Index), invalidVm);
         }
 
-        var createResult = await _propertyWorkspaceService.CreateAsync(
+        var createResult = await _bll.PropertyWorkspaces.CreateAsync(
             _propertyMapper.ToCreateCommand(companySlug, customerSlug, vm.AddProperty, User),
             cancellationToken);
 
@@ -104,7 +100,7 @@ public class CustomerPropertiesController : Controller
         string customerSlug,
         CancellationToken cancellationToken)
     {
-        var result = await _customerWorkspaceService.GetWorkspaceAsync(
+        var result = await _bll.CustomerWorkspaces.GetWorkspaceAsync(
             _customerMapper.ToQuery(companySlug, customerSlug, User),
             cancellationToken);
 
@@ -120,11 +116,11 @@ public class CustomerPropertiesController : Controller
         CancellationToken cancellationToken,
         AddPropertyViewModel? addPropertyOverride = null)
     {
-        var listResult = await _propertyWorkspaceService.GetCustomerPropertiesAsync(
+        var listResult = await _bll.PropertyWorkspaces.GetCustomerPropertiesAsync(
             _propertyMapper.ToCustomerPropertiesQuery(companySlug, customerSlug, User),
             cancellationToken);
 
-        var propertyTypeResult = await _propertyWorkspaceService.GetPropertyTypeOptionsAsync(cancellationToken);
+        var propertyTypeResult = await _bll.PropertyWorkspaces.GetPropertyTypeOptionsAsync(cancellationToken);
 
         return new PropertiesPageViewModel
         {
