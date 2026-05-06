@@ -320,3 +320,4 @@ Build succeeds.
 
 - Do not try to build projects or the solution, ask the user to build the solution and give either the errors or 'OK' if build is okay
 - If phase is complete or it is a good build point, then remind the user to git commit and give a recommended commit message, make sure the commits arent either too small or big.
+- phase reports should be added to the phase-reports folder
