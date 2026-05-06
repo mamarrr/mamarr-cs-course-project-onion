@@ -28,25 +28,25 @@ public class WorkspaceRedirectService : IWorkspaceRedirectService, IContextSelec
         ResolveWorkspaceRedirectQuery query,
         CancellationToken cancellationToken = default)
     {
-        var cookieState = query.CookieState;
+        var rememberedContext = query.RememberedContext;
 
-        if (cookieState.ContextType == "management" && !string.IsNullOrWhiteSpace(cookieState.ManagementCompanySlug))
+        if (rememberedContext.ContextType == "management" && !string.IsNullOrWhiteSpace(rememberedContext.ManagementCompanySlug))
         {
             var hasSelectedManagementAccess = await _accountOnboardingService.UserHasManagementCompanyAccessAsync(
                 query.AppUserId,
-                cookieState.ManagementCompanySlug,
+                rememberedContext.ManagementCompanySlug,
                 cancellationToken);
             if (hasSelectedManagementAccess)
             {
                 return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
                 {
                     Destination = WorkspaceRedirectDestination.ManagementDashboard,
-                    CompanySlug = cookieState.ManagementCompanySlug
+                    CompanySlug = rememberedContext.ManagementCompanySlug
                 });
             }
         }
 
-        if (cookieState.ContextType == "resident")
+        if (rememberedContext.ContextType == "resident")
         {
             var hasSelectedResidentContext = await _uow.Residents.HasActiveUserResidentContextAsync(
                 query.AppUserId,
@@ -60,7 +60,7 @@ public class WorkspaceRedirectService : IWorkspaceRedirectService, IContextSelec
             }
         }
 
-        if (cookieState.ContextType == "customer" && Guid.TryParse(cookieState.CustomerId, out var selectedCustomerId))
+        if (rememberedContext.ContextType == "customer" && Guid.TryParse(rememberedContext.CustomerId, out var selectedCustomerId))
         {
             var hasSelectedCustomerContext = await _uow.Customers.ActiveUserCustomerContextExistsAsync(
                 query.AppUserId,

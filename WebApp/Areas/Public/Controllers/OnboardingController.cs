@@ -355,7 +355,7 @@ public class OnboardingController : Controller
             new ResolveWorkspaceRedirectQuery
             {
                 AppUserId = appUserId,
-                CookieState = new WorkspaceRedirectCookieState
+                RememberedContext = new RememberedWorkspaceContext
                 {
                     ContextType = selectedContextType,
                     ManagementCompanySlug = Request.Cookies["ctx.management.slug"],
