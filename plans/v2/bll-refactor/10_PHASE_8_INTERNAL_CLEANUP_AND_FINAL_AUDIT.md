@@ -23,6 +23,7 @@ using cleanup
 obsolete service removal
 final dependency audit
 final build
+trusted scope/context audit
 ```
 
 Out of scope:
@@ -57,6 +58,9 @@ DAL schema/repository redesign
 
 ```text
 IAppBLL exposes fewer domain-first services.
+BaseService/IBaseService readiness was implemented and verified in Phase 2.
+IBaseService no longer exposes public Add.
+BaseService exposes protected AddCore for domain create wrappers.
 Every aggregate-backed IAppBLL service inherits BaseService.
 Any non-BaseService exposed service is documented as a pure orchestration exception.
 AppBLL composes services cleanly.
@@ -68,8 +72,11 @@ Canonical BLL DTOs inherit BaseEntity.
 Canonical BLL DTOs map to canonical DAL DTOs through IBaseMapper mappers.
 Trivial CRUD commands/queries are removed or justified.
 Canonical BLL DTOs are used as much as possible where they make sense.
+Trusted route/scope models carry actor, tenant, route, parent-resource, and permission context separately from canonical DTOs.
 Custom DTOs are not kept when they are only overengineered duplicates of canonical DTOs.
 Workflow DTOs remain where justified.
+Inherited BaseService CRUD methods are treated as mechanical primitives, not complete authorization-safe workflows.
+Public create operations live on domain services as contextual route/scope + canonical DTO methods.
 Workflow methods live inside domain services.
 DeleteGuard remains in BLL.
 ManagementCompany.DeleteCascadeAsync remains untouched.

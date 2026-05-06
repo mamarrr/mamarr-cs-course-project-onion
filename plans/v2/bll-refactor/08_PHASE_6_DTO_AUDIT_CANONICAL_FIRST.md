@@ -70,7 +70,7 @@ CreateUnitCommand
 UpdateUnitCommand
 ```
 
-Replace if they only contain:
+Replace if they only contain duplicated entity fields plus actor/route/scope data:
 
 ```text
 entity fields + user id + company/customer/property slug/id
@@ -79,13 +79,13 @@ entity fields + user id + company/customer/property slug/id
 Prefer:
 
 ```text
-CanonicalBllDto + explicit method parameters
+Route request model + CanonicalBllDto
 ```
 
-or:
+or internally:
 
 ```text
-CanonicalBllDto + reusable context/scope model
+Trusted scope model + CanonicalBllDto
 ```
 
 ---
@@ -116,8 +116,8 @@ delete commands with confirmation or actor context
    - workflow or CRUD wrapper?
    - fields duplicate canonical DTO?
    - does it add validation/projection/filtering/business context?
-   - can actor/scope be method parameters?
-   - can a reusable context model replace repeated scope fields?
+   - can actor/scope be represented by a route request model or trusted scope model?
+   - can a reusable route/scope model replace repeated scope fields?
 3. Replace trivial CRUD wrappers with canonical BLL DTOs.
 4. Keep justified workflow/read-model DTOs.
 5. Remove dead DTO files.
@@ -131,6 +131,7 @@ delete commands with confirmation or actor context
 ```text
 Trivial CRUD command/query DTOs removed or marked justified.
 Canonical BLL DTO usage increased.
+CRUD-like command DTOs with `UserId + slugs + duplicated entity fields` are replaced by route/scope + canonical DTO where possible.
 Custom DTOs are not kept when they are overengineered duplicates.
 Workflow DTOs remain where justified.
 No WebApp/API DTO introduced.
@@ -152,3 +153,39 @@ contracts/services affected
 compile/build status
 WebApp/API callers affected if any
 ```
+
+
+---
+
+## Create method impact
+
+Because public `Add(entity)` is removed from `IBaseService`, CRUD-like create commands should be replaced with domain-level contextual create methods.
+
+Convert this pattern:
+
+```text
+CreatePropertyCommand
+  UserId
+  CompanySlug
+  CustomerSlug
+  property fields duplicated from PropertyBllDto
+```
+
+to:
+
+```text
+CustomerRoute + PropertyBllDto
+```
+
+through:
+
+```csharp
+Task<Result<PropertyBllDto>> CreateAsync(
+    CustomerRoute route,
+    PropertyBllDto dto,
+    CancellationToken cancellationToken = default);
+```
+
+The domain service then resolves trusted scope and calls protected `AddCore` or `AddAndFindCoreAsync`.
+
+Do not add these route-aware create methods to BaseService.

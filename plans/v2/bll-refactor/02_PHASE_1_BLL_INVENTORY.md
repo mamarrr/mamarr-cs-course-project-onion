@@ -102,7 +102,7 @@ delete/remove candidate
 Create:
 
 ```text
-plans/v2/bll-refactor/phase-reports/PHASE_1_BLL_INVENTORY.md
+plans/bll-refactor/PHASE_1_BLL_INVENTORY.md
 ```
 
 Include tables/lists for:

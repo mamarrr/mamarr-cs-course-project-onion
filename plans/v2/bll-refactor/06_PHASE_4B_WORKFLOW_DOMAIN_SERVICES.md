@@ -1,6 +1,6 @@
 # Phase 4B Agent Brief — Workflow-Heavy Domain Services
 
-Give this file to the Phase 4B agent together with `00_MASTER_BLL_AGENT_HANDOFF.md` and prior phase reports.
+Give this file to the Phase 4B agent together with `00_MASTER_BLL_AGENT_HANDOFF.md`, the Phase 2 BaseService readiness report, the Phase 3 contract report, and the Phase 3.5 trusted scope/context report.
 
 ---
 
@@ -34,6 +34,7 @@ workspace/context BLL services
 membership BLL services
 related contracts
 related DTOs
+trusted route/scope model usage
 related mappers
 ```
 
@@ -230,6 +231,28 @@ only explicit input DTOs/models
 
 ---
 
+## BaseService usage constraints
+
+Inherited BaseService methods are mechanical CRUD primitives.
+
+Public create operations must be implemented on workflow/domain services as contextual `CreateAsync(route/scope, canonicalDto, ct)` methods where create is supported.
+
+Do not expose raw `Add(dto)` as the normal public app create workflow. Public `Add` should no longer exist on `IBaseService`.
+
+For create/update/delete methods that need actor, tenant, route, lifecycle, status, or permission checks, implement contextual wrappers that:
+
+```text
+resolve route request into trusted scope
+authorize actor access
+validate entity state and business rules
+set server-owned fields
+call BaseService CRUD or protected `AddCore`/`AddAndFindCoreAsync` when the operation is normal CRUD
+save/reload where needed
+return typed app errors for expected failures
+```
+
+Workflow methods may call repositories directly when BaseService is not the right primitive, but normal CRUD parts should still use BaseService where possible.
+
 ## DTO rules
 
 Keep workflow DTOs when justified:
@@ -245,17 +268,37 @@ workspace context queries
 filtered/search queries
 ```
 
-Use canonical DTOs for simple CRUD where possible.
+Use canonical DTOs for simple CRUD entity payloads where possible.
+
+For CRUD-like methods that also need actor/tenant/route context, use:
+
+```text
+Route request model + canonical BLL DTO
+```
+
+or internally:
+
+```text
+Trusted scope model + canonical BLL DTO
+```
+
+Keep workflow commands where the operation is genuinely not normal CRUD, especially status transitions, lease assignment, membership changes, onboarding, and workspace selection.
 
 ---
 
 ## Acceptance criteria
 
 ```text
+Phase 2 has verified BaseService/IBaseService readiness.
 Lease/Ticket/ManagementCompany services inherit BaseService.
+Public create methods exist on domain services where create is supported.
+Create methods call protected BaseService add helpers only after route/scope authorization and server-owned-field setup.
 CompanyMembership inheritance or exception is documented.
 Onboarding/Workspace exceptions or compromises are documented.
 Workflow behavior is preserved.
+CRUD-like create/update methods use route/scope + canonical DTO where possible.
+Domain services resolve trusted scope before calling BaseService CRUD.
+Domain services set server-owned fields before calling BaseService CRUD.
 Workflow DTOs remain where justified.
 Trivial CRUD wrapper DTOs are removed or marked justified.
 No App.DAL.EF dependency introduced.

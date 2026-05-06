@@ -139,7 +139,7 @@ Repositories -> FluentResults
 
 ---
 
-## 5. BaseService rule
+## 5. BaseService / IBaseService readiness rule
 
 Every public domain BLL service exposed from `IAppBLL` must either:
 
@@ -154,6 +154,29 @@ Pure orchestration services may be documented exceptions.
 Internal helpers/policies are not public domain services and do not need BaseService.
 ```
 
+Before aggregate-backed services are implemented, `BaseService` and `IBaseService` must be verified as ready for this plan.
+
+Required readiness shape:
+
+```text
+IBaseService.FindAsync returns Result<TEntity>, not Result<TEntity?>.
+Not-found is a failed Result, not successful null.
+All public IBaseService methods return Result/Result<T>.
+Mapper nulls are handled as failed Results, not null-forgiving crashes.
+UpdateAsync checks existence before repository update.
+RemoveAsync checks existence before repository delete.
+Public Add(entity) is removed from IBaseService.
+BaseService exposes protected AddCore(entity), not public Add(entity).
+BaseService may expose protected AddAndFindCoreAsync(entity, parentId, ct) as a convenience helper.
+BaseService uses generic Base errors only.
+BaseService does not depend on App-specific typed errors.
+BaseService does not authorize users.
+BaseService does not resolve route slugs.
+BaseService does not perform tenant/membership/role checks.
+BaseService does not run delete guards.
+BaseService does not contain workflow/business rules.
+```
+
 BaseService should be used when:
 
 ```text
@@ -163,6 +186,31 @@ IBaseMapper exists
 IBaseRepository-backed repository exists
 the operation is normal CRUD
 ```
+
+Important distinction:
+
+```text
+BaseService inherited public methods are mechanical read/update/delete primitives.
+Create is not exposed publicly through IBaseService.
+Domain services expose safe contextual create operations on top of protected BaseService add helpers.
+```
+
+Example:
+
+```text
+Inherited public primitive:
+  UpdateAsync(CustomerBllDto dto, Guid parentId, CancellationToken ct)
+
+Protected add helper:
+  AddCore(CustomerBllDto dto)
+
+Safe app operation:
+  CreateAsync(CustomerRoute route, CustomerBllDto dto, CancellationToken ct)
+```
+
+The safe app operation resolves trusted scope, authorizes access, sets server-owned fields, validates business rules, and only then calls `AddCore` or `AddAndFindCoreAsync`.
+
+Public `Add(TEntity entity)` must be removed from `IBaseService` because generic create is almost never tenant/actor-safe in this app. Keep protected add helpers inside `BaseService` so aggregate-backed domain services can still reuse mapping/repository add logic.
 
 BaseService must not contain app-specific workflow rules. Concrete services add those on top.
 
@@ -202,7 +250,61 @@ canonical BLL DTO + reusable context/scope model
 
 ---
 
-## 7. Result and error rules
+## 7. Trusted scope + canonical DTO rule
+
+Canonical BLL DTOs represent entity state only.
+
+Do not put actor identity, route slugs, cookies, permissions, or trusted tenant scope into canonical BLL DTOs.
+
+For public app operations that require authorization or tenant safety, use:
+
+```text
+route request model + canonical BLL DTO
+```
+
+or, inside BLL after resolution:
+
+```text
+trusted scope model + canonical BLL DTO
+```
+
+Route slugs are untrusted external identifiers. BLL services may accept them as lookup input, but BLL must resolve them into trusted scope objects containing IDs, membership/role/capabilities, and parent-resource relationships before calling BaseService CRUD.
+
+This turns current command DTOs such as:
+
+```text
+UserId + CompanySlug + CustomerSlug + duplicated entity fields
+```
+
+into:
+
+```text
+CustomerRoute + CustomerBllDto
+```
+
+or:
+
+```text
+CustomerScope + CustomerBllDto
+```
+
+BaseService handles mechanical CRUD only after the domain service has:
+
+```text
+resolved route/natural keys into trusted IDs
+authorized actor access
+validated business rules
+set server-owned fields
+checked duplicate business keys
+called delete guards where needed
+```
+
+This rule preserves tenant safety while still using canonical DTOs as much as possible.
+
+
+---
+
+## 8. Result and error rules
 
 All BLL service methods should return:
 
@@ -233,7 +335,7 @@ Repositories must not return `FluentResults`.
 
 ---
 
-## 8. Service targets
+## 9. Service targets
 
 Aggregate-backed services should inherit `BaseService`:
 
@@ -275,7 +377,7 @@ small pure utility classes
 
 ---
 
-## 9. Agent workflow rules
+## 10. Agent workflow rules
 
 Each agent should receive:
 
@@ -299,25 +401,21 @@ Agents must not start later phases early unless the phase file explicitly allows
 
 ---
 
-## 10. Final definition of done
+## 11. Final definition of done
 
 ```text
 IAppBLL exposes a small domain-first facade.
 Every aggregate-backed exposed domain service inherits BaseService.
+BaseService/IBaseService readiness requirements are implemented and verified before domain service implementation.
 Any exposed service that does not inherit BaseService has documented orchestration-exception status.
 AppBLL composes domain services.
 Existing behavior is preserved.
 DTO explosion is reduced where DTOs were only simple CRUD wrappers.
 Canonical BLL DTOs are used by default whenever a custom DTO would be overengineering.
+Trusted route/scope models carry actor, tenant, route, parent-resource, and permission context separately from canonical DTOs.
 Workflow DTOs remain where justified.
 BLL contracts are API-ready.
 BLL has no WebApp/MVC/API dependencies.
 BLL has no App.DAL.EF dependency.
 Build succeeds.
 ```
-
-## 11. Rules for ai agents
-
-- Do not try to build projects or the solution, ask the user to build the solution and give either the errors or 'OK' if build is okay
-- If phase is complete or it is a good build point, then remind the user to git commit and give a recommended commit message, make sure the commits arent either too small or big.
-- phase reports should be added to the phase-reports folder

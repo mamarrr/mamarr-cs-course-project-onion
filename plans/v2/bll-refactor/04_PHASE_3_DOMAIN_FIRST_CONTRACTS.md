@@ -69,13 +69,17 @@ return Result or Result<T>
 expose BLL DTOs/models only
 not expose DAL DTOs
 not expose WebApp/ViewModels/API DTOs
-not expose HttpContext/cookies/route concepts
+not expose HttpContext/cookies/WebApp route objects
 be future API-ready
-use canonical BLL DTOs by default for simple CRUD
+use canonical BLL DTOs by default for simple CRUD entity payloads
+use BLL route request models for untrusted route slug input when public operations need actor/resource resolution
+use trusted BLL scope models internally or in service methods when scope has already been resolved
 keep workflow DTOs only where justified
 ```
 
 Aggregate-backed contracts should be compatible with `IBaseService<TKey, TEntity>` / `BaseService`.
+
+`IBaseService` must not expose public `Add`. Therefore, every aggregate-backed domain contract that supports create must define its own contextual `CreateAsync(route/scope, canonicalDto, ct)` method.
 
 ---
 
@@ -94,6 +98,22 @@ options/lookups if domain-owned
 ```
 
 Do not create separate top-level facade services for profile/workspace/access if they belong naturally to the domain service.
+
+For CRUD-like operations that currently use commands containing `UserId + route slugs + duplicated entity fields`, prefer the new target shape:
+
+```text
+Route request model + canonical BLL DTO
+```
+
+or, after BLL resolution:
+
+```text
+Trusted scope model + canonical BLL DTO
+```
+
+Do not trust client-provided tenant IDs from canonical DTOs. Domain services must resolve and set trusted parent IDs before calling BaseService.
+
+Do not put app-specific route-aware create methods on `BaseService`. Example `CreateAsync(CustomerRoute route, PropertyBllDto dto, ...)` belongs on `IPropertyService`, not on `IBaseService`.
 
 ---
 
@@ -128,6 +148,21 @@ New contracts are API-ready.
 Aggregate-backed contracts are intended for BaseService-backed implementations.
 Old granular contracts still exist for transition unless safely unused.
 Build succeeds or compile errors are limited to expected unimplemented interfaces and documented.
+```
+
+---
+
+## Handoff to Phase 3.5 agent
+
+The next agent must standardize route request and trusted scope models before Phase 4 service implementation.
+
+The Phase 3.5 agent needs:
+
+```text
+new contract names and paths
+method signatures that need route/scope + canonical DTO conversion
+existing command DTOs that duplicate canonical DTO fields
+orchestration exceptions
 ```
 
 ---

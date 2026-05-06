@@ -1,6 +1,6 @@
 # Phase 4A Agent Brief — Core BaseService-Backed Domain Services
 
-Give this file to the Phase 4A agent together with `00_MASTER_BLL_AGENT_HANDOFF.md` and prior phase reports.
+Give this file to the Phase 4A agent together with `00_MASTER_BLL_AGENT_HANDOFF.md`, the Phase 2 BaseService readiness report, the Phase 3 contract report, and the Phase 3.5 trusted scope/context report.
 
 ---
 
@@ -31,6 +31,7 @@ App.BLL.Services.Residents
 related contracts
 related mappers
 related canonical DTO use
+trusted route/scope model usage
 delete guard usage
 access/profile/workspace method grouping
 ```
@@ -163,9 +164,31 @@ resident lease/contact summaries
 
 ---
 
+
+## BaseService usage constraints
+
+Inherited BaseService methods are mechanical CRUD primitives.
+
+Public create operations must be implemented on domain services as contextual `CreateAsync(route/scope, canonicalDto, ct)` methods.
+
+Do not expose raw `Add(dto)` as the normal public app create workflow. Public `Add` should no longer exist on `IBaseService`.
+
+For create/update/delete methods that need actor, tenant, route, or permission checks, implement contextual wrappers that:
+
+```text
+resolve route request into trusted scope
+authorize actor access
+validate entity state and business rules
+set server-owned fields
+call BaseService CRUD or protected `AddCore`/`AddAndFindCoreAsync` for create
+save/reload where needed
+return typed app errors for expected failures
+```
+
+
 ## DTO rules
 
-Use canonical DTOs by default:
+Use canonical DTOs as entity payloads by default:
 
 ```text
 CustomerBllDto
@@ -175,6 +198,20 @@ ResidentBllDto
 ```
 
 Remove or mark redundant command/query DTOs only when they merely duplicate canonical DTOs and add no workflow/projection value.
+
+For CRUD-like methods that need actor/tenant/route context, use:
+
+```text
+Route request model + canonical BLL DTO
+```
+
+or internally:
+
+```text
+Trusted scope model + canonical BLL DTO
+```
+
+Do not use command DTOs that merely combine `UserId + slugs + duplicated entity fields`.
 
 Do not delete workflow/read-model DTOs that are genuinely needed.
 
@@ -201,7 +238,14 @@ Then remove direct exposure of old services later.
 ## Acceptance criteria
 
 ```text
+Phase 2 has verified BaseService/IBaseService readiness.
 Core domain services exist and inherit BaseService.
+Public create methods exist on the domain services where create is supported.
+Create methods call protected BaseService add helpers only after route/scope authorization and server-owned-field setup.
+Create/update methods use canonical BLL DTOs as entity payloads.
+Actor/tenant/route context is carried separately through route/scope models.
+Domain services resolve trusted scope before calling BaseService CRUD.
+Domain services set server-owned fields before calling BaseService CRUD.
 Core domain contracts are implemented.
 Existing behavior is preserved.
 Canonical DTOs are used for simple CRUD.
