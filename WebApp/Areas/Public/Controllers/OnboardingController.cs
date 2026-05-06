@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using App.BLL.Contracts;
 using App.BLL.Contracts.ManagementCompanies;
@@ -288,7 +287,6 @@ public class OnboardingController : Controller
         {
             AvailableRoles = availableRoles
         };
-        ViewData["Title"] = viewModel.Title;
         return View(viewModel);
     }
 
@@ -311,7 +309,6 @@ public class OnboardingController : Controller
             }
 
             vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RequestedRoleId);
-            ViewData["Title"] = vm.Title;
             return View(vm);
         }
 
@@ -325,7 +322,6 @@ public class OnboardingController : Controller
                 string.Empty,
                 result.Errors.FirstOrDefault()?.Message ?? App.Resources.Views.UiText.UnableToSubmitJoinRequest);
             vm.AvailableRoles = await BuildRoleSelectListAsync(cancellationToken, vm.RequestedRoleId);
-            ViewData["Title"] = vm.Title;
             return View(vm);
         }
 
@@ -338,7 +334,6 @@ public class OnboardingController : Controller
     public IActionResult ResidentAccess()
     {
         var viewModel = new ResidentAccessViewModel();
-        ViewData["Title"] = viewModel.Title;
         return View(viewModel);
     }
 
@@ -422,11 +417,6 @@ public class OnboardingController : Controller
             .ToList();
     }
 
-    private static bool HasDisplayAttribute<TModel>(string propertyName)
-    {
-        var property = typeof(TModel).GetProperty(propertyName);
-        return property?.GetCustomAttributes(typeof(DisplayAttribute), inherit: true).Length > 0;
-    }
 }
 
 
