@@ -1,7 +1,6 @@
 @model WebApp.ViewModels.Management.Tickets.TicketDetailsPageViewModel
 @using App.Resources.Views
 @{
-    ViewData["Title"] = Model.TicketNr;
     string Empty(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
 }
 

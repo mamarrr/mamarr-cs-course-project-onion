@@ -2,9 +2,6 @@
 @using App.Resources.Views
 @using App.Resources.Domain
 @{
-    ViewData["Title"] = UiText.Tenants;
-    ViewData["CurrentSectionLabel"] = UiText.Tenants;
-
     string ResidentLabel(WebApp.ViewModels.Unit.UnitLeaseResidentSearchResultViewModel resident)
     {
         return $"{resident.FullName} · {resident.IdCode}";

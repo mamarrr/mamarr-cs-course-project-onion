@@ -1,9 +1,5 @@
 @model WebApp.ViewModels.Management.Tickets.TicketFormPageViewModel
 @using App.Resources.Views
-@{
-    ViewData["Title"] = UiText.EditTicket;
-}
-
 @await Html.PartialAsync("_TicketForm", Model)
 
 @section Scripts {

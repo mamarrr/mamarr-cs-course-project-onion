@@ -68,8 +68,6 @@ public class DashboardController : Controller
             CompanySlug = auth.Value.CompanySlug,
             CompanyName = auth.Value.CompanyName
         };
-
-        ViewData["Title"] = title;
         return View(vm);
     }
 

@@ -113,8 +113,6 @@ public class UsersController : Controller
 
         var title = App.Resources.Views.UiText.EditUser;
         var vm = await MapEditViewModelAsync(auth.Value, editResult.Value, title, cancellationToken);
-
-        ViewData["Title"] = title;
         return View(vm);
     }
 
@@ -156,7 +154,6 @@ public class UsersController : Controller
             }
 
             await HydrateEditViewModelAsync(vm, auth.Value, editResult.Value, title, cancellationToken);
-            ViewData["Title"] = title;
             return View(vm);
         }
 
@@ -177,7 +174,6 @@ public class UsersController : Controller
         {
             ModelState.AddModelError(string.Empty, ErrorMessage(updateResult.Errors, App.Resources.Views.UiText.UnableToUpdateUser));
             await HydrateEditViewModelAsync(vm, auth.Value, editResult.Value, title, cancellationToken);
-            ViewData["Title"] = title;
             return View(vm);
         }
 
@@ -226,7 +222,6 @@ public class UsersController : Controller
 
         var title = App.Resources.Views.UiText.TransferOwnership;
         var pageVm = await BuildTransferOwnershipPageViewModelAsync(auth.Value, title, cancellationToken);
-        ViewData["Title"] = title;
         return View(pageVm);
     }
 
@@ -254,7 +249,6 @@ public class UsersController : Controller
             }
 
             var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Value, title, cancellationToken, vm);
-            ViewData["Title"] = title;
             return View(invalidVm);
         }
 
@@ -267,7 +261,6 @@ public class UsersController : Controller
         {
             ModelState.AddModelError(string.Empty, ErrorMessage(result.Errors, App.Resources.Views.UiText.UnableToTransferOwnership));
             var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Value, title, cancellationToken, vm);
-            ViewData["Title"] = title;
             return View(invalidVm);
         }
 
