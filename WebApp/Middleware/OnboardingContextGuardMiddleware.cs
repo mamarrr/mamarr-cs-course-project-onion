@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Onboarding;
+using App.BLL.DTO.Common.Routes;
 using WebApp.Services.Identity;
 
 namespace WebApp.Middleware;
@@ -23,7 +24,7 @@ public class OnboardingContextGuardMiddleware
 
     public async Task InvokeAsync(
         HttpContext context,
-        IAccountOnboardingService accountOnboardingService,
+        IOnboardingService onboardingService,
         IIdentityAccountService identityAccountService)
     {
         var path = context.Request.Path;
@@ -60,11 +61,16 @@ public class OnboardingContextGuardMiddleware
                 .Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .FirstOrDefault();
 
-            var hasManagementAccess = !string.IsNullOrWhiteSpace(companySlug) &&
-                                      await accountOnboardingService.UserHasManagementCompanyAccessAsync(
-                                          appUserId.Value,
-                                          companySlug,
-                                          context.RequestAborted);
+            var accessResult = string.IsNullOrWhiteSpace(companySlug)
+                ? null
+                : await onboardingService.UserHasManagementCompanyAccessAsync(
+                    new ManagementCompanyRoute
+                    {
+                        AppUserId = appUserId.Value,
+                        CompanySlug = companySlug
+                    },
+                    context.RequestAborted);
+            var hasManagementAccess = accessResult?.Value == true;
 
             if (!hasManagementAccess)
             {
@@ -76,8 +82,8 @@ public class OnboardingContextGuardMiddleware
             return;
         }
 
-        var hasContext = await accountOnboardingService.HasAnyContextAsync(appUserId.Value, context.RequestAborted);
-        if (hasContext)
+        var hasContext = await onboardingService.HasAnyContextAsync(appUserId.Value, context.RequestAborted);
+        if (hasContext.Value)
         {
             await _next(context);
             return;

@@ -1,3 +1,4 @@
+using App.BLL.DTO.ManagementCompanies;
 using App.BLL.DTO.Onboarding.Commands;
 using FluentResults;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -28,11 +29,10 @@ public class OnboardingViewModelMapper
         };
     }
 
-    public CreateManagementCompanyCommand Map(Guid appUserId, CreateManagementCompanyViewModel viewModel)
+    public ManagementCompanyBllDto Map(CreateManagementCompanyViewModel viewModel)
     {
-        return new CreateManagementCompanyCommand
+        return new ManagementCompanyBllDto
         {
-            AppUserId = appUserId,
             Name = viewModel.Name,
             RegistryCode = viewModel.RegistryCode,
             VatNumber = viewModel.VatNumber,

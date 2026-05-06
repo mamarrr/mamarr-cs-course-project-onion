@@ -191,7 +191,7 @@ public class OnboardingController : Controller
 
         var cookieOptions = CreateContextCookieOptions();
 
-        var authorizationResult = await _bll.WorkspaceRedirect.AuthorizeContextSelectionAsync(
+        var authorizationResult = await _bll.Workspaces.AuthorizeContextSelectionAsync(
             new AuthorizeContextSelectionQuery
             {
                 AppUserId = appUserId.Value,
@@ -258,8 +258,9 @@ public class OnboardingController : Controller
             return RedirectToAction(nameof(Login));
         }
 
-        var result = await _bll.AccountOnboarding.CreateManagementCompanyAsync(
-            _mapper.Map(appUserId.Value, vm),
+        var result = await _bll.Onboarding.CreateManagementCompanyAsync(
+            appUserId.Value,
+            _mapper.Map(vm),
             HttpContext.RequestAborted);
 
         if (result.IsFailed)
@@ -310,7 +311,7 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _bll.OnboardingCompanyJoinRequests.CreateJoinRequestAsync(
+        var result = await _bll.Onboarding.CreateJoinRequestAsync(
             _mapper.Map(appUserId.Value, vm),
             cancellationToken);
 
@@ -344,7 +345,7 @@ public class OnboardingController : Controller
             return RedirectToAction("Index", "Home");
         }
 
-        var redirectTarget = await _bll.WorkspaceRedirect.ResolveContextRedirectAsync(
+        var redirectTarget = await _bll.Workspaces.ResolveContextRedirectAsync(
             new ResolveWorkspaceRedirectQuery
             {
                 AppUserId = appUserId,
@@ -404,8 +405,8 @@ public class OnboardingController : Controller
         CancellationToken cancellationToken,
         Guid? selectedRoleId)
     {
-        var roles = await _bll.CompanyMembershipAdmin.GetAvailableRolesAsync(cancellationToken);
-        return roles
+        var roles = await _bll.CompanyMemberships.GetAvailableRolesAsync(cancellationToken);
+        return roles.Value
             .Select(r => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
             {
                 Value = r.RoleId.ToString(),

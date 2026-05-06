@@ -3,6 +3,7 @@ using App.BLL.Contracts.Common;
 using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.ManagementCompanies;
 using App.BLL.DTO.ManagementCompanies.Models;
 using App.DAL.Contracts;
@@ -13,15 +14,7 @@ using FluentResults;
 
 namespace App.BLL.Services.ManagementCompanies;
 
-public class CompanyMembershipAdminService :
-    ICompanyMembershipAdminService,
-    IManagementCompanyAccessService,
-    ICompanyMembershipAuthorizationService,
-    ICompanyMembershipQueryService,
-    ICompanyMembershipCommandService,
-    ICompanyRoleOptionsService,
-    ICompanyOwnershipTransferService,
-    ICompanyAccessRequestReviewService
+public class CompanyMembershipService : ICompanyMembershipService
 {
     private const string OwnerRoleCode = "OWNER";
     private const string ManagerRoleCode = "MANAGER";
@@ -42,9 +35,23 @@ public class CompanyMembershipAdminService :
         "SUPPORT"
     };
 
-    public CompanyMembershipAdminService(IAppUOW uow)
+    public CompanyMembershipService(IAppUOW uow)
     {
         _uow = uow;
+    }
+
+    public Task<Result<CompanyMembershipContext>> AuthorizeManagementAreaAccessAsync(
+        ManagementCompanyRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return AuthorizeManagementAreaAccessAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+    }
+
+    public Task<Result<CompanyAdminAuthorizedContext>> AuthorizeAdminAsync(
+        ManagementCompanyRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return AuthorizeAsync(route.AppUserId, route.CompanySlug, cancellationToken);
     }
 
     public async Task<Result<CompanyMembershipContext>> AuthorizeManagementAreaAccessAsync(
@@ -181,15 +188,15 @@ public class CompanyMembershipAdminService :
         });
     }
 
-    public async Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAddRoleOptionsAsync(
+    public async Task<Result<IReadOnlyList<CompanyMembershipRoleOption>>> GetAddRoleOptionsAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
     {
         var roles = await _uow.Lookups.AllManagementCompanyRolesAsync(cancellationToken);
-        return roles
+        return Result.Ok((IReadOnlyList<CompanyMembershipRoleOption>)roles
             .Where(role => CanAssignRoleInGenericFlow(context, role.Code))
             .Select(MapRoleOption)
-            .ToList();
+            .ToList());
     }
 
     public async Task<Result<IReadOnlyList<CompanyMembershipRoleOption>>> GetEditRoleOptionsAsync(
@@ -214,7 +221,10 @@ public class CompanyMembershipAdminService :
                 CompanyMembershipUserActionBlockReason.OwnershipTransferRequired));
         }
 
-        return Result.Ok(await GetAddRoleOptionsAsync(context, cancellationToken));
+        var options = await GetAddRoleOptionsAsync(context, cancellationToken);
+        return options.IsFailed
+            ? Result.Fail<IReadOnlyList<CompanyMembershipRoleOption>>(options.Errors)
+            : Result.Ok(options.Value);
     }
 
     public async Task<Result<Guid>> AddUserByEmailAsync(
@@ -527,11 +537,11 @@ public class CompanyMembershipAdminService :
         });
     }
 
-    public async Task<IReadOnlyList<CompanyMembershipRoleOption>> GetAvailableRolesAsync(
+    public async Task<Result<IReadOnlyList<CompanyMembershipRoleOption>>> GetAvailableRolesAsync(
         CancellationToken cancellationToken = default)
     {
         var roles = await _uow.Lookups.AllManagementCompanyRolesAsync(cancellationToken);
-        return roles.Select(MapRoleOption).ToList();
+        return Result.Ok((IReadOnlyList<CompanyMembershipRoleOption>)roles.Select(MapRoleOption).ToList());
     }
 
     public async Task<Result<PendingAccessRequestListResult>> GetPendingAccessRequestsAsync(

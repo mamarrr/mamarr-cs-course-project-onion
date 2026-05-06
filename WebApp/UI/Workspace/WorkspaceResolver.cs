@@ -36,8 +36,8 @@ public class WorkspaceResolver : IWorkspaceResolver
             };
         }
 
-        var catalogResult = await _bll.WorkspaceCatalog.GetWorkspaceCatalogAsync(
-            new GetWorkspaceCatalogQuery
+        var catalogResult = await _bll.Workspaces.GetCatalogAsync(
+            new App.BLL.DTO.Common.Routes.ManagementCompanyRoute
             {
                 AppUserId = portalContext.AppUserId!.Value,
                 CompanySlug = request.ManagementCompanySlug ?? string.Empty

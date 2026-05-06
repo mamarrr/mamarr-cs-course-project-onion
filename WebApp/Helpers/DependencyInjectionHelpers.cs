@@ -13,11 +13,7 @@ using App.BLL.Services.Common.Deletion;
 using App.BLL.Services.Customers;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
-using App.BLL.Services.Onboarding.Account;
-using App.BLL.Services.Onboarding.CompanyJoinRequests;
-using App.BLL.Services.Onboarding.ContextSelection;
-using App.BLL.Services.Onboarding.WorkspaceContext;
-using App.BLL.Services.Onboarding.WorkspaceCatalog;
+using App.BLL.Services.Onboarding;
 using App.BLL.Services.Properties;
 using App.BLL.Services.Residents;
 using App.BLL.Services.Tickets;
@@ -66,22 +62,17 @@ public static class DependencyInjectionHelpers
     public static IServiceCollection AddAppBll(this IServiceCollection services)
     {
         services.AddScoped<IAppBLL, AppBLL>();
-        services.AddScoped<IAccountOnboardingService, AccountOnboardingService>();
-        services.AddScoped<IWorkspaceRedirectService, WorkspaceRedirectService>();
-        services.AddScoped<IContextSelectionService, WorkspaceRedirectService>();
-        services.AddScoped<IWorkspaceContextService, WorkspaceContextService>();
-        services.AddScoped<IWorkspaceCatalogService, UserWorkspaceCatalogService>();
-        services.AddScoped<IOnboardingCompanyJoinRequestService, OnboardingCompanyJoinRequestService>();
+        services.AddScoped<IOnboardingService, OnboardingService>();
+        services.AddScoped<IWorkspaceService, WorkspaceService>();
         services.AddScoped<IAppDeleteGuard, AppDeleteGuard>();
-        services.AddScoped<ICompanyMembershipAdminService, CompanyMembershipAdminService>();
+        services.AddScoped<ICompanyMembershipService, CompanyMembershipService>();
+        services.AddScoped<IManagementCompanyService, ManagementCompanyService>();
         services.AddScoped<ICustomerService, CustomerService>();
         services.AddScoped<IPropertyService, PropertyService>();
         services.AddScoped<IResidentService, ResidentService>();
         services.AddScoped<IUnitService, UnitService>();
-        services.AddScoped<ILeaseAssignmentService, LeaseAssignmentService>();
-        services.AddScoped<ILeaseLookupService, LeaseLookupService>();
-        services.AddScoped<IManagementCompanyProfileService, ManagementCompanyProfileService>();
-        services.AddScoped<IManagementTicketService, ManagementTicketService>();
+        services.AddScoped<ILeaseService, LeaseService>();
+        services.AddScoped<ITicketService, TicketService>();
 
         return services;
     }

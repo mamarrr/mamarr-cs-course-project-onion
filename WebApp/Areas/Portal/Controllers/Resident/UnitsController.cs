@@ -1,13 +1,9 @@
 using App.BLL.Contracts;
-using App.BLL.Contracts.Leases;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
-using App.BLL.DTO.Leases.Commands;
+using App.BLL.DTO.Leases;
 using App.BLL.DTO.Leases.Models;
-using App.BLL.DTO.Leases.Queries;
 using App.BLL.DTO.Residents.Models;
-using App.BLL.DTO.Residents.Queries;
-using App.BLL.Mappers.Leases;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
@@ -82,8 +78,9 @@ public class UnitsController : Controller
             return access.response;
         }
 
-        var result = await _bll.LeaseLookups.SearchPropertiesAsync(
-            ToSearchPropertiesQuery(access.context!, searchTerm),
+        var result = await _bll.Leases.SearchPropertiesAsync(
+            ToResidentRoute(access.context!),
+            searchTerm,
             cancellationToken);
 
         return Json(result.Value.Properties.Select(x => new ResidentLeasePropertySearchResultViewModel
@@ -110,8 +107,9 @@ public class UnitsController : Controller
             return access.response;
         }
 
-        var result = await _bll.LeaseLookups.ListUnitsForPropertyAsync(
-            ToUnitsForPropertyQuery(access.context!, propertyId),
+        var result = await _bll.Leases.ListUnitsForPropertyAsync(
+            ToResidentRoute(access.context!),
+            propertyId,
             cancellationToken);
         if (result.IsFailed)
         {
@@ -153,8 +151,9 @@ public class UnitsController : Controller
             return View("~/Areas/Portal/Views/Resident/Units/Index.cshtml", invalidVm);
         }
 
-        var result = await _bll.LeaseAssignments.CreateFromResidentAsync(
-            ToCreateCommand(access.context!, vm.AddLease),
+        var result = await _bll.Leases.CreateForResidentAsync(
+            ToResidentRoute(access.context!),
+            ToCreateDto(vm.AddLease),
             cancellationToken);
 
         if (result.IsFailed)
@@ -200,8 +199,9 @@ public class UnitsController : Controller
             return View("~/Areas/Portal/Views/Resident/Units/Index.cshtml", invalidVm);
         }
 
-        var result = await _bll.LeaseAssignments.UpdateFromResidentAsync(
-            ToUpdateCommand(access.context!, leaseId, editVm),
+        var result = await _bll.Leases.UpdateFromResidentAsync(
+            ToResidentLeaseRoute(access.context!, leaseId),
+            ToUpdateDto(editVm),
             cancellationToken);
 
         if (result.IsFailed)
@@ -230,8 +230,8 @@ public class UnitsController : Controller
             return access.response;
         }
 
-        var result = await _bll.LeaseAssignments.DeleteFromResidentAsync(
-            ToDeleteCommand(access.context!, leaseId),
+        var result = await _bll.Leases.DeleteFromResidentAsync(
+            ToResidentLeaseRoute(access.context!, leaseId),
             cancellationToken);
 
         if (result.IsFailed)
@@ -284,22 +284,23 @@ public class UnitsController : Controller
         EditResidentLeaseViewModel? editOverride = null,
         Guid? requestedEditLeaseId = null)
     {
-        var leaseList = await _bll.LeaseAssignments.ListForResidentAsync(
-            LeaseBllMapper.ToResidentLeasesQuery(context),
+        var leaseList = await _bll.Leases.ListForResidentAsync(
+            ToResidentRoute(context),
             cancellationToken);
-        var roleOptions = await _bll.LeaseLookups.ListLeaseRolesAsync(cancellationToken);
+        var roleOptions = await _bll.Leases.ListLeaseRolesAsync(cancellationToken);
         var propertySearchTerm = addOverride?.PropertySearchTerm;
 
         var propertyResults = string.IsNullOrWhiteSpace(propertySearchTerm)
             ? Array.Empty<LeasePropertySearchItemModel>()
-            : (await _bll.LeaseLookups.SearchPropertiesAsync(ToSearchPropertiesQuery(context, propertySearchTerm), cancellationToken)).Value.Properties;
+            : (await _bll.Leases.SearchPropertiesAsync(ToResidentRoute(context), propertySearchTerm, cancellationToken)).Value.Properties;
 
         var selectedPropertyId = addOverride?.PropertyId;
         IReadOnlyList<LeaseUnitOptionModel> unitOptions = Array.Empty<LeaseUnitOptionModel>();
         if (selectedPropertyId.HasValue)
         {
-            var unitsResult = await _bll.LeaseLookups.ListUnitsForPropertyAsync(
-                ToUnitsForPropertyQuery(context, selectedPropertyId.Value),
+            var unitsResult = await _bll.Leases.ListUnitsForPropertyAsync(
+                ToResidentRoute(context),
+                selectedPropertyId.Value,
                 cancellationToken);
             if (unitsResult.IsSuccess)
             {
@@ -455,19 +456,11 @@ public class UnitsController : Controller
         modelState.AddModelError(string.Empty, errors.FirstOrDefault()?.Message ?? fallback);
     }
 
-    private static CreateLeaseFromResidentCommand ToCreateCommand(
-        ResidentWorkspaceModel context,
+    private static LeaseBllDto ToCreateDto(
         AddResidentLeaseViewModel vm)
     {
-        return new CreateLeaseFromResidentCommand
+        return new LeaseBllDto
         {
-            AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            ResidentId = context.ResidentId,
-            ResidentIdCode = context.ResidentIdCode,
-            FullName = context.FullName,
             UnitId = vm.UnitId!.Value,
             LeaseRoleId = vm.LeaseRoleId!.Value,
             StartDate = DateOnly.FromDateTime(vm.StartDate),
@@ -476,21 +469,11 @@ public class UnitsController : Controller
         };
     }
 
-    private static UpdateLeaseFromResidentCommand ToUpdateCommand(
-        ResidentWorkspaceModel context,
-        Guid leaseId,
+    private static LeaseBllDto ToUpdateDto(
         EditResidentLeaseViewModel vm)
     {
-        return new UpdateLeaseFromResidentCommand
+        return new LeaseBllDto
         {
-            AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            ResidentId = context.ResidentId,
-            ResidentIdCode = context.ResidentIdCode,
-            FullName = context.FullName,
-            LeaseId = leaseId,
             LeaseRoleId = vm.LeaseRoleId!.Value,
             StartDate = DateOnly.FromDateTime(vm.StartDate),
             EndDate = vm.EndDate.HasValue ? DateOnly.FromDateTime(vm.EndDate.Value) : null,
@@ -498,54 +481,27 @@ public class UnitsController : Controller
         };
     }
 
-    private static DeleteLeaseFromResidentCommand ToDeleteCommand(
+    private static ResidentRoute ToResidentRoute(
+        ResidentWorkspaceModel context)
+    {
+        return new ResidentRoute
+        {
+            AppUserId = context.AppUserId,
+            CompanySlug = context.CompanySlug,
+            ResidentIdCode = context.ResidentIdCode,
+        };
+    }
+
+    private static ResidentLeaseRoute ToResidentLeaseRoute(
         ResidentWorkspaceModel context,
         Guid leaseId)
     {
-        return new DeleteLeaseFromResidentCommand
+        return new ResidentLeaseRoute
         {
             AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
             CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            ResidentId = context.ResidentId,
             ResidentIdCode = context.ResidentIdCode,
-            FullName = context.FullName,
-            LeaseId = leaseId
-        };
-    }
-
-    private static SearchLeasePropertiesQuery ToSearchPropertiesQuery(
-        ResidentWorkspaceModel context,
-        string? searchTerm)
-    {
-        return new SearchLeasePropertiesQuery
-        {
-            AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            ResidentId = context.ResidentId,
-            ResidentIdCode = context.ResidentIdCode,
-            FullName = context.FullName,
-            SearchTerm = searchTerm
-        };
-    }
-
-    private static GetLeaseUnitsForPropertyQuery ToUnitsForPropertyQuery(
-        ResidentWorkspaceModel context,
-        Guid propertyId)
-    {
-        return new GetLeaseUnitsForPropertyQuery
-        {
-            AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            ResidentId = context.ResidentId,
-            ResidentIdCode = context.ResidentIdCode,
-            FullName = context.FullName,
-            PropertyId = propertyId
+            LeaseId = leaseId,
         };
     }
 }

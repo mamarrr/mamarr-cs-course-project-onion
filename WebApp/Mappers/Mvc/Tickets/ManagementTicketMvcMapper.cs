@@ -1,7 +1,7 @@
 using System.Globalization;
-using App.BLL.DTO.Tickets.Commands;
+using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.Tickets;
 using App.BLL.DTO.Tickets.Models;
-using App.BLL.DTO.Tickets.Queries;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using WebApp.ViewModels.Management.Tickets;
 
@@ -9,15 +9,15 @@ namespace WebApp.Mappers.Mvc.Tickets;
 
 public class ManagementTicketMvcMapper
 {
-    public GetManagementTicketsQuery ToListQuery(
+    public ManagementTicketSearchRoute ToListRoute(
         string companySlug,
         TicketFilterViewModel filter,
         Guid appUserId)
     {
-        return new GetManagementTicketsQuery
+        return new ManagementTicketSearchRoute
         {
             CompanySlug = companySlug,
-            UserId = appUserId,
+            AppUserId = appUserId,
             Search = filter.Search,
             StatusId = filter.StatusId,
             PriorityId = filter.PriorityId,
@@ -31,20 +31,20 @@ public class ManagementTicketMvcMapper
         };
     }
 
-    public GetManagementTicketQuery ToTicketQuery(
+    public TicketRoute ToTicketRoute(
         string companySlug,
         Guid ticketId,
         Guid appUserId)
     {
-        return new GetManagementTicketQuery
+        return new TicketRoute
         {
             CompanySlug = companySlug,
             TicketId = ticketId,
-            UserId = appUserId
+            AppUserId = appUserId
         };
     }
 
-    public GetManagementTicketSelectorOptionsQuery ToSelectorQuery(
+    public TicketSelectorOptionsRoute ToSelectorRoute(
         string companySlug,
         Guid? customerId,
         Guid? propertyId,
@@ -52,10 +52,10 @@ public class ManagementTicketMvcMapper
         Guid? categoryId,
         Guid appUserId)
     {
-        return new GetManagementTicketSelectorOptionsQuery
+        return new TicketSelectorOptionsRoute
         {
             CompanySlug = companySlug,
-            UserId = appUserId,
+            AppUserId = appUserId,
             CustomerId = customerId,
             PropertyId = propertyId,
             UnitId = unitId,
@@ -63,15 +63,19 @@ public class ManagementTicketMvcMapper
         };
     }
 
-    public CreateManagementTicketCommand ToCreateCommand(
-        string companySlug,
-        TicketFormViewModel form,
-        Guid appUserId)
+    public ManagementCompanyRoute ToCompanyRoute(string companySlug, Guid appUserId)
     {
-        return new CreateManagementTicketCommand
+        return new ManagementCompanyRoute
         {
             CompanySlug = companySlug,
-            UserId = appUserId,
+            AppUserId = appUserId
+        };
+    }
+
+    public TicketBllDto ToCreateDto(TicketFormViewModel form)
+    {
+        return new TicketBllDto
+        {
             TicketNr = form.TicketNr,
             Title = form.Title,
             Description = form.Description,
@@ -86,17 +90,10 @@ public class ManagementTicketMvcMapper
         };
     }
 
-    public UpdateManagementTicketCommand ToUpdateCommand(
-        string companySlug,
-        Guid ticketId,
-        TicketFormViewModel form,
-        Guid appUserId)
+    public TicketBllDto ToUpdateDto(TicketFormViewModel form)
     {
-        return new UpdateManagementTicketCommand
+        return new TicketBllDto
         {
-            CompanySlug = companySlug,
-            UserId = appUserId,
-            TicketId = ticketId,
             TicketNr = form.TicketNr,
             Title = form.Title,
             Description = form.Description,
@@ -109,32 +106,6 @@ public class ManagementTicketMvcMapper
             ResidentId = form.ResidentId,
             VendorId = form.VendorId,
             DueAt = form.DueAt
-        };
-    }
-
-    public DeleteManagementTicketCommand ToDeleteCommand(
-        string companySlug,
-        Guid ticketId,
-        Guid appUserId)
-    {
-        return new DeleteManagementTicketCommand
-        {
-            CompanySlug = companySlug,
-            TicketId = ticketId,
-            UserId = appUserId
-        };
-    }
-
-    public AdvanceManagementTicketStatusCommand ToAdvanceCommand(
-        string companySlug,
-        Guid ticketId,
-        Guid appUserId)
-    {
-        return new AdvanceManagementTicketStatusCommand
-        {
-            CompanySlug = companySlug,
-            TicketId = ticketId,
-            UserId = appUserId
         };
     }
 

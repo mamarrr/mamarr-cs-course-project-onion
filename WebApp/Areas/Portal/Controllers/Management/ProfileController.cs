@@ -1,5 +1,7 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.ManagementCompanies;
 using App.BLL.DTO.ManagementCompanies.Models;
 using App.Resources.Views;
 using FluentResults;
@@ -42,7 +44,7 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var profile = await _bll.ManagementCompanyProfiles.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
+        var profile = await _bll.ManagementCompanies.GetProfileAsync(ToRoute(appUserId.Value, companySlug), cancellationToken);
         if (profile.IsFailed)
         {
             return ToProfileLookupActionResult(profile.Errors);
@@ -64,7 +66,7 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var currentProfile = await _bll.ManagementCompanyProfiles.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
+        var currentProfile = await _bll.ManagementCompanies.GetProfileAsync(ToRoute(appUserId.Value, companySlug), cancellationToken);
         if (currentProfile.IsFailed)
         {
             return ToProfileLookupActionResult(currentProfile.Errors);
@@ -76,10 +78,9 @@ public class ProfileController : Controller
             return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
-        var result = await _bll.ManagementCompanyProfiles.UpdateProfileAsync(
-            appUserId.Value,
-            companySlug,
-            new CompanyProfileUpdateRequest
+        var result = await _bll.ManagementCompanies.UpdateAsync(
+            ToRoute(appUserId.Value, companySlug),
+            new ManagementCompanyBllDto
             {
                 Name = edit.Name,
                 RegistryCode = edit.RegistryCode,
@@ -124,7 +125,7 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var currentProfile = await _bll.ManagementCompanyProfiles.GetProfileAsync(appUserId.Value, companySlug, cancellationToken);
+        var currentProfile = await _bll.ManagementCompanies.GetProfileAsync(ToRoute(appUserId.Value, companySlug), cancellationToken);
         if (currentProfile.IsFailed)
         {
             return ToProfileLookupActionResult(currentProfile.Errors);
@@ -137,7 +138,7 @@ public class ProfileController : Controller
             return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
-        var result = await _bll.ManagementCompanyProfiles.DeleteProfileAsync(appUserId.Value, companySlug, cancellationToken);
+        var result = await _bll.ManagementCompanies.DeleteAsync(ToRoute(appUserId.Value, companySlug), cancellationToken);
         if (result.IsFailed && result.Errors.OfType<NotFoundError>().Any())
         {
             return NotFound();
@@ -206,6 +207,15 @@ public class ProfileController : Controller
     private Guid? GetAppUserId()
     {
         return _portalContextResolver.Resolve().AppUserId;
+    }
+
+    private static ManagementCompanyRoute ToRoute(Guid appUserId, string companySlug)
+    {
+        return new ManagementCompanyRoute
+        {
+            AppUserId = appUserId,
+            CompanySlug = companySlug
+        };
     }
 
     private static bool IsDeleteConfirmationValid(string? providedValue, string expectedValue)

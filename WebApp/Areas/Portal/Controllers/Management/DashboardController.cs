@@ -1,5 +1,6 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -41,9 +42,12 @@ public class DashboardController : Controller
         }
 
         var resolvedCompanySlug = portalContext.CompanySlug ?? companySlug;
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeManagementAreaAccessAsync(
-            portalContext.AppUserId!.Value,
-            resolvedCompanySlug,
+        var auth = await _bll.CompanyMemberships.AuthorizeManagementAreaAccessAsync(
+            new ManagementCompanyRoute
+            {
+                AppUserId = portalContext.AppUserId!.Value,
+                CompanySlug = resolvedCompanySlug
+            },
             cancellationToken);
         if (auth.IsFailed)
         {

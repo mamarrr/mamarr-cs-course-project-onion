@@ -55,7 +55,7 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -70,7 +70,7 @@ public class UsersController : Controller
             return View(nameof(Index), invalidVm);
         }
 
-        var result = await _bll.CompanyMembershipAdmin.AddUserByEmailAsync(auth.Value, new CompanyMembershipAddRequest
+        var result = await _bll.CompanyMemberships.AddUserByEmailAsync(auth.Value, new CompanyMembershipAddRequest
         {
             Email = vm.Email,
             RoleId = vm.RoleId.Value,
@@ -96,11 +96,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var editResult = await _bll.CompanyMembershipAdmin.GetMembershipForEditAsync(auth.Value, id, cancellationToken);
+        var editResult = await _bll.CompanyMemberships.GetMembershipForEditAsync(auth.Value, id, cancellationToken);
         if (editResult.IsFailed && editResult.Errors.OfType<NotFoundError>().Any())
         {
             return NotFound();
@@ -124,7 +124,7 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -133,7 +133,7 @@ public class UsersController : Controller
             return NotFound();
         }
 
-        var editResult = await _bll.CompanyMembershipAdmin.GetMembershipForEditAsync(auth.Value, id, cancellationToken);
+        var editResult = await _bll.CompanyMemberships.GetMembershipForEditAsync(auth.Value, id, cancellationToken);
         if (editResult.IsFailed && editResult.Errors.OfType<NotFoundError>().Any())
         {
             return NotFound();
@@ -158,7 +158,7 @@ public class UsersController : Controller
             return View(vm);
         }
 
-        var updateResult = await _bll.CompanyMembershipAdmin.UpdateMembershipAsync(auth.Value, id, new CompanyMembershipUpdateRequest
+        var updateResult = await _bll.CompanyMemberships.UpdateMembershipAsync(auth.Value, id, new CompanyMembershipUpdateRequest
         {
             RoleId = vm.RoleId.Value,
             JobTitle = vm.JobTitle,
@@ -189,11 +189,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var result = await _bll.CompanyMembershipAdmin.DeleteMembershipAsync(auth.Value, id, cancellationToken);
+        var result = await _bll.CompanyMemberships.DeleteMembershipAsync(auth.Value, id, cancellationToken);
         if (result.IsFailed)
         {
             TempData["ManagementUsersError"] = ErrorMessage(result.Errors, App.Resources.Views.UiText.UnableToRemoveCompanyUser);
@@ -210,11 +210,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var candidateResult = await _bll.CompanyMembershipAdmin.GetOwnershipTransferCandidatesAsync(auth.Value, cancellationToken);
+        var candidateResult = await _bll.CompanyMemberships.GetOwnershipTransferCandidatesAsync(auth.Value, cancellationToken);
         if (candidateResult.IsFailed)
         {
             TempData["ManagementUsersError"] = ErrorMessage(candidateResult.Errors, App.Resources.Views.UiText.OwnershipTransferRequiresCurrentOwner);
@@ -237,7 +237,7 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -254,7 +254,7 @@ public class UsersController : Controller
             return View(invalidVm);
         }
 
-        var result = await _bll.CompanyMembershipAdmin.TransferOwnershipAsync(auth.Value, new TransferOwnershipRequest
+        var result = await _bll.CompanyMemberships.TransferOwnershipAsync(auth.Value, new TransferOwnershipRequest
         {
             TargetMembershipId = vm.TargetMembershipId.Value
         }, cancellationToken);
@@ -277,11 +277,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var result = await _bll.CompanyMembershipAdmin.ApprovePendingAccessRequestAsync(auth.Value, requestId, cancellationToken);
+        var result = await _bll.CompanyMemberships.ApprovePendingAccessRequestAsync(auth.Value, requestId, cancellationToken);
         if (result.IsFailed)
         {
             TempData["ManagementUsersError"] = ErrorMessage(result.Errors, App.Resources.Views.UiText.UnableToApproveAccessRequest);
@@ -299,11 +299,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
-        var result = await _bll.CompanyMembershipAdmin.RejectPendingAccessRequestAsync(auth.Value, requestId, cancellationToken);
+        var result = await _bll.CompanyMemberships.RejectPendingAccessRequestAsync(auth.Value, requestId, cancellationToken);
         if (result.IsFailed)
         {
             TempData["ManagementUsersError"] = ErrorMessage(result.Errors, App.Resources.Views.UiText.UnableToRejectAccessRequest);
@@ -322,7 +322,7 @@ public class UsersController : Controller
             return Challenge();
         }
 
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
         return ToAuthorizationActionResult(auth);
     }
 
@@ -352,12 +352,13 @@ public class UsersController : Controller
         AddManagementUserViewModel? addUserOverride = null)
     {
         var appUserId = GetAppUserId()!.Value;
-        var auth = await _bll.CompanyMembershipAdmin.AuthorizeAsync(appUserId, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId, companySlug, cancellationToken);
         var context = auth.Value;
 
-        var members = await _bll.CompanyMembershipAdmin.ListCompanyMembersAsync(context, cancellationToken);
-        var pendingRequests = await _bll.CompanyMembershipAdmin.GetPendingAccessRequestsAsync(context, cancellationToken);
-        var availableRoles = await BuildRoleSelectListAsync(await _bll.CompanyMembershipAdmin.GetAddRoleOptionsAsync(context, cancellationToken), addUserOverride?.RoleId);
+        var members = await _bll.CompanyMemberships.ListCompanyMembersAsync(context, cancellationToken);
+        var pendingRequests = await _bll.CompanyMemberships.GetPendingAccessRequestsAsync(context, cancellationToken);
+        var roleOptions = await _bll.CompanyMemberships.GetAddRoleOptionsAsync(context, cancellationToken);
+        var availableRoles = await BuildRoleSelectListAsync(roleOptions.Value, addUserOverride?.RoleId);
         var title = App.Resources.Views.UiText.Users;
 
         return new UsersPageViewModel
@@ -408,9 +409,9 @@ public class UsersController : Controller
         CancellationToken cancellationToken,
         TransferOwnershipInputViewModel? transferOverride = null)
     {
-        var members = await _bll.CompanyMembershipAdmin.ListCompanyMembersAsync(context, cancellationToken);
+        var members = await _bll.CompanyMemberships.ListCompanyMembersAsync(context, cancellationToken);
         var currentOwner = members.Value.Members.Single(x => x.MembershipId == context.ActorMembershipId);
-        var candidateResult = await _bll.CompanyMembershipAdmin.GetOwnershipTransferCandidatesAsync(context, cancellationToken);
+        var candidateResult = await _bll.CompanyMemberships.GetOwnershipTransferCandidatesAsync(context, cancellationToken);
         var candidates = candidateResult.IsSuccess
             ? candidateResult.Value
             : Array.Empty<OwnershipTransferCandidate>();

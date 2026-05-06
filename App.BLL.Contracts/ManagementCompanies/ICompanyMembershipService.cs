@@ -14,6 +14,11 @@ public interface ICompanyMembershipService
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default);
 
+    Task<Result<CompanyAdminAuthorizedContext>> AuthorizeAsync(
+        Guid appUserId,
+        string companySlug,
+        CancellationToken cancellationToken = default);
+
     Task<Result<CompanyMembershipListResult>> ListCompanyMembersAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default);

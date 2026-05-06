@@ -2,21 +2,26 @@ using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Tickets;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Customers.Models;
 using App.BLL.DTO.Customers.Queries;
 using App.BLL.DTO.Tickets;
-using App.BLL.DTO.Tickets.Commands;
 using App.BLL.DTO.Tickets.Models;
 using App.BLL.DTO.Tickets.Queries;
+using App.BLL.Mappers.Tickets;
 using App.DAL.Contracts;
+using App.DAL.Contracts.Repositories;
 using App.DAL.DTO.Tickets;
+using Base.BLL;
 using FluentResults;
 
 namespace App.BLL.Services.Tickets;
 
-public class ManagementTicketService : IManagementTicketService
+public class TicketService :
+    BaseService<TicketBllDto, TicketDalDto, ITicketRepository, IAppUOW>,
+    ITicketService
 {
     private const int TicketNrMaxLength = 20;
 
@@ -24,17 +29,296 @@ public class ManagementTicketService : IManagementTicketService
     private readonly IAppUOW _uow;
     private readonly IAppDeleteGuard _deleteGuard;
 
-    public ManagementTicketService(
+    public TicketService(
         ICustomerService customerService,
         IAppUOW uow,
         IAppDeleteGuard deleteGuard)
+        : base(uow.Tickets, uow, new TicketBllDtoMapper())
     {
         _customerService = customerService;
         _uow = uow;
         _deleteGuard = deleteGuard;
     }
 
-    public async Task<Result<ManagementTicketsModel>> GetTicketsAsync(
+    public Task<Result<ManagementTicketsModel>> SearchAsync(
+        ManagementTicketSearchRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return GetTicketsAsync(ToTicketsQuery(route), cancellationToken);
+    }
+
+    public Task<Result<ManagementTicketDetailsModel>> GetDetailsAsync(
+        TicketRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return GetDetailsAsync(ToTicketQuery(route), cancellationToken);
+    }
+
+    public Task<Result<ManagementTicketFormModel>> GetCreateFormAsync(
+        TicketSelectorOptionsRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return GetCreateFormAsync(ToTicketsQuery(route), cancellationToken);
+    }
+
+    public Task<Result<ManagementTicketFormModel>> GetEditFormAsync(
+        TicketRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return GetEditFormAsync(ToTicketQuery(route), cancellationToken);
+    }
+
+    public Task<Result<TicketSelectorOptionsModel>> GetSelectorOptionsAsync(
+        TicketSelectorOptionsRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return GetSelectorOptionsAsync(ToSelectorQuery(route), cancellationToken);
+    }
+
+    public async Task<Result<TicketBllDto>> CreateAsync(
+        ManagementCompanyRoute route,
+        TicketBllDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var validation = ValidateCreate(dto);
+        if (validation.IsFailed)
+        {
+            return Result.Fail<TicketBllDto>(validation.Errors);
+        }
+
+        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        if (workspace.IsFailed)
+        {
+            return Result.Fail<TicketBllDto>(workspace.Errors);
+        }
+
+        var createdStatus = await _uow.Lookups.FindTicketStatusByCodeAsync(
+            TicketWorkflowConstants.Created,
+            cancellationToken);
+        if (createdStatus is null)
+        {
+            return Result.Fail(new BusinessRuleError(T("TicketCreatedStatusMissing", "Created ticket status is not configured.")));
+        }
+
+        var referenceValidation = await ValidateReferencesAsync(
+            workspace.Value.ManagementCompanyId,
+            dto.TicketCategoryId,
+            dto.TicketPriorityId,
+            createdStatus.Id,
+            dto.CustomerId,
+            dto.PropertyId,
+            dto.UnitId,
+            dto.ResidentId,
+            dto.VendorId,
+            requireCascadingParents: true,
+            cancellationToken);
+
+        if (referenceValidation.IsFailed)
+        {
+            return Result.Fail<TicketBllDto>(referenceValidation.Errors);
+        }
+
+        var normalized = Normalize(dto);
+        var duplicate = await _uow.Tickets.TicketNrExistsAsync(
+            workspace.Value.ManagementCompanyId,
+            normalized.TicketNr,
+            cancellationToken: cancellationToken);
+
+        if (duplicate)
+        {
+            return Result.Fail(new ConflictError(T("TicketNumberAlreadyExists", "Ticket number already exists in this company.")));
+        }
+
+        dto.Id = Guid.Empty;
+        dto.ManagementCompanyId = workspace.Value.ManagementCompanyId;
+        dto.TicketStatusId = createdStatus.Id;
+        dto.TicketNr = normalized.TicketNr;
+        dto.Title = normalized.Title;
+        dto.Description = normalized.Description;
+        dto.ClosedAt = null;
+
+        return await AddAndFindCoreAsync(dto, workspace.Value.ManagementCompanyId, cancellationToken);
+    }
+
+    public async Task<Result<ManagementTicketDetailsModel>> CreateAndGetDetailsAsync(
+        ManagementCompanyRoute route,
+        TicketBllDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var created = await CreateAsync(route, dto, cancellationToken);
+        return created.IsFailed
+            ? Result.Fail<ManagementTicketDetailsModel>(created.Errors)
+            : await GetDetailsAsync(ToTicketRoute(route, created.Value.Id), cancellationToken);
+    }
+
+    public async Task<Result<TicketBllDto>> UpdateAsync(
+        TicketRoute route,
+        TicketBllDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var validation = ValidateUpdate(dto);
+        if (validation.IsFailed)
+        {
+            return Result.Fail<TicketBllDto>(validation.Errors);
+        }
+
+        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        if (workspace.IsFailed)
+        {
+            return Result.Fail<TicketBllDto>(workspace.Errors);
+        }
+
+        var existing = await _uow.Tickets.FindForEditAsync(
+            route.TicketId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+        if (existing is null)
+        {
+            return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
+        }
+
+        var targetStatus = await _uow.Lookups.FindTicketStatusByIdAsync(dto.TicketStatusId, cancellationToken);
+        if (targetStatus is null)
+        {
+            return Result.Fail(new ValidationAppError("Validation failed.", [
+                new ValidationFailureModel
+                {
+                    PropertyName = nameof(dto.TicketStatusId),
+                    ErrorMessage = T("InvalidTicketStatus", "Selected ticket status is invalid.")
+                }
+            ]));
+        }
+
+        if (string.IsNullOrWhiteSpace(targetStatus.Code))
+        {
+            return Result.Fail(new BusinessRuleError(T("InvalidTicketStatus", "Selected ticket status is invalid.")));
+        }
+
+        var referenceValidation = await ValidateReferencesAsync(
+            workspace.Value.ManagementCompanyId,
+            dto.TicketCategoryId,
+            dto.TicketPriorityId,
+            dto.TicketStatusId,
+            dto.CustomerId,
+            dto.PropertyId,
+            dto.UnitId,
+            dto.ResidentId,
+            dto.VendorId,
+            requireCascadingParents: true,
+            cancellationToken);
+
+        if (referenceValidation.IsFailed)
+        {
+            return Result.Fail<TicketBllDto>(referenceValidation.Errors);
+        }
+
+        var statusGuard = ValidateStatusGuard(targetStatus.Code, dto.VendorId, dto.DueAt);
+        if (statusGuard.IsFailed)
+        {
+            return Result.Fail<TicketBllDto>(statusGuard.Errors);
+        }
+
+        var normalized = Normalize(dto);
+        var duplicate = await _uow.Tickets.TicketNrExistsAsync(
+            workspace.Value.ManagementCompanyId,
+            normalized.TicketNr,
+            route.TicketId,
+            cancellationToken);
+
+        if (duplicate)
+        {
+            return Result.Fail(new ConflictError(T("TicketNumberAlreadyExists", "Ticket number already exists in this company.")));
+        }
+
+        dto.Id = route.TicketId;
+        dto.ManagementCompanyId = workspace.Value.ManagementCompanyId;
+        dto.TicketNr = normalized.TicketNr;
+        dto.Title = normalized.Title;
+        dto.Description = normalized.Description;
+        dto.ClosedAt = targetStatus.Code == TicketWorkflowConstants.Closed ? DateTime.UtcNow : null;
+
+        var updated = await base.UpdateAsync(dto, workspace.Value.ManagementCompanyId, cancellationToken);
+        if (updated.IsFailed)
+        {
+            return Result.Fail<TicketBllDto>(updated.Errors);
+        }
+
+        await _uow.SaveChangesAsync(cancellationToken);
+        return updated;
+    }
+
+    public async Task<Result<ManagementTicketDetailsModel>> UpdateAndGetDetailsAsync(
+        TicketRoute route,
+        TicketBllDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var updated = await UpdateAsync(route, dto, cancellationToken);
+        return updated.IsFailed
+            ? Result.Fail<ManagementTicketDetailsModel>(updated.Errors)
+            : await GetDetailsAsync(route, cancellationToken);
+    }
+
+    public async Task<Result> DeleteAsync(
+        TicketRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        if (workspace.IsFailed)
+        {
+            return Result.Fail(workspace.Errors);
+        }
+
+        var ticket = await _uow.Tickets.FindDetailsAsync(
+            route.TicketId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+        if (ticket is null)
+        {
+            return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
+        }
+
+        var canDelete = await _deleteGuard.CanDeleteTicketAsync(
+            route.TicketId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!canDelete)
+        {
+            return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
+        }
+
+        var removed = await base.RemoveAsync(route.TicketId, workspace.Value.ManagementCompanyId, cancellationToken);
+        if (removed.IsFailed)
+        {
+            return Result.Fail(removed.Errors);
+        }
+
+        await _uow.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
+    }
+
+    public async Task<Result<TicketBllDto>> AdvanceStatusAsync(
+        TicketRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        if (workspace.IsFailed)
+        {
+            return Result.Fail<TicketBllDto>(workspace.Errors);
+        }
+
+        var advanced = await AdvanceStatusCoreAsync(
+            route.TicketId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+        if (advanced.IsFailed)
+        {
+            return Result.Fail<TicketBllDto>(advanced.Errors);
+        }
+
+        return await FindAsync(route.TicketId, workspace.Value.ManagementCompanyId, cancellationToken);
+    }
+
+    private async Task<Result<ManagementTicketsModel>> GetTicketsAsync(
         GetManagementTicketsQuery query,
         CancellationToken cancellationToken = default)
     {
@@ -78,7 +362,7 @@ public class ManagementTicketService : IManagementTicketService
         });
     }
 
-    public async Task<Result<ManagementTicketDetailsModel>> GetDetailsAsync(
+    private async Task<Result<ManagementTicketDetailsModel>> GetDetailsAsync(
         GetManagementTicketQuery query,
         CancellationToken cancellationToken = default)
     {
@@ -133,7 +417,7 @@ public class ManagementTicketService : IManagementTicketService
         });
     }
 
-    public async Task<Result<ManagementTicketFormModel>> GetCreateFormAsync(
+    private async Task<Result<ManagementTicketFormModel>> GetCreateFormAsync(
         GetManagementTicketsQuery query,
         CancellationToken cancellationToken = default)
     {
@@ -171,7 +455,7 @@ public class ManagementTicketService : IManagementTicketService
         });
     }
 
-    public async Task<Result<ManagementTicketFormModel>> GetEditFormAsync(
+    private async Task<Result<ManagementTicketFormModel>> GetEditFormAsync(
         GetManagementTicketQuery query,
         CancellationToken cancellationToken = default)
     {
@@ -218,7 +502,7 @@ public class ManagementTicketService : IManagementTicketService
         });
     }
 
-    public async Task<Result<TicketSelectorOptionsModel>> GetSelectorOptionsAsync(
+    private async Task<Result<TicketSelectorOptionsModel>> GetSelectorOptionsAsync(
         GetManagementTicketSelectorOptionsQuery query,
         CancellationToken cancellationToken = default)
     {
@@ -237,235 +521,14 @@ public class ManagementTicketService : IManagementTicketService
             cancellationToken));
     }
 
-    public async Task<Result<Guid>> CreateAsync(
-        CreateManagementTicketCommand command,
+    private async Task<Result> AdvanceStatusCoreAsync(
+        Guid ticketId,
+        Guid managementCompanyId,
         CancellationToken cancellationToken = default)
     {
-        var validation = ValidateCreate(command);
-        if (validation.IsFailed)
-        {
-            return Result.Fail(validation.Errors);
-        }
-
-        var workspace = await ResolveCompanyAsync(command.UserId, command.CompanySlug, cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail(workspace.Errors);
-        }
-
-        var createdStatus = await _uow.Lookups.FindTicketStatusByCodeAsync(
-            TicketWorkflowConstants.Created,
-            cancellationToken);
-        if (createdStatus is null)
-        {
-            return Result.Fail(new BusinessRuleError(T("TicketCreatedStatusMissing", "Created ticket status is not configured.")));
-        }
-
-        var referenceValidation = await ValidateReferencesAsync(
-            workspace.Value.ManagementCompanyId,
-            command.TicketCategoryId,
-            command.TicketPriorityId,
-            createdStatus.Id,
-            command.CustomerId,
-            command.PropertyId,
-            command.UnitId,
-            command.ResidentId,
-            command.VendorId,
-            requireCascadingParents: true,
-            cancellationToken);
-
-        if (referenceValidation.IsFailed)
-        {
-            return Result.Fail(referenceValidation.Errors);
-        }
-
-        var normalized = NormalizeCreate(command);
-        var duplicate = await _uow.Tickets.TicketNrExistsAsync(
-            workspace.Value.ManagementCompanyId,
-            normalized.TicketNr,
-            cancellationToken: cancellationToken);
-
-        if (duplicate)
-        {
-            return Result.Fail(new ConflictError(T("TicketNumberAlreadyExists", "Ticket number already exists in this company.")));
-        }
-
-        var ticketId = _uow.Tickets.Add(
-            new TicketDalDto
-            {
-                ManagementCompanyId = workspace.Value.ManagementCompanyId,
-                TicketNr = normalized.TicketNr,
-                Title = normalized.Title,
-                Description = normalized.Description,
-                TicketCategoryId = command.TicketCategoryId,
-                TicketStatusId = createdStatus.Id,
-                TicketPriorityId = command.TicketPriorityId,
-                CustomerId = command.CustomerId,
-                PropertyId = command.PropertyId,
-                UnitId = command.UnitId,
-                ResidentId = command.ResidentId,
-                VendorId = command.VendorId,
-                DueAt = command.DueAt
-            });
-
-        await _uow.SaveChangesAsync(cancellationToken);
-        return Result.Ok(ticketId);
-    }
-
-    public async Task<Result> UpdateAsync(
-        UpdateManagementTicketCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        var validation = ValidateUpdate(command);
-        if (validation.IsFailed)
-        {
-            return Result.Fail(validation.Errors);
-        }
-
-        var workspace = await ResolveCompanyAsync(command.UserId, command.CompanySlug, cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail(workspace.Errors);
-        }
-
-        var existing = await _uow.Tickets.FindForEditAsync(
-            command.TicketId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-        if (existing is null)
-        {
-            return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
-        }
-
-        var targetStatus = await _uow.Lookups.FindTicketStatusByIdAsync(command.TicketStatusId, cancellationToken);
-        if (targetStatus is null)
-        {
-            return Result.Fail(new ValidationAppError("Validation failed.", [
-                new ValidationFailureModel
-                {
-                    PropertyName = nameof(command.TicketStatusId),
-                    ErrorMessage = T("InvalidTicketStatus", "Selected ticket status is invalid.")
-                }
-            ]));
-        }
-
-        if (string.IsNullOrWhiteSpace(targetStatus.Code))
-        {
-            return Result.Fail(new BusinessRuleError(T("InvalidTicketStatus", "Selected ticket status is invalid.")));
-        }
-
-        var referenceValidation = await ValidateReferencesAsync(
-            workspace.Value.ManagementCompanyId,
-            command.TicketCategoryId,
-            command.TicketPriorityId,
-            command.TicketStatusId,
-            command.CustomerId,
-            command.PropertyId,
-            command.UnitId,
-            command.ResidentId,
-            command.VendorId,
-            requireCascadingParents: true,
-            cancellationToken);
-
-        if (referenceValidation.IsFailed)
-        {
-            return Result.Fail(referenceValidation.Errors);
-        }
-
-        var statusGuard = ValidateStatusGuard(targetStatus.Code, command.VendorId, command.DueAt);
-        if (statusGuard.IsFailed)
-        {
-            return Result.Fail(statusGuard.Errors);
-        }
-
-        var normalized = NormalizeUpdate(command);
-        var duplicate = await _uow.Tickets.TicketNrExistsAsync(
-            workspace.Value.ManagementCompanyId,
-            normalized.TicketNr,
-            command.TicketId,
-            cancellationToken);
-
-        if (duplicate)
-        {
-            return Result.Fail(new ConflictError(T("TicketNumberAlreadyExists", "Ticket number already exists in this company.")));
-        }
-
-        await _uow.Tickets.UpdateAsync(
-            new TicketDalDto
-            {
-                Id = command.TicketId,
-                ManagementCompanyId = workspace.Value.ManagementCompanyId,
-                TicketNr = normalized.TicketNr,
-                Title = normalized.Title,
-                Description = normalized.Description,
-                TicketCategoryId = command.TicketCategoryId,
-                TicketStatusId = command.TicketStatusId,
-                TicketPriorityId = command.TicketPriorityId,
-                CustomerId = command.CustomerId,
-                PropertyId = command.PropertyId,
-                UnitId = command.UnitId,
-                ResidentId = command.ResidentId,
-                VendorId = command.VendorId,
-                DueAt = command.DueAt,
-                ClosedAt = targetStatus.Code == TicketWorkflowConstants.Closed ? DateTime.UtcNow : null
-            },
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-
-        await _uow.SaveChangesAsync(cancellationToken);
-        return Result.Ok();
-    }
-
-    public async Task<Result> DeleteAsync(
-        DeleteManagementTicketCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        var workspace = await ResolveCompanyAsync(command.UserId, command.CompanySlug, cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail(workspace.Errors);
-        }
-
         var ticket = await _uow.Tickets.FindDetailsAsync(
-            command.TicketId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-        if (ticket is null)
-        {
-            return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
-        }
-
-        var canDelete = await _deleteGuard.CanDeleteTicketAsync(
-            command.TicketId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-        if (!canDelete)
-        {
-            return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
-        }
-
-        await _uow.Tickets.RemoveAsync(
-            command.TicketId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-
-        await _uow.SaveChangesAsync(cancellationToken);
-        return Result.Ok();
-    }
-
-    public async Task<Result> AdvanceStatusAsync(
-        AdvanceManagementTicketStatusCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        var workspace = await ResolveCompanyAsync(command.UserId, command.CompanySlug, cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail(workspace.Errors);
-        }
-
-        var ticket = await _uow.Tickets.FindDetailsAsync(
-            command.TicketId,
-            workspace.Value.ManagementCompanyId,
+            ticketId,
+            managementCompanyId,
             cancellationToken);
 
         if (ticket is null)
@@ -494,8 +557,8 @@ public class ManagementTicketService : IManagementTicketService
         var updated = await _uow.Tickets.UpdateStatusAsync(
             new TicketStatusUpdateDalDto
             {
-                Id = command.TicketId,
-                ManagementCompanyId = workspace.Value.ManagementCompanyId,
+                Id = ticketId,
+                ManagementCompanyId = managementCompanyId,
                 TicketStatusId = nextStatus.Id,
                 ClosedAt = nextStatusCode == TicketWorkflowConstants.Closed ? DateTime.UtcNow : null
             },
@@ -658,27 +721,27 @@ public class ManagementTicketService : IManagementTicketService
             : Result.Fail(new ValidationAppError("Validation failed.", failures));
     }
 
-    private static Result ValidateCreate(CreateManagementTicketCommand command)
+    private static Result ValidateCreate(TicketBllDto dto)
     {
         var failures = new List<ValidationFailureModel>();
 
-        AddRequired(failures, nameof(command.TicketNr), command.TicketNr, T("TicketNumber", "Ticket number"));
-        AddRequired(failures, nameof(command.Title), command.Title, T("Title", "Title"));
-        AddRequired(failures, nameof(command.Description), command.Description, T("Description", "Description"));
+        AddRequired(failures, nameof(dto.TicketNr), dto.TicketNr, T("TicketNumber", "Ticket number"));
+        AddRequired(failures, nameof(dto.Title), dto.Title, T("Title", "Title"));
+        AddRequired(failures, nameof(dto.Description), dto.Description, T("Description", "Description"));
 
-        if (!string.IsNullOrWhiteSpace(command.TicketNr) && command.TicketNr.Trim().Length > TicketNrMaxLength)
+        if (!string.IsNullOrWhiteSpace(dto.TicketNr) && dto.TicketNr.Trim().Length > TicketNrMaxLength)
         {
-            failures.Add(Failure(nameof(command.TicketNr), T("TicketNumberMaxLength", "Ticket number must be 20 characters or fewer.")));
+            failures.Add(Failure(nameof(dto.TicketNr), T("TicketNumberMaxLength", "Ticket number must be 20 characters or fewer.")));
         }
 
-        if (command.TicketCategoryId == Guid.Empty)
+        if (dto.TicketCategoryId == Guid.Empty)
         {
-            failures.Add(Failure(nameof(command.TicketCategoryId), T("TicketCategoryRequired", "Ticket category is required.")));
+            failures.Add(Failure(nameof(dto.TicketCategoryId), T("TicketCategoryRequired", "Ticket category is required.")));
         }
 
-        if (command.TicketPriorityId == Guid.Empty)
+        if (dto.TicketPriorityId == Guid.Empty)
         {
-            failures.Add(Failure(nameof(command.TicketPriorityId), T("TicketPriorityRequired", "Ticket priority is required.")));
+            failures.Add(Failure(nameof(dto.TicketPriorityId), T("TicketPriorityRequired", "Ticket priority is required.")));
         }
 
         return failures.Count == 0
@@ -686,32 +749,32 @@ public class ManagementTicketService : IManagementTicketService
             : Result.Fail(new ValidationAppError("Validation failed.", failures));
     }
 
-    private static Result ValidateUpdate(UpdateManagementTicketCommand command)
+    private static Result ValidateUpdate(TicketBllDto dto)
     {
         var failures = new List<ValidationFailureModel>();
 
-        AddRequired(failures, nameof(command.TicketNr), command.TicketNr, T("TicketNumber", "Ticket number"));
-        AddRequired(failures, nameof(command.Title), command.Title, T("Title", "Title"));
-        AddRequired(failures, nameof(command.Description), command.Description, T("Description", "Description"));
+        AddRequired(failures, nameof(dto.TicketNr), dto.TicketNr, T("TicketNumber", "Ticket number"));
+        AddRequired(failures, nameof(dto.Title), dto.Title, T("Title", "Title"));
+        AddRequired(failures, nameof(dto.Description), dto.Description, T("Description", "Description"));
 
-        if (!string.IsNullOrWhiteSpace(command.TicketNr) && command.TicketNr.Trim().Length > TicketNrMaxLength)
+        if (!string.IsNullOrWhiteSpace(dto.TicketNr) && dto.TicketNr.Trim().Length > TicketNrMaxLength)
         {
-            failures.Add(Failure(nameof(command.TicketNr), T("TicketNumberMaxLength", "Ticket number must be 20 characters or fewer.")));
+            failures.Add(Failure(nameof(dto.TicketNr), T("TicketNumberMaxLength", "Ticket number must be 20 characters or fewer.")));
         }
 
-        if (command.TicketCategoryId == Guid.Empty)
+        if (dto.TicketCategoryId == Guid.Empty)
         {
-            failures.Add(Failure(nameof(command.TicketCategoryId), T("TicketCategoryRequired", "Ticket category is required.")));
+            failures.Add(Failure(nameof(dto.TicketCategoryId), T("TicketCategoryRequired", "Ticket category is required.")));
         }
 
-        if (command.TicketStatusId == Guid.Empty)
+        if (dto.TicketStatusId == Guid.Empty)
         {
-            failures.Add(Failure(nameof(command.TicketStatusId), T("TicketStatusRequired", "Ticket status is required.")));
+            failures.Add(Failure(nameof(dto.TicketStatusId), T("TicketStatusRequired", "Ticket status is required.")));
         }
 
-        if (command.TicketPriorityId == Guid.Empty)
+        if (dto.TicketPriorityId == Guid.Empty)
         {
-            failures.Add(Failure(nameof(command.TicketPriorityId), T("TicketPriorityRequired", "Ticket priority is required.")));
+            failures.Add(Failure(nameof(dto.TicketPriorityId), T("TicketPriorityRequired", "Ticket priority is required.")));
         }
 
         return failures.Count == 0
@@ -837,20 +900,86 @@ public class ManagementTicketService : IManagementTicketService
         };
     }
 
-    private static NormalizedCreate NormalizeCreate(CreateManagementTicketCommand command)
+    private static NormalizedTicket Normalize(TicketBllDto dto)
     {
-        return new NormalizedCreate(
-            command.TicketNr.Trim(),
-            command.Title.Trim(),
-            command.Description.Trim());
+        return new NormalizedTicket(
+            dto.TicketNr.Trim(),
+            dto.Title.Trim(),
+            dto.Description.Trim());
     }
 
-    private static NormalizedUpdate NormalizeUpdate(UpdateManagementTicketCommand command)
+    private static GetManagementTicketsQuery ToTicketsQuery(ManagementCompanyRoute route)
     {
-        return new NormalizedUpdate(
-            command.TicketNr.Trim(),
-            command.Title.Trim(),
-            command.Description.Trim());
+        return new GetManagementTicketsQuery
+        {
+            UserId = route.AppUserId,
+            CompanySlug = route.CompanySlug
+        };
+    }
+
+    private static GetManagementTicketsQuery ToTicketsQuery(ManagementTicketSearchRoute route)
+    {
+        return new GetManagementTicketsQuery
+        {
+            UserId = route.AppUserId,
+            CompanySlug = route.CompanySlug,
+            Search = route.Search,
+            StatusId = route.StatusId,
+            PriorityId = route.PriorityId,
+            CategoryId = route.CategoryId,
+            CustomerId = route.CustomerId,
+            PropertyId = route.PropertyId,
+            UnitId = route.UnitId,
+            VendorId = route.VendorId,
+            DueFrom = route.DueFrom,
+            DueTo = route.DueTo
+        };
+    }
+
+    private static GetManagementTicketsQuery ToTicketsQuery(TicketSelectorOptionsRoute route)
+    {
+        return new GetManagementTicketsQuery
+        {
+            UserId = route.AppUserId,
+            CompanySlug = route.CompanySlug,
+            CustomerId = route.CustomerId,
+            PropertyId = route.PropertyId,
+            UnitId = route.UnitId,
+            CategoryId = route.CategoryId
+        };
+    }
+
+    private static GetManagementTicketQuery ToTicketQuery(TicketRoute route)
+    {
+        return new GetManagementTicketQuery
+        {
+            UserId = route.AppUserId,
+            CompanySlug = route.CompanySlug,
+            TicketId = route.TicketId
+        };
+    }
+
+    private static GetManagementTicketSelectorOptionsQuery ToSelectorQuery(TicketSelectorOptionsRoute route)
+    {
+        return new GetManagementTicketSelectorOptionsQuery
+        {
+            UserId = route.AppUserId,
+            CompanySlug = route.CompanySlug,
+            CustomerId = route.CustomerId,
+            PropertyId = route.PropertyId,
+            UnitId = route.UnitId,
+            CategoryId = route.CategoryId
+        };
+    }
+
+    private static TicketRoute ToTicketRoute(ManagementCompanyRoute route, Guid ticketId)
+    {
+        return new TicketRoute
+        {
+            AppUserId = route.AppUserId,
+            CompanySlug = route.CompanySlug,
+            TicketId = ticketId
+        };
     }
 
     private static string T(string key, string fallback)
@@ -865,12 +994,7 @@ public class ManagementTicketService : IManagementTicketService
             "Unable to delete because dependent records exist.");
     }
 
-    private sealed record NormalizedCreate(
-        string TicketNr,
-        string Title,
-        string Description);
-
-    private sealed record NormalizedUpdate(
+    private sealed record NormalizedTicket(
         string TicketNr,
         string Title,
         string Description);

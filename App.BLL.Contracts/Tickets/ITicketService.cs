@@ -17,7 +17,7 @@ public interface ITicketService : IBaseService<TicketBllDto>
         CancellationToken cancellationToken = default);
 
     Task<Result<ManagementTicketFormModel>> GetCreateFormAsync(
-        ManagementCompanyRoute route,
+        TicketSelectorOptionsRoute route,
         CancellationToken cancellationToken = default);
 
     Task<Result<ManagementTicketFormModel>> GetEditFormAsync(

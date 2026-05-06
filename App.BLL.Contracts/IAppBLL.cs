@@ -16,19 +16,10 @@ public interface IAppBLL : IBaseBLL
     IPropertyService Properties { get; }
     IUnitService Units { get; }
     IResidentService Residents { get; }
-
-    IAccountOnboardingService AccountOnboarding { get; }
-    IOnboardingCompanyJoinRequestService OnboardingCompanyJoinRequests { get; }
-    IWorkspaceContextService WorkspaceContexts { get; }
-    IWorkspaceCatalogService WorkspaceCatalog { get; }
-    IWorkspaceRedirectService WorkspaceRedirect { get; }
-    IContextSelectionService ContextSelection { get; }
-
-    IManagementCompanyProfileService ManagementCompanyProfiles { get; }
-    ICompanyMembershipAdminService CompanyMembershipAdmin { get; }
-
-    ILeaseAssignmentService LeaseAssignments { get; }
-    ILeaseLookupService LeaseLookups { get; }
-
-    IManagementTicketService ManagementTickets { get; }
+    ILeaseService Leases { get; }
+    ITicketService Tickets { get; }
+    IManagementCompanyService ManagementCompanies { get; }
+    ICompanyMembershipService CompanyMemberships { get; }
+    IOnboardingService Onboarding { get; }
+    IWorkspaceService Workspaces { get; }
 }

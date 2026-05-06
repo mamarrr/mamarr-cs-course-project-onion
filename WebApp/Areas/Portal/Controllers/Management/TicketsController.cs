@@ -48,8 +48,8 @@ public class TicketsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.ManagementTickets.GetTicketsAsync(
-            _mapper.ToListQuery(companySlug, filter, appUserId.Value),
+        var result = await _bll.Tickets.SearchAsync(
+            _mapper.ToListRoute(companySlug, filter, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -94,11 +94,9 @@ public class TicketsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.ManagementTickets.CreateAsync(
-            _mapper.ToCreateCommand(
-                companySlug,
-                vm.Form,
-                appUserId.Value),
+        var result = await _bll.Tickets.CreateAsync(
+            _mapper.ToCompanyRoute(companySlug, appUserId.Value),
+            _mapper.ToCreateDto(vm.Form),
             cancellationToken);
 
         if (result.IsFailed)
@@ -114,7 +112,7 @@ public class TicketsController : Controller
         }
 
         TempData["ManagementTicketsSuccess"] = T("TicketCreatedSuccessfully", "Ticket created successfully.");
-        return RedirectToAction(nameof(Details), new { companySlug, ticketId = result.Value });
+        return RedirectToAction(nameof(Details), new { companySlug, ticketId = result.Value.Id });
     }
 
     [HttpGet("{ticketId:guid}", Name = PortalRouteNames.ManagementTicketDetails)]
@@ -129,8 +127,8 @@ public class TicketsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.ManagementTickets.GetDetailsAsync(
-            _mapper.ToTicketQuery(companySlug, ticketId, appUserId.Value),
+        var result = await _bll.Tickets.GetDetailsAsync(
+            _mapper.ToTicketRoute(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -177,12 +175,9 @@ public class TicketsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.ManagementTickets.UpdateAsync(
-            _mapper.ToUpdateCommand(
-                companySlug,
-                ticketId,
-                vm.Form,
-                appUserId.Value),
+        var result = await _bll.Tickets.UpdateAsync(
+            _mapper.ToTicketRoute(companySlug, ticketId, appUserId.Value),
+            _mapper.ToUpdateDto(vm.Form),
             cancellationToken);
 
         if (result.IsFailed)
@@ -214,8 +209,8 @@ public class TicketsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.ManagementTickets.DeleteAsync(
-            _mapper.ToDeleteCommand(companySlug, ticketId, appUserId.Value),
+        var result = await _bll.Tickets.DeleteAsync(
+            _mapper.ToTicketRoute(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -247,8 +242,8 @@ public class TicketsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.ManagementTickets.AdvanceStatusAsync(
-            _mapper.ToAdvanceCommand(companySlug, ticketId, appUserId.Value),
+        var result = await _bll.Tickets.AdvanceStatusAsync(
+            _mapper.ToTicketRoute(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -279,8 +274,8 @@ public class TicketsController : Controller
             return Challenge();
         }
 
-        var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorQuery(companySlug, customerId, null, null, null, appUserId.Value),
+        var options = await _bll.Tickets.GetSelectorOptionsAsync(
+            _mapper.ToSelectorRoute(companySlug, customerId, null, null, null, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
@@ -300,8 +295,8 @@ public class TicketsController : Controller
             return Challenge();
         }
 
-        var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorQuery(companySlug, null, propertyId, null, null, appUserId.Value),
+        var options = await _bll.Tickets.GetSelectorOptionsAsync(
+            _mapper.ToSelectorRoute(companySlug, null, propertyId, null, null, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
@@ -321,8 +316,8 @@ public class TicketsController : Controller
             return Challenge();
         }
 
-        var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorQuery(companySlug, null, null, unitId, null, appUserId.Value),
+        var options = await _bll.Tickets.GetSelectorOptionsAsync(
+            _mapper.ToSelectorRoute(companySlug, null, null, unitId, null, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
@@ -342,8 +337,8 @@ public class TicketsController : Controller
             return Challenge();
         }
 
-        var options = await _bll.ManagementTickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorQuery(companySlug, null, null, null, categoryId, appUserId.Value),
+        var options = await _bll.Tickets.GetSelectorOptionsAsync(
+            _mapper.ToSelectorRoute(companySlug, null, null, null, categoryId, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
@@ -362,16 +357,13 @@ public class TicketsController : Controller
             return (Challenge(), null);
         }
 
-        var result = await _bll.ManagementTickets.GetCreateFormAsync(
-            _mapper.ToListQuery(
+        var result = await _bll.Tickets.GetCreateFormAsync(
+            _mapper.ToSelectorRoute(
                 companySlug,
-                new TicketFilterViewModel
-                {
-                    CustomerId = formOverride?.CustomerId,
-                    PropertyId = formOverride?.PropertyId,
-                    UnitId = formOverride?.UnitId,
-                    CategoryId = formOverride?.TicketCategoryId == Guid.Empty ? null : formOverride?.TicketCategoryId
-                },
+                formOverride?.CustomerId,
+                formOverride?.PropertyId,
+                formOverride?.UnitId,
+                formOverride?.TicketCategoryId == Guid.Empty ? null : formOverride?.TicketCategoryId,
                 appUserId.Value),
             cancellationToken);
 
@@ -401,8 +393,8 @@ public class TicketsController : Controller
             return (Challenge(), null);
         }
 
-        var result = await _bll.ManagementTickets.GetEditFormAsync(
-            _mapper.ToTicketQuery(companySlug, ticketId, appUserId.Value),
+        var result = await _bll.Tickets.GetEditFormAsync(
+            _mapper.ToTicketRoute(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
