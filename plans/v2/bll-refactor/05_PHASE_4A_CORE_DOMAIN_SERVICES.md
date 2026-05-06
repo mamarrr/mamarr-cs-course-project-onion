@@ -186,6 +186,39 @@ return typed app errors for expected failures
 ```
 
 
+## Canonical CRUD/projection method rule
+
+For `CustomerService`, `PropertyService`, `UnitService`, and `ResidentService`, implement one canonical repository-mutating method per normal CRUD operation.
+
+The canonical method should prefer returning the canonical BLL DTO.
+
+Examples:
+
+```csharp
+Task<Result<UnitBllDto>> CreateAsync(
+    PropertyRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+
+Task<Result<UnitBllDto>> UpdateAsync(
+    UnitRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+```
+
+If the UI or caller needs a profile/read model after mutation, add a separate composition method:
+
+```csharp
+Task<Result<UnitProfileModel>> CreateAndGetProfileAsync(...);
+Task<Result<UnitProfileModel>> UpdateAndGetProfileAsync(...);
+```
+
+These methods must call the canonical `CreateAsync` / `UpdateAsync` and then call the appropriate read/projection method, such as `GetProfileAsync`.
+
+They must not repeat repository-changing logic, scope resolution, validation, slug generation, save behavior, or duplicate checks separately from the canonical mutation method.
+
+---
+
 ## DTO rules
 
 Use canonical DTOs as entity payloads by default:
@@ -241,7 +274,9 @@ Then remove direct exposure of old services later.
 Phase 2 has verified BaseService/IBaseService readiness.
 Core domain services exist and inherit BaseService.
 Public create methods exist on the domain services where create is supported.
+Each normal CRUD operation has one canonical repository-mutating method that prefers returning the canonical BLL DTO.
 Create methods call protected BaseService add helpers only after route/scope authorization and server-owned-field setup.
+Projection-returning create/update methods, if needed, call the canonical CRUD method and then load/build the projection.
 Create/update methods use canonical BLL DTOs as entity payloads.
 Actor/tenant/route context is carried separately through route/scope models.
 Domain services resolve trusted scope before calling BaseService CRUD.

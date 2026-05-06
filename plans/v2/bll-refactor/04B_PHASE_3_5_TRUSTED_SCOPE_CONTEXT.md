@@ -283,6 +283,34 @@ delete confirmation with business-specific fields
 
 ---
 
+## Canonical CRUD/projection composition rule
+
+Route/scope models should be used by the canonical CRUD/mutation method.
+
+Example canonical mutation:
+
+```csharp
+Task<Result<UnitBllDto>> UpdateAsync(
+    UnitRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+```
+
+If a projection is needed after mutation, use a composition method:
+
+```csharp
+Task<Result<UnitProfileModel>> UpdateAndGetProfileAsync(
+    UnitRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+```
+
+The composition method calls `UpdateAsync(...)`, then loads the profile projection. It must not repeat repository mutation logic.
+
+This keeps route/scope safety and canonical DTO usage without duplicating create/update workflows.
+
+---
+
 ## Service implementation rule for later phases
 
 Domain services must follow this order before calling BaseService CRUD:

@@ -117,6 +117,55 @@ Do not put app-specific route-aware create methods on `BaseService`. Example `Cr
 
 ---
 
+## Canonical CRUD method rule for contracts
+
+For each aggregate domain contract, define only one canonical repository-mutating method for each normal CRUD operation.
+
+The canonical method should prefer returning the canonical BLL DTO.
+
+Example:
+
+```csharp
+Task<Result<UnitBllDto>> CreateAsync(
+    PropertyRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+
+Task<Result<UnitBllDto>> UpdateAsync(
+    UnitRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+```
+
+If the application needs a projection after mutation, define a separate composition/use-case method with a name that makes this explicit:
+
+```csharp
+Task<Result<UnitProfileModel>> CreateAndGetProfileAsync(
+    PropertyRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+
+Task<Result<UnitProfileModel>> UpdateAndGetProfileAsync(
+    UnitRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+```
+
+The projection-returning method must call the canonical CRUD/mutation method and then load/build the projection. It must not duplicate repository-changing logic.
+
+Avoid this shape for plain CRUD methods:
+
+```csharp
+Task<Result<UnitProfileModel>> CreateAsync(...);
+Task<Result<UnitProfileModel>> UpdateAsync(...);
+```
+
+unless the method is deliberately named and documented as a projection-returning use case. Plain `CreateAsync`/`UpdateAsync` should prefer returning `UnitBllDto`.
+
+Workflow operations are exempt when they represent real business operations rather than duplicate CRUD.
+
+---
+
 ## Deliverable
 
 Update/create contract files under:

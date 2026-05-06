@@ -18,7 +18,8 @@ The main goals are:
 3. Use canonical BLL DTOs by default for CRUD/simple entity operations.
 4. Remove custom command/query DTOs when they only duplicate canonical BLL DTOs and add no real workflow, projection, filtering, validation, or business-context value.
 5. Keep workflow behavior explicit inside the relevant domain service instead of exposing separate workflow services through `IAppBLL`.
-6. Keep BLL API-ready.
+6. Keep one canonical repository-mutating method per normal CRUD operation, and build projection-returning convenience methods on top of it.
+7. Keep BLL API-ready.
 
 ---
 
@@ -304,7 +305,53 @@ This rule preserves tenant safety while still using canonical DTOs as much as po
 
 ---
 
-## 8. Result and error rules
+## 8. Canonical CRUD method rule
+
+For each aggregate service, define one canonical repository-mutating method for each normal CRUD operation.
+
+The canonical CRUD/mutation method should:
+
+```text
+use route/scope + canonical BLL DTO where context is needed
+perform the repository-changing work
+own validation, scope resolution, server-owned-field setup, and save/reload behavior for that mutation
+prefer returning the canonical BLL DTO
+```
+
+If a caller needs a projection/read model after the mutation, add a separate composition method such as:
+
+```text
+CreateAndGetProfileAsync
+UpdateAndGetProfileAsync
+DeleteAndGetListAsync if actually needed
+```
+
+That projection-returning method must call the canonical CRUD/mutation method and then load/build the projection. It must not duplicate repository-changing logic.
+
+Example preferred shape:
+
+```csharp
+Task<Result<UnitBllDto>> CreateAsync(
+    PropertyRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+
+Task<Result<UnitProfileModel>> CreateAndGetProfileAsync(
+    PropertyRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+```
+
+`CreateAndGetProfileAsync` calls `CreateAsync`, then calls `GetProfileAsync` or another read/projection method.
+
+Pure CRUD-shaped methods should prefer returning canonical BLL DTOs. Projection models may be returned by dedicated use-case methods, but they must compose the canonical CRUD method instead of duplicating the mutation.
+
+Workflow operations are allowed to have separate methods when they represent real business actions rather than duplicate CRUD.
+
+
+---
+
+## 9. Result and error rules
 
 All BLL service methods should return:
 
@@ -335,7 +382,7 @@ Repositories must not return `FluentResults`.
 
 ---
 
-## 9. Service targets
+## 10. Service targets
 
 Aggregate-backed services should inherit `BaseService`:
 
@@ -377,7 +424,7 @@ small pure utility classes
 
 ---
 
-## 10. Agent workflow rules
+## 11. Agent workflow rules
 
 Each agent should receive:
 
@@ -401,7 +448,7 @@ Agents must not start later phases early unless the phase file explicitly allows
 
 ---
 
-## 11. Final definition of done
+## 12. Final definition of done
 
 ```text
 IAppBLL exposes a small domain-first facade.
@@ -412,6 +459,7 @@ AppBLL composes domain services.
 Existing behavior is preserved.
 DTO explosion is reduced where DTOs were only simple CRUD wrappers.
 Canonical BLL DTOs are used by default whenever a custom DTO would be overengineering.
+Each normal CRUD operation has one canonical repository-mutating method; projection-returning methods compose it instead of duplicating mutation logic.
 Trusted route/scope models carry actor, tenant, route, parent-resource, and permission context separately from canonical DTOs.
 Workflow DTOs remain where justified.
 BLL contracts are API-ready.

@@ -94,3 +94,15 @@ BaseService contains no authorization/tenant/route/workflow logic.
 Public Add is removed from IBaseService; protected AddCore is available inside BaseService.
 Domain services expose safe contextual wrappers for public app workflows.
 ```
+
+
+## Canonical CRUD method rule dependency
+
+Phase 3, Phase 4A, Phase 4B, and Phase 6 must enforce this rule:
+
+```text
+For each normal CRUD operation, implement one canonical repository-mutating method that prefers returning the canonical BLL DTO.
+If a projection/read model is needed after the mutation, add a separately named composition method that calls the canonical CRUD method and then loads/builds the projection.
+```
+
+This prevents duplicate create/update/delete logic that only differs by return type.

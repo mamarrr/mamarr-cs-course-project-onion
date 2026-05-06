@@ -109,6 +109,51 @@ delete commands with confirmation or actor context
 
 ---
 
+## CRUD return type and projection rule
+
+During DTO cleanup, also check method return types.
+
+For normal CRUD methods:
+
+```text
+prefer Result<CanonicalBllDto>
+```
+
+For projection/read-model return types:
+
+```text
+use a separately named composition method
+```
+
+Example preferred shape:
+
+```csharp
+Task<Result<UnitBllDto>> CreateAsync(
+    PropertyRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+
+Task<Result<UnitProfileModel>> CreateAndGetProfileAsync(
+    PropertyRoute route,
+    UnitBllDto dto,
+    CancellationToken cancellationToken = default);
+```
+
+The projection-returning method must call `CreateAsync(...)` and then load/build `UnitProfileModel`.
+
+Flag as a cleanup candidate any method that:
+
+```text
+is named like plain CRUD: CreateAsync / UpdateAsync
+performs repository-changing work
+returns a projection model
+duplicates another mutation path
+```
+
+Either rename it to an explicit composition/use-case method or split it into canonical CRUD + projection composition.
+
+---
+
 ## Tasks
 
 1. Use Phase 1 inventory to list all DTOs.
@@ -131,8 +176,10 @@ delete commands with confirmation or actor context
 ```text
 Trivial CRUD command/query DTOs removed or marked justified.
 Canonical BLL DTO usage increased.
+Normal CRUD methods prefer returning canonical BLL DTOs.
 CRUD-like command DTOs with `UserId + slugs + duplicated entity fields` are replaced by route/scope + canonical DTO where possible.
 Custom DTOs are not kept when they are overengineered duplicates.
+Projection-returning mutation methods compose canonical CRUD methods instead of duplicating repository-changing logic.
 Workflow DTOs remain where justified.
 No WebApp/API DTO introduced.
 No DAL DTO leaks into BLL contracts.

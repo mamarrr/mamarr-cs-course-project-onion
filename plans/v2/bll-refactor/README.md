@@ -1,10 +1,10 @@
-# BLL Agent Refactor Plan Split v4
+# BLL Agent Refactor Plan Split v5
 
 This folder contains a master handoff and phase-specific agent briefs.
 
 Recommended usage: give every agent `00_MASTER_BLL_AGENT_HANDOFF.md` plus the single phase file they are implementing.
 
-Important v4 update: Phase 2 now explicitly removes public `Add(entity)` from `IBaseService`, replaces public `BaseService.Add` with protected `AddCore`, and requires route/scope-aware create methods to live on domain services.
+Important v5 update: Adds the canonical CRUD method rule. Each normal CRUD operation should have one repository-mutating method that prefers returning the canonical BLL DTO. Projection-returning methods should compose the canonical CRUD method instead of duplicating mutation logic.
 
 ## Files
 
@@ -24,3 +24,4 @@ Important v4 update: Phase 2 now explicitly removes public `Add(entity)` from `I
 - `12_AGENT_EXECUTION_ORDER.md`
 - `CHANGELOG_v2.md`
 - `CHANGELOG_v3.md`
+- `CHANGELOG_v4.md`

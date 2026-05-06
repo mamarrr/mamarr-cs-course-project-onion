@@ -253,6 +253,35 @@ return typed app errors for expected failures
 
 Workflow methods may call repositories directly when BaseService is not the right primitive, but normal CRUD parts should still use BaseService where possible.
 
+## Canonical CRUD/projection method rule
+
+For `LeaseService`, `TicketService`, and `ManagementCompanyService`, implement one canonical repository-mutating method per normal CRUD operation when normal CRUD is valid for that aggregate.
+
+The canonical method should prefer returning the canonical BLL DTO.
+
+If a projection/read model is needed after mutation, add a separately named composition method such as:
+
+```csharp
+Task<Result<TicketDetailsModel>> CreateAndGetDetailsAsync(...);
+Task<Result<TicketDetailsModel>> UpdateAndGetDetailsAsync(...);
+```
+
+The projection-returning method must call the canonical create/update method and then load/build the projection. It must not duplicate repository-changing logic.
+
+Workflow methods are allowed to return workflow/projection models directly when they represent real business actions, such as:
+
+```text
+ticket status transition
+lease assignment
+membership role change
+ownership transfer
+join request review
+```
+
+Do not classify a method as workflow merely because a UI page wants a projection back.
+
+---
+
 ## DTO rules
 
 Keep workflow DTOs when justified:
@@ -292,7 +321,9 @@ Keep workflow commands where the operation is genuinely not normal CRUD, especia
 Phase 2 has verified BaseService/IBaseService readiness.
 Lease/Ticket/ManagementCompany services inherit BaseService.
 Public create methods exist on domain services where create is supported.
+Each normal CRUD operation has one canonical repository-mutating method that prefers returning the canonical BLL DTO.
 Create methods call protected BaseService add helpers only after route/scope authorization and server-owned-field setup.
+Projection-returning create/update methods, if needed, call the canonical CRUD method and then load/build the projection.
 CompanyMembership inheritance or exception is documented.
 Onboarding/Workspace exceptions or compromises are documented.
 Workflow behavior is preserved.

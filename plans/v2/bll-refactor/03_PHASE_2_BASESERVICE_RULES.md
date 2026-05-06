@@ -258,6 +258,36 @@ Do not add route/scope-aware create methods to BaseService. `CustomerRoute`, `Pr
 
 ---
 
+## Canonical CRUD method impact
+
+Because public `Add(entity)` is removed from `IBaseService`, create operations must be explicitly defined on domain services.
+
+For each aggregate service, there should be one canonical repository-mutating create method.
+
+Preferred create method shape:
+
+```csharp
+Task<Result<PropertyBllDto>> CreateAsync(
+    CustomerRoute route,
+    PropertyBllDto dto,
+    CancellationToken cancellationToken = default);
+```
+
+If a caller needs a projection/read model after creation, define a separate composition method:
+
+```csharp
+Task<Result<PropertyProfileModel>> CreateAndGetProfileAsync(
+    CustomerRoute route,
+    PropertyBllDto dto,
+    CancellationToken cancellationToken = default);
+```
+
+The projection-returning method must call `CreateAsync(...)` and then load/build the projection. It must not repeat the add/save/validation/scope-resolution logic.
+
+BaseService should only provide protected mechanical helpers such as `AddCore` or `AddAndFindCoreAsync`.
+
+---
+
 ## Important design decision: inherited CRUD is mechanical
 
 Because aggregate-backed contracts may inherit `IBaseService<TBllDto>`, callers may technically see inherited methods like:

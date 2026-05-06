@@ -72,11 +72,14 @@ Canonical BLL DTOs inherit BaseEntity.
 Canonical BLL DTOs map to canonical DAL DTOs through IBaseMapper mappers.
 Trivial CRUD commands/queries are removed or justified.
 Canonical BLL DTOs are used as much as possible where they make sense.
+Plain CRUD methods prefer returning canonical BLL DTOs.
 Trusted route/scope models carry actor, tenant, route, parent-resource, and permission context separately from canonical DTOs.
 Custom DTOs are not kept when they are only overengineered duplicates of canonical DTOs.
 Workflow DTOs remain where justified.
 Inherited BaseService CRUD methods are treated as mechanical primitives, not complete authorization-safe workflows.
 Public create operations live on domain services as contextual route/scope + canonical DTO methods.
+Each normal CRUD operation has one canonical repository-mutating method that prefers returning the canonical BLL DTO.
+Projection-returning mutation methods compose canonical CRUD methods and do not duplicate repository-changing logic.
 Workflow methods live inside domain services.
 DeleteGuard remains in BLL.
 ManagementCompany.DeleteCascadeAsync remains untouched.
