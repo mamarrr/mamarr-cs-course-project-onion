@@ -467,3 +467,8 @@ BLL has no WebApp/MVC/API dependencies.
 BLL has no App.DAL.EF dependency.
 Build succeeds.
 ```
+
+## More rules
+
+- If you want to build the solution/project, ask the user to do it manually and the user will give you build results
+- When a phase is done, ask the user to git commit and give a recommended git message
