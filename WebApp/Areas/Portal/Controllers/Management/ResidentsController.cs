@@ -1,5 +1,7 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.Residents;
 using App.BLL.DTO.Residents.Errors;
 using App.BLL.DTO.Residents.Models;
 using App.Resources.Views;
@@ -50,8 +52,8 @@ public class ResidentsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.ResidentWorkspaces.GetResidentsAsync(
-            _residentMapper.ToResidentsQuery(companySlug, appUserId.Value),
+        var result = await _bll.Residents.ListForCompanyAsync(
+            ToCompanyRoute(companySlug, appUserId.Value),
             cancellationToken);
         if (result.IsFailed)
         {
@@ -82,8 +84,8 @@ public class ResidentsController : Controller
             !string.IsNullOrWhiteSpace(vm.AddResident.LastName),
             !string.IsNullOrWhiteSpace(vm.AddResident.IdCode));
 
-        var residents = await _bll.ResidentWorkspaces.GetResidentsAsync(
-            _residentMapper.ToResidentsQuery(companySlug, appUserId.Value),
+        var residents = await _bll.Residents.ListForCompanyAsync(
+            ToCompanyRoute(companySlug, appUserId.Value),
             cancellationToken);
         if (residents.IsFailed)
         {
@@ -99,8 +101,9 @@ public class ResidentsController : Controller
             return View(nameof(Index), invalidVm);
         }
 
-        var createResult = await _bll.ResidentWorkspaces.CreateAsync(
-            _residentMapper.ToCreateCommand(companySlug, vm.AddResident, appUserId.Value),
+        var createResult = await _bll.Residents.CreateAndGetProfileAsync(
+            ToCompanyRoute(companySlug, appUserId.Value),
+            ToDto(vm.AddResident),
             cancellationToken);
 
         if (createResult.IsFailed)
@@ -205,6 +208,26 @@ public class ResidentsController : Controller
     private Guid? GetAppUserId()
     {
         return _portalContextResolver.Resolve().AppUserId;
+    }
+
+    private static ManagementCompanyRoute ToCompanyRoute(string companySlug, Guid appUserId)
+    {
+        return new ManagementCompanyRoute
+        {
+            AppUserId = appUserId,
+            CompanySlug = companySlug
+        };
+    }
+
+    private static ResidentBllDto ToDto(AddManagementResidentViewModel vm)
+    {
+        return new ResidentBllDto
+        {
+            FirstName = vm.FirstName,
+            LastName = vm.LastName,
+            IdCode = vm.IdCode,
+            PreferredLanguage = vm.PreferredLanguage
+        };
     }
 
     private static string T(string key, string fallback)

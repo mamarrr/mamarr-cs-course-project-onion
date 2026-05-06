@@ -36,17 +36,82 @@ related contracts
 related DTOs
 trusted route/scope model usage
 related mappers
+IAppBLL facade entries
+DI registrations
+WebApp MVC callers that currently depend on old granular BLL services
 ```
 
 Out of scope:
 
 ```text
 Customer/Property/Unit/Resident core refactor unless needed for integration
-WebApp/API/tests
+REST API rewrite
+tests
 large DAL changes
 database schema
 ManagementCompany.DeleteCascadeAsync removal
 ```
+
+REST API note:
+
+```text
+The old API controllers, App.DTO/v1 API DTOs, and WebApp API mappers were intentionally deleted during the 4A flattening work because they need a complete rewrite.
+Phase 4B must not rebuild or partially migrate the old REST API surface.
+Phase 4B should migrate MVC/WebApp callers only where they currently call old granular BLL services.
+```
+
+---
+
+## Flattening directive
+
+Phase 4B should follow the same final-shape strategy used for Phase 4A.
+
+Do not stop at transitional wrapper services if the old services can be removed in the same pass. Build the grouped services as the actual BLL entrypoints, migrate callers, then delete the old granular service contracts/classes and DI registrations.
+
+Target public facade:
+
+```csharp
+ILeaseService Leases { get; }
+ITicketService Tickets { get; }
+IManagementCompanyService ManagementCompanies { get; }
+ICompanyMembershipService CompanyMemberships { get; }
+IOnboardingService Onboarding { get; }
+IWorkspaceService Workspaces { get; }
+```
+
+Remove or stop exposing the old facade entries after callers are migrated:
+
+```text
+LeaseAssignments
+LeaseLookups
+ManagementTickets
+ManagementCompanyProfiles
+CompanyMembershipAdmin
+AccountOnboarding
+OnboardingCompanyJoinRequests
+WorkspaceContexts
+WorkspaceCatalog
+WorkspaceRedirect
+ContextSelection
+```
+
+Delete old service contracts and implementations when their behavior is absorbed:
+
+```text
+ILeaseAssignmentService / LeaseAssignmentService
+ILeaseLookupService / LeaseLookupService
+IManagementTicketService / ManagementTicketService
+IManagementCompanyProfileService / ManagementCompanyProfileService
+ICompanyMembershipAdminService / CompanyMembershipAdminService
+IAccountOnboardingService / AccountOnboardingService
+IOnboardingCompanyJoinRequestService / OnboardingCompanyJoinRequestService
+IWorkspaceContextService / WorkspaceContextService
+IWorkspaceCatalogService / UserWorkspaceCatalogService
+IWorkspaceRedirectService / WorkspaceRedirectService
+IContextSelectionService
+```
+
+If one implementation class currently satisfies multiple granular interfaces, replace it with one grouped service contract and one grouped implementation rather than keeping adapter interfaces alive.
 
 ---
 
@@ -107,6 +172,14 @@ unit lease views
 lease-scoped deletes
 ```
 
+Final 4B target:
+
+```text
+LeaseService is the only public BLL entrypoint for lease assignment, lease lookup/options, resident lease views, and unit lease views.
+MVC callers should use `_bll.Leases`.
+Old lease assignment/lookup services should not remain registered or exposed.
+```
+
 ### TicketService
 
 Absorb/wrap:
@@ -130,6 +203,14 @@ ticket options
 
 Expose as `Tickets`, not `ManagementTickets`.
 
+Final 4B target:
+
+```text
+TicketService is the only public BLL entrypoint for management ticket list/search, details, forms, create/update/delete, selector options, and status advancement.
+MVC callers should use `_bll.Tickets`.
+`ManagementTickets` should be removed from `IAppBLL`.
+```
+
 ### ManagementCompanyService
 
 Absorb/wrap:
@@ -149,6 +230,13 @@ ManagementCompany.DeleteCascadeAsync exception exposure if needed
 ```
 
 Do not remove `ManagementCompany.DeleteCascadeAsync`.
+
+Final 4B target:
+
+```text
+ManagementCompanyService owns profile get/update/delete and management-area access checks that previously lived behind management company profile/access services.
+MVC callers should use `_bll.ManagementCompanies`.
+```
 
 ### CompanyMembershipService
 
@@ -177,6 +265,15 @@ membership authorization
 membership command/query operations
 ```
 
+Final 4B target:
+
+```text
+CompanyMembershipService is a documented orchestration exception unless a real CompanyMembership BLL/DAL DTO and repository are introduced.
+It should still be the only public BLL entrypoint for membership administration.
+MVC callers should use `_bll.CompanyMemberships`.
+Old admin/authorization/query/command/role/ownership/access-request service contracts should not remain registered or exposed after migration.
+```
+
 ### OnboardingService
 
 Absorb/wrap:
@@ -197,6 +294,15 @@ onboarding state
 ```
 
 Must not depend on ASP.NET Identity UI, HttpContext, cookies, or MVC.
+
+Final 4B target:
+
+```text
+OnboardingService is a documented orchestration exception.
+It should absorb account onboarding and company join request behavior.
+MVC/public onboarding callers should use `_bll.Onboarding`.
+Old account onboarding and join-request services should not remain registered or exposed.
+```
 
 ### WorkspaceService
 
@@ -227,6 +333,15 @@ no route data
 no HttpContext
 no MVC redirect result
 only explicit input DTOs/models
+```
+
+Final 4B target:
+
+```text
+WorkspaceService is a documented orchestration exception.
+It should absorb workspace context, catalog, redirect, and context selection behavior.
+MVC/UI infrastructure callers should use `_bll.Workspaces`.
+Old workspace context/catalog/redirect/context-selection services should not remain registered or exposed.
 ```
 
 ---
@@ -332,6 +447,11 @@ Domain services resolve trusted scope before calling BaseService CRUD.
 Domain services set server-owned fields before calling BaseService CRUD.
 Workflow DTOs remain where justified.
 Trivial CRUD wrapper DTOs are removed or marked justified.
+WebApp MVC callers are migrated to the grouped facade services.
+Old granular service contracts/classes for absorbed behavior are deleted.
+Old granular DI registrations are removed.
+IAppBLL exposes grouped Phase 4B services, not old granular Phase 4B entries.
+REST API controllers/DTOs/mappers remain deleted and are not rebuilt in this phase.
 No App.DAL.EF dependency introduced.
 No WebApp/API dependency introduced.
 Build status documented.
@@ -346,9 +466,10 @@ The next agent needs:
 ```text
 new service class names/paths
 documented orchestration exceptions
-old services still delegated to
-old services ready for removal or not
+old services deleted, or explicit blocker if any could not be deleted
 DTOs removed/kept
+MVC callers migrated
+facade/DI migration status
 compile/build status
 known unresolved issues
 ```

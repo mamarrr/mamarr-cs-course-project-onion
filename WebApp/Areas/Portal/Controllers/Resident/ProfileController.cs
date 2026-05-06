@@ -1,5 +1,7 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.Residents;
 using App.BLL.DTO.Residents.Errors;
 using App.BLL.DTO.Residents.Models;
 using App.Resources.Views;
@@ -47,8 +49,8 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var result = await _bll.ResidentProfiles.GetAsync(
-            _residentMapper.ToResidentQuery(companySlug, residentIdCode, appUserId.Value),
+        var result = await _bll.Residents.GetProfileAsync(
+            ToRoute(companySlug, residentIdCode, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -73,8 +75,8 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var profile = await _bll.ResidentProfiles.GetAsync(
-            _residentMapper.ToResidentQuery(companySlug, residentIdCode, appUserId.Value),
+        var profile = await _bll.Residents.GetProfileAsync(
+            ToRoute(companySlug, residentIdCode, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -87,8 +89,9 @@ public class ProfileController : Controller
             return View("Index", await BuildViewModelAsync(profile.Value, edit, cancellationToken));
         }
 
-        var result = await _bll.ResidentProfiles.UpdateAsync(
-            _residentMapper.ToUpdateCommand(companySlug, residentIdCode, edit, appUserId.Value),
+        var result = await _bll.Residents.UpdateAndGetProfileAsync(
+            ToRoute(companySlug, residentIdCode, appUserId.Value),
+            ToDto(edit),
             cancellationToken);
 
         if (result.IsFailed)
@@ -121,16 +124,17 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var profile = await _bll.ResidentProfiles.GetAsync(
-            _residentMapper.ToResidentQuery(companySlug, residentIdCode, appUserId.Value),
+        var profile = await _bll.Residents.GetProfileAsync(
+            ToRoute(companySlug, residentIdCode, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
             return ToFailureResult(profile.Errors);
         }
 
-        var result = await _bll.ResidentProfiles.DeleteAsync(
-            _residentMapper.ToDeleteCommand(companySlug, residentIdCode, edit, appUserId.Value),
+        var result = await _bll.Residents.DeleteAsync(
+            ToRoute(companySlug, residentIdCode, appUserId.Value),
+            edit.DeleteConfirmation ?? string.Empty,
             cancellationToken);
 
         if (result.IsFailed)
@@ -285,5 +289,26 @@ public class ProfileController : Controller
     private Guid? GetAppUserId()
     {
         return _portalContextResolver.Resolve().AppUserId;
+    }
+
+    private static ResidentRoute ToRoute(string companySlug, string residentIdCode, Guid appUserId)
+    {
+        return new ResidentRoute
+        {
+            AppUserId = appUserId,
+            CompanySlug = companySlug,
+            ResidentIdCode = residentIdCode
+        };
+    }
+
+    private static ResidentBllDto ToDto(ResidentProfileEditViewModel edit)
+    {
+        return new ResidentBllDto
+        {
+            FirstName = edit.FirstName,
+            LastName = edit.LastName,
+            IdCode = edit.IdCode,
+            PreferredLanguage = edit.PreferredLanguage
+        };
     }
 }

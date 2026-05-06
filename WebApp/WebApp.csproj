@@ -33,11 +33,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="ApiControllers\Customer\" />
-      <Folder Include="ApiControllers\Management\" />
-      <Folder Include="ApiControllers\Property\" />
-      <Folder Include="ApiControllers\Resident\" />
-      <Folder Include="ApiControllers\Unit\" />
       <Folder Include="ViewModels\Unit\" />
     </ItemGroup>
 

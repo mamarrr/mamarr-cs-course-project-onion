@@ -1,6 +1,7 @@
 using App.BLL.Contracts;
 using App.BLL.Contracts.Leases;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Leases.Commands;
 using App.BLL.DTO.Leases.Models;
 using App.BLL.DTO.Leases.Queries;
@@ -254,10 +255,10 @@ public class UnitsController : Controller
             return (Challenge(), null);
         }
 
-        var access = await _bll.ResidentAccess.ResolveResidentWorkspaceAsync(
-            new GetResidentProfileQuery
+        var access = await _bll.Residents.ResolveWorkspaceAsync(
+            new ResidentRoute
             {
-                UserId = appUserId.Value,
+                AppUserId = appUserId.Value,
                 CompanySlug = companySlug,
                 ResidentIdCode = residentIdCode
             },

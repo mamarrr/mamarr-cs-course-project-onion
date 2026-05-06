@@ -1,5 +1,7 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.Units;
 using App.BLL.DTO.Units.Commands;
 using App.BLL.DTO.Units.Models;
 using App.Resources.Views;
@@ -52,8 +54,8 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var profile = await _bll.UnitProfiles.GetAsync(
-            _unitMapper.ToProfileQuery(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
+        var profile = await _bll.Units.GetProfileAsync(
+            ToRoute(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -79,8 +81,8 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var profile = await _bll.UnitProfiles.GetAsync(
-            _unitMapper.ToProfileQuery(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
+        var profile = await _bll.Units.GetProfileAsync(
+            ToRoute(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
@@ -93,8 +95,9 @@ public class ProfileController : Controller
             return View("Index", await BuildViewModelAsync(profile.Value, edit, cancellationToken));
         }
 
-        var result = await _bll.UnitProfiles.UpdateAsync(
-            _unitMapper.ToUpdateCommand(companySlug, customerSlug, propertySlug, unitSlug, edit, appUserId.Value),
+        var result = await _bll.Units.UpdateAndGetProfileAsync(
+            ToRoute(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
+            ToDto(edit),
             cancellationToken);
 
         if (result.IsFailed)
@@ -124,16 +127,17 @@ public class ProfileController : Controller
             return Challenge();
         }
 
-        var profile = await _bll.UnitProfiles.GetAsync(
-            _unitMapper.ToProfileQuery(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
+        var profile = await _bll.Units.GetProfileAsync(
+            ToRoute(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
             cancellationToken);
         if (profile.IsFailed)
         {
             return ToMvcErrorResult(profile.Errors);
         }
 
-        var result = await _bll.UnitProfiles.DeleteAsync(
-            _unitMapper.ToDeleteCommand(companySlug, customerSlug, propertySlug, unitSlug, edit, appUserId.Value),
+        var result = await _bll.Units.DeleteAsync(
+            ToRoute(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
+            edit.DeleteConfirmation ?? string.Empty,
             cancellationToken);
 
         if (result.IsFailed)
@@ -235,5 +239,28 @@ public class ProfileController : Controller
     private Guid? GetAppUserId()
     {
         return _portalContextResolver.Resolve().AppUserId;
+    }
+
+    private static UnitRoute ToRoute(string companySlug, string customerSlug, string propertySlug, string unitSlug, Guid appUserId)
+    {
+        return new UnitRoute
+        {
+            AppUserId = appUserId,
+            CompanySlug = companySlug,
+            CustomerSlug = customerSlug,
+            PropertySlug = propertySlug,
+            UnitSlug = unitSlug
+        };
+    }
+
+    private static UnitBllDto ToDto(UnitProfileEditViewModel edit)
+    {
+        return new UnitBllDto
+        {
+            UnitNr = edit.UnitNr,
+            FloorNr = edit.FloorNr,
+            SizeM2 = edit.SizeM2,
+            Notes = edit.Notes
+        };
     }
 }

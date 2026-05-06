@@ -29,9 +29,7 @@ namespace App.BLL;
 
 public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 {
-    private ICustomerAccessService? _customerAccess;
-    private ICustomerProfileService? _customerProfiles;
-    private ICustomerWorkspaceService? _customerWorkspaces;
+    private ICustomerService? _customers;
     private IAccountOnboardingService? _accountOnboarding;
     private IOnboardingCompanyJoinRequestService? _onboardingCompanyJoinRequests;
     private IWorkspaceContextService? _workspaceContexts;
@@ -39,15 +37,9 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private IWorkspaceRedirectService? _workspaceRedirect;
     private IManagementCompanyProfileService? _managementCompanyProfiles;
     private ICompanyMembershipAdminService? _companyMembershipAdmin;
-    private ICompanyCustomerService? _companyCustomers;
-    private IPropertyProfileService? _propertyProfiles;
-    private IPropertyWorkspaceService? _propertyWorkspaces;
-    private IResidentAccessService? _residentAccess;
-    private IResidentProfileService? _residentProfiles;
-    private IResidentWorkspaceService? _residentWorkspaces;
-    private IUnitAccessService? _unitAccess;
-    private IUnitProfileService? _unitProfiles;
-    private IUnitWorkspaceService? _unitWorkspaces;
+    private IPropertyService? _properties;
+    private IResidentService? _residents;
+    private IUnitService? _units;
     private ILeaseAssignmentService? _leaseAssignments;
     private ILeaseLookupService? _leaseLookups;
     private IManagementTicketService? _managementTickets;
@@ -80,35 +72,16 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     public ICompanyMembershipAdminService CompanyMembershipAdmin =>
         _companyMembershipAdmin ??= new CompanyMembershipAdminService(UOW);
 
-    public ICompanyCustomerService CompanyCustomers =>
-        _companyCustomers ??= new CompanyCustomerService(CustomerAccess, UOW);
+    public ICustomerService Customers =>
+        _customers ??= new CustomerService(
+            UOW,
+            DeleteGuard);
 
-    public ICustomerAccessService CustomerAccess =>
-        _customerAccess ??= new CustomerAccessService(UOW);
+    public IPropertyService Properties =>
+        _properties ??= new PropertyService(UOW, Customers, DeleteGuard);
 
-    public ICustomerProfileService CustomerProfiles =>
-        _customerProfiles ??= new CustomerProfileService(CustomerAccess, UOW, DeleteGuard);
-
-    public ICustomerWorkspaceService CustomerWorkspaces =>
-        _customerWorkspaces ??= new CustomerWorkspaceService(CustomerAccess);
-
-    public IPropertyProfileService PropertyProfiles =>
-        _propertyProfiles ??= new PropertyProfileService(PropertyWorkspaces, UOW, DeleteGuard);
-
-    public IPropertyWorkspaceService PropertyWorkspaces =>
-        _propertyWorkspaces ??= new PropertyWorkspaceService(CustomerAccess, UOW);
-
-    public IResidentProfileService ResidentProfiles =>
-        _residentProfiles ??= new ResidentProfileService(ResidentAccess, UOW, DeleteGuard);
-
-    public IResidentWorkspaceService ResidentWorkspaces =>
-        _residentWorkspaces ??= new ResidentWorkspaceService(ResidentAccess, UOW);
-
-    public IUnitProfileService UnitProfiles =>
-        _unitProfiles ??= new UnitProfileService(UnitAccess, UOW, DeleteGuard);
-
-    public IUnitWorkspaceService UnitWorkspaces =>
-        _unitWorkspaces ??= new UnitWorkspaceService(PropertyWorkspaces, UnitAccess, UOW);
+    public IResidentService Residents =>
+        _residents ??= new ResidentService(UOW, DeleteGuard);
 
     public ILeaseAssignmentService LeaseAssignments =>
         _leaseAssignments ??= new LeaseAssignmentService(UOW);
@@ -117,13 +90,10 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
         _leaseLookups ??= new LeaseLookupService(UOW);
 
     public IManagementTicketService ManagementTickets =>
-        _managementTickets ??= new ManagementTicketService(CustomerAccess, UOW, DeleteGuard);
+        _managementTickets ??= new ManagementTicketService(Customers, UOW, DeleteGuard);
 
-    public IResidentAccessService ResidentAccess =>
-        _residentAccess ??= new ResidentAccessService(UOW);
-
-    public IUnitAccessService UnitAccess =>
-        _unitAccess ??= new UnitAccessService(UOW);
+    public IUnitService Units =>
+        _units ??= new UnitService(UOW, Properties, DeleteGuard);
 
     public AppBLL(
         IAppUOW uow) : base(uow)

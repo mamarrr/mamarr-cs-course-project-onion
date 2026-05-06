@@ -1,5 +1,6 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Properties.Models;
 using App.Resources.Views;
 using FluentResults;
@@ -80,8 +81,14 @@ public class DashboardController : Controller
             return Challenge();
         }
 
-        var result = await _bll.PropertyWorkspaces.GetWorkspaceAsync(
-            _mapper.ToWorkspaceQuery(companySlug, customerSlug, propertySlug, appUserId.Value),
+        var result = await _bll.Properties.GetWorkspaceAsync(
+            new PropertyRoute
+            {
+                AppUserId = appUserId.Value,
+                CompanySlug = companySlug,
+                CustomerSlug = customerSlug,
+                PropertySlug = propertySlug
+            },
             cancellationToken);
         if (result.IsFailed)
         {

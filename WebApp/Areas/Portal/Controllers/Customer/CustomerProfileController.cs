@@ -1,5 +1,7 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.Customers;
 using App.BLL.DTO.Customers.Errors;
 using App.BLL.DTO.Customers.Models;
 using App.Resources.Views;
@@ -47,8 +49,8 @@ public class CustomerProfileController : Controller
             return Challenge();
         }
 
-        var result = await _bll.CustomerProfiles.GetAsync(
-            _mapper.ToQuery(companySlug, customerSlug, appUserId.Value),
+        var result = await _bll.Customers.GetProfileAsync(
+            ToRoute(companySlug, customerSlug, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -73,8 +75,8 @@ public class CustomerProfileController : Controller
             return Challenge();
         }
 
-        var currentProfile = await _bll.CustomerProfiles.GetAsync(
-            _mapper.ToQuery(companySlug, customerSlug, appUserId.Value),
+        var currentProfile = await _bll.Customers.GetProfileAsync(
+            ToRoute(companySlug, customerSlug, appUserId.Value),
             cancellationToken);
 
         if (currentProfile.IsFailed)
@@ -88,8 +90,9 @@ public class CustomerProfileController : Controller
             return View("Index", await BuildViewModelAsync(currentProfile.Value, edit, cancellationToken));
         }
 
-        var result = await _bll.CustomerProfiles.UpdateAsync(
-            _mapper.ToCommand(companySlug, customerSlug, edit, appUserId.Value),
+        var result = await _bll.Customers.UpdateAndGetProfileAsync(
+            ToRoute(companySlug, customerSlug, appUserId.Value),
+            ToDto(edit),
             cancellationToken);
 
         if (result.IsSuccess)
@@ -122,8 +125,8 @@ public class CustomerProfileController : Controller
             return Challenge();
         }
 
-        var currentProfile = await _bll.CustomerProfiles.GetAsync(
-            _mapper.ToQuery(companySlug, customerSlug, appUserId.Value),
+        var currentProfile = await _bll.Customers.GetProfileAsync(
+            ToRoute(companySlug, customerSlug, appUserId.Value),
             cancellationToken);
 
         if (currentProfile.IsFailed)
@@ -131,8 +134,9 @@ public class CustomerProfileController : Controller
             return ToMvcErrorResult(currentProfile.Errors);
         }
 
-        var result = await _bll.CustomerProfiles.DeleteAsync(
-            _mapper.ToDeleteCommand(companySlug, customerSlug, edit, appUserId.Value),
+        var result = await _bll.Customers.DeleteAsync(
+            ToRoute(companySlug, customerSlug, appUserId.Value),
+            edit.DeleteConfirmation ?? string.Empty,
             cancellationToken);
 
         if (result.IsSuccess)
@@ -239,5 +243,27 @@ public class CustomerProfileController : Controller
     private Guid? GetAppUserId()
     {
         return _portalContextResolver.Resolve().AppUserId;
+    }
+
+    private static CustomerRoute ToRoute(string companySlug, string customerSlug, Guid appUserId)
+    {
+        return new CustomerRoute
+        {
+            AppUserId = appUserId,
+            CompanySlug = companySlug,
+            CustomerSlug = customerSlug
+        };
+    }
+
+    private static CustomerBllDto ToDto(CustomerProfileEditViewModel edit)
+    {
+        return new CustomerBllDto
+        {
+            Name = edit.Name,
+            RegistryCode = edit.RegistryCode,
+            BillingEmail = edit.BillingEmail,
+            BillingAddress = edit.BillingAddress,
+            Phone = edit.Phone
+        };
     }
 }

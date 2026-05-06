@@ -1,6 +1,8 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Customers.Models;
+using App.BLL.DTO.Properties;
 using App.BLL.DTO.Properties.Commands;
 using App.Resources.Views;
 using FluentResults;
@@ -91,8 +93,9 @@ public class CustomerPropertiesController : Controller
             return View(nameof(Index), invalidVm);
         }
 
-        var createResult = await _bll.PropertyWorkspaces.CreateAsync(
-            _propertyMapper.ToCreateCommand(companySlug, customerSlug, vm.AddProperty, appUserId.Value),
+        var createResult = await _bll.Properties.CreateAndGetProfileAsync(
+            ToCustomerRoute(companySlug, customerSlug, appUserId.Value),
+            ToPropertyDto(vm.AddProperty),
             cancellationToken);
 
         if (createResult.IsFailed)
@@ -119,8 +122,8 @@ public class CustomerPropertiesController : Controller
         Guid appUserId,
         CancellationToken cancellationToken)
     {
-        var result = await _bll.CustomerWorkspaces.GetWorkspaceAsync(
-            _customerMapper.ToQuery(companySlug, customerSlug, appUserId),
+        var result = await _bll.Customers.GetWorkspaceAsync(
+            ToCustomerRoute(companySlug, customerSlug, appUserId),
             cancellationToken);
 
         return result.IsFailed
@@ -136,11 +139,11 @@ public class CustomerPropertiesController : Controller
         CancellationToken cancellationToken,
         AddPropertyViewModel? addPropertyOverride = null)
     {
-        var listResult = await _bll.PropertyWorkspaces.GetCustomerPropertiesAsync(
-            _propertyMapper.ToCustomerPropertiesQuery(companySlug, customerSlug, appUserId),
+        var listResult = await _bll.Properties.ListForCustomerAsync(
+            ToCustomerRoute(companySlug, customerSlug, appUserId),
             cancellationToken);
 
-        var propertyTypeResult = await _bll.PropertyWorkspaces.GetPropertyTypeOptionsAsync(cancellationToken);
+        var propertyTypeResult = await _bll.Properties.GetPropertyTypeOptionsAsync(cancellationToken);
 
         return new PropertiesPageViewModel
         {
@@ -217,6 +220,29 @@ public class CustomerPropertiesController : Controller
     private Guid? GetAppUserId()
     {
         return _portalContextResolver.Resolve().AppUserId;
+    }
+
+    private static CustomerRoute ToCustomerRoute(string companySlug, string customerSlug, Guid appUserId)
+    {
+        return new CustomerRoute
+        {
+            AppUserId = appUserId,
+            CompanySlug = companySlug,
+            CustomerSlug = customerSlug
+        };
+    }
+
+    private static PropertyBllDto ToPropertyDto(AddPropertyViewModel vm)
+    {
+        return new PropertyBllDto
+        {
+            Label = vm.Name,
+            AddressLine = vm.AddressLine,
+            City = vm.City,
+            PostalCode = vm.PostalCode,
+            PropertyTypeId = vm.PropertyTypeId ?? Guid.Empty,
+            Notes = vm.Notes
+        };
     }
 
     private static string T(string key, string fallback)

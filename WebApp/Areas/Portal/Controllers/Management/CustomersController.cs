@@ -1,5 +1,7 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.Customers;
 using App.BLL.DTO.Customers.Errors;
 using App.BLL.DTO.Customers.Queries;
 using App.Resources.Views;
@@ -103,8 +105,16 @@ public class CustomersController : Controller
             return View(nameof(Index), invalidVm.model);
         }
 
-        var createResult = await _bll.CompanyCustomers.CreateCustomerAsync(
-            _mapper.ToCommand(companySlug, vm.AddCustomer, appUserId.Value),
+        var createResult = await _bll.Customers.CreateAndGetProfileAsync(
+            new ManagementCompanyRoute { AppUserId = appUserId.Value, CompanySlug = companySlug },
+            new CustomerBllDto
+            {
+                Name = vm.AddCustomer.Name,
+                RegistryCode = vm.AddCustomer.RegistryCode,
+                BillingEmail = vm.AddCustomer.BillingEmail,
+                BillingAddress = vm.AddCustomer.BillingAddress,
+                Phone = vm.AddCustomer.Phone
+            },
             cancellationToken);
 
         if (createResult.IsFailed)
@@ -153,7 +163,7 @@ public class CustomersController : Controller
         _logger.LogInformation(
             "Management customers add succeeded for companySlug={CompanySlug}, createdCustomerId={CreatedCustomerId}",
             companySlug,
-            createResult.Value.CustomerId);
+            createResult.Value.Id);
 
         TempData["ManagementCustomersSuccess"] = T("CustomerAddedSuccessfully", "Customer added successfully.");
         return RedirectToAction(nameof(Index), new { companySlug });
@@ -164,13 +174,17 @@ public class CustomersController : Controller
         CancellationToken cancellationToken,
         AddManagementCustomerViewModel? addCustomerOverride = null)
     {
-        var company = await _bll.CustomerAccess.ResolveCompanyWorkspaceAsync(query, cancellationToken);
+        var company = await _bll.Customers.ResolveCompanyWorkspaceAsync(
+            new ManagementCompanyRoute { AppUserId = query.UserId, CompanySlug = query.CompanySlug },
+            cancellationToken);
         if (company.IsFailed)
         {
             return (ToMvcErrorResult(company.Errors), null);
         }
 
-        var listResult = await _bll.CompanyCustomers.GetCompanyCustomersAsync(query, cancellationToken);
+        var listResult = await _bll.Customers.ListForCompanyAsync(
+            new ManagementCompanyRoute { AppUserId = query.UserId, CompanySlug = query.CompanySlug },
+            cancellationToken);
         if (listResult.IsFailed)
         {
             return (ToMvcErrorResult(listResult.Errors), null);

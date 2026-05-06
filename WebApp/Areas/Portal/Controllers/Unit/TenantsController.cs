@@ -1,6 +1,7 @@
 using App.BLL.Contracts;
 using App.BLL.Contracts.Leases;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Leases.Commands;
 using App.BLL.DTO.Leases.Models;
 using App.BLL.DTO.Leases.Queries;
@@ -233,8 +234,15 @@ public class TenantsController : Controller
             return (Challenge(), null);
         }
 
-        var unitAccess = await _bll.UnitAccess.ResolveUnitWorkspaceAsync(
-            _unitMapper.ToDashboardQuery(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
+        var unitAccess = await _bll.Units.ResolveWorkspaceAsync(
+            new UnitRoute
+            {
+                AppUserId = appUserId.Value,
+                CompanySlug = companySlug,
+                CustomerSlug = customerSlug,
+                PropertySlug = propertySlug,
+                UnitSlug = unitSlug
+            },
             cancellationToken);
         if (unitAccess.IsFailed)
         {

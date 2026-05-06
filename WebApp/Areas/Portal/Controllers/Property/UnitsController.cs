@@ -1,5 +1,7 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.Units;
 using App.BLL.DTO.Units.Commands;
 using App.BLL.DTO.Units.Models;
 using App.Resources.Views;
@@ -51,8 +53,8 @@ public class UnitsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.UnitWorkspaces.GetPropertyUnitsAsync(
-            _unitMapper.ToPropertyUnitsQuery(companySlug, customerSlug, propertySlug, appUserId.Value),
+        var result = await _bll.Units.ListForPropertyAsync(
+            ToPropertyRoute(companySlug, customerSlug, propertySlug, appUserId.Value),
             cancellationToken);
         if (result.IsFailed)
         {
@@ -78,8 +80,8 @@ public class UnitsController : Controller
             return Challenge();
         }
 
-        var listResult = await _bll.UnitWorkspaces.GetPropertyUnitsAsync(
-            _unitMapper.ToPropertyUnitsQuery(companySlug, customerSlug, propertySlug, appUserId.Value),
+        var listResult = await _bll.Units.ListForPropertyAsync(
+            ToPropertyRoute(companySlug, customerSlug, propertySlug, appUserId.Value),
             cancellationToken);
         if (listResult.IsFailed)
         {
@@ -92,8 +94,9 @@ public class UnitsController : Controller
             return View("~/Areas/Portal/Views/Property/Units/Index.cshtml", invalidVm);
         }
 
-        var createResult = await _bll.UnitWorkspaces.CreateAsync(
-            _unitMapper.ToCreateCommand(companySlug, customerSlug, propertySlug, vm.AddUnit, appUserId.Value),
+        var createResult = await _bll.Units.CreateAndGetProfileAsync(
+            ToPropertyRoute(companySlug, customerSlug, propertySlug, appUserId.Value),
+            ToDto(vm.AddUnit),
             cancellationToken);
 
         if (createResult.IsFailed)
@@ -192,6 +195,28 @@ public class UnitsController : Controller
     private Guid? GetAppUserId()
     {
         return _portalContextResolver.Resolve().AppUserId;
+    }
+
+    private static PropertyRoute ToPropertyRoute(string companySlug, string customerSlug, string propertySlug, Guid appUserId)
+    {
+        return new PropertyRoute
+        {
+            AppUserId = appUserId,
+            CompanySlug = companySlug,
+            CustomerSlug = customerSlug,
+            PropertySlug = propertySlug
+        };
+    }
+
+    private static UnitBllDto ToDto(AddUnitViewModel vm)
+    {
+        return new UnitBllDto
+        {
+            UnitNr = vm.UnitNr,
+            FloorNr = vm.FloorNr,
+            SizeM2 = vm.SizeM2,
+            Notes = vm.Notes
+        };
     }
 
     private IActionResult ToMvcErrorResult(IReadOnlyList<IError> errors)

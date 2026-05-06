@@ -1,5 +1,6 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Customers.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -76,8 +77,13 @@ public class CustomerDashboardController : Controller
             return Challenge();
         }
 
-        var result = await _bll.CustomerWorkspaces.GetWorkspaceAsync(
-            _mapper.ToQuery(companySlug, customerSlug, appUserId.Value),
+        var result = await _bll.Customers.GetWorkspaceAsync(
+            new CustomerRoute
+            {
+                AppUserId = appUserId.Value,
+                CompanySlug = companySlug,
+                CustomerSlug = customerSlug
+            },
             cancellationToken);
         if (result.IsFailed)
         {

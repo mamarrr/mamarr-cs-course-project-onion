@@ -114,6 +114,35 @@ public class UnitRepository :
         return unit;
     }
 
+    public override async Task<IEnumerable<UnitDalDto>> AllAsync(
+        Guid parentId = default,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Units.AsNoTracking();
+        if (parentId != default)
+        {
+            query = query.Where(unit => unit.PropertyId == parentId);
+        }
+
+        var units = await query.ToListAsync(cancellationToken);
+        return units.Select(unit => Mapper.Map(unit)!);
+    }
+
+    public override async Task<UnitDalDto?> FindAsync(
+        Guid id,
+        Guid parentId = default,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Units.AsNoTracking();
+        if (parentId != default)
+        {
+            query = query.Where(unit => unit.PropertyId == parentId);
+        }
+
+        var unit = await query.FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+        return Mapper.Map(unit);
+    }
+
     public async Task<IReadOnlyList<UnitListItemDalDto>> AllByPropertyAsync(
         Guid propertyId,
         CancellationToken cancellationToken = default)

@@ -1,5 +1,6 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Units.Models;
 using App.Resources.Views;
 using FluentResults;
@@ -155,8 +156,15 @@ public class DashboardController : Controller
             return (Challenge(), null);
         }
 
-        var unitAccess = await _bll.UnitAccess.ResolveUnitWorkspaceAsync(
-            _unitMapper.ToDashboardQuery(companySlug, customerSlug, propertySlug, unitSlug, appUserId.Value),
+        var unitAccess = await _bll.Units.ResolveWorkspaceAsync(
+            new UnitRoute
+            {
+                AppUserId = appUserId.Value,
+                CompanySlug = companySlug,
+                CustomerSlug = customerSlug,
+                PropertySlug = propertySlug,
+                UnitSlug = unitSlug
+            },
             cancellationToken);
         if (unitAccess.IsFailed)
         {

@@ -20,16 +20,16 @@ public class ManagementTicketService : IManagementTicketService
 {
     private const int TicketNrMaxLength = 20;
 
-    private readonly ICustomerAccessService _customerAccessService;
+    private readonly ICustomerService _customerService;
     private readonly IAppUOW _uow;
     private readonly IAppDeleteGuard _deleteGuard;
 
     public ManagementTicketService(
-        ICustomerAccessService customerAccessService,
+        ICustomerService customerService,
         IAppUOW uow,
         IAppDeleteGuard deleteGuard)
     {
-        _customerAccessService = customerAccessService;
+        _customerService = customerService;
         _uow = uow;
         _deleteGuard = deleteGuard;
     }
@@ -515,10 +515,10 @@ public class ManagementTicketService : IManagementTicketService
         string companySlug,
         CancellationToken cancellationToken)
     {
-        return await _customerAccessService.ResolveCompanyWorkspaceAsync(
-            new GetCompanyCustomersQuery
+        return await _customerService.ResolveCompanyWorkspaceAsync(
+            new App.BLL.DTO.Common.Routes.ManagementCompanyRoute
             {
-                UserId = userId,
+                AppUserId = userId,
                 CompanySlug = companySlug
             },
             cancellationToken);

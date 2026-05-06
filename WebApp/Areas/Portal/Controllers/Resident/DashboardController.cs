@@ -1,5 +1,6 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Residents.Models;
 using App.Resources.Views;
 using FluentResults;
@@ -73,8 +74,13 @@ public class DashboardController : Controller
             return Challenge();
         }
 
-        var workspace = await _bll.ResidentAccess.ResolveResidentWorkspaceAsync(
-            _residentMapper.ToResidentQuery(companySlug, residentIdCode, appUserId.Value),
+        var workspace = await _bll.Residents.ResolveWorkspaceAsync(
+            new ResidentRoute
+            {
+                AppUserId = appUserId.Value,
+                CompanySlug = companySlug,
+                ResidentIdCode = residentIdCode
+            },
             cancellationToken);
         if (workspace.IsFailed)
         {
