@@ -68,7 +68,7 @@ Do not make Base depend on App-specific errors like `NotFoundError`.
 Create or update:
 
 ```text
-plans/bll-refactor/PHASE_2_BASESERVICE_DECISIONS.md
+plans/v2/bll-refactor/phase-reports/PHASE_2_BASESERVICE_DECISIONS.md
 ```
 
 If code changes are approved, also update:
