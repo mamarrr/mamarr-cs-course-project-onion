@@ -52,6 +52,10 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
         CancellationToken cancellationToken = default)
     {
         var res = await ServiceRepository.FindAsync(id, parentId, cancellationToken);
+        if (res == null)
+        {
+            return Result.Fail("Entity not found");
+        }
         return Result.Ok(Mapper.Map(res));
     }
 
@@ -62,6 +66,11 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
 
     public virtual async Task<Result<TBLLEntity>> UpdateAsync(TBLLEntity entity, TKey parentId, CancellationToken cancellationToken = default)
     {
+        var dalEntity = await ServiceRepository.FindAsync(entity.Id, parentId, cancellationToken);
+        if (dalEntity == null)
+        {
+            return Result.Fail("Entity not found");
+        }
         var res = await ServiceRepository.UpdateAsync(Mapper.Map(entity)!, parentId, cancellationToken);
         return Result.Ok(Mapper.Map(res)!);
     }
@@ -77,6 +86,11 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
         TKey parentId = default!,
         CancellationToken cancellationToken = default)
     {
+        var entity = await ServiceRepository.FindAsync(id, parentId, cancellationToken);
+        if (entity == null)
+        {
+            return Result.Fail("Entity not found");
+        }
         await ServiceRepository.RemoveAsync(id, parentId, cancellationToken);
         return Result.Ok();
     }
