@@ -17,10 +17,7 @@ public interface IBaseService<TKey, TEntity>
     Task<Result<IEnumerable<TEntity>>> AllAsync(TKey parentId = default!, CancellationToken cancellationToken = default);
     Task<Result<TEntity>> FindAsync(TKey id, TKey parentId = default!, CancellationToken cancellationToken = default);
 
-    Result<TKey> Add(TEntity entity);
-
     Task<Result<TEntity>> UpdateAsync(TEntity entity, TKey parentId = default!, CancellationToken cancellationToken = default);
 
-    Result Remove(TEntity entity);
     Task<Result> RemoveAsync(TKey id, TKey parentId = default!, CancellationToken cancellationToken = default);
 }

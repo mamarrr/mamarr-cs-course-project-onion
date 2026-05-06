@@ -472,3 +472,4 @@ Build succeeds.
 
 - If you want to build the solution/project, ask the user to do it manually and the user will give you build results
 - When a phase is done, ask the user to git commit and give a recommended git message
+- phase reports go to plans/v2/bll-refactor/phase-reports

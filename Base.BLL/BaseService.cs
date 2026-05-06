@@ -78,12 +78,28 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
             : Result.Ok(mappedEntity);
     }
 
-    public virtual Result<TKey> Add(TBLLEntity entity)
+    protected virtual Result<TKey> AddCore(TBLLEntity entity)
     {
         var mappedEntity = Mapper.Map(entity);
         return mappedEntity == null
             ? Result.Fail<TKey>(EntityMappingError)
             : Result.Ok(ServiceRepository.Add(mappedEntity));
+    }
+
+    protected virtual async Task<Result<TBLLEntity>> AddAndFindCoreAsync(
+        TBLLEntity entity,
+        TKey parentId = default!,
+        CancellationToken cancellationToken = default)
+    {
+        var addResult = AddCore(entity);
+        if (addResult.IsFailed)
+        {
+            return Result.Fail<TBLLEntity>(addResult.Errors);
+        }
+
+        await ServiceUOW.SaveChangesAsync(cancellationToken);
+
+        return await FindAsync(addResult.Value, parentId, cancellationToken);
     }
 
     public virtual async Task<Result<TBLLEntity>> UpdateAsync(TBLLEntity entity, TKey parentId, CancellationToken cancellationToken = default)
@@ -105,18 +121,6 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
         return mappedResult == null
             ? Result.Fail<TBLLEntity>(EntityMappingError)
             : Result.Ok(mappedResult);
-    }
-
-    public virtual Result Remove(TBLLEntity entity)
-    {
-        var mappedEntity = Mapper.Map(entity);
-        if (mappedEntity == null)
-        {
-            return Result.Fail(EntityMappingError);
-        }
-
-        ServiceRepository.Remove(mappedEntity);
-        return Result.Ok();
     }
 
     public virtual async Task<Result> RemoveAsync(
