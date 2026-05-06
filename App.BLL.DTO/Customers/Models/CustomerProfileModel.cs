@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Customers.Models;
+namespace App.BLL.DTO.Customers.Models;
 
 public class CustomerProfileModel
 {

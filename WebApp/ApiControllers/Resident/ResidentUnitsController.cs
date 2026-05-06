@@ -1,11 +1,11 @@
 using System.Net;
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Leases;
-using App.BLL.Contracts.Leases.Commands;
-using App.BLL.Contracts.Leases.Queries;
 using App.BLL.Contracts.Residents;
-using App.BLL.Contracts.Residents.Models;
-using App.BLL.Contracts.Residents.Queries;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Leases.Commands;
+using App.BLL.DTO.Leases.Queries;
+using App.BLL.DTO.Residents.Models;
+using App.BLL.DTO.Residents.Queries;
 using App.BLL.Mappers.Leases;
 using App.DTO.v1;
 using App.DTO.v1.Resident;

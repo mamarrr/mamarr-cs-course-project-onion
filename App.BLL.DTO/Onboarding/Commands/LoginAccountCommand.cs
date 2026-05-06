@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Onboarding.Commands;
+namespace App.BLL.DTO.Onboarding.Commands;
 
 public class LoginAccountCommand
 {

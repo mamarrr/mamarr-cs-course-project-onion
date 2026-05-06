@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Units.Commands;
+namespace App.BLL.DTO.Units.Commands;
 
 public class CreateUnitCommand
 {

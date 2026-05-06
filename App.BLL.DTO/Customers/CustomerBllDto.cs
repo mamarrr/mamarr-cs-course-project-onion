@@ -1,6 +1,6 @@
 using Base.Domain;
 
-namespace App.BLL.Contracts.Customers;
+namespace App.BLL.DTO.Customers;
 
 public class CustomerBllDto : BaseEntity
 {

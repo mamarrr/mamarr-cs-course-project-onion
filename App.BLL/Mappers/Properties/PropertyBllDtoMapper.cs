@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Properties;
+using App.BLL.DTO.Properties;
 using App.DAL.DTO.Properties;
 using Base.Contracts;
 

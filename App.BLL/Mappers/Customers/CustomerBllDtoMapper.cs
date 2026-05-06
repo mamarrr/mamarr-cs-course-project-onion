@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Customers;
+using App.BLL.DTO.Customers;
 using App.DAL.DTO.Customers;
 using Base.Contracts;
 

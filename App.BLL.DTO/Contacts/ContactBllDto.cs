@@ -1,6 +1,6 @@
 using Base.Domain;
 
-namespace App.BLL.Contracts.Contacts;
+namespace App.BLL.DTO.Contacts;
 
 public class ContactBllDto : BaseEntity
 {

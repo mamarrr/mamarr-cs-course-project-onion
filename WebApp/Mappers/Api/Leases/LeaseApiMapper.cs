@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Leases.Models;
+using App.BLL.DTO.Leases.Models;
 using App.DTO.v1.Resident;
 using App.DTO.v1.Shared;
 using App.DTO.v1.Unit;

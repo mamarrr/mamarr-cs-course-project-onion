@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.ManagementCompanies;
+namespace App.BLL.DTO.ManagementCompanies;
 
 public static class ManagementCompanyJoinRequestStatusCodes
 {

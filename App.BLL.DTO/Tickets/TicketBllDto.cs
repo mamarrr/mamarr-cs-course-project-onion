@@ -1,6 +1,6 @@
 using Base.Domain;
 
-namespace App.BLL.Contracts.Tickets;
+namespace App.BLL.DTO.Tickets;
 
 public class TicketBllDto : BaseEntity
 {

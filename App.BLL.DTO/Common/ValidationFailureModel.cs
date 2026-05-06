@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Common;
+namespace App.BLL.DTO.Common;
 
 public class ValidationFailureModel
 {

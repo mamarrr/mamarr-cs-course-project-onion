@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Residents.Models;
+namespace App.BLL.DTO.Residents.Models;
 
 public class ResidentProfileModel
 {

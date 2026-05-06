@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Tickets;
+namespace App.BLL.DTO.Tickets;
 
 public static class TicketWorkflowConstants
 {

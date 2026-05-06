@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Onboarding.Models;
+using App.BLL.DTO.Onboarding.Models;
 using App.DTO.v1.Onboarding;
 using App.DTO.v1.Shared;
 

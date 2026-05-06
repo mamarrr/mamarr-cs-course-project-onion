@@ -1,6 +1,7 @@
 using App.BLL.Contracts;
-using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Customers.Models;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Customers.Models;
+using App.BLL.DTO.Properties.Commands;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
@@ -198,7 +199,7 @@ public class CustomerPropertiesController : Controller
         {
             foreach (var failure in validation.Failures)
             {
-                var key = failure.PropertyName == nameof(App.BLL.Contracts.Properties.Commands.CreatePropertyCommand.PropertyTypeId)
+                var key = failure.PropertyName == nameof(CreatePropertyCommand.PropertyTypeId)
                     ? "AddProperty.PropertyTypeId"
                     : failure.PropertyName is null
                         ? string.Empty

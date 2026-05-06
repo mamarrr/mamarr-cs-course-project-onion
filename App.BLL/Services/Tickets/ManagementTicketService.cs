@@ -1,12 +1,15 @@
 using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Deletion;
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Customers;
-using App.BLL.Contracts.Customers.Queries;
 using App.BLL.Contracts.Tickets;
-using App.BLL.Contracts.Tickets.Commands;
-using App.BLL.Contracts.Tickets.Models;
-using App.BLL.Contracts.Tickets.Queries;
+using App.BLL.DTO.Common;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Customers.Models;
+using App.BLL.DTO.Customers.Queries;
+using App.BLL.DTO.Tickets;
+using App.BLL.DTO.Tickets.Commands;
+using App.BLL.DTO.Tickets.Models;
+using App.BLL.DTO.Tickets.Queries;
 using App.DAL.Contracts;
 using App.DAL.DTO.Tickets;
 using FluentResults;
@@ -507,7 +510,7 @@ public class ManagementTicketService : IManagementTicketService
         return Result.Ok();
     }
 
-    private async Task<Result<App.BLL.Contracts.Customers.Models.CompanyWorkspaceModel>> ResolveCompanyAsync(
+    private async Task<Result<CompanyWorkspaceModel>> ResolveCompanyAsync(
         Guid userId,
         string companySlug,
         CancellationToken cancellationToken)

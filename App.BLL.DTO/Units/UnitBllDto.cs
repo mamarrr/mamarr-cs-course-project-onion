@@ -1,6 +1,6 @@
 using Base.Domain;
 
-namespace App.BLL.Contracts.Units;
+namespace App.BLL.DTO.Units;
 
 public class UnitBllDto : BaseEntity
 {

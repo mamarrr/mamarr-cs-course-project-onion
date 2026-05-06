@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Tickets.Queries;
+namespace App.BLL.DTO.Tickets.Queries;
 
 public class GetManagementTicketsQuery
 {

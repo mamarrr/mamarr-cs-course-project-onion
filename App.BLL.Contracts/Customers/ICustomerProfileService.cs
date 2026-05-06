@@ -1,6 +1,6 @@
-using App.BLL.Contracts.Customers.Commands;
-using App.BLL.Contracts.Customers.Models;
-using App.BLL.Contracts.Customers.Queries;
+using App.BLL.DTO.Customers.Commands;
+using App.BLL.DTO.Customers.Models;
+using App.BLL.DTO.Customers.Queries;
 using FluentResults;
 
 namespace App.BLL.Contracts.Customers;

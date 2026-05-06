@@ -1,11 +1,13 @@
 using App.BLL.Contracts.Common;
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Properties;
-using App.BLL.Contracts.Properties.Queries;
 using App.BLL.Contracts.Units;
-using App.BLL.Contracts.Units.Commands;
-using App.BLL.Contracts.Units.Models;
-using App.BLL.Contracts.Units.Queries;
+using App.BLL.DTO.Common;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Properties.Models;
+using App.BLL.DTO.Properties.Queries;
+using App.BLL.DTO.Units.Commands;
+using App.BLL.DTO.Units.Models;
+using App.BLL.DTO.Units.Queries;
 using App.BLL.Mappers.Units;
 using App.BLL.Shared.Routing;
 using App.DAL.Contracts;
@@ -137,7 +139,7 @@ public class UnitWorkspaceService : IUnitWorkspaceService
             : Result.Ok(UnitBllMapper.MapProfile(profile));
     }
 
-    private async Task<Result<App.BLL.Contracts.Properties.Models.PropertyWorkspaceModel>> ResolvePropertyAsync(
+    private async Task<Result<PropertyWorkspaceModel>> ResolvePropertyAsync(
         Guid userId,
         string companySlug,
         string customerSlug,

@@ -1,7 +1,7 @@
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Customers;
-using App.BLL.Contracts.Customers.Models;
-using App.BLL.Contracts.Customers.Queries;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Customers.Models;
+using App.BLL.DTO.Customers.Queries;
 using App.BLL.Mappers.Customers;
 using App.DAL.Contracts;
 using FluentResults;

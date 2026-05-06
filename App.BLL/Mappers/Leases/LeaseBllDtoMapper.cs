@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Leases;
+using App.BLL.DTO.Leases;
 using App.DAL.DTO.Leases;
 using Base.Contracts;
 

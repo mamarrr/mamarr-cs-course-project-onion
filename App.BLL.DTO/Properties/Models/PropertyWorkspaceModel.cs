@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Properties.Models;
+namespace App.BLL.DTO.Properties.Models;
 
 public class PropertyWorkspaceModel
 {

@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Onboarding.Commands;
+using App.BLL.DTO.Onboarding.Commands;
 using FluentResults;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using WebApp.ViewModels.Onboarding;

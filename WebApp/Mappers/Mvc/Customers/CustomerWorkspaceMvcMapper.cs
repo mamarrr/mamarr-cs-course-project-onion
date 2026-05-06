@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Customers.Queries;
+using App.BLL.DTO.Customers.Queries;
 
 namespace WebApp.Mappers.Mvc.Customers;
 

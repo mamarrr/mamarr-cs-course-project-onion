@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Tickets.Models;
+namespace App.BLL.DTO.Tickets.Models;
 
 public class ManagementTicketsModel
 {

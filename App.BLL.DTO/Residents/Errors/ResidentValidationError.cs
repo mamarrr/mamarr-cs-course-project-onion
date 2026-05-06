@@ -1,7 +1,7 @@
-using App.BLL.Contracts.Common;
+using App.BLL.DTO.Common;
 using FluentResults;
 
-namespace App.BLL.Contracts.Residents.Errors;
+namespace App.BLL.DTO.Residents.Errors;
 
 public class ResidentValidationError : Error
 {

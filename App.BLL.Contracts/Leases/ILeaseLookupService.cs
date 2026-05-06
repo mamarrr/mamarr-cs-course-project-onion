@@ -1,5 +1,5 @@
-using App.BLL.Contracts.Leases.Models;
-using App.BLL.Contracts.Leases.Queries;
+using App.BLL.DTO.Leases.Models;
+using App.BLL.DTO.Leases.Queries;
 using FluentResults;
 
 namespace App.BLL.Contracts.Leases;

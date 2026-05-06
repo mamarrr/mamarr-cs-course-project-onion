@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Leases.Models;
+using App.BLL.DTO.Leases.Models;
 using WebApp.ViewModels.Resident;
 using WebApp.ViewModels.Unit;
 

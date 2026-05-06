@@ -1,6 +1,6 @@
-using App.BLL.Contracts.Residents.Commands;
-using App.BLL.Contracts.Residents.Models;
-using App.BLL.Contracts.Residents.Queries;
+using App.BLL.DTO.Residents.Commands;
+using App.BLL.DTO.Residents.Models;
+using App.BLL.DTO.Residents.Queries;
 using FluentResults;
 
 namespace App.BLL.Contracts.Residents;

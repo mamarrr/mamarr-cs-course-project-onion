@@ -1,7 +1,7 @@
 using System.Globalization;
-using App.BLL.Contracts.Tickets.Commands;
-using App.BLL.Contracts.Tickets.Models;
-using App.BLL.Contracts.Tickets.Queries;
+using App.BLL.DTO.Tickets.Commands;
+using App.BLL.DTO.Tickets.Models;
+using App.BLL.DTO.Tickets.Queries;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using WebApp.ViewModels.Management.Tickets;
 

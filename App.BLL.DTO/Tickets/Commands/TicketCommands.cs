@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Tickets.Commands;
+namespace App.BLL.DTO.Tickets.Commands;
 
 public class CreateManagementTicketCommand
 {

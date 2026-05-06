@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Customers.Queries;
+namespace App.BLL.DTO.Customers.Queries;
 
 public class GetCompanyCustomersQuery
 {

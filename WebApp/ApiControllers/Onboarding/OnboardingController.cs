@@ -1,6 +1,6 @@
 using System.Net;
 using App.BLL.Contracts;
-using App.BLL.Contracts.Onboarding.Commands;
+using App.BLL.DTO.Onboarding.Commands;
 using App.DTO.v1;
 using App.DTO.v1.Onboarding;
 using App.DTO.v1.Shared;

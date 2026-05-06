@@ -1,4 +1,4 @@
-using App.BLL.Contracts.ManagementCompanies.Models;
+using App.BLL.DTO.ManagementCompanies.Models;
 using FluentResults;
 
 namespace App.BLL.Contracts.ManagementCompanies;

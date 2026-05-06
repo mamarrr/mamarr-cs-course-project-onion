@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Customers.Commands;
+namespace App.BLL.DTO.Customers.Commands;
 
 public class UpdateCustomerProfileCommand
 {

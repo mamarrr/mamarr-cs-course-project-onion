@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Tickets;
+using App.BLL.DTO.Tickets;
 using App.DAL.DTO.Tickets;
 using Base.Contracts;
 

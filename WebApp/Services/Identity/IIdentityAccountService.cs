@@ -1,7 +1,7 @@
-using App.BLL.Contracts.Onboarding.Commands;
-using App.BLL.Contracts.Onboarding.Models;
 using FluentResults;
 using System.Security.Claims;
+using App.BLL.DTO.Onboarding.Commands;
+using App.BLL.DTO.Onboarding.Models;
 
 namespace WebApp.Services.Identity;
 

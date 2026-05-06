@@ -1,6 +1,6 @@
-using App.BLL.Contracts.Leases.Queries;
+using App.BLL.DTO.Leases.Queries;
 
-namespace App.BLL.Contracts.Leases.Commands;
+namespace App.BLL.DTO.Leases.Commands;
 
 public class CreateLeaseFromResidentCommand : GetResidentLeasesQuery
 {

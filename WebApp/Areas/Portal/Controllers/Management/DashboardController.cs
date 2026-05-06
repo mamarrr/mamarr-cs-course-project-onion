@@ -1,5 +1,5 @@
 using App.BLL.Contracts;
-using App.BLL.Contracts.Common.Errors;
+using App.BLL.DTO.Common.Errors;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

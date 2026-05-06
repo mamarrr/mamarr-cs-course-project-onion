@@ -1,5 +1,5 @@
-using App.BLL.Contracts.Onboarding.Commands;
-using App.BLL.Contracts.Onboarding.Models;
+using App.BLL.DTO.Onboarding.Commands;
+using App.BLL.DTO.Onboarding.Models;
 using FluentResults;
 
 namespace App.BLL.Contracts.Onboarding;

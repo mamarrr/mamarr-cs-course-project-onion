@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Vendors;
+using App.BLL.DTO.Vendors;
 using App.DAL.DTO.Vendors;
 using Base.Contracts;
 

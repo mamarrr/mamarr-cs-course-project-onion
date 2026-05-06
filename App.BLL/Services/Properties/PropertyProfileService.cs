@@ -1,10 +1,11 @@
 using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Deletion;
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Properties;
-using App.BLL.Contracts.Properties.Commands;
-using App.BLL.Contracts.Properties.Models;
-using App.BLL.Contracts.Properties.Queries;
+using App.BLL.DTO.Common;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Properties.Commands;
+using App.BLL.DTO.Properties.Models;
+using App.BLL.DTO.Properties.Queries;
 using App.BLL.Mappers.Properties;
 using App.DAL.Contracts;
 using App.DAL.DTO.Properties;

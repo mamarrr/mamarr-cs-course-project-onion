@@ -1,5 +1,6 @@
 using App.BLL.Contracts;
-using App.BLL.Contracts.Common.Errors;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Customers.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -117,7 +118,7 @@ public class CustomerDashboardController : Controller
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        App.BLL.Contracts.Customers.Models.CustomerWorkspaceModel context,
+        CustomerWorkspaceModel context,
         string title,
         string activeSection,
         CancellationToken cancellationToken)

@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using System.Net;
-using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Customers.Errors;
-using App.BLL.Contracts.Residents.Errors;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Customers.Errors;
+using App.BLL.DTO.Residents.Errors;
 using App.DTO.v1;
 using App.DTO.v1.Shared;
 using FluentResults;

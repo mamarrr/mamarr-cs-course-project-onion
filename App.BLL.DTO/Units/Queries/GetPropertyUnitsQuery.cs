@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Units.Queries;
+namespace App.BLL.DTO.Units.Queries;
 
 public class GetPropertyUnitsQuery
 {

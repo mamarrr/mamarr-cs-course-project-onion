@@ -1,7 +1,6 @@
-using App.BLL.Contracts.Common;
 using FluentResults;
 
-namespace App.BLL.Contracts.Common.Errors;
+namespace App.BLL.DTO.Common.Errors;
 
 public class ValidationAppError : Error
 {

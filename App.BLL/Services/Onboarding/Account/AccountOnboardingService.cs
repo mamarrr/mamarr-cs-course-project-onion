@@ -1,8 +1,8 @@
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Onboarding;
-using App.BLL.Contracts.Onboarding.Commands;
-using App.BLL.Contracts.Onboarding.Models;
-using App.BLL.Contracts.Onboarding.Queries;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Onboarding.Commands;
+using App.BLL.DTO.Onboarding.Models;
+using App.BLL.DTO.Onboarding.Queries;
 using App.BLL.Shared.Routing;
 using App.DAL.Contracts;
 using App.DAL.DTO.ManagementCompanies;

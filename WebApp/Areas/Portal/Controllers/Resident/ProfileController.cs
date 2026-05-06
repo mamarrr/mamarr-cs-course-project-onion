@@ -1,7 +1,7 @@
 using App.BLL.Contracts;
-using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Residents.Errors;
-using App.BLL.Contracts.Residents.Models;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Residents.Errors;
+using App.BLL.DTO.Residents.Models;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;

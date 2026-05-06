@@ -1,7 +1,7 @@
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Residents;
-using App.BLL.Contracts.Residents.Models;
-using App.BLL.Contracts.Residents.Queries;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Residents.Models;
+using App.BLL.DTO.Residents.Queries;
 using App.BLL.Mappers.Residents;
 using App.DAL.Contracts;
 using FluentResults;

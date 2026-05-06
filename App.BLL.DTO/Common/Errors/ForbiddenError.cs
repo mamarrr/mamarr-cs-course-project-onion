@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace App.BLL.Contracts.Common.Errors;
+namespace App.BLL.DTO.Common.Errors;
 
 public class ForbiddenError : Error
 {

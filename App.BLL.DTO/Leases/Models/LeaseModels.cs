@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Leases.Models;
+namespace App.BLL.DTO.Leases.Models;
 
 public class ResidentLeaseListModel
 {

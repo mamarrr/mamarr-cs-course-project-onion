@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Onboarding.Models;
+namespace App.BLL.DTO.Onboarding.Models;
 
 public class CreateManagementCompanyModel
 {

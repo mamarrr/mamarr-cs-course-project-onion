@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Residents;
+using App.BLL.DTO.Residents;
 using App.DAL.DTO.Residents;
 using Base.Contracts;
 

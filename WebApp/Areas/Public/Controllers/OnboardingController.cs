@@ -1,11 +1,9 @@
 using System.Globalization;
 using App.BLL.Contracts;
 using App.BLL.Contracts.ManagementCompanies;
-using App.BLL.Contracts.ManagementCompanies.Models;
 using App.BLL.Contracts.Onboarding;
-using App.BLL.Contracts.Onboarding.Commands;
-using App.BLL.Contracts.Onboarding.Models;
-using App.BLL.Contracts.Onboarding.Queries;
+using App.BLL.DTO.Onboarding.Models;
+using App.BLL.DTO.Onboarding.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Mvc.Onboarding;

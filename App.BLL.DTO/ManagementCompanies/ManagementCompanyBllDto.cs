@@ -1,6 +1,6 @@
 using Base.Domain;
 
-namespace App.BLL.Contracts.ManagementCompanies;
+namespace App.BLL.DTO.ManagementCompanies;
 
 public class ManagementCompanyBllDto : BaseEntity
 {

@@ -1,6 +1,6 @@
 using Base.Domain;
 
-namespace App.BLL.Contracts.Residents;
+namespace App.BLL.DTO.Residents;
 
 public class ResidentBllDto : BaseEntity
 {

@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using App.BLL.Contracts.Common;
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.ManagementCompanies;
-using App.BLL.Contracts.ManagementCompanies.Models;
+using App.BLL.DTO.Common;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.ManagementCompanies.Models;
 using App.DAL.Contracts;
 using App.DAL.DTO.ManagementCompanies;
 using FluentResults;

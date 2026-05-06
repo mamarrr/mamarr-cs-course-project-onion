@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Onboarding.Queries;
+namespace App.BLL.DTO.Onboarding.Queries;
 
 public class GetWorkspaceCatalogQuery
 {

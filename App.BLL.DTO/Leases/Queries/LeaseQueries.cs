@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Leases.Queries;
+namespace App.BLL.DTO.Leases.Queries;
 
 public class GetResidentLeasesQuery
 {

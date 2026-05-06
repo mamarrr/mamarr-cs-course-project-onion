@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Units.Models;
+namespace App.BLL.DTO.Units.Models;
 
 public class UnitWorkspaceModel
 {

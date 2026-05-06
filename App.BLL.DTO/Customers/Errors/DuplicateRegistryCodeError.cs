@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace App.BLL.Contracts.Customers.Errors;
+namespace App.BLL.DTO.Customers.Errors;
 
 public class DuplicateRegistryCodeError : Error
 {

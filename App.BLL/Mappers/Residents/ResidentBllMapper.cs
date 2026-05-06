@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Residents.Models;
+using App.BLL.DTO.Residents.Models;
 using App.DAL.DTO.Residents;
 
 namespace App.BLL.Mappers.Residents;

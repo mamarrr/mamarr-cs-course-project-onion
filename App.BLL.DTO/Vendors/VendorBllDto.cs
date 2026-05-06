@@ -1,6 +1,6 @@
 using Base.Domain;
 
-namespace App.BLL.Contracts.Vendors;
+namespace App.BLL.DTO.Vendors;
 
 public class VendorBllDto : BaseEntity
 {

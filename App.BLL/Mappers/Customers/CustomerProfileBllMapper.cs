@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Customers.Models;
+using App.BLL.DTO.Customers.Models;
 using App.DAL.DTO.Customers;
 
 namespace App.BLL.Mappers.Customers;

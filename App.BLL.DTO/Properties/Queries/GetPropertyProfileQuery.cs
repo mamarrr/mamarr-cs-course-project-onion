@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Properties.Queries;
+namespace App.BLL.DTO.Properties.Queries;
 
 public class GetPropertyProfileQuery
 {

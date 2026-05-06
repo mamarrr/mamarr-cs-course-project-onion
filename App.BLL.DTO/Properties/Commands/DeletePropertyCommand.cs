@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Properties.Commands;
+namespace App.BLL.DTO.Properties.Commands;
 
 public class DeletePropertyCommand
 {

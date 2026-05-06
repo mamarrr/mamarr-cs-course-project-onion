@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Residents.Commands;
+namespace App.BLL.DTO.Residents.Commands;
 
 public class UpdateResidentProfileCommand
 {

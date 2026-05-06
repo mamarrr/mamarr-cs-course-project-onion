@@ -1,6 +1,7 @@
 using App.BLL.Contracts;
-using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Customers.Queries;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Customers.Errors;
+using App.BLL.DTO.Customers.Queries;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -108,9 +109,9 @@ public class CustomersController : Controller
 
         if (createResult.IsFailed)
         {
-            var duplicateRegistryCode = createResult.Errors.Any(error => error is App.BLL.Contracts.Customers.Errors.DuplicateRegistryCodeError);
+            var duplicateRegistryCode = createResult.Errors.Any(error => error is DuplicateRegistryCodeError);
             var invalidBillingEmail = createResult.Errors
-                .OfType<App.BLL.Contracts.Common.Errors.ValidationAppError>()
+                .OfType<ValidationAppError>()
                 .Any(error => error.Failures.Any(f => f.PropertyName == nameof(vm.AddCustomer.BillingEmail)));
 
             _logger.LogWarning(

@@ -1,6 +1,7 @@
 using App.BLL.Contracts;
-using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Units.Models;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Units.Commands;
+using App.BLL.DTO.Units.Models;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
@@ -170,11 +171,11 @@ public class UnitsController : Controller
         {
             var key = failure.PropertyName switch
             {
-                nameof(App.BLL.Contracts.Units.Commands.CreateUnitCommand.UnitNr) =>
+                nameof(CreateUnitCommand.UnitNr) =>
                     nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.UnitNr),
-                nameof(App.BLL.Contracts.Units.Commands.CreateUnitCommand.FloorNr) =>
+                nameof(CreateUnitCommand.FloorNr) =>
                     nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.FloorNr),
-                nameof(App.BLL.Contracts.Units.Commands.CreateUnitCommand.SizeM2) =>
+                nameof(CreateUnitCommand.SizeM2) =>
                     nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.SizeM2),
                 _ => string.Empty
             };

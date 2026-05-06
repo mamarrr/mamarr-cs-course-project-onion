@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Contacts;
+using App.BLL.DTO.Contacts;
 using App.DAL.DTO.Contacts;
 using Base.Contracts;
 

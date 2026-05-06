@@ -1,4 +1,5 @@
 using App.BLL.Contracts.ManagementCompanies;
+using App.BLL.DTO.ManagementCompanies;
 using App.DAL.DTO.ManagementCompanies;
 using Base.Contracts;
 

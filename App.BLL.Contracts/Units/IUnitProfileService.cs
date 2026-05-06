@@ -1,6 +1,6 @@
-using App.BLL.Contracts.Units.Commands;
-using App.BLL.Contracts.Units.Models;
-using App.BLL.Contracts.Units.Queries;
+using App.BLL.DTO.Units.Commands;
+using App.BLL.DTO.Units.Models;
+using App.BLL.DTO.Units.Queries;
 using FluentResults;
 
 namespace App.BLL.Contracts.Units;

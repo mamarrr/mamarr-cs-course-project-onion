@@ -1,7 +1,7 @@
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Leases;
-using App.BLL.Contracts.Leases.Models;
-using App.BLL.Contracts.Leases.Queries;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Leases.Models;
+using App.BLL.DTO.Leases.Queries;
 using App.BLL.Mappers.Leases;
 using App.DAL.Contracts;
 using FluentResults;

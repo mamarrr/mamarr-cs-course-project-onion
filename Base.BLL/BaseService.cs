@@ -37,45 +37,47 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
     }
 
 
-    public virtual async Task<IEnumerable<TBLLEntity>> AllAsync(
+    public virtual async Task<Result<IEnumerable<TBLLEntity>>> AllAsync(
         TKey parentId = default!,
         CancellationToken cancellationToken = default)
     {
         var res = await ServiceRepository.AllAsync(parentId, cancellationToken);
         var mappedRes = res.Select(e => Mapper.Map(e)!).ToList();
-        return mappedRes;
+        return Result.Ok<IEnumerable<TBLLEntity>>(mappedRes);
     }
 
-    public virtual async Task<TBLLEntity?> FindAsync(
+    public virtual async Task<Result<TBLLEntity?>> FindAsync(
         TKey id,
         TKey parentId = default!,
         CancellationToken cancellationToken = default)
     {
         var res = await ServiceRepository.FindAsync(id, parentId, cancellationToken);
-        return Mapper.Map(res);
+        return Result.Ok(Mapper.Map(res));
     }
 
-    public virtual TKey Add(TBLLEntity entity)
+    public virtual Result<TKey> Add(TBLLEntity entity)
     {
-        return ServiceRepository.Add(Mapper.Map(entity)!);
+        return Result.Ok(ServiceRepository.Add(Mapper.Map(entity)!));
     }
 
-    public virtual async Task<TBLLEntity> UpdateAsync(TBLLEntity entity, TKey parentId, CancellationToken cancellationToken = default)
+    public virtual async Task<Result<TBLLEntity>> UpdateAsync(TBLLEntity entity, TKey parentId, CancellationToken cancellationToken = default)
     {
         var res = await ServiceRepository.UpdateAsync(Mapper.Map(entity)!, parentId, cancellationToken);
-        return Mapper.Map(res)!;
+        return Result.Ok(Mapper.Map(res)!);
     }
 
-    public virtual void Remove(TBLLEntity entity)
+    public virtual Result Remove(TBLLEntity entity)
     {
         ServiceRepository.Remove(Mapper.Map(entity)!);
+        return Result.Ok();
     }
 
-    public virtual async Task RemoveAsync(
+    public virtual async Task<Result> RemoveAsync(
         TKey id,
         TKey parentId = default!,
         CancellationToken cancellationToken = default)
     {
         await ServiceRepository.RemoveAsync(id, parentId, cancellationToken);
+        return Result.Ok();
     }
 }

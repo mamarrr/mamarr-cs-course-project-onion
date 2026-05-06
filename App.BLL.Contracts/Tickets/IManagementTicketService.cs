@@ -1,6 +1,6 @@
-using App.BLL.Contracts.Tickets.Commands;
-using App.BLL.Contracts.Tickets.Models;
-using App.BLL.Contracts.Tickets.Queries;
+using App.BLL.DTO.Tickets.Commands;
+using App.BLL.DTO.Tickets.Models;
+using App.BLL.DTO.Tickets.Queries;
 using FluentResults;
 
 namespace App.BLL.Contracts.Tickets;

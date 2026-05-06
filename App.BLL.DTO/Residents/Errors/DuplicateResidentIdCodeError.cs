@@ -1,6 +1,6 @@
 using FluentResults;
 
-namespace App.BLL.Contracts.Residents.Errors;
+namespace App.BLL.DTO.Residents.Errors;
 
 public class DuplicateResidentIdCodeError : Error
 {

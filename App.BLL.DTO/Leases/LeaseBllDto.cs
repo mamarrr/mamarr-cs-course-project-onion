@@ -1,6 +1,6 @@
 using Base.Domain;
 
-namespace App.BLL.Contracts.Leases;
+namespace App.BLL.DTO.Leases;
 
 public class LeaseBllDto : BaseEntity
 {

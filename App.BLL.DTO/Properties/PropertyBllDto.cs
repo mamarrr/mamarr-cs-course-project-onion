@@ -1,6 +1,6 @@
 using Base.Domain;
 
-namespace App.BLL.Contracts.Properties;
+namespace App.BLL.DTO.Properties;
 
 public class PropertyBllDto : BaseEntity
 {

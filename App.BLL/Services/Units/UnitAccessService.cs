@@ -1,7 +1,7 @@
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.Units;
-using App.BLL.Contracts.Units.Models;
-using App.BLL.Contracts.Units.Queries;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Units.Models;
+using App.BLL.DTO.Units.Queries;
 using App.BLL.Mappers.Units;
 using App.DAL.Contracts;
 using FluentResults;

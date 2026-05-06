@@ -1,4 +1,4 @@
-namespace App.BLL.Contracts.Residents.Queries;
+namespace App.BLL.DTO.Residents.Queries;
 
 public class GetResidentProfileQuery
 {

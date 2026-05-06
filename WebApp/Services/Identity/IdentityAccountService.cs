@@ -1,9 +1,9 @@
-using App.BLL.Contracts.Onboarding.Commands;
-using App.BLL.Contracts.Onboarding.Models;
 using App.Domain.Identity;
 using FluentResults;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using App.BLL.DTO.Onboarding.Commands;
+using App.BLL.DTO.Onboarding.Models;
 
 namespace WebApp.Services.Identity;
 

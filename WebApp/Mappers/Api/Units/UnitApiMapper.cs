@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using App.BLL.Contracts.Units.Commands;
-using App.BLL.Contracts.Units.Models;
-using App.BLL.Contracts.Units.Queries;
+using App.BLL.DTO.Units.Commands;
+using App.BLL.DTO.Units.Models;
+using App.BLL.DTO.Units.Queries;
 using App.DTO.v1.Property;
 using App.DTO.v1.Shared;
 using App.DTO.v1.Unit;

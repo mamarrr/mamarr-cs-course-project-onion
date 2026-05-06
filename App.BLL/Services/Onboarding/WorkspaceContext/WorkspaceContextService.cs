@@ -1,5 +1,5 @@
 using App.BLL.Contracts.Onboarding;
-using App.BLL.Contracts.Onboarding.Models;
+using App.BLL.DTO.Onboarding.Models;
 using App.DAL.Contracts;
 using FluentResults;
 

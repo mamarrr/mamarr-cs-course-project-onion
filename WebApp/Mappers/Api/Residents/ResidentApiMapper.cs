@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using App.BLL.Contracts.Residents.Commands;
-using App.BLL.Contracts.Residents.Models;
-using App.BLL.Contracts.Residents.Queries;
+using App.BLL.DTO.Residents.Commands;
+using App.BLL.DTO.Residents.Models;
+using App.BLL.DTO.Residents.Queries;
 using App.DTO.v1.Management;
 using App.DTO.v1.Resident;
 using App.DTO.v1.Shared;

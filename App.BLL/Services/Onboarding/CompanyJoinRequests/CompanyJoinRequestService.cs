@@ -1,10 +1,12 @@
 using System.Globalization;
 using App.BLL.Contracts.Common;
-using App.BLL.Contracts.Common.Errors;
 using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.Onboarding;
-using App.BLL.Contracts.Onboarding.Commands;
-using App.BLL.Contracts.Onboarding.Models;
+using App.BLL.DTO.Common;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.ManagementCompanies;
+using App.BLL.DTO.Onboarding.Commands;
+using App.BLL.DTO.Onboarding.Models;
 using App.DAL.Contracts;
 using App.DAL.DTO.ManagementCompanies;
 using FluentResults;

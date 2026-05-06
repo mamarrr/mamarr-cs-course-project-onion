@@ -1,6 +1,7 @@
 using App.BLL.Contracts;
-using App.BLL.Contracts.Common.Errors;
-using App.BLL.Contracts.Units.Models;
+using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Units.Commands;
+using App.BLL.DTO.Units.Models;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
@@ -199,7 +200,7 @@ public class ProfileController : Controller
         {
             foreach (var failure in validation.Failures)
             {
-                var key = failure.PropertyName == nameof(App.BLL.Contracts.Units.Commands.DeleteUnitCommand.ConfirmationUnitNr)
+                var key = failure.PropertyName == nameof(DeleteUnitCommand.ConfirmationUnitNr)
                     ? nameof(UnitProfileEditViewModel.DeleteConfirmation)
                     : validationFallbackKey;
 
