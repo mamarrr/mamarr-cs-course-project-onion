@@ -25,6 +25,9 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
     where TDALEntity : class, IBaseEntity<TKey>
     where TUOW: IBaseUOW
 {
+    private const string EntityNotFoundError = "Entity not found.";
+    private const string EntityMappingError = "Entity mapping failed.";
+
     protected readonly TUOW ServiceUOW;
     protected readonly TRepository ServiceRepository;
     protected readonly IBaseMapper<TBLLEntity, TDALEntity> Mapper;
@@ -42,11 +45,23 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
         CancellationToken cancellationToken = default)
     {
         var res = await ServiceRepository.AllAsync(parentId, cancellationToken);
-        var mappedRes = res.Select(e => Mapper.Map(e)!).ToList();
+
+        var mappedRes = new List<TBLLEntity>();
+        foreach (var entity in res)
+        {
+            var mappedEntity = Mapper.Map(entity);
+            if (mappedEntity == null)
+            {
+                return Result.Fail<IEnumerable<TBLLEntity>>(EntityMappingError);
+            }
+
+            mappedRes.Add(mappedEntity);
+        }
+
         return Result.Ok<IEnumerable<TBLLEntity>>(mappedRes);
     }
 
-    public virtual async Task<Result<TBLLEntity?>> FindAsync(
+    public virtual async Task<Result<TBLLEntity>> FindAsync(
         TKey id,
         TKey parentId = default!,
         CancellationToken cancellationToken = default)
@@ -54,14 +69,21 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
         var res = await ServiceRepository.FindAsync(id, parentId, cancellationToken);
         if (res == null)
         {
-            return Result.Fail("Entity not found");
+            return Result.Fail<TBLLEntity>(EntityNotFoundError);
         }
-        return Result.Ok(Mapper.Map(res));
+
+        var mappedEntity = Mapper.Map(res);
+        return mappedEntity == null
+            ? Result.Fail<TBLLEntity>(EntityMappingError)
+            : Result.Ok(mappedEntity);
     }
 
     public virtual Result<TKey> Add(TBLLEntity entity)
     {
-        return Result.Ok(ServiceRepository.Add(Mapper.Map(entity)!));
+        var mappedEntity = Mapper.Map(entity);
+        return mappedEntity == null
+            ? Result.Fail<TKey>(EntityMappingError)
+            : Result.Ok(ServiceRepository.Add(mappedEntity));
     }
 
     public virtual async Task<Result<TBLLEntity>> UpdateAsync(TBLLEntity entity, TKey parentId, CancellationToken cancellationToken = default)
@@ -69,15 +91,31 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
         var dalEntity = await ServiceRepository.FindAsync(entity.Id, parentId, cancellationToken);
         if (dalEntity == null)
         {
-            return Result.Fail("Entity not found");
+            return Result.Fail<TBLLEntity>(EntityNotFoundError);
         }
-        var res = await ServiceRepository.UpdateAsync(Mapper.Map(entity)!, parentId, cancellationToken);
-        return Result.Ok(Mapper.Map(res)!);
+
+        var mappedEntity = Mapper.Map(entity);
+        if (mappedEntity == null)
+        {
+            return Result.Fail<TBLLEntity>(EntityMappingError);
+        }
+
+        var res = await ServiceRepository.UpdateAsync(mappedEntity, parentId, cancellationToken);
+        var mappedResult = Mapper.Map(res);
+        return mappedResult == null
+            ? Result.Fail<TBLLEntity>(EntityMappingError)
+            : Result.Ok(mappedResult);
     }
 
     public virtual Result Remove(TBLLEntity entity)
     {
-        ServiceRepository.Remove(Mapper.Map(entity)!);
+        var mappedEntity = Mapper.Map(entity);
+        if (mappedEntity == null)
+        {
+            return Result.Fail(EntityMappingError);
+        }
+
+        ServiceRepository.Remove(mappedEntity);
         return Result.Ok();
     }
 
@@ -89,7 +127,7 @@ public class BaseService<TKey, TBLLEntity, TDALEntity, TRepository, TUOW> : IBas
         var entity = await ServiceRepository.FindAsync(id, parentId, cancellationToken);
         if (entity == null)
         {
-            return Result.Fail("Entity not found");
+            return Result.Fail(EntityNotFoundError);
         }
         await ServiceRepository.RemoveAsync(id, parentId, cancellationToken);
         return Result.Ok();
