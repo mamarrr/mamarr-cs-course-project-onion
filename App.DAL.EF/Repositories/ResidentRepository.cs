@@ -45,7 +45,6 @@ public class ResidentRepository :
                 LastName = entity.LastName,
                 IdCode = entity.IdCode,
                 PreferredLanguage = entity.PreferredLanguage,
-                
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -70,7 +69,6 @@ public class ResidentRepository :
                 LastName = entity.LastName,
                 IdCode = entity.IdCode,
                 PreferredLanguage = entity.PreferredLanguage,
-                
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -95,7 +93,6 @@ public class ResidentRepository :
                 LastName = entity.LastName,
                 IdCode = entity.IdCode,
                 PreferredLanguage = entity.PreferredLanguage,
-                
             })
             .ToListAsync(cancellationToken);
 
@@ -119,6 +116,7 @@ public class ResidentRepository :
                 select new ResidentUserContextDalDto
                 {
                     ResidentId = resident.Id,
+                    ManagementCompanySlug = resident.ManagementCompany!.Slug,
                     FirstName = resident.FirstName,
                     LastName = resident.LastName,
                     IdCode = resident.IdCode,
@@ -135,6 +133,7 @@ public class ResidentRepository :
         return new ResidentUserContextDalDto
         {
             ResidentId = residentContext.ResidentId,
+            ManagementCompanySlug = residentContext.ManagementCompanySlug,
             FirstName = residentContext.FirstName,
             LastName = residentContext.LastName,
             IdCode = residentContext.IdCode,
@@ -262,7 +261,6 @@ public class ResidentRepository :
                 ResidentId = entity.Id,
                 FullName = string.Join(" ", new[] { entity.FirstName, entity.LastName }.Where(value => !string.IsNullOrWhiteSpace(value))),
                 IdCode = entity.IdCode,
-                
             })
             .ToListAsync(cancellationToken);
     }
@@ -325,6 +323,24 @@ public class ResidentRepository :
             .AnyAsync(
                 representative => representative.ResidentId == residentId
                                   && representative.Resident!.ManagementCompanyId == managementCompanyId,
+                cancellationToken);
+    }
+
+    public async Task<bool> HasActiveUserResidentContextAsync(
+        Guid appUserId,
+        Guid residentId,
+        CancellationToken cancellationToken = default)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        return await _dbContext.ResidentUsers
+            .AsNoTracking()
+            .AnyAsync(
+                residentUser => residentUser.AppUserId == appUserId
+                                && residentUser.ResidentId == residentId
+                                && residentUser.ValidFrom <= today
+                                && (!residentUser.ValidTo.HasValue
+                                    || residentUser.ValidTo.Value >= today),
                 cancellationToken);
     }
 

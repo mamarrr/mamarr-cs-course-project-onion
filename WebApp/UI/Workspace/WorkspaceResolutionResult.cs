@@ -8,5 +8,7 @@ public class WorkspaceResolutionResult
 
     public IReadOnlyList<WorkspaceSwitchOptionViewModel> CustomerWorkspaceOptions { get; init; } = [];
 
+    public WorkspaceSwitchOptionViewModel? ResidentWorkspaceOption { get; init; }
+
     public bool CanManageCompanyUsers { get; init; }
 }

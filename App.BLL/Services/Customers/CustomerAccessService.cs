@@ -57,17 +57,15 @@ public class CustomerAccessService : ICustomerAccessService
         GetCustomerWorkspaceQuery query,
         CancellationToken cancellationToken = default)
     {
-        var company = await ResolveCompanyWorkspaceAsync(
-            new GetCompanyCustomersQuery
-            {
-                UserId = query.UserId,
-                CompanySlug = query.CompanySlug
-            },
-            cancellationToken);
-
-        if (company.IsFailed)
+        if (query.UserId == Guid.Empty)
         {
-            return Result.Fail(company.Errors);
+            return Result.Fail(new UnauthorizedError("Authentication is required."));
+        }
+
+        var company = await _uow.ManagementCompanies.FirstBySlugAsync(query.CompanySlug, cancellationToken);
+        if (company is null)
+        {
+            return Result.Fail(new NotFoundError(App.Resources.Views.UiText.ManagementCompanyWasNotFound));
         }
 
         if (string.IsNullOrWhiteSpace(query.CustomerSlug))
@@ -76,12 +74,31 @@ public class CustomerAccessService : ICustomerAccessService
         }
 
         var customer = await _uow.Customers.FirstWorkspaceByCompanyAndSlugAsync(
-            company.Value.ManagementCompanyId,
+            company.Id,
             query.CustomerSlug,
             cancellationToken);
 
-        return customer is null
-            ? Result.Fail(new NotFoundError("Customer context was not found."))
-            : Result.Ok(CustomerWorkspaceBllMapper.MapWorkspace(customer, query.UserId));
+        if (customer is null)
+        {
+            return Result.Fail(new NotFoundError("Customer context was not found."));
+        }
+
+        var roleCode = await _uow.ManagementCompanies.FindActiveUserRoleCodeAsync(
+            query.UserId,
+            company.Id,
+            cancellationToken);
+        if (roleCode is not null && AllowedRoleCodes.Contains(roleCode))
+        {
+            return Result.Ok(CustomerWorkspaceBllMapper.MapWorkspace(customer, query.UserId));
+        }
+
+        var hasCustomerContext = await _uow.Customers.ActiveUserCustomerContextExistsAsync(
+            query.UserId,
+            customer.Id,
+            cancellationToken);
+
+        return hasCustomerContext
+            ? Result.Ok(CustomerWorkspaceBllMapper.MapWorkspace(customer, query.UserId))
+            : Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
     }
 }

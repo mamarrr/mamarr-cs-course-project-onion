@@ -70,21 +70,22 @@ public class ResidentAccessService : IResidentAccessService
         GetResidentProfileQuery query,
         CancellationToken cancellationToken = default)
     {
-        var company = await ResolveCompanyResidentsAsync(
-            new GetResidentsQuery
-            {
-                UserId = query.UserId,
-                CompanySlug = query.CompanySlug
-            },
-            cancellationToken);
-        if (company.IsFailed)
+        if (query.UserId == Guid.Empty)
         {
-            if (company.Errors.OfType<NotFoundError>().Any())
-            {
-                return Result.Fail(new NotFoundError("Resident context was not found."));
-            }
+            return Result.Fail(new UnauthorizedError("Authentication is required."));
+        }
 
-            return Result.Fail(company.Errors);
+        if (string.IsNullOrWhiteSpace(query.CompanySlug))
+        {
+            return Result.Fail(new NotFoundError("Resident context was not found."));
+        }
+
+        var company = await _uow.ManagementCompanies.FirstBySlugAsync(
+            query.CompanySlug,
+            cancellationToken);
+        if (company is null)
+        {
+            return Result.Fail(new NotFoundError("Resident context was not found."));
         }
 
         if (string.IsNullOrWhiteSpace(query.ResidentIdCode))
@@ -97,11 +98,27 @@ public class ResidentAccessService : IResidentAccessService
             query.ResidentIdCode,
             cancellationToken);
 
-        if (resident is null || resident.ManagementCompanyId != company.Value.ManagementCompanyId)
+        if (resident is null || resident.ManagementCompanyId != company.Id)
         {
             return Result.Fail(new NotFoundError("Resident context was not found."));
         }
 
-        return Result.Ok(ResidentBllMapper.MapWorkspace(query.UserId, resident));
+        var roleCode = await _uow.ManagementCompanies.FindActiveUserRoleCodeAsync(
+            query.UserId,
+            company.Id,
+            cancellationToken);
+        if (roleCode is not null && AllowedRoleCodes.Contains(roleCode))
+        {
+            return Result.Ok(ResidentBllMapper.MapWorkspace(query.UserId, resident));
+        }
+
+        var hasResidentContext = await _uow.Residents.HasActiveUserResidentContextAsync(
+            query.UserId,
+            resident.Id,
+            cancellationToken);
+
+        return hasResidentContext
+            ? Result.Ok(ResidentBllMapper.MapWorkspace(query.UserId, resident))
+            : Result.Fail(new ForbiddenError("Access denied."));
     }
 }

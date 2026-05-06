@@ -38,6 +38,7 @@ public class UserWorkspaceCatalogService : IWorkspaceCatalogService
                 ContextType = "management",
                 Name = context.CompanyName,
                 Slug = context.Slug,
+                ManagementCompanySlug = context.Slug,
                 IsDefault = string.Equals(context.Slug, managementContexts.FirstOrDefault()?.Slug, StringComparison.OrdinalIgnoreCase)
             })
             .ToList();
@@ -59,7 +60,9 @@ public class UserWorkspaceCatalogService : IWorkspaceCatalogService
             {
                 Id = customer.CustomerId,
                 ContextType = "customer",
-                Name = customer.Name
+                Name = customer.Name,
+                Slug = customer.Slug,
+                ManagementCompanySlug = customer.ManagementCompanySlug
             })
             .ToList();
 
@@ -73,7 +76,9 @@ public class UserWorkspaceCatalogService : IWorkspaceCatalogService
             {
                 Id = residentContext.ResidentId,
                 ContextType = "resident",
-                Name = residentContext.DisplayName
+                Name = residentContext.DisplayName,
+                Slug = residentContext.IdCode,
+                ManagementCompanySlug = residentContext.ManagementCompanySlug
             };
 
         var defaultContext = managementOptions.FirstOrDefault(option => option.IsDefault)

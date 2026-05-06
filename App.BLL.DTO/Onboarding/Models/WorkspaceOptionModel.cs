@@ -6,5 +6,6 @@ public class WorkspaceOptionModel
     public string ContextType { get; init; } = default!;
     public string Name { get; init; } = default!;
     public string? Slug { get; init; }
+    public string? ManagementCompanySlug { get; init; }
     public bool IsDefault { get; init; }
 }

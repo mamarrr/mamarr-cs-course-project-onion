@@ -175,7 +175,9 @@ public class CustomerRepository :
                 select new CustomerUserContextDalDto
                 {
                     CustomerId = customer.Id,
-                    Name = customer.Name
+                    Name = customer.Name,
+                    Slug = customer.Slug,
+                    ManagementCompanySlug = customer.ManagementCompany!.Slug
                 })
             .Distinct()
             .OrderBy(customer => customer.Name)

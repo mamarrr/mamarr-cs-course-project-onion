@@ -50,6 +50,7 @@ public class AppChromeBuilder : IAppChromeBuilder
                 resolvedWorkspace.CanManageCompanyUsers),
             ManagementWorkspaceOptions = resolvedWorkspace.ManagementWorkspaceOptions,
             CustomerWorkspaceOptions = resolvedWorkspace.CustomerWorkspaceOptions,
+            ResidentWorkspaceOption = resolvedWorkspace.ResidentWorkspaceOption,
             CultureOptions = _cultureOptionsBuilder.Build(currentUiCultureName),
             UserMenu = _userMenuBuilder.Build(request.User),
             CurrentPathAndQuery = $"{request.HttpContext.Request.Path}{request.HttpContext.Request.QueryString}",

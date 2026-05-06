@@ -14,4 +14,6 @@ public class CustomerUserContextDalDto
 {
     public Guid CustomerId { get; init; }
     public string Name { get; init; } = default!;
+    public string Slug { get; init; } = default!;
+    public string ManagementCompanySlug { get; init; } = default!;
 }

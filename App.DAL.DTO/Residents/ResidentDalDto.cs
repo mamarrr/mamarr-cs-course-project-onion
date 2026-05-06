@@ -14,6 +14,7 @@ public class ResidentDalDto : BaseEntity
 public class ResidentUserContextDalDto
 {
     public Guid ResidentId { get; init; }
+    public string ManagementCompanySlug { get; init; } = default!;
     public string FirstName { get; init; } = default!;
     public string LastName { get; init; } = default!;
     public string IdCode { get; init; } = default!;

@@ -52,10 +52,17 @@
 
         <li><hr class="dropdown-divider" /></li>
         <li><h6 class="dropdown-header">@App.Resources.Views.UiText.Resident</h6></li>
-        @if (Model.Workspace.HasResidentContext)
+        @if (Model.ResidentWorkspaceOption is not null)
         {
             <li>
-                <a class="dropdown-item" asp-area="Public" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="resident" asp-route-returnUrl="@Model.CurrentPathAndQuery">@App.Resources.Views.UiText.ResidentDashboard</a>
+                @if (!string.IsNullOrWhiteSpace(Model.ResidentWorkspaceOption.Url))
+                {
+                    <a class="dropdown-item @(Model.ResidentWorkspaceOption.IsCurrent ? "active" : string.Empty)" href="@Model.ResidentWorkspaceOption.Url">@Model.ResidentWorkspaceOption.Name</a>
+                }
+                else
+                {
+                    <a class="dropdown-item @(Model.ResidentWorkspaceOption.IsCurrent ? "active" : string.Empty)" asp-area="Public" asp-controller="Onboarding" asp-action="SetContext" asp-route-type="resident" asp-route-returnUrl="@Model.CurrentPathAndQuery">@Model.ResidentWorkspaceOption.Name</a>
+                }
             </li>
         }
         else

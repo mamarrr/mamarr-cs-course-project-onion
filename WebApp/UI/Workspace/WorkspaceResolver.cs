@@ -60,9 +60,36 @@ public class WorkspaceResolver : IWorkspaceResolver
             .Select(x => new WorkspaceSwitchOptionViewModel
             {
                 Id = x.Id,
-                Name = x.Name
+                Slug = x.Slug ?? string.Empty,
+                Name = x.Name,
+                IsCurrent = string.Equals(x.Slug, request.CustomerSlug, StringComparison.OrdinalIgnoreCase),
+                Url = !string.IsNullOrWhiteSpace(x.ManagementCompanySlug) && !string.IsNullOrWhiteSpace(x.Slug)
+                    ? Route(
+                        PortalRouteNames.CustomerDashboard,
+                        new { companySlug = x.ManagementCompanySlug, customerSlug = x.Slug })
+                    : null
             })
             .ToList();
+
+        var residentOption = catalog.Resident is null
+            ? null
+            : new WorkspaceSwitchOptionViewModel
+            {
+                Id = catalog.Resident.Id,
+                Slug = catalog.Resident.Slug ?? string.Empty,
+                Name = catalog.Resident.Name,
+                IsCurrent = string.Equals(catalog.Resident.Slug, request.ResidentIdCode, StringComparison.OrdinalIgnoreCase),
+                Url = !string.IsNullOrWhiteSpace(catalog.Resident.ManagementCompanySlug)
+                      && !string.IsNullOrWhiteSpace(catalog.Resident.Slug)
+                    ? Route(
+                        PortalRouteNames.ResidentDashboard,
+                        new
+                        {
+                            companySlug = catalog.Resident.ManagementCompanySlug,
+                            residentIdCode = catalog.Resident.Slug
+                        })
+                    : null
+            };
 
         var managementCompanyName = request.ManagementCompanyName ?? catalog.ManagementCompanyName;
         var workspaceDisplayName = request.CurrentLevel switch
@@ -91,10 +118,11 @@ public class WorkspaceResolver : IWorkspaceResolver
                 ResidentDisplayName = request.ResidentDisplayName,
                 ResidentSupportingText = request.ResidentSupportingText,
                 DisplayName = workspaceDisplayName,
-                HasResidentContext = catalog.HasResidentContext
+                HasResidentContext = residentOption is not null
             },
             ManagementWorkspaceOptions = managementOptions,
             CustomerWorkspaceOptions = customerOptions,
+            ResidentWorkspaceOption = residentOption,
             CanManageCompanyUsers = catalog.CanManageCompanyUsers
         };
     }

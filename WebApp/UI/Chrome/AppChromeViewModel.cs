@@ -24,6 +24,8 @@ public class AppChromeViewModel
 
     public IReadOnlyList<WorkspaceSwitchOptionViewModel> CustomerWorkspaceOptions { get; init; } = [];
 
+    public WorkspaceSwitchOptionViewModel? ResidentWorkspaceOption { get; init; }
+
     public IReadOnlyList<CultureOptionViewModel> CultureOptions { get; init; } = [];
 
     public UserMenuViewModel UserMenu { get; init; } = new();
