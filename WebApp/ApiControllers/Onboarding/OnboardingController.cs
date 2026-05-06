@@ -45,7 +45,7 @@ public class OnboardingController : ControllerBase
             return Unauthorized(CreateError(HttpStatusCode.Unauthorized, "Authentication is required.", ApiErrorCodes.Unauthorized));
         }
 
-        var catalog = await _bll.ApiOnboardingContexts.GetContextsAsync(appUserId.Value, cancellationToken);
+        var catalog = await _bll.WorkspaceContexts.GetContextsAsync(appUserId.Value, cancellationToken);
         var response = _routeContextMapper.MapCatalog(catalog.Value);
 
         return Ok(response);

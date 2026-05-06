@@ -14,7 +14,7 @@ public interface IAppBLL : IBaseBLL
 {
     IAccountOnboardingService AccountOnboarding { get; }
     IOnboardingCompanyJoinRequestService OnboardingCompanyJoinRequests { get; }
-    IApiOnboardingContextService ApiOnboardingContexts { get; }
+    IWorkspaceContextService WorkspaceContexts { get; }
     IWorkspaceCatalogService WorkspaceCatalog { get; }
     IWorkspaceRedirectService WorkspaceRedirect { get; }
     IContextSelectionService ContextSelection { get; }

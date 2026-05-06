@@ -3,24 +3,24 @@ using App.BLL.Contracts.Onboarding.Models;
 using App.DAL.Contracts;
 using FluentResults;
 
-namespace App.BLL.Services.Onboarding.Api;
+namespace App.BLL.Services.Onboarding.WorkspaceContext;
 
-public class ApiWorkspaceContextService : IApiOnboardingContextService
+public class WorkspaceContextService : IWorkspaceContextService
 {
     private readonly IAppUOW _uow;
     private readonly IAccountOnboardingService _accountOnboardingService;
 
-    public ApiWorkspaceContextService(IAppUOW uow, IAccountOnboardingService accountOnboardingService)
+    public WorkspaceContextService(IAppUOW uow, IAccountOnboardingService accountOnboardingService)
     {
         _uow = uow;
         _accountOnboardingService = accountOnboardingService;
     }
 
-    public async Task<Result<ApiOnboardingContextCatalogModel>> GetContextsAsync(
+    public async Task<Result<WorkspaceContextCatalogModel>> GetContextsAsync(
         Guid appUserId,
         CancellationToken cancellationToken = default)
     {
-        var contexts = new List<ApiOnboardingContextModel>();
+        var contexts = new List<WorkspaceContextModel>();
         var defaultManagementCompanySlug = await _accountOnboardingService.GetDefaultManagementCompanySlugAsync(
             appUserId,
             cancellationToken);
@@ -28,7 +28,7 @@ public class ApiWorkspaceContextService : IApiOnboardingContextService
         var managementContexts = await _uow.ManagementCompanies.ActiveUserManagementContextsAsync(
             appUserId,
             cancellationToken);
-        contexts.AddRange(managementContexts.Select(company => new ApiOnboardingContextModel
+        contexts.AddRange(managementContexts.Select(company => new WorkspaceContextModel
         {
             ContextType = "management",
             Label = company.CompanyName,
@@ -40,7 +40,7 @@ public class ApiWorkspaceContextService : IApiOnboardingContextService
         var customerContexts = await _uow.Customers.ActiveUserCustomerContextsAsync(
             appUserId,
             cancellationToken);
-        contexts.AddRange(customerContexts.Select(customer => new ApiOnboardingContextModel
+        contexts.AddRange(customerContexts.Select(customer => new WorkspaceContextModel
         {
             ContextType = "customer",
             Label = customer.Name,
@@ -53,7 +53,7 @@ public class ApiWorkspaceContextService : IApiOnboardingContextService
             cancellationToken);
         if (residentContext != null)
         {
-            contexts.Add(new ApiOnboardingContextModel
+            contexts.Add(new WorkspaceContextModel
             {
                 ContextType = "resident",
                 Label = residentContext.DisplayName,
@@ -68,7 +68,7 @@ public class ApiWorkspaceContextService : IApiOnboardingContextService
         if (defaultContext != null)
         {
             contexts = contexts
-                .Select(context => new ApiOnboardingContextModel
+                .Select(context => new WorkspaceContextModel
                 {
                     ContextType = context.ContextType,
                     Label = context.Label,
@@ -83,14 +83,14 @@ public class ApiWorkspaceContextService : IApiOnboardingContextService
             defaultContext = contexts.First(context => context.IsDefault);
         }
 
-        return Result.Ok(new ApiOnboardingContextCatalogModel
+        return Result.Ok(new WorkspaceContextCatalogModel
         {
             Contexts = contexts,
             DefaultContext = defaultContext
         });
     }
 
-    private static bool AreSameContext(ApiOnboardingContextModel left, ApiOnboardingContextModel right)
+    private static bool AreSameContext(WorkspaceContextModel left, WorkspaceContextModel right)
     {
         if (!string.Equals(left.ContextType, right.ContextType, StringComparison.Ordinal))
         {

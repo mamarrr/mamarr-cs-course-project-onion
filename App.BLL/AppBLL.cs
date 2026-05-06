@@ -13,9 +13,9 @@ using App.BLL.Services.Common.Deletion;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
 using App.BLL.Services.Onboarding.Account;
-using App.BLL.Services.Onboarding.Api;
 using App.BLL.Services.Onboarding.CompanyJoinRequests;
 using App.BLL.Services.Onboarding.ContextSelection;
+using App.BLL.Services.Onboarding.WorkspaceContext;
 using App.BLL.Services.Onboarding.WorkspaceCatalog;
 using App.BLL.Services.Properties;
 using App.BLL.Services.Residents;
@@ -34,7 +34,7 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private ICustomerWorkspaceService? _customerWorkspaces;
     private IAccountOnboardingService? _accountOnboarding;
     private IOnboardingCompanyJoinRequestService? _onboardingCompanyJoinRequests;
-    private IApiOnboardingContextService? _apiOnboardingContexts;
+    private IWorkspaceContextService? _workspaceContexts;
     private IWorkspaceCatalogService? _workspaceCatalog;
     private IWorkspaceRedirectService? _workspaceRedirect;
     private IManagementCompanyProfileService? _managementCompanyProfiles;
@@ -63,8 +63,8 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     public IOnboardingCompanyJoinRequestService OnboardingCompanyJoinRequests =>
         _onboardingCompanyJoinRequests ??= new OnboardingCompanyJoinRequestService(UOW);
 
-    public IApiOnboardingContextService ApiOnboardingContexts =>
-        _apiOnboardingContexts ??= new ApiWorkspaceContextService(UOW, AccountOnboarding);
+    public IWorkspaceContextService WorkspaceContexts =>
+        _workspaceContexts ??= new WorkspaceContextService(UOW, AccountOnboarding);
 
     public IWorkspaceCatalogService WorkspaceCatalog =>
         _workspaceCatalog ??= new UserWorkspaceCatalogService(UOW);

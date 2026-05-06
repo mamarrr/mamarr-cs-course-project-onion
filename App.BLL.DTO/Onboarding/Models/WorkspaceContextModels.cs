@@ -1,12 +1,12 @@
 namespace App.BLL.Contracts.Onboarding.Models;
 
-public class ApiOnboardingContextCatalogModel
+public class WorkspaceContextCatalogModel
 {
-    public IReadOnlyList<ApiOnboardingContextModel> Contexts { get; init; } = [];
-    public ApiOnboardingContextModel? DefaultContext { get; init; }
+    public IReadOnlyList<WorkspaceContextModel> Contexts { get; init; } = [];
+    public WorkspaceContextModel? DefaultContext { get; init; }
 }
 
-public class ApiOnboardingContextModel
+public class WorkspaceContextModel
 {
     public string ContextType { get; init; } = string.Empty;
     public string Label { get; init; } = string.Empty;

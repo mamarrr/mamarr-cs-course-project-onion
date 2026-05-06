@@ -6,14 +6,14 @@ namespace WebApp.ApiControllers.Shared;
 
 public interface IApiOnboardingRouteContextMapper
 {
-    OnboardingContextSummaryDto MapContext(ApiOnboardingContextModel entry);
-    OnboardingContextsResponseDto MapCatalog(ApiOnboardingContextCatalogModel catalog);
+    OnboardingContextSummaryDto MapContext(WorkspaceContextModel entry);
+    OnboardingContextsResponseDto MapCatalog(WorkspaceContextCatalogModel catalog);
     ApiRouteContextDto CreateManagementCompanyRouteContext(string companySlug, string companyName);
 }
 
 public class ApiOnboardingRouteContextMapper : IApiOnboardingRouteContextMapper
 {
-    public OnboardingContextSummaryDto MapContext(ApiOnboardingContextModel entry)
+    public OnboardingContextSummaryDto MapContext(WorkspaceContextModel entry)
     {
         return new OnboardingContextSummaryDto
         {
@@ -31,7 +31,7 @@ public class ApiOnboardingRouteContextMapper : IApiOnboardingRouteContextMapper
         };
     }
 
-    public OnboardingContextsResponseDto MapCatalog(ApiOnboardingContextCatalogModel catalog)
+    public OnboardingContextsResponseDto MapCatalog(WorkspaceContextCatalogModel catalog)
     {
         return new OnboardingContextsResponseDto
         {

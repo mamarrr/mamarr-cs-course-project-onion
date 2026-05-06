@@ -413,7 +413,7 @@ public class AccountController : ControllerBase
     private async Task<SpaJwtResponseDto> BuildSpaJwtResponseAsync(AppUser appUser, string jwt, string refreshToken)
     {
         var roles = await _userManager.GetRolesAsync(appUser);
-        var onboardingContexts = await _bll.ApiOnboardingContexts.GetContextsAsync(appUser.Id, HttpContext.RequestAborted);
+        var onboardingContexts = await _bll.WorkspaceContexts.GetContextsAsync(appUser.Id, HttpContext.RequestAborted);
 
         return new SpaJwtResponseDto
         {

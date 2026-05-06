@@ -3,9 +3,9 @@ using FluentResults;
 
 namespace App.BLL.Contracts.Onboarding;
 
-public interface IApiOnboardingContextService
+public interface IWorkspaceContextService
 {
-    Task<Result<ApiOnboardingContextCatalogModel>> GetContextsAsync(
+    Task<Result<WorkspaceContextCatalogModel>> GetContextsAsync(
         Guid appUserId,
         CancellationToken cancellationToken = default);
 }
