@@ -1,9 +1,18 @@
+using Microsoft.AspNetCore.Routing;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 
 namespace WebApp.UI.Breadcrumbs;
 
 public class BreadcrumbBuilder : IBreadcrumbBuilder
 {
+    private readonly LinkGenerator _linkGenerator;
+
+    public BreadcrumbBuilder(LinkGenerator linkGenerator)
+    {
+        _linkGenerator = linkGenerator;
+    }
+
     public IReadOnlyList<BreadcrumbLinkViewModel> Build(WorkspaceIdentityViewModel workspace)
     {
         var links = new List<BreadcrumbLinkViewModel>();
@@ -15,7 +24,7 @@ public class BreadcrumbBuilder : IBreadcrumbBuilder
                 Label = workspace.ManagementCompanyName ?? workspace.ManagementCompanySlug,
                 Url = workspace.Level == WorkspaceLevel.ManagementCompany
                     ? null
-                    : $"/m/{workspace.ManagementCompanySlug}",
+                    : Route(PortalRouteNames.ManagementDashboard, new { companySlug = workspace.ManagementCompanySlug }),
                 IsCurrent = workspace.Level == WorkspaceLevel.ManagementCompany,
                 Level = WorkspaceLevel.ManagementCompany
             });
@@ -28,7 +37,9 @@ public class BreadcrumbBuilder : IBreadcrumbBuilder
                 Label = workspace.CustomerName ?? workspace.CustomerSlug,
                 Url = workspace.Level == WorkspaceLevel.Customer
                     ? null
-                    : $"/m/{workspace.ManagementCompanySlug}/customers/{workspace.CustomerSlug}",
+                    : Route(
+                        PortalRouteNames.CustomerDashboard,
+                        new { companySlug = workspace.ManagementCompanySlug, customerSlug = workspace.CustomerSlug }),
                 IsCurrent = workspace.Level == WorkspaceLevel.Customer,
                 Level = WorkspaceLevel.Customer
             });
@@ -41,7 +52,14 @@ public class BreadcrumbBuilder : IBreadcrumbBuilder
                 Label = workspace.PropertyName ?? workspace.PropertySlug,
                 Url = workspace.Level == WorkspaceLevel.Property
                     ? null
-                    : $"/m/{workspace.ManagementCompanySlug}/customers/{workspace.CustomerSlug}/properties/{workspace.PropertySlug}",
+                    : Route(
+                        PortalRouteNames.PropertyDashboard,
+                        new
+                        {
+                            companySlug = workspace.ManagementCompanySlug,
+                            customerSlug = workspace.CustomerSlug,
+                            propertySlug = workspace.PropertySlug
+                        }),
                 IsCurrent = workspace.Level == WorkspaceLevel.Property,
                 Level = WorkspaceLevel.Property
             });
@@ -54,7 +72,15 @@ public class BreadcrumbBuilder : IBreadcrumbBuilder
                 Label = workspace.UnitName ?? workspace.UnitSlug,
                 Url = workspace.Level == WorkspaceLevel.Unit
                     ? null
-                    : $"/m/{workspace.ManagementCompanySlug}/customers/{workspace.CustomerSlug}/properties/{workspace.PropertySlug}/units/{workspace.UnitSlug}",
+                    : Route(
+                        PortalRouteNames.UnitDashboard,
+                        new
+                        {
+                            companySlug = workspace.ManagementCompanySlug,
+                            customerSlug = workspace.CustomerSlug,
+                            propertySlug = workspace.PropertySlug,
+                            unitSlug = workspace.UnitSlug
+                        }),
                 IsCurrent = workspace.Level == WorkspaceLevel.Unit,
                 Level = WorkspaceLevel.Unit
             });
@@ -67,12 +93,19 @@ public class BreadcrumbBuilder : IBreadcrumbBuilder
                 Label = workspace.ResidentDisplayName ?? workspace.ResidentIdCode,
                 Url = workspace.Level == WorkspaceLevel.Resident
                     ? null
-                    : $"/m/{workspace.ManagementCompanySlug}/r/{workspace.ResidentIdCode}",
+                    : Route(
+                        PortalRouteNames.ResidentDashboard,
+                        new { companySlug = workspace.ManagementCompanySlug, residentIdCode = workspace.ResidentIdCode }),
                 IsCurrent = workspace.Level == WorkspaceLevel.Resident,
                 Level = WorkspaceLevel.Resident
             });
         }
 
         return links;
+    }
+
+    private string Route(string routeName, object values)
+    {
+        return _linkGenerator.GetPathByName(routeName, values) ?? string.Empty;
     }
 }

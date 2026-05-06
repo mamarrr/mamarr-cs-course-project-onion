@@ -133,12 +133,12 @@
                     {
                         <tr>
                             <td>
-                                <a asp-action="Details"
+                                <a asp-route="@PortalRouteNames.ManagementTicketDetails"
                                    asp-route-companySlug="@Model.CompanySlug"
                                    asp-route-ticketId="@ticket.TicketId">@ticket.TicketNr</a>
                             </td>
                             <td>
-                                <a asp-action="Details"
+                                <a asp-route="@PortalRouteNames.ManagementTicketDetails"
                                    asp-route-companySlug="@Model.CompanySlug"
                                    asp-route-ticketId="@ticket.TicketId">@ticket.Title</a>
                             </td>
@@ -148,9 +148,7 @@
                             <td>
                                 @if (!string.IsNullOrWhiteSpace(ticket.CustomerName) && !string.IsNullOrWhiteSpace(ticket.CustomerSlug))
                                 {
-                                    <a asp-area="Portal"
-                                       asp-controller="CustomerDashboard"
-                                       asp-action="Index"
+                                    <a asp-route="@PortalRouteNames.CustomerDashboard"
                                        asp-route-companySlug="@Model.CompanySlug"
                                        asp-route-customerSlug="@ticket.CustomerSlug">@ticket.CustomerName</a>
                                 }
@@ -164,9 +162,7 @@
                                      && !string.IsNullOrWhiteSpace(ticket.CustomerSlug)
                                      && !string.IsNullOrWhiteSpace(ticket.PropertySlug))
                                 {
-                                    <a asp-area="Portal"
-                                       asp-controller="Dashboard"
-                                       asp-action="Index"
+                                    <a asp-route="@PortalRouteNames.PropertyDashboard"
                                        asp-route-companySlug="@Model.CompanySlug"
                                        asp-route-customerSlug="@ticket.CustomerSlug"
                                        asp-route-propertySlug="@ticket.PropertySlug">@ticket.PropertyName</a>
@@ -182,9 +178,7 @@
                                      && !string.IsNullOrWhiteSpace(ticket.PropertySlug)
                                      && !string.IsNullOrWhiteSpace(ticket.UnitSlug))
                                 {
-                                    <a asp-area="Portal"
-                                       asp-controller="Dashboard"
-                                       asp-action="Index"
+                                    <a asp-route="@PortalRouteNames.UnitDashboard"
                                        asp-route-companySlug="@Model.CompanySlug"
                                        asp-route-customerSlug="@ticket.CustomerSlug"
                                        asp-route-propertySlug="@ticket.PropertySlug"
@@ -198,9 +192,7 @@
                             <td>
                                 @if (!string.IsNullOrWhiteSpace(ticket.ResidentName) && !string.IsNullOrWhiteSpace(ticket.ResidentIdCode))
                                 {
-                                    <a asp-area="Portal"
-                                       asp-controller="Dashboard"
-                                       asp-action="Index"
+                                    <a asp-route="@PortalRouteNames.ResidentDashboard"
                                        asp-route-companySlug="@Model.CompanySlug"
                                        asp-route-residentIdCode="@ticket.ResidentIdCode">@ticket.ResidentName</a>
                                 }

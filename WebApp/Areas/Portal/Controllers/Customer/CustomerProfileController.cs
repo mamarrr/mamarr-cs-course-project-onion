@@ -10,6 +10,7 @@ using WebApp.Mappers.Mvc.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Customer.CustomerProfile;
 
@@ -37,7 +38,7 @@ public class CustomerProfileController : Controller
         _portalContextResolver = portalContextResolver;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.CustomerProfile)]
     public async Task<IActionResult> Index(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();
@@ -137,7 +138,7 @@ public class CustomerProfileController : Controller
         if (result.IsSuccess)
         {
             TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
-            return RedirectToAction("Index", "Dashboard", new { area = "Portal", companySlug });
+            return RedirectToRoute(PortalRouteNames.ManagementDashboard, new { companySlug });
         }
 
         if (HasNonValidationError(result.Errors))

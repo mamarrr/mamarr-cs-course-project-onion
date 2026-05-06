@@ -9,6 +9,7 @@ using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Property;
 
@@ -36,7 +37,7 @@ public class DashboardController : Controller
         _portalContextResolver = portalContextResolver;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.PropertyDashboard)]
     public async Task<IActionResult> Index(
         string companySlug,
         string customerSlug,
@@ -46,7 +47,7 @@ public class DashboardController : Controller
         return await RenderSectionAsync(companySlug, customerSlug, propertySlug, "Dashboard", cancellationToken);
     }
 
-    [HttpGet("residents")]
+    [HttpGet("residents", Name = PortalRouteNames.PropertyResidents)]
     public async Task<IActionResult> Residents(
         string companySlug,
         string customerSlug,
@@ -56,7 +57,7 @@ public class DashboardController : Controller
         return await RenderSectionAsync(companySlug, customerSlug, propertySlug, "Residents", cancellationToken);
     }
 
-    [HttpGet("tickets")]
+    [HttpGet("tickets", Name = PortalRouteNames.PropertyTickets)]
     public async Task<IActionResult> Tickets(
         string companySlug,
         string customerSlug,

@@ -9,6 +9,7 @@ using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Unit;
 
@@ -36,7 +37,7 @@ public class ProfileController : Controller
         _portalContextResolver = portalContextResolver;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.UnitProfile)]
     public async Task<IActionResult> Index(
         string companySlug,
         string customerSlug,
@@ -142,7 +143,7 @@ public class ProfileController : Controller
         }
 
         TempData[nameof(UiText.ProfileDeletedSuccessfully)] = UiText.ProfileDeletedSuccessfully;
-        return RedirectToAction("Units", "Units", new { area = "Portal", companySlug, customerSlug, propertySlug });
+        return RedirectToRoute(PortalRouteNames.PropertyUnits, new { companySlug, customerSlug, propertySlug });
     }
 
     private async Task<ProfilePageViewModel> BuildViewModelAsync(

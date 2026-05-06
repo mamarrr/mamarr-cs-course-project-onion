@@ -11,6 +11,7 @@ using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Customer.CustomerProperties;
 
@@ -44,7 +45,7 @@ public class CustomerPropertiesController : Controller
         _logger = logger;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.CustomerProperties)]
     public async Task<IActionResult> Index(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();

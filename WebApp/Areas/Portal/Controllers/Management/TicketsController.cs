@@ -8,6 +8,7 @@ using WebApp.Mappers.Mvc.Tickets;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Tickets;
 
@@ -35,7 +36,7 @@ public class TicketsController : Controller
         _portalContextResolver = portalContextResolver;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.ManagementTickets)]
     public async Task<IActionResult> Index(
         string companySlug,
         [FromQuery] TicketFilterViewModel filter,
@@ -116,7 +117,7 @@ public class TicketsController : Controller
         return RedirectToAction(nameof(Details), new { companySlug, ticketId = result.Value });
     }
 
-    [HttpGet("{ticketId:guid}")]
+    [HttpGet("{ticketId:guid}", Name = PortalRouteNames.ManagementTicketDetails)]
     public async Task<IActionResult> Details(
         string companySlug,
         Guid ticketId,
@@ -266,7 +267,7 @@ public class TicketsController : Controller
         return RedirectToAction(nameof(Details), new { companySlug, ticketId });
     }
 
-    [HttpGet("options/properties")]
+    [HttpGet("options/properties", Name = PortalRouteNames.ManagementTicketPropertyOptions)]
     public async Task<IActionResult> PropertyOptions(
         string companySlug,
         Guid? customerId,
@@ -287,7 +288,7 @@ public class TicketsController : Controller
             : Json(_mapper.ToJsonOptions(options.Value.Properties));
     }
 
-    [HttpGet("options/units")]
+    [HttpGet("options/units", Name = PortalRouteNames.ManagementTicketUnitOptions)]
     public async Task<IActionResult> UnitOptions(
         string companySlug,
         Guid? propertyId,
@@ -308,7 +309,7 @@ public class TicketsController : Controller
             : Json(_mapper.ToJsonOptions(options.Value.Units));
     }
 
-    [HttpGet("options/residents")]
+    [HttpGet("options/residents", Name = PortalRouteNames.ManagementTicketResidentOptions)]
     public async Task<IActionResult> ResidentOptions(
         string companySlug,
         Guid? unitId,
@@ -329,7 +330,7 @@ public class TicketsController : Controller
             : Json(_mapper.ToJsonOptions(options.Value.Residents));
     }
 
-    [HttpGet("options/vendors")]
+    [HttpGet("options/vendors", Name = PortalRouteNames.ManagementTicketVendorOptions)]
     public async Task<IActionResult> VendorOptions(
         string companySlug,
         Guid? categoryId,

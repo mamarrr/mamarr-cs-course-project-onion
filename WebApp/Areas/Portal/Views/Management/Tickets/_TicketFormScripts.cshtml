@@ -3,7 +3,12 @@
 
 <script>
 (() => {
-    const companySlug = '@Model.CompanySlug';
+    const optionUrls = {
+        properties: '@Url.RouteUrl(PortalRouteNames.ManagementTicketPropertyOptions, new { companySlug = Model.CompanySlug })',
+        units: '@Url.RouteUrl(PortalRouteNames.ManagementTicketUnitOptions, new { companySlug = Model.CompanySlug })',
+        residents: '@Url.RouteUrl(PortalRouteNames.ManagementTicketResidentOptions, new { companySlug = Model.CompanySlug })',
+        vendors: '@Url.RouteUrl(PortalRouteNames.ManagementTicketVendorOptions, new { companySlug = Model.CompanySlug })'
+    };
     const selects = {
         category: document.getElementById('Form_TicketCategoryId'),
         customer: document.getElementById('Form_CustomerId'),
@@ -45,20 +50,20 @@
     selects.customer?.addEventListener('change', async () => {
         reset(selects.unit, placeholders.unit);
         reset(selects.resident, placeholders.resident);
-        await load(`/m/${companySlug}/tickets/options/properties?customerId=${selects.customer.value}`, selects.property, placeholders.property);
+        await load(`${optionUrls.properties}?customerId=${selects.customer.value}`, selects.property, placeholders.property);
     });
 
     selects.property?.addEventListener('change', async () => {
         reset(selects.resident, placeholders.resident);
-        await load(`/m/${companySlug}/tickets/options/units?propertyId=${selects.property.value}`, selects.unit, placeholders.unit);
+        await load(`${optionUrls.units}?propertyId=${selects.property.value}`, selects.unit, placeholders.unit);
     });
 
     selects.unit?.addEventListener('change', async () => {
-        await load(`/m/${companySlug}/tickets/options/residents?unitId=${selects.unit.value}`, selects.resident, placeholders.resident);
+        await load(`${optionUrls.residents}?unitId=${selects.unit.value}`, selects.resident, placeholders.resident);
     });
 
     selects.category?.addEventListener('change', async () => {
-        await load(`/m/${companySlug}/tickets/options/vendors?categoryId=${selects.category.value}`, selects.vendor, placeholders.vendor);
+        await load(`${optionUrls.vendors}?categoryId=${selects.category.value}`, selects.vendor, placeholders.vendor);
     });
 })();
 </script>

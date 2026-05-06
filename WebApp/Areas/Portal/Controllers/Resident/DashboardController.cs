@@ -9,6 +9,7 @@ using WebApp.Mappers.Mvc.Residents;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Resident;
 
@@ -36,25 +37,25 @@ public class DashboardController : Controller
         _portalContextResolver = portalContextResolver;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.ResidentDashboard)]
     public async Task<IActionResult> Index(string companySlug, string residentIdCode, CancellationToken cancellationToken)
     {
         return await RenderSectionAsync(companySlug, residentIdCode, "Dashboard", cancellationToken);
     }
 
-    [HttpGet("tickets")]
+    [HttpGet("tickets", Name = PortalRouteNames.ResidentTickets)]
     public async Task<IActionResult> Tickets(string companySlug, string residentIdCode, CancellationToken cancellationToken)
     {
         return await RenderSectionAsync(companySlug, residentIdCode, "Tickets", cancellationToken);
     }
 
-    [HttpGet("representations")]
+    [HttpGet("representations", Name = PortalRouteNames.ResidentRepresentations)]
     public async Task<IActionResult> Representations(string companySlug, string residentIdCode, CancellationToken cancellationToken)
     {
         return await RenderSectionAsync(companySlug, residentIdCode, "Representations", cancellationToken);
     }
 
-    [HttpGet("contacts")]
+    [HttpGet("contacts", Name = PortalRouteNames.ResidentContacts)]
     public async Task<IActionResult> Contacts(string companySlug, string residentIdCode, CancellationToken cancellationToken)
     {
         return await RenderSectionAsync(companySlug, residentIdCode, "Contacts", cancellationToken);

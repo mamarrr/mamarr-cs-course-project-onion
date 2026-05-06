@@ -7,6 +7,7 @@ using WebApp.Mappers.Api.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Customer.CustomerDashboard;
 
@@ -37,7 +38,7 @@ public class CustomerDashboardController : Controller
         _logger = logger;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.CustomerDashboard)]
     public async Task<IActionResult> Index(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
         _logger.LogInformation(
@@ -50,13 +51,13 @@ public class CustomerDashboardController : Controller
         return await RenderSectionAsync(companySlug, customerSlug, "Dashboard", cancellationToken);
     }
 
-    [HttpGet("tickets")]
+    [HttpGet("tickets", Name = PortalRouteNames.CustomerTickets)]
     public async Task<IActionResult> Tickets(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
         return await RenderSectionAsync(companySlug, customerSlug, "Tickets", cancellationToken);
     }
 
-    [HttpGet("residents")]
+    [HttpGet("residents", Name = PortalRouteNames.CustomerResidents)]
     public async Task<IActionResult> Residents(string companySlug, string customerSlug, CancellationToken cancellationToken)
     {
         return await RenderSectionAsync(companySlug, customerSlug, "Residents", cancellationToken);

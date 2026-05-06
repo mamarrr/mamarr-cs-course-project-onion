@@ -1,7 +1,9 @@
 using App.BLL.Contracts;
 using App.BLL.Contracts.Onboarding.Queries;
+using Microsoft.AspNetCore.Routing;
 using WebApp.UI.Chrome;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 
 namespace WebApp.UI.Workspace;
 
@@ -9,13 +11,16 @@ public class WorkspaceResolver : IWorkspaceResolver
 {
     private readonly IAppBLL _bll;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
+    private readonly LinkGenerator _linkGenerator;
 
     public WorkspaceResolver(
         IAppBLL bll,
-        ICurrentPortalContextResolver portalContextResolver)
+        ICurrentPortalContextResolver portalContextResolver,
+        LinkGenerator linkGenerator)
     {
         _bll = bll;
         _portalContextResolver = portalContextResolver;
+        _linkGenerator = linkGenerator;
     }
 
     public async Task<WorkspaceResolutionResult> ResolveAsync(
@@ -47,7 +52,7 @@ public class WorkspaceResolver : IWorkspaceResolver
                 Slug = x.Slug ?? string.Empty,
                 Name = x.Name,
                 IsCurrent = string.Equals(x.Slug, request.ManagementCompanySlug, StringComparison.OrdinalIgnoreCase),
-                Url = $"/m/{x.Slug}"
+                Url = Route(PortalRouteNames.ManagementDashboard, new { companySlug = x.Slug })
             })
             .ToList();
 
@@ -117,5 +122,10 @@ public class WorkspaceResolver : IWorkspaceResolver
                 ?? request.ManagementCompanyName
                 ?? string.Empty
         };
+    }
+
+    private string Route(string routeName, object values)
+    {
+        return _linkGenerator.GetPathByName(routeName, values) ?? string.Empty;
     }
 }

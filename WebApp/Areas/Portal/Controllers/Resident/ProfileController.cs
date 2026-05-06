@@ -10,6 +10,7 @@ using WebApp.Mappers.Mvc.Residents;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Resident;
 
@@ -37,7 +38,7 @@ public class ProfileController : Controller
         _portalContextResolver = portalContextResolver;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.ResidentProfile)]
     public async Task<IActionResult> Index(string companySlug, string residentIdCode, CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();

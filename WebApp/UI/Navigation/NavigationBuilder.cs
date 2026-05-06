@@ -1,10 +1,19 @@
 using App.Resources.Views;
+using Microsoft.AspNetCore.Routing;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 
 namespace WebApp.UI.Navigation;
 
 public class NavigationBuilder : INavigationBuilder
 {
+    private readonly LinkGenerator _linkGenerator;
+
+    public NavigationBuilder(LinkGenerator linkGenerator)
+    {
+        _linkGenerator = linkGenerator;
+    }
+
     public IReadOnlyList<NavigationItemViewModel> Build(
         WorkspaceIdentityViewModel workspace,
         string activeSection,
@@ -20,7 +29,7 @@ public class NavigationBuilder : INavigationBuilder
         };
     }
 
-    private static IReadOnlyList<NavigationItemViewModel> BuildManagementNavigation(
+    private IReadOnlyList<NavigationItemViewModel> BuildManagementNavigation(
         WorkspaceIdentityViewModel workspace,
         string activeSection,
         bool canManageCompanyUsers)
@@ -29,16 +38,16 @@ public class NavigationBuilder : INavigationBuilder
 
         return new List<NavigationItemViewModel>
         {
-            Link(UiText.Dashboard, $"/m/{companySlug}", Sections.Dashboard, activeSection),
-            Link(UiText.Profile, $"/m/{companySlug}/profile", Sections.Profile, activeSection),
-            Link(UiText.Tickets, $"/m/{companySlug}/tickets", Sections.Tickets, activeSection),
+            Link(UiText.Dashboard, Route(PortalRouteNames.ManagementDashboard, new { companySlug }), Sections.Dashboard, activeSection),
+            Link(UiText.Profile, Route(PortalRouteNames.ManagementProfile, new { companySlug }), Sections.Profile, activeSection),
+            Link(UiText.Tickets, Route(PortalRouteNames.ManagementTickets, new { companySlug }), Sections.Tickets, activeSection),
             Disabled(UiText.Properties, Sections.Properties, activeSection),
-            Link(UiText.Customers, $"/m/{companySlug}/customers", Sections.Customers, activeSection),
-            Link(UiText.Residents, $"/m/{companySlug}/residents", Sections.Residents, activeSection),
+            Link(UiText.Customers, Route(PortalRouteNames.ManagementCustomers, new { companySlug }), Sections.Customers, activeSection),
+            Link(UiText.Residents, Route(PortalRouteNames.ManagementResidents, new { companySlug }), Sections.Residents, activeSection),
             new()
             {
                 Label = UiText.Users,
-                Url = $"/m/{companySlug}/users",
+                Url = Route(PortalRouteNames.ManagementUsers, new { companySlug }),
                 Section = Sections.CompanyUsers,
                 IsVisible = canManageCompanyUsers,
                 IsActive = activeSection == Sections.CompanyUsers
@@ -47,7 +56,7 @@ public class NavigationBuilder : INavigationBuilder
         };
     }
 
-    private static IReadOnlyList<NavigationItemViewModel> BuildCustomerNavigation(
+    private IReadOnlyList<NavigationItemViewModel> BuildCustomerNavigation(
         WorkspaceIdentityViewModel workspace,
         string activeSection)
     {
@@ -56,15 +65,15 @@ public class NavigationBuilder : INavigationBuilder
 
         return new List<NavigationItemViewModel>
         {
-            Link(UiText.Dashboard, $"/m/{companySlug}/customers/{customerSlug}", Sections.Dashboard, activeSection),
-            Link(UiText.Profile, $"/m/{companySlug}/customers/{customerSlug}/profile", Sections.Profile, activeSection),
-            Link(UiText.Tickets, $"/m/{companySlug}/customers/{customerSlug}/tickets", Sections.Tickets, activeSection),
-            Link(UiText.Properties, $"/m/{companySlug}/customers/{customerSlug}/properties", Sections.Properties, activeSection),
-            Link(T("Residents", "Residents"), $"/m/{companySlug}/customers/{customerSlug}/residents", Sections.Residents, activeSection)
+            Link(UiText.Dashboard, Route(PortalRouteNames.CustomerDashboard, new { companySlug, customerSlug }), Sections.Dashboard, activeSection),
+            Link(UiText.Profile, Route(PortalRouteNames.CustomerProfile, new { companySlug, customerSlug }), Sections.Profile, activeSection),
+            Link(UiText.Tickets, Route(PortalRouteNames.CustomerTickets, new { companySlug, customerSlug }), Sections.Tickets, activeSection),
+            Link(UiText.Properties, Route(PortalRouteNames.CustomerProperties, new { companySlug, customerSlug }), Sections.Properties, activeSection),
+            Link(T("Residents", "Residents"), Route(PortalRouteNames.CustomerResidents, new { companySlug, customerSlug }), Sections.Residents, activeSection)
         };
     }
 
-    private static IReadOnlyList<NavigationItemViewModel> BuildPropertyNavigation(
+    private IReadOnlyList<NavigationItemViewModel> BuildPropertyNavigation(
         WorkspaceIdentityViewModel workspace,
         string activeSection)
     {
@@ -74,15 +83,15 @@ public class NavigationBuilder : INavigationBuilder
 
         return new List<NavigationItemViewModel>
         {
-            Link(UiText.Dashboard, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}", Sections.Dashboard, activeSection),
-            Link(UiText.Profile, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/profile", Sections.Profile, activeSection),
-            Link(T("Units", "Units"), $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units", Sections.Units, activeSection),
-            Link(UiText.Residents, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/residents", Sections.Residents, activeSection),
-            Link(UiText.Tickets, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/tickets", Sections.Tickets, activeSection)
+            Link(UiText.Dashboard, Route(PortalRouteNames.PropertyDashboard, new { companySlug, customerSlug, propertySlug }), Sections.Dashboard, activeSection),
+            Link(UiText.Profile, Route(PortalRouteNames.PropertyProfile, new { companySlug, customerSlug, propertySlug }), Sections.Profile, activeSection),
+            Link(T("Units", "Units"), Route(PortalRouteNames.PropertyUnits, new { companySlug, customerSlug, propertySlug }), Sections.Units, activeSection),
+            Link(UiText.Residents, Route(PortalRouteNames.PropertyResidents, new { companySlug, customerSlug, propertySlug }), Sections.Residents, activeSection),
+            Link(UiText.Tickets, Route(PortalRouteNames.PropertyTickets, new { companySlug, customerSlug, propertySlug }), Sections.Tickets, activeSection)
         };
     }
 
-    private static IReadOnlyList<NavigationItemViewModel> BuildUnitNavigation(
+    private IReadOnlyList<NavigationItemViewModel> BuildUnitNavigation(
         WorkspaceIdentityViewModel workspace,
         string activeSection)
     {
@@ -93,14 +102,14 @@ public class NavigationBuilder : INavigationBuilder
 
         return new List<NavigationItemViewModel>
         {
-            Link(UiText.Dashboard, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}", Sections.Dashboard, activeSection),
-            Link(UiText.Profile, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/profile", Sections.Profile, activeSection),
-            Link(T("Tenants", "Tenants"), $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/tenants", Sections.Tenants, activeSection),
-            Link(UiText.Tickets, $"/m/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/tickets", Sections.Tickets, activeSection)
+            Link(UiText.Dashboard, Route(PortalRouteNames.UnitDashboard, new { companySlug, customerSlug, propertySlug, unitSlug }), Sections.Dashboard, activeSection),
+            Link(UiText.Profile, Route(PortalRouteNames.UnitProfile, new { companySlug, customerSlug, propertySlug, unitSlug }), Sections.Profile, activeSection),
+            Link(T("Tenants", "Tenants"), Route(PortalRouteNames.UnitTenants, new { companySlug, customerSlug, propertySlug, unitSlug }), Sections.Tenants, activeSection),
+            Link(UiText.Tickets, Route(PortalRouteNames.UnitTickets, new { companySlug, customerSlug, propertySlug, unitSlug }), Sections.Tickets, activeSection)
         };
     }
 
-    private static IReadOnlyList<NavigationItemViewModel> BuildResidentNavigation(
+    private IReadOnlyList<NavigationItemViewModel> BuildResidentNavigation(
         WorkspaceIdentityViewModel workspace,
         string activeSection)
     {
@@ -109,13 +118,18 @@ public class NavigationBuilder : INavigationBuilder
 
         return new List<NavigationItemViewModel>
         {
-            Link(UiText.Dashboard, $"/m/{companySlug}/r/{residentIdCode}", Sections.Dashboard, activeSection),
-            Link(UiText.Profile, $"/m/{companySlug}/r/{residentIdCode}/profile", Sections.Profile, activeSection),
-            Link(T("Units", "Units"), $"/m/{companySlug}/r/{residentIdCode}/units", Sections.Units, activeSection),
-            Link(UiText.Tickets, $"/m/{companySlug}/r/{residentIdCode}/tickets", Sections.Tickets, activeSection),
-            Link(T("Representations", "Representations"), $"/m/{companySlug}/r/{residentIdCode}/representations", Sections.Representations, activeSection),
-            Link(T("Contacts", "Contacts"), $"/m/{companySlug}/r/{residentIdCode}/contacts", Sections.Contacts, activeSection)
+            Link(UiText.Dashboard, Route(PortalRouteNames.ResidentDashboard, new { companySlug, residentIdCode }), Sections.Dashboard, activeSection),
+            Link(UiText.Profile, Route(PortalRouteNames.ResidentProfile, new { companySlug, residentIdCode }), Sections.Profile, activeSection),
+            Link(T("Units", "Units"), Route(PortalRouteNames.ResidentUnits, new { companySlug, residentIdCode }), Sections.Units, activeSection),
+            Link(UiText.Tickets, Route(PortalRouteNames.ResidentTickets, new { companySlug, residentIdCode }), Sections.Tickets, activeSection),
+            Link(T("Representations", "Representations"), Route(PortalRouteNames.ResidentRepresentations, new { companySlug, residentIdCode }), Sections.Representations, activeSection),
+            Link(T("Contacts", "Contacts"), Route(PortalRouteNames.ResidentContacts, new { companySlug, residentIdCode }), Sections.Contacts, activeSection)
         };
+    }
+
+    private string Route(string routeName, object values)
+    {
+        return _linkGenerator.GetPathByName(routeName, values) ?? string.Empty;
     }
 
     private static NavigationItemViewModel Link(string label, string url, string section, string activeSection)

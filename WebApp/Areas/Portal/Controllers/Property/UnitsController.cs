@@ -9,6 +9,7 @@ using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Property;
 
@@ -36,7 +37,7 @@ public class UnitsController : Controller
         _portalContextResolver = portalContextResolver;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.PropertyUnits)]
     public async Task<IActionResult> Units(
         string companySlug,
         string customerSlug,
@@ -61,7 +62,7 @@ public class UnitsController : Controller
         return View("~/Areas/Portal/Views/Property/Units/Index.cshtml", vm);
     }
 
-    [HttpPost("add")]
+    [HttpPost("add", Name = PortalRouteNames.PropertyUnitsAdd)]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddUnit(
         string companySlug,

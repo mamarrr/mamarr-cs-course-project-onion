@@ -8,6 +8,7 @@ using WebApp.Mappers.Mvc.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Customers;
 
@@ -38,7 +39,7 @@ public class CustomersController : Controller
         _logger = logger;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.ManagementCustomers)]
     public async Task<IActionResult> Index(string companySlug, CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();

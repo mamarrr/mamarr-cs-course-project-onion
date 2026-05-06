@@ -16,6 +16,7 @@ using WebApp.Mappers.Mvc.Leases;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Resident;
 
@@ -46,7 +47,7 @@ public class UnitsController : Controller
         _leaseMapper = leaseMapper;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.ResidentUnits)]
     public async Task<IActionResult> Index(
         string companySlug,
         string residentIdCode,

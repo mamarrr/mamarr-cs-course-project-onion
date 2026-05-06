@@ -103,9 +103,7 @@
                     {
                         <tr>
                             <td>
-                                <a asp-area="Portal"
-                                   asp-controller="CustomerDashboard"
-                                   asp-action="Index"
+                                <a asp-route="@PortalRouteNames.CustomerDashboard"
                                    asp-route-companySlug="@Model.CompanySlug"
                                    asp-route-customerSlug="@customer.CustomerSlug">@customer.Name</a>
                             </td>

@@ -16,6 +16,7 @@ using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Unit;
 
@@ -49,7 +50,7 @@ public class TenantsController : Controller
         _portalContextResolver = portalContextResolver;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.UnitTenants)]
     public async Task<IActionResult> Index(
         string companySlug,
         string customerSlug,

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
+using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
 using WebApp.ViewModels.Management.Users;
 
@@ -33,7 +34,7 @@ public class UsersController : Controller
         _portalContextResolver = portalContextResolver;
     }
 
-    [HttpGet("")]
+    [HttpGet("", Name = PortalRouteNames.ManagementUsers)]
     public async Task<IActionResult> Index(string companySlug, CancellationToken cancellationToken)
     {
         var authResult = await AuthorizeAsync(companySlug, cancellationToken);
