@@ -48,9 +48,10 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Add(
         string companySlug,
-        [Bind(Prefix = "AddUser")] AddManagementUserViewModel vm,
+        UsersPageViewModel pageVm,
         CancellationToken cancellationToken)
     {
+        var vm = pageVm.AddUser;
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
@@ -62,7 +63,7 @@ public class UsersController : Controller
         {
             if (vm.RoleId == null)
             {
-                ModelState.AddModelError(nameof(vm.RoleId), App.Resources.Views.UiText.RoleRequired);
+                ModelState.AddModelError($"{nameof(UsersPageViewModel.AddUser)}.{nameof(AddManagementUserViewModel.RoleId)}", App.Resources.Views.UiText.RoleRequired);
             }
 
             var invalidVm = await BuildPageViewModelAsync(companySlug, cancellationToken, vm);
@@ -229,9 +230,10 @@ public class UsersController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> TransferOwnership(
         string companySlug,
-        [Bind(Prefix = "Transfer")] TransferOwnershipInputViewModel vm,
+        TransferOwnershipPageViewModel pageVm,
         CancellationToken cancellationToken)
     {
+        var vm = pageVm.Transfer;
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
@@ -245,7 +247,7 @@ public class UsersController : Controller
         {
             if (vm.TargetMembershipId == null)
             {
-                ModelState.AddModelError(nameof(vm.TargetMembershipId), App.Resources.Views.UiText.NewOwnerRequired);
+                ModelState.AddModelError($"{nameof(TransferOwnershipPageViewModel.Transfer)}.{nameof(TransferOwnershipInputViewModel.TargetMembershipId)}", App.Resources.Views.UiText.NewOwnerRequired);
             }
 
             var invalidVm = await BuildTransferOwnershipPageViewModelAsync(auth.Value, title, cancellationToken, vm);
