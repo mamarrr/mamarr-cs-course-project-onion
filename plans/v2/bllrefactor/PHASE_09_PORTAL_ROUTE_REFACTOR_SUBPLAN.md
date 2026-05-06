@@ -13,7 +13,7 @@ Scope:
   route shapes.
 - Keep current BLL query contracts and tenant/IDOR checks unchanged.
 
-Explicit deferrals:
+Explicit deferrals and accepted deviations:
 - Company-scoped property shortcuts (`/m/{companySlug}/properties/{propertySlug}`)
   need either company-unique property slugs or an ambiguity policy because the
   database currently enforces property slug uniqueness per customer.
@@ -24,8 +24,11 @@ Explicit deferrals:
   need a route-first resident context selection design because current BLL flows
   require company slug and resident id code.
 
+Decision after Phase 17: do not implement company-scoped property/unit shortcut
+routes in this refactor. The existing nested routes are accepted because they
+preserve explicit parent context without changing slug uniqueness rules.
+
 Out of scope:
 - No DAL, schema, migration, Base, API, Admin, or test changes.
 - No BLL contract changes.
 - No removal of legacy behavior outside explicit route-template updates.
-
