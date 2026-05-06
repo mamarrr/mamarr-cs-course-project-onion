@@ -111,6 +111,7 @@ public static class DependencyInjectionHelpers
         services.AddScoped<ResidentApiMapper>();
         services.AddScoped<LeaseApiMapper>();
         services.AddScoped<CustomerProfileMvcMapper>();
+        services.AddScoped<CustomerWorkspaceMvcMapper>();
         services.AddScoped<CompanyCustomerMvcMapper>();
         services.AddScoped<PropertyMvcMapper>();
         services.AddScoped<UnitMvcMapper>();

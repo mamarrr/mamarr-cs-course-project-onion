@@ -6,7 +6,7 @@ using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using WebApp.Mappers.Api.Customers;
+using WebApp.Mappers.Mvc.Customers;
 using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
@@ -23,7 +23,7 @@ namespace WebApp.Areas.Portal.Controllers.Customer;
 public class CustomerPropertiesController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly CustomerWorkspaceApiMapper _customerMapper;
+    private readonly CustomerWorkspaceMvcMapper _customerMapper;
     private readonly PropertyMvcMapper _propertyMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
@@ -31,7 +31,7 @@ public class CustomerPropertiesController : Controller
 
     public CustomerPropertiesController(
         IAppBLL bll,
-        CustomerWorkspaceApiMapper customerMapper,
+        CustomerWorkspaceMvcMapper customerMapper,
         PropertyMvcMapper propertyMapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver,

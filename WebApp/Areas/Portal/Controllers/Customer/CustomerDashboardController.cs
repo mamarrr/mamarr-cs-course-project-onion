@@ -3,7 +3,7 @@ using App.BLL.Contracts.Common.Errors;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using WebApp.Mappers.Api.Customers;
+using WebApp.Mappers.Mvc.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -19,14 +19,14 @@ namespace WebApp.Areas.Portal.Controllers.Customer;
 public class CustomerDashboardController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly CustomerWorkspaceApiMapper _mapper;
+    private readonly CustomerWorkspaceMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly ILogger<CustomerDashboardController> _logger;
 
     public CustomerDashboardController(
         IAppBLL bll,
-        CustomerWorkspaceApiMapper mapper,
+        CustomerWorkspaceMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver,
         ILogger<CustomerDashboardController> logger)
