@@ -1,11 +1,10 @@
 using System.Globalization;
 using App.BLL.Contracts;
 using App.BLL.Contracts.ManagementCompanies;
-using App.BLL.Contracts.Onboarding;
 using App.BLL.DTO.ManagementCompanies;
-using App.BLL.DTO.Onboarding.Commands;
-using App.BLL.DTO.Onboarding.Models;
-using App.BLL.DTO.Onboarding.Queries;
+using App.BLL.DTO.ManagementCompanies.Commands;
+using App.BLL.DTO.Workspace.Models;
+using App.BLL.DTO.Workspace.Queries;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -94,13 +93,10 @@ public class OnboardingController : Controller
         }
 
         var result = await _identityAccountService.CreateUserAsync(
-            new RegisterAccountCommand
-            {
-                Email = vm.Email,
-                Password = vm.Password,
-                FirstName = vm.FirstName,
-                LastName = vm.LastName
-            },
+            vm.Email,
+            vm.Password,
+            vm.FirstName,
+            vm.LastName,
             HttpContext.RequestAborted);
 
         if (result.IsFailed)
@@ -143,12 +139,9 @@ public class OnboardingController : Controller
         }
 
         var result = await _identityAccountService.PasswordSignInAsync(
-            new LoginAccountCommand
-            {
-                Email = vm.Email,
-                Password = vm.Password,
-                RememberMe = vm.RememberMe
-            },
+            vm.Email,
+            vm.Password,
+            vm.RememberMe,
             HttpContext.RequestAborted);
 
         if (result.IsFailed)
@@ -162,7 +155,7 @@ public class OnboardingController : Controller
             return LocalRedirect(vm.ReturnUrl);
         }
 
-        var redirectTarget = await ResolveContextRedirectAsync(result.Value.AppUserId, HttpContext.RequestAborted);
+        var redirectTarget = await ResolveContextRedirectAsync(result.Value, HttpContext.RequestAborted);
         if (redirectTarget != null)
         {
             return redirectTarget;

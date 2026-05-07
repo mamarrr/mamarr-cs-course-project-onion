@@ -1,11 +1,11 @@
-using App.BLL.Contracts.Onboarding;
+using App.BLL.Contracts.Workspace;
 using App.BLL.DTO.Common.Routes;
-using App.BLL.DTO.Onboarding.Models;
-using App.BLL.DTO.Onboarding.Queries;
+using App.BLL.DTO.Workspace.Models;
+using App.BLL.DTO.Workspace.Queries;
 using App.DAL.Contracts;
 using FluentResults;
 
-namespace App.BLL.Services.Onboarding;
+namespace App.BLL.Services.Workspace;
 
 public class WorkspaceService : IWorkspaceService
 {

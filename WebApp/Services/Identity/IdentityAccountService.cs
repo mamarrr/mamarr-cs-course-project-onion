@@ -2,8 +2,6 @@ using App.Domain.Identity;
 using FluentResults;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using App.BLL.DTO.Onboarding.Commands;
-using App.BLL.DTO.Onboarding.Models;
 
 namespace WebApp.Services.Identity;
 
@@ -43,56 +41,52 @@ public class IdentityAccountService : IIdentityAccountService
         return await _userManager.FindByIdAsync(appUserId.ToString()) != null;
     }
 
-    public async Task<Result<AccountRegisterModel>> CreateUserAsync(
-        RegisterAccountCommand command,
+    public async Task<Result> CreateUserAsync(
+        string email,
+        string password,
+        string firstName,
+        string lastName,
         CancellationToken cancellationToken = default)
     {
         var appUser = new AppUser
         {
-            Email = command.Email,
-            UserName = command.Email,
-            FirstName = command.FirstName,
-            LastName = command.LastName,
+            Email = email,
+            UserName = email,
+            FirstName = firstName,
+            LastName = lastName,
             EmailConfirmed = true
         };
 
-        var createResult = await _userManager.CreateAsync(appUser, command.Password);
+        var createResult = await _userManager.CreateAsync(appUser, password);
         if (!createResult.Succeeded)
         {
-            return Result.Fail<AccountRegisterModel>(
-                createResult.Errors.Select(error => error.Description));
+            return Result.Fail(createResult.Errors.Select(error => error.Description));
         }
 
-        return Result.Ok(new AccountRegisterModel
-        {
-            AppUserId = appUser.Id,
-            Email = appUser.Email ?? command.Email
-        });
+        return Result.Ok();
     }
 
-    public async Task<Result<AccountLoginModel>> PasswordSignInAsync(
-        LoginAccountCommand command,
+    public async Task<Result<Guid>> PasswordSignInAsync(
+        string email,
+        string password,
+        bool rememberMe,
         CancellationToken cancellationToken = default)
     {
-        var appUser = await _userManager.FindByEmailAsync(command.Email);
+        var appUser = await _userManager.FindByEmailAsync(email);
         if (appUser == null)
         {
-            return Result.Fail<AccountLoginModel>(App.Resources.Views.UiText.InvalidEmailOrPassword);
+            return Result.Fail<Guid>(App.Resources.Views.UiText.InvalidEmailOrPassword);
         }
 
         var signInResult = await _signInManager.PasswordSignInAsync(
             appUser,
-            command.Password,
-            command.RememberMe,
+            password,
+            rememberMe,
             lockoutOnFailure: true);
 
         return signInResult.Succeeded
-            ? Result.Ok(new AccountLoginModel
-            {
-                AppUserId = appUser.Id,
-                Email = appUser.Email ?? command.Email
-            })
-            : Result.Fail<AccountLoginModel>(App.Resources.Views.UiText.InvalidEmailOrPassword);
+            ? Result.Ok(appUser.Id)
+            : Result.Fail<Guid>(App.Resources.Views.UiText.InvalidEmailOrPassword);
     }
 
     public Task SignOutAsync(CancellationToken cancellationToken = default)

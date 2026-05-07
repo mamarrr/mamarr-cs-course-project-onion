@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Onboarding;
+using App.BLL.Contracts.Workspace;
 using App.BLL.DTO.Common.Routes;
 using WebApp.Services.Identity;
 

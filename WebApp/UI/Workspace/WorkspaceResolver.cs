@@ -1,5 +1,5 @@
 using App.BLL.Contracts;
-using App.BLL.DTO.Onboarding.Queries;
+using App.BLL.DTO.Workspace.Queries;
 using Microsoft.AspNetCore.Routing;
 using WebApp.UI.Chrome;
 using WebApp.UI.PortalContext;

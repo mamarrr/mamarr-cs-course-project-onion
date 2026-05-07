@@ -1,4 +1,4 @@
-namespace App.BLL.DTO.Onboarding.Queries;
+namespace App.BLL.DTO.Workspace.Queries;
 
 public class ResolveWorkspaceRedirectQuery
 {

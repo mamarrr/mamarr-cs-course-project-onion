@@ -1,4 +1,4 @@
-namespace App.BLL.DTO.Onboarding.Commands;
+namespace App.BLL.DTO.ManagementCompanies.Commands;
 
 public class CreateCompanyJoinRequestCommand
 {

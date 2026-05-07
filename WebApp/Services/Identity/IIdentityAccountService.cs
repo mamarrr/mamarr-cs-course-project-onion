@@ -1,7 +1,5 @@
 using FluentResults;
 using System.Security.Claims;
-using App.BLL.DTO.Onboarding.Commands;
-using App.BLL.DTO.Onboarding.Models;
 
 namespace WebApp.Services.Identity;
 
@@ -19,12 +17,17 @@ public interface IIdentityAccountService
         Guid appUserId,
         CancellationToken cancellationToken = default);
 
-    Task<Result<AccountRegisterModel>> CreateUserAsync(
-        RegisterAccountCommand command,
+    Task<Result> CreateUserAsync(
+        string email,
+        string password,
+        string firstName,
+        string lastName,
         CancellationToken cancellationToken = default);
 
-    Task<Result<AccountLoginModel>> PasswordSignInAsync(
-        LoginAccountCommand command,
+    Task<Result<Guid>> PasswordSignInAsync(
+        string email,
+        string password,
+        bool rememberMe,
         CancellationToken cancellationToken = default);
 
     Task SignOutAsync(CancellationToken cancellationToken = default);

@@ -1,7 +1,7 @@
 ﻿using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
-using App.BLL.Contracts.Onboarding;
+using App.BLL.Contracts.Workspace;
 using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Tickets;

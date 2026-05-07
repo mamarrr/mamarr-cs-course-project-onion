@@ -1,6 +1,6 @@
 using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.ManagementCompanies.Commands;
 using App.BLL.DTO.ManagementCompanies.Models;
-using App.BLL.DTO.Onboarding.Commands;
 using FluentResults;
 
 namespace App.BLL.Contracts.ManagementCompanies;

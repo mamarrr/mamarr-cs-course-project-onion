@@ -1,4 +1,4 @@
-namespace App.BLL.DTO.Onboarding.Models;
+namespace App.BLL.DTO.Workspace.Models;
 
 public class WorkspaceSelectionAuthorizationModel
 {
