@@ -31,6 +31,11 @@ public class ResidentRoute : ManagementCompanyRoute
     public string ResidentIdCode { get; init; } = default!;
 }
 
+public class ResidentContactRoute : ResidentRoute
+{
+    public Guid ResidentContactId { get; init; }
+}
+
 public class TicketRoute : ManagementCompanyRoute
 {
     public Guid TicketId { get; init; }

@@ -1,0 +1,30 @@
+@model WebApp.ViewModels.Management.ResidentContacts.ResidentContactMetadataFormViewModel
+@using App.Resources.Views
+
+<div class="col-md-6">
+    <label asp-for="ValidFrom" class="form-label"></label>
+    <input asp-for="ValidFrom" class="form-control" type="date" />
+    <span asp-validation-for="ValidFrom" class="text-danger"></span>
+</div>
+
+<div class="col-md-6">
+    <label asp-for="ValidTo" class="form-label"></label>
+    <input asp-for="ValidTo" class="form-control" type="date" />
+    <span asp-validation-for="ValidTo" class="text-danger"></span>
+</div>
+
+<div class="col-md-6">
+    <div class="form-check">
+        <input asp-for="Confirmed" class="form-check-input" />
+        <label asp-for="Confirmed" class="form-check-label">@UiText.Active</label>
+    </div>
+</div>
+
+<div class="col-md-6">
+    <div class="form-check">
+        <input asp-for="IsPrimary" class="form-check-input" />
+        <label asp-for="IsPrimary" class="form-check-label">
+            @(UiText.ResourceManager.GetString("Primary") ?? "Primary")
+        </label>
+    </div>
+</div>

@@ -18,6 +18,8 @@ public interface IAppUOW : IBaseUOW
 
     IResidentRepository Residents { get; }
 
+    IResidentContactRepository ResidentContacts { get; }
+
     IContactRepository Contacts { get; }
 
     IUnitRepository Units { get; }

@@ -440,6 +440,24 @@
   <data name="UnableToUpdateVendorContact" xml:space="preserve"><value>Teenusepakkuja kontakti ei saanud uuendada.</value></data>
   <data name="VendorContactWasNotFound" xml:space="preserve"><value>Teenusepakkuja kontakti ei leitud.</value></data>
   <data name="VendorContactAlreadyLinked" xml:space="preserve"><value>See kontakt on teenusepakkujaga juba seotud.</value></data>
+  <data name="ResidentContacts" xml:space="preserve"><value>Elaniku kontaktid</value></data>
+  <data name="CurrentResidentContacts" xml:space="preserve"><value>Praegused kontaktid</value></data>
+  <data name="NoResidentContacts" xml:space="preserve"><value>Kontakte pole veel seotud.</value></data>
+  <data name="EditResidentContact" xml:space="preserve"><value>Muuda elaniku kontakti</value></data>
+  <data name="RemoveResidentContact" xml:space="preserve"><value>Eemalda elaniku kontakt</value></data>
+  <data name="BackToResident" xml:space="preserve"><value>Tagasi elaniku juurde</value></data>
+  <data name="BackToResidentContacts" xml:space="preserve"><value>Tagasi kontaktide juurde</value></data>
+  <data name="RemoveResidentContactConfirmation" xml:space="preserve"><value>Eemaldada see kontakt elanikult? Jagatud kontaktikirje jaab ettevottele alles.</value></data>
+  <data name="ResidentContactAddedSuccessfully" xml:space="preserve"><value>Elaniku kontakt lisati edukalt.</value></data>
+  <data name="ResidentContactUpdatedSuccessfully" xml:space="preserve"><value>Elaniku kontakt uuendati edukalt.</value></data>
+  <data name="ResidentContactRemovedSuccessfully" xml:space="preserve"><value>Elaniku kontakt eemaldati edukalt.</value></data>
+  <data name="ResidentPrimaryContactUpdatedSuccessfully" xml:space="preserve"><value>Peamine kontakt uuendati edukalt.</value></data>
+  <data name="ResidentContactConfirmedSuccessfully" xml:space="preserve"><value>Elaniku kontakt kinnitati edukalt.</value></data>
+  <data name="ResidentContactUnconfirmedSuccessfully" xml:space="preserve"><value>Elaniku kontakti kinnitus eemaldati edukalt.</value></data>
+  <data name="UnableToRemoveResidentContact" xml:space="preserve"><value>Elaniku kontakti ei saanud eemaldada.</value></data>
+  <data name="UnableToUpdateResidentContact" xml:space="preserve"><value>Elaniku kontakti ei saanud uuendada.</value></data>
+  <data name="ResidentContactWasNotFound" xml:space="preserve"><value>Elaniku kontakti ei leitud.</value></data>
+  <data name="ResidentContactAlreadyLinked" xml:space="preserve"><value>See kontakt on elanikuga juba seotud.</value></data>
   <data name="ValidToCannotBeBeforeValidFrom" xml:space="preserve"><value>Kehtivuse lopp ei saa olla enne algust.</value></data>
   <data name="ContactRequired" xml:space="preserve"><value>Kontakt on kohustuslik.</value></data>
   <data name="ContactTypeRequired" xml:space="preserve"><value>Kontakti tuup on kohustuslik.</value></data>

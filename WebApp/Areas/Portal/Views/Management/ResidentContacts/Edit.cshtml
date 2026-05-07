@@ -1,0 +1,49 @@
+@model WebApp.ViewModels.Management.ResidentContacts.ResidentContactEditViewModel
+@using App.Resources.Views
+
+@functions {
+    private static string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@Model.ResidentName</p>
+                <h2 class="mb-2">@T("EditResidentContact", "Edit resident contact")</h2>
+                <p class="management-muted mb-0">@Model.ContactLabel</p>
+            </div>
+            <a asp-action="Index"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-residentIdCode="@Model.ResidentIdCode"
+               class="btn btn-outline-secondary">@T("BackToResidentContacts", "Back to contacts")</a>
+        </div>
+    </section>
+
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <form method="post"
+              asp-action="Edit"
+              asp-route-companySlug="@Model.CompanySlug"
+              asp-route-residentIdCode="@Model.ResidentIdCode"
+              asp-route-residentContactId="@Model.ResidentContactId"
+              class="row g-3">
+            @Html.AntiForgeryToken()
+            <input asp-for="ContactId" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <partial name="~/Areas/Portal/Views/Management/ResidentContacts/_ResidentContactMetadataFields.cshtml" for="Form" />
+
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="management-btn">@UiText.SaveChanges</button>
+                <a asp-action="Index"
+                   asp-route-companySlug="@Model.CompanySlug"
+                   asp-route-residentIdCode="@Model.ResidentIdCode"
+                   class="btn btn-outline-secondary">@UiText.Cancel</a>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

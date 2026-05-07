@@ -65,7 +65,7 @@ public interface IResidentRepository : IBaseRepository<ResidentDalDto>
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<ResidentContactDalDto>> ContactsByResidentAsync(
+    Task<IReadOnlyList<ResidentContactAssignmentDalDto>> ContactsByResidentAsync(
         Guid residentId,
         CancellationToken cancellationToken = default);
 

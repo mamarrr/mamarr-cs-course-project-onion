@@ -1,0 +1,196 @@
+@model WebApp.ViewModels.Management.ResidentContacts.ResidentContactIndexViewModel
+@using App.Resources.Views
+
+@functions {
+    private static string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        @if (TempData["ManagementResidentsSuccess"] is string successMessage)
+        {
+            <div class="alert alert-success" role="alert">@successMessage</div>
+        }
+        @if (TempData["ManagementResidentsError"] is string errorMessage)
+        {
+            <div class="alert alert-danger" role="alert">@errorMessage</div>
+        }
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@UiText.Residents</p>
+                <h2 class="mb-2">@T("ResidentContacts", "Resident contacts")</h2>
+                <p class="management-muted mb-0">@Model.ResidentName</p>
+            </div>
+            <a asp-route="@PortalRouteNames.ResidentDashboard"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-residentIdCode="@Model.ResidentIdCode"
+               class="btn btn-outline-secondary">@T("BackToResident", "Back to resident")</a>
+        </div>
+    </section>
+
+    <section class="management-card">
+        <h2>@T("AttachExistingContact", "Attach existing contact")</h2>
+        <form method="post"
+              asp-action="AttachExisting"
+              asp-route-companySlug="@Model.CompanySlug"
+              asp-route-residentIdCode="@Model.ResidentIdCode"
+              class="row g-3">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="col-12">
+                <label asp-for="ExistingForm.ContactId" class="form-label"></label>
+                <select asp-for="ExistingForm.ContactId" asp-items="Model.ExistingContactOptions" class="form-select">
+                    <option value="">@T("SelectContact", "Select contact")</option>
+                </select>
+                <span asp-validation-for="ExistingForm.ContactId" class="text-danger"></span>
+            </div>
+
+            <partial name="~/Areas/Portal/Views/Management/ResidentContacts/_ResidentContactMetadataFields.cshtml" for="ExistingForm" />
+
+            <div class="col-12">
+                <button type="submit" class="management-btn">@T("AttachContact", "Attach contact")</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="management-card">
+        <h2>@T("CreateAndAttachContact", "Create and attach contact")</h2>
+        <form method="post"
+              asp-action="CreateAndAttach"
+              asp-route-companySlug="@Model.CompanySlug"
+              asp-route-residentIdCode="@Model.ResidentIdCode"
+              class="row g-3">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="col-12">
+                <label asp-for="NewForm.ContactTypeId" class="form-label"></label>
+                <select asp-for="NewForm.ContactTypeId" asp-items="Model.ContactTypeOptions" class="form-select">
+                    <option value="">@T("SelectContactType", "Select contact type")</option>
+                </select>
+                <span asp-validation-for="NewForm.ContactTypeId" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="NewForm.ContactValue" class="form-label"></label>
+                <input asp-for="NewForm.ContactValue" class="form-control" />
+                <span asp-validation-for="NewForm.ContactValue" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="NewForm.ContactNotes" class="form-label"></label>
+                <textarea asp-for="NewForm.ContactNotes" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="NewForm.ContactNotes" class="text-danger"></span>
+            </div>
+
+            <partial name="~/Areas/Portal/Views/Management/ResidentContacts/_ResidentContactMetadataFields.cshtml" for="NewForm" />
+
+            <div class="col-12">
+                <button type="submit" class="management-btn">@T("CreateAndAttachContact", "Create and attach contact")</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <h2>@T("CurrentResidentContacts", "Current contacts")</h2>
+        @if (Model.Contacts.Count == 0)
+        {
+            <p class="management-muted mb-0">@T("NoResidentContacts", "No contacts are linked yet.")</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>@UiText.Contact</th>
+                        <th>@UiText.Status</th>
+                        <th>@UiText.ValidFrom</th>
+                        <th class="text-end">@UiText.Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var contact in Model.Contacts)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@contact.ContactValue</strong>
+                                <div class="management-muted">@contact.ContactTypeLabel</div>
+                            </td>
+                            <td>
+                                @if (contact.IsPrimary)
+                                {
+                                    <span class="management-badge success">@T("Primary", "Primary")</span>
+                                }
+                                <span class="management-badge @(contact.Confirmed ? "success" : "")">
+                                    @(contact.Confirmed ? UiText.Active : UiText.Inactive)
+                                </span>
+                            </td>
+                            <td>
+                                @contact.ValidFrom
+                                @if (contact.ValidTo.HasValue)
+                                {
+                                    <span>- @contact.ValidTo</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex flex-wrap justify-content-end gap-2">
+                                    <a asp-action="Edit"
+                                       asp-route-companySlug="@Model.CompanySlug"
+                                       asp-route-residentIdCode="@Model.ResidentIdCode"
+                                       asp-route-residentContactId="@contact.ResidentContactId"
+                                       class="btn btn-outline-secondary btn-sm">@UiText.Edit</a>
+                                    @if (!contact.IsPrimary)
+                                    {
+                                        <form method="post"
+                                              asp-action="SetPrimary"
+                                              asp-route-companySlug="@Model.CompanySlug"
+                                              asp-route-residentIdCode="@Model.ResidentIdCode"
+                                              asp-route-residentContactId="@contact.ResidentContactId">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm">@T("SetPrimary", "Set primary")</button>
+                                        </form>
+                                    }
+                                    @if (contact.Confirmed)
+                                    {
+                                        <form method="post"
+                                              asp-action="Unconfirm"
+                                              asp-route-companySlug="@Model.CompanySlug"
+                                              asp-route-residentIdCode="@Model.ResidentIdCode"
+                                              asp-route-residentContactId="@contact.ResidentContactId">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm">@T("Unconfirm", "Unconfirm")</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form method="post"
+                                              asp-action="Confirm"
+                                              asp-route-companySlug="@Model.CompanySlug"
+                                              asp-route-residentIdCode="@Model.ResidentIdCode"
+                                              asp-route-residentContactId="@contact.ResidentContactId">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm">@T("Confirm", "Confirm")</button>
+                                        </form>
+                                    }
+                                    <a asp-action="Delete"
+                                       asp-route-companySlug="@Model.CompanySlug"
+                                       asp-route-residentIdCode="@Model.ResidentIdCode"
+                                       asp-route-residentContactId="@contact.ResidentContactId"
+                                       class="btn btn-outline-danger btn-sm">@UiText.Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

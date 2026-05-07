@@ -1,0 +1,40 @@
+@model WebApp.ViewModels.Management.ResidentContacts.ResidentContactDeleteViewModel
+@using App.Resources.Views
+
+@functions {
+    private static string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@Model.ResidentName</p>
+                <h2 class="mb-2">@T("RemoveResidentContact", "Remove resident contact")</h2>
+                <p class="management-muted mb-0">@Model.ContactLabel</p>
+            </div>
+            <a asp-action="Index"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-residentIdCode="@Model.ResidentIdCode"
+               class="btn btn-outline-secondary">@T("BackToResidentContacts", "Back to contacts")</a>
+        </div>
+    </section>
+
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <h2>@UiText.DeleteConfirmation</h2>
+        <p>@T("RemoveResidentContactConfirmation", "Remove this contact from the resident? The shared contact record remains available for the company.")</p>
+        <form method="post"
+              asp-action="Delete"
+              asp-route-companySlug="@Model.CompanySlug"
+              asp-route-residentIdCode="@Model.ResidentIdCode"
+              asp-route-residentContactId="@Model.ResidentContactId"
+              class="d-flex gap-2">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger">@UiText.Delete</button>
+            <a asp-action="Index"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-residentIdCode="@Model.ResidentIdCode"
+               class="btn btn-outline-secondary">@UiText.Cancel</a>
+        </form>
+    </section>
+</div>

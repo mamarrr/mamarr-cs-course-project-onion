@@ -3,9 +3,11 @@ using App.BLL.Contracts.Residents;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.Contacts;
 using App.BLL.DTO.Residents;
 using App.BLL.DTO.Residents.Errors;
 using App.BLL.DTO.Residents.Models;
+using App.BLL.Mappers.Contacts;
 using App.BLL.Mappers.Residents;
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
@@ -33,7 +35,16 @@ public class ResidentService :
         "SUPPORT"
     };
 
+    private static readonly HashSet<string> WriteAllowedRoleCodes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "OWNER",
+        "MANAGER",
+        "SUPPORT"
+    };
+
     private readonly IAppDeleteGuard _deleteGuard;
+    private readonly ContactBllDtoMapper _contactMapper = new();
+    private readonly ResidentContactBllDtoMapper _residentContactMapper = new();
 
     public ResidentService(
         IAppUOW uow,
@@ -410,6 +421,295 @@ public class ResidentService :
         return Result.Ok();
     }
 
+    public async Task<Result<ResidentContactListModel>> ListContactsAsync(
+        ResidentRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveResidentContactWorkflowAccessAsync(
+            route,
+            AccessAllowedRoleCodes,
+            allowResidentContext: true,
+            cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<ResidentContactListModel>(access.Errors);
+        }
+
+        return await BuildContactListAsync(route, access.Value, cancellationToken);
+    }
+
+    public async Task<Result<ResidentContactListModel>> AddContactAsync(
+        ResidentRoute route,
+        ResidentContactBllDto dto,
+        ContactBllDto? newContact,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveResidentContactWorkflowAccessAsync(
+            route,
+            WriteAllowedRoleCodes,
+            allowResidentContext: true,
+            cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<ResidentContactListModel>(access.Errors);
+        }
+
+        var validation = await ValidateResidentContactAsync(
+            dto,
+            newContact,
+            access.Value.ManagementCompanyId,
+            access.Value.ResidentId,
+            null,
+            cancellationToken);
+        if (validation.IsFailed)
+        {
+            return Result.Fail<ResidentContactListModel>(validation.Errors);
+        }
+
+        var transactionStarted = false;
+        try
+        {
+            await ServiceUOW.BeginTransactionAsync(cancellationToken);
+            transactionStarted = true;
+
+            var contactId = dto.ContactId;
+            if (newContact is not null)
+            {
+                var normalizedContact = NormalizeContact(newContact, access.Value.ManagementCompanyId);
+                var contactDalDto = _contactMapper.Map(normalizedContact);
+                if (contactDalDto is null)
+                {
+                    await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+                    transactionStarted = false;
+                    return Result.Fail<ResidentContactListModel>("Contact mapping failed.");
+                }
+
+                contactId = ServiceUOW.Contacts.Add(contactDalDto);
+            }
+
+            if (dto.IsPrimary)
+            {
+                await ServiceUOW.ResidentContacts.ClearPrimaryAsync(
+                    access.Value.ResidentId,
+                    access.Value.ManagementCompanyId,
+                    null,
+                    cancellationToken);
+            }
+
+            var normalized = NormalizeResidentContact(dto, access.Value.ResidentId, contactId);
+            var residentContactDalDto = _residentContactMapper.Map(normalized);
+            if (residentContactDalDto is null)
+            {
+                await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+                transactionStarted = false;
+                return Result.Fail<ResidentContactListModel>("Resident contact mapping failed.");
+            }
+
+            ServiceUOW.ResidentContacts.Add(residentContactDalDto);
+
+            await ServiceUOW.SaveChangesAsync(cancellationToken);
+            await ServiceUOW.CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            if (transactionStarted)
+            {
+                await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+            }
+
+            throw;
+        }
+
+        return await BuildContactListAsync(route, access.Value, cancellationToken);
+    }
+
+    public async Task<Result<ResidentContactListModel>> UpdateContactAsync(
+        ResidentContactRoute route,
+        ResidentContactBllDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveResidentContactAccessAsync(
+            route,
+            WriteAllowedRoleCodes,
+            allowResidentContext: true,
+            cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<ResidentContactListModel>(access.Errors);
+        }
+
+        var validation = await ValidateResidentContactAsync(
+            dto,
+            null,
+            access.Value.ManagementCompanyId,
+            access.Value.ResidentId,
+            route.ResidentContactId,
+            cancellationToken);
+        if (validation.IsFailed)
+        {
+            return Result.Fail<ResidentContactListModel>(validation.Errors);
+        }
+
+        var transactionStarted = false;
+        try
+        {
+            await ServiceUOW.BeginTransactionAsync(cancellationToken);
+            transactionStarted = true;
+
+            if (dto.IsPrimary)
+            {
+                await ServiceUOW.ResidentContacts.ClearPrimaryAsync(
+                    access.Value.ResidentId,
+                    access.Value.ManagementCompanyId,
+                    route.ResidentContactId,
+                    cancellationToken);
+            }
+
+            var normalized = NormalizeResidentContact(dto, access.Value.ResidentId, dto.ContactId);
+            normalized.Id = route.ResidentContactId;
+            var residentContactDalDto = _residentContactMapper.Map(normalized);
+            if (residentContactDalDto is null)
+            {
+                await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+                transactionStarted = false;
+                return Result.Fail<ResidentContactListModel>("Resident contact mapping failed.");
+            }
+
+            await ServiceUOW.ResidentContacts.UpdateAsync(
+                residentContactDalDto,
+                access.Value.ManagementCompanyId,
+                cancellationToken);
+
+            await ServiceUOW.SaveChangesAsync(cancellationToken);
+            await ServiceUOW.CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            if (transactionStarted)
+            {
+                await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+            }
+
+            throw;
+        }
+
+        return await BuildContactListAsync(route, access.Value, cancellationToken);
+    }
+
+    public async Task<Result> SetPrimaryContactAsync(
+        ResidentContactRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveResidentContactAccessAsync(
+            route,
+            WriteAllowedRoleCodes,
+            allowResidentContext: true,
+            cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail(access.Errors);
+        }
+
+        var existing = await ServiceUOW.ResidentContacts.FindInCompanyAsync(
+            route.ResidentContactId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (existing is null)
+        {
+            return Result.Fail(new NotFoundError(T("ResidentContactWasNotFound", "Resident contact was not found.")));
+        }
+
+        var transactionStarted = false;
+        try
+        {
+            await ServiceUOW.BeginTransactionAsync(cancellationToken);
+            transactionStarted = true;
+
+            await ServiceUOW.ResidentContacts.ClearPrimaryAsync(
+                access.Value.ResidentId,
+                access.Value.ManagementCompanyId,
+                route.ResidentContactId,
+                cancellationToken);
+
+            var dto = _residentContactMapper.Map(existing);
+            if (dto is null)
+            {
+                await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+                transactionStarted = false;
+                return Result.Fail("Resident contact mapping failed.");
+            }
+
+            dto.IsPrimary = true;
+            var dalDto = _residentContactMapper.Map(dto);
+            if (dalDto is null)
+            {
+                await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+                transactionStarted = false;
+                return Result.Fail("Resident contact mapping failed.");
+            }
+
+            await ServiceUOW.ResidentContacts.UpdateAsync(
+                dalDto,
+                access.Value.ManagementCompanyId,
+                cancellationToken);
+
+            await ServiceUOW.SaveChangesAsync(cancellationToken);
+            await ServiceUOW.CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            if (transactionStarted)
+            {
+                await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+            }
+
+            throw;
+        }
+
+        return Result.Ok();
+    }
+
+    public async Task<Result> ConfirmContactAsync(
+        ResidentContactRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return await SetContactConfirmationAsync(route, true, cancellationToken);
+    }
+
+    public async Task<Result> UnconfirmContactAsync(
+        ResidentContactRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return await SetContactConfirmationAsync(route, false, cancellationToken);
+    }
+
+    public async Task<Result> RemoveContactAsync(
+        ResidentContactRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveResidentContactAccessAsync(
+            route,
+            DeleteAllowedRoleCodes,
+            allowResidentContext: false,
+            cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail(access.Errors);
+        }
+
+        var deleted = await ServiceUOW.ResidentContacts.DeleteInCompanyAsync(
+            route.ResidentContactId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!deleted)
+        {
+            return Result.Fail(new NotFoundError(T("ResidentContactWasNotFound", "Resident contact was not found.")));
+        }
+
+        await ServiceUOW.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
+    }
+
     private async Task<Result<ResidentProfileModel>> GetProfileAsync(
         ResidentWorkspaceModel workspace,
         CancellationToken cancellationToken)
@@ -433,6 +733,375 @@ public class ResidentService :
                 FullName = BuildFullName(profile.FirstName, profile.LastName),
                 PreferredLanguage = profile.PreferredLanguage
             });
+    }
+
+    private async Task<Result<ResidentContactAccessContext>> ResolveResidentContactAccessAsync(
+        ResidentContactRoute route,
+        HashSet<string> allowedManagementRoleCodes,
+        bool allowResidentContext,
+        CancellationToken cancellationToken)
+    {
+        if (route.ResidentContactId == Guid.Empty)
+        {
+            return Result.Fail<ResidentContactAccessContext>(new NotFoundError(T("ResidentContactWasNotFound", "Resident contact was not found.")));
+        }
+
+        var access = await ResolveResidentContactWorkflowAccessAsync(
+            route,
+            allowedManagementRoleCodes,
+            allowResidentContext,
+            cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<ResidentContactAccessContext>(access.Errors);
+        }
+
+        var existing = await ServiceUOW.ResidentContacts.FindInCompanyAsync(
+            route.ResidentContactId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (existing is null || existing.ResidentId != access.Value.ResidentId)
+        {
+            return Result.Fail<ResidentContactAccessContext>(new NotFoundError(T("ResidentContactWasNotFound", "Resident contact was not found.")));
+        }
+
+        return access;
+    }
+
+    private async Task<Result<ResidentContactAccessContext>> ResolveResidentContactWorkflowAccessAsync(
+        ResidentRoute route,
+        HashSet<string> allowedManagementRoleCodes,
+        bool allowResidentContext,
+        CancellationToken cancellationToken)
+    {
+        if (route.AppUserId == Guid.Empty)
+        {
+            return Result.Fail<ResidentContactAccessContext>(new UnauthorizedError("Authentication is required."));
+        }
+
+        if (string.IsNullOrWhiteSpace(route.CompanySlug) || string.IsNullOrWhiteSpace(route.ResidentIdCode))
+        {
+            return Result.Fail<ResidentContactAccessContext>(new NotFoundError("Resident context was not found."));
+        }
+
+        var profile = await ServiceUOW.Residents.FirstProfileAsync(
+            route.CompanySlug,
+            route.ResidentIdCode,
+            cancellationToken);
+        if (profile is null)
+        {
+            return Result.Fail<ResidentContactAccessContext>(new NotFoundError("Resident context was not found."));
+        }
+
+        var roleCode = await ServiceUOW.ManagementCompanies.FindActiveUserRoleCodeAsync(
+            route.AppUserId,
+            profile.ManagementCompanyId,
+            cancellationToken);
+        if (roleCode is not null && allowedManagementRoleCodes.Contains(roleCode))
+        {
+            return Result.Ok(ToResidentContactAccessContext(profile));
+        }
+
+        if (!allowResidentContext)
+        {
+            return Result.Fail<ResidentContactAccessContext>(new ForbiddenError("Access denied."));
+        }
+
+        var hasResidentContext = await ServiceUOW.Residents.HasActiveUserResidentContextAsync(
+            route.AppUserId,
+            profile.Id,
+            cancellationToken);
+
+        return hasResidentContext
+            ? Result.Ok(ToResidentContactAccessContext(profile))
+            : Result.Fail<ResidentContactAccessContext>(new ForbiddenError("Access denied."));
+    }
+
+    private async Task<Result<ResidentContactListModel>> BuildContactListAsync(
+        ResidentRoute route,
+        ResidentContactAccessContext access,
+        CancellationToken cancellationToken)
+    {
+        var contacts = await ServiceUOW.ResidentContacts.AllByResidentAsync(
+            access.ResidentId,
+            access.ManagementCompanyId,
+            cancellationToken);
+
+        var existingContacts = await ServiceUOW.Contacts.OptionsByCompanyAsync(
+            access.ManagementCompanyId,
+            cancellationToken);
+
+        var contactTypes = await ServiceUOW.Lookups.AllContactTypesAsync(cancellationToken);
+
+        return Result.Ok(new ResidentContactListModel
+        {
+            CompanySlug = access.CompanySlug,
+            CompanyName = access.CompanyName,
+            ResidentId = access.ResidentId,
+            ResidentIdCode = access.ResidentIdCode,
+            ResidentName = access.ResidentName,
+            Contacts = contacts.Select(ToContactAssignmentModel).ToList(),
+            ExistingContacts = existingContacts
+                .Select(contact => _contactMapper.Map(contact)!)
+                .ToList(),
+            ContactTypes = contactTypes
+                .Select(type => new App.BLL.DTO.Tickets.Models.TicketOptionModel
+                {
+                    Id = type.Id,
+                    Code = type.Code,
+                    Label = type.Label
+                })
+                .ToList()
+        });
+    }
+
+    private async Task<Result> SetContactConfirmationAsync(
+        ResidentContactRoute route,
+        bool confirmed,
+        CancellationToken cancellationToken)
+    {
+        var access = await ResolveResidentContactAccessAsync(
+            route,
+            WriteAllowedRoleCodes,
+            allowResidentContext: true,
+            cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail(access.Errors);
+        }
+
+        var existing = await ServiceUOW.ResidentContacts.FindInCompanyAsync(
+            route.ResidentContactId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (existing is null)
+        {
+            return Result.Fail(new NotFoundError(T("ResidentContactWasNotFound", "Resident contact was not found.")));
+        }
+
+        var dto = _residentContactMapper.Map(existing);
+        if (dto is null)
+        {
+            return Result.Fail("Resident contact mapping failed.");
+        }
+
+        dto.Confirmed = confirmed;
+        var dalDto = _residentContactMapper.Map(dto);
+        if (dalDto is null)
+        {
+            return Result.Fail("Resident contact mapping failed.");
+        }
+
+        await ServiceUOW.ResidentContacts.UpdateAsync(
+            dalDto,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+
+        await ServiceUOW.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
+    }
+
+    private async Task<Result> ValidateResidentContactAsync(
+        ResidentContactBllDto dto,
+        ContactBllDto? newContact,
+        Guid managementCompanyId,
+        Guid residentId,
+        Guid? exceptResidentContactId,
+        CancellationToken cancellationToken)
+    {
+        var failures = new List<ValidationFailureModel>();
+        AddResidentContactFailures(failures, dto);
+
+        if (newContact is null)
+        {
+            if (dto.ContactId == Guid.Empty)
+            {
+                failures.Add(new ValidationFailureModel
+                {
+                    PropertyName = nameof(dto.ContactId),
+                    ErrorMessage = T("ContactRequired", "Contact is required.")
+                });
+            }
+            else if (!await ServiceUOW.Contacts.ExistsInCompanyAsync(dto.ContactId, managementCompanyId, cancellationToken))
+            {
+                failures.Add(new ValidationFailureModel
+                {
+                    PropertyName = nameof(dto.ContactId),
+                    ErrorMessage = T("InvalidContact", "Selected contact is invalid.")
+                });
+            }
+        }
+        else
+        {
+            await AddContactFailuresAsync(failures, newContact, managementCompanyId, cancellationToken);
+        }
+
+        if (failures.Count > 0)
+        {
+            return Result.Fail(new ValidationAppError("Validation failed.", failures));
+        }
+
+        if (newContact is null)
+        {
+            var duplicateLink = await ServiceUOW.ResidentContacts.ContactLinkedToResidentAsync(
+                residentId,
+                dto.ContactId,
+                managementCompanyId,
+                exceptResidentContactId,
+                cancellationToken);
+            if (duplicateLink)
+            {
+                return Result.Fail(new ConflictError(T(
+                    "ResidentContactAlreadyLinked",
+                    "This contact is already linked to the resident.")));
+            }
+        }
+
+        return Result.Ok();
+    }
+
+    private async Task AddContactFailuresAsync(
+        ICollection<ValidationFailureModel> failures,
+        ContactBllDto dto,
+        Guid managementCompanyId,
+        CancellationToken cancellationToken)
+    {
+        if (dto.ContactTypeId == Guid.Empty)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.ContactTypeId),
+                ErrorMessage = RequiredField(App.Resources.Views.UiText.Contacts)
+            });
+        }
+        else if (!await ServiceUOW.Lookups.ContactTypeExistsAsync(dto.ContactTypeId, cancellationToken))
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.ContactTypeId),
+                ErrorMessage = T("InvalidContactType", "Selected contact type is invalid.")
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.ContactValue))
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.ContactValue),
+                ErrorMessage = RequiredField(App.Resources.Views.UiText.Contacts)
+            });
+        }
+        else if (dto.ContactValue.Trim().Length > 255)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.ContactValue),
+                ErrorMessage = T("ContactValueMaxLength", "Contact value must be 255 characters or fewer.")
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.Notes) && dto.Notes.Trim().Length > 4000)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.Notes),
+                ErrorMessage = T("ContactNotesMaxLength", "Notes must be 4000 characters or fewer.")
+            });
+        }
+
+        if (failures.Count > 0)
+        {
+            return;
+        }
+
+        var normalized = NormalizeContact(dto, managementCompanyId);
+        var duplicateExists = await ServiceUOW.Contacts.DuplicateValueExistsAsync(
+            managementCompanyId,
+            normalized.ContactTypeId,
+            normalized.ContactValue,
+            null,
+            cancellationToken);
+        if (duplicateExists)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.ContactValue),
+                ErrorMessage = T("ContactAlreadyExists", "A contact with the same type and value already exists in this company.")
+            });
+        }
+    }
+
+    private static void AddResidentContactFailures(
+        ICollection<ValidationFailureModel> failures,
+        ResidentContactBllDto dto)
+    {
+        if (dto.ValidFrom == default)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.ValidFrom),
+                ErrorMessage = RequiredField(App.Resources.Views.UiText.ValidFrom)
+            });
+        }
+
+        if (dto.ValidTo.HasValue && dto.ValidTo.Value < dto.ValidFrom)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.ValidTo),
+                ErrorMessage = T("ValidToCannotBeBeforeValidFrom", "Valid to cannot be before valid from.")
+            });
+        }
+    }
+
+    private static ResidentContactBllDto NormalizeResidentContact(
+        ResidentContactBllDto dto,
+        Guid residentId,
+        Guid contactId)
+    {
+        return new ResidentContactBllDto
+        {
+            Id = dto.Id,
+            ResidentId = residentId,
+            ContactId = contactId,
+            ValidFrom = dto.ValidFrom,
+            ValidTo = dto.ValidTo,
+            Confirmed = dto.Confirmed,
+            IsPrimary = dto.IsPrimary
+        };
+    }
+
+    private static ContactBllDto NormalizeContact(ContactBllDto dto, Guid managementCompanyId)
+    {
+        return new ContactBllDto
+        {
+            Id = Guid.NewGuid(),
+            ManagementCompanyId = managementCompanyId,
+            ContactTypeId = dto.ContactTypeId,
+            ContactValue = dto.ContactValue.Trim(),
+            Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim()
+        };
+    }
+
+    private static ResidentContactAssignmentModel ToContactAssignmentModel(
+        ResidentContactAssignmentDalDto contact)
+    {
+        return new ResidentContactAssignmentModel
+        {
+            ResidentContactId = contact.Id,
+            ResidentId = contact.ResidentId,
+            ContactId = contact.ContactId,
+            ContactTypeId = contact.ContactTypeId,
+            ContactTypeCode = contact.ContactTypeCode,
+            ContactTypeLabel = contact.ContactTypeLabel,
+            ContactValue = contact.ContactValue,
+            ContactNotes = contact.ContactNotes,
+            ValidFrom = contact.ValidFrom,
+            ValidTo = contact.ValidTo,
+            Confirmed = contact.Confirmed,
+            IsPrimary = contact.IsPrimary,
+            CreatedAt = contact.CreatedAt
+        };
     }
 
     private static Result Validate(ResidentBllDto dto)
@@ -468,6 +1137,11 @@ public class ResidentService :
         };
     }
 
+    private static string RequiredField(string fieldName)
+    {
+        return App.Resources.Views.UiText.RequiredField.Replace("{0}", fieldName);
+    }
+
     private static NormalizedResident Normalize(ResidentBllDto dto)
     {
         return new NormalizedResident(
@@ -486,15 +1160,39 @@ public class ResidentService :
             new[] { firstName, lastName }.Where(value => !string.IsNullOrWhiteSpace(value)));
     }
 
+    private static ResidentContactAccessContext ToResidentContactAccessContext(ResidentProfileDalDto profile)
+    {
+        return new ResidentContactAccessContext(
+            profile.ManagementCompanyId,
+            profile.Id,
+            profile.CompanySlug,
+            profile.CompanyName,
+            profile.IdCode,
+            BuildFullName(profile.FirstName, profile.LastName));
+    }
+
     private sealed record NormalizedResident(
         string FirstName,
         string LastName,
         string IdCode,
         string? PreferredLanguage);
 
+    private sealed record ResidentContactAccessContext(
+        Guid ManagementCompanyId,
+        Guid ResidentId,
+        string CompanySlug,
+        string CompanyName,
+        string ResidentIdCode,
+        string ResidentName);
+
     private static string DeleteBlockedMessage()
     {
         return App.Resources.Views.UiText.ResourceManager.GetString("UnableToDeleteBecauseDependentRecordsExist")
                ?? "Unable to delete because dependent records exist.";
+    }
+
+    private static string T(string key, string fallback)
+    {
+        return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
     }
 }

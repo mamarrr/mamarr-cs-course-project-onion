@@ -344,7 +344,7 @@ public class ResidentRepository :
                 cancellationToken);
     }
 
-    public async Task<IReadOnlyList<ResidentContactDalDto>> ContactsByResidentAsync(
+    public async Task<IReadOnlyList<ResidentContactAssignmentDalDto>> ContactsByResidentAsync(
         Guid residentId,
         CancellationToken cancellationToken = default)
     {
@@ -354,20 +354,21 @@ public class ResidentRepository :
             .OrderByDescending(entity => entity.IsPrimary)
             .ThenBy(entity => entity.Contact!.ContactType!.Code)
             .ThenBy(entity => entity.Contact!.ContactValue)
-            .Select(entity => new ResidentContactDalDto
+            .Select(entity => new ResidentContactAssignmentDalDto
             {
-                ResidentContactId = entity.Id,
+                Id = entity.Id,
                 ResidentId = entity.ResidentId,
                 ContactId = entity.ContactId,
                 ContactTypeId = entity.Contact!.ContactTypeId,
                 ContactTypeCode = entity.Contact.ContactType!.Code,
                 ContactTypeLabel = entity.Contact.ContactType.Label.ToString(),
                 ContactValue = entity.Contact.ContactValue,
-                Notes = entity.Contact.Notes == null ? null : entity.Contact.Notes.ToString(),
+                ContactNotes = entity.Contact.Notes == null ? null : entity.Contact.Notes.ToString(),
                 ValidFrom = entity.ValidFrom,
                 ValidTo = entity.ValidTo,
                 Confirmed = entity.Confirmed,
-                IsPrimary = entity.IsPrimary
+                IsPrimary = entity.IsPrimary,
+                CreatedAt = entity.CreatedAt
             })
             .ToListAsync(cancellationToken);
     }

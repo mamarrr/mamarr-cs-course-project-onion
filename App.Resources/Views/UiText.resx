@@ -450,6 +450,24 @@
   <data name="UnableToUpdateVendorContact" xml:space="preserve"><value>Unable to update vendor contact.</value></data>
   <data name="VendorContactWasNotFound" xml:space="preserve"><value>Vendor contact was not found.</value></data>
   <data name="VendorContactAlreadyLinked" xml:space="preserve"><value>This contact is already linked to the vendor.</value></data>
+  <data name="ResidentContacts" xml:space="preserve"><value>Resident contacts</value></data>
+  <data name="CurrentResidentContacts" xml:space="preserve"><value>Current contacts</value></data>
+  <data name="NoResidentContacts" xml:space="preserve"><value>No contacts are linked yet.</value></data>
+  <data name="EditResidentContact" xml:space="preserve"><value>Edit resident contact</value></data>
+  <data name="RemoveResidentContact" xml:space="preserve"><value>Remove resident contact</value></data>
+  <data name="BackToResident" xml:space="preserve"><value>Back to resident</value></data>
+  <data name="BackToResidentContacts" xml:space="preserve"><value>Back to contacts</value></data>
+  <data name="RemoveResidentContactConfirmation" xml:space="preserve"><value>Remove this contact from the resident? The shared contact record remains available for the company.</value></data>
+  <data name="ResidentContactAddedSuccessfully" xml:space="preserve"><value>Resident contact added successfully.</value></data>
+  <data name="ResidentContactUpdatedSuccessfully" xml:space="preserve"><value>Resident contact updated successfully.</value></data>
+  <data name="ResidentContactRemovedSuccessfully" xml:space="preserve"><value>Resident contact removed successfully.</value></data>
+  <data name="ResidentPrimaryContactUpdatedSuccessfully" xml:space="preserve"><value>Primary contact updated successfully.</value></data>
+  <data name="ResidentContactConfirmedSuccessfully" xml:space="preserve"><value>Resident contact confirmed successfully.</value></data>
+  <data name="ResidentContactUnconfirmedSuccessfully" xml:space="preserve"><value>Resident contact unconfirmed successfully.</value></data>
+  <data name="UnableToRemoveResidentContact" xml:space="preserve"><value>Unable to remove resident contact.</value></data>
+  <data name="UnableToUpdateResidentContact" xml:space="preserve"><value>Unable to update resident contact.</value></data>
+  <data name="ResidentContactWasNotFound" xml:space="preserve"><value>Resident contact was not found.</value></data>
+  <data name="ResidentContactAlreadyLinked" xml:space="preserve"><value>This contact is already linked to the resident.</value></data>
   <data name="ValidToCannotBeBeforeValidFrom" xml:space="preserve"><value>Valid to cannot be before valid from.</value></data>
   <data name="ContactRequired" xml:space="preserve"><value>Contact is required.</value></data>
   <data name="ContactTypeRequired" xml:space="preserve"><value>Contact type is required.</value></data>

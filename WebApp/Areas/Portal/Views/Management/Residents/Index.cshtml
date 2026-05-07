@@ -80,6 +80,7 @@
                         <th>@UiText.Name</th>
                         <th>@UiText.IdCode</th>
                         <th>@UiText.PreferredLanguage</th>
+                        <th class="text-end">@UiText.Actions</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -97,6 +98,15 @@
                                    asp-route-residentIdCode="@resident.IdCode">@resident.IdCode</a>
                             </td>
                             <td>@(string.IsNullOrWhiteSpace(resident.PreferredLanguage) ? UiText.NoValuePlaceholder : resident.PreferredLanguage)</td>
+                            <td class="text-end">
+                                <a asp-controller="ResidentContacts"
+                                   asp-action="Index"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-residentIdCode="@resident.IdCode"
+                                   class="btn btn-outline-secondary btn-sm">
+                                    @(UiText.ResourceManager.GetString("Contacts") ?? "Contacts")
+                                </a>
+                            </td>
                         </tr>
                     }
                     </tbody>
