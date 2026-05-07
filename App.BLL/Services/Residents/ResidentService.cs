@@ -1,3 +1,4 @@
+using App.BLL.Contracts.Contacts;
 using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Residents;
 using App.BLL.DTO.Common;
@@ -7,7 +8,6 @@ using App.BLL.DTO.Contacts;
 using App.BLL.DTO.Residents;
 using App.BLL.DTO.Residents.Errors;
 using App.BLL.DTO.Residents.Models;
-using App.BLL.Mappers.Contacts;
 using App.BLL.Mappers.Residents;
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
@@ -43,15 +43,17 @@ public class ResidentService :
     };
 
     private readonly IAppDeleteGuard _deleteGuard;
-    private readonly ContactBllDtoMapper _contactMapper = new();
+    private readonly IContactService _contactService;
     private readonly ResidentContactBllDtoMapper _residentContactMapper = new();
 
     public ResidentService(
         IAppUOW uow,
-        IAppDeleteGuard deleteGuard)
+        IAppDeleteGuard deleteGuard,
+        IContactService contactService)
         : base(uow.Residents, uow, new ResidentBllDtoMapper())
     {
         _deleteGuard = deleteGuard;
+        _contactService = contactService;
     }
 
     public async Task<Result<CompanyResidentsModel>> ResolveCompanyResidentsContextAsync(
@@ -460,7 +462,7 @@ public class ResidentService :
             access.Value.ManagementCompanyId,
             access.Value.ResidentId,
             null,
-            cancellationToken);
+            cancellationToken: cancellationToken);
         if (validation.IsFailed)
         {
             return Result.Fail<ResidentContactListModel>(validation.Errors);
@@ -475,16 +477,15 @@ public class ResidentService :
             var contactId = dto.ContactId;
             if (newContact is not null)
             {
-                var normalizedContact = NormalizeContact(newContact, access.Value.ManagementCompanyId);
-                var contactDalDto = _contactMapper.Map(normalizedContact);
-                if (contactDalDto is null)
+                var createdContact = await _contactService.CreateAsync(route, newContact, cancellationToken);
+                if (createdContact.IsFailed)
                 {
                     await ServiceUOW.RollbackTransactionAsync(cancellationToken);
                     transactionStarted = false;
-                    return Result.Fail<ResidentContactListModel>("Contact mapping failed.");
+                    return Result.Fail<ResidentContactListModel>(createdContact.Errors);
                 }
 
-                contactId = ServiceUOW.Contacts.Add(contactDalDto);
+                contactId = createdContact.Value.Id;
             }
 
             if (dto.IsPrimary)
@@ -544,7 +545,7 @@ public class ResidentService :
             access.Value.ManagementCompanyId,
             access.Value.ResidentId,
             route.ResidentContactId,
-            cancellationToken);
+            cancellationToken: cancellationToken);
         if (validation.IsFailed)
         {
             return Result.Fail<ResidentContactListModel>(validation.Errors);
@@ -827,9 +828,11 @@ public class ResidentService :
             access.ManagementCompanyId,
             cancellationToken);
 
-        var existingContacts = await ServiceUOW.Contacts.OptionsByCompanyAsync(
-            access.ManagementCompanyId,
-            cancellationToken);
+        var existingContacts = await _contactService.ListForCompanyAsync(route, cancellationToken);
+        if (existingContacts.IsFailed)
+        {
+            return Result.Fail<ResidentContactListModel>(existingContacts.Errors);
+        }
 
         var contactTypes = await ServiceUOW.Lookups.AllContactTypesAsync(cancellationToken);
 
@@ -841,9 +844,7 @@ public class ResidentService :
             ResidentIdCode = access.ResidentIdCode,
             ResidentName = access.ResidentName,
             Contacts = contacts.Select(ToContactAssignmentModel).ToList(),
-            ExistingContacts = existingContacts
-                .Select(contact => _contactMapper.Map(contact)!)
-                .ToList(),
+            ExistingContacts = existingContacts.Value,
             ContactTypes = contactTypes
                 .Select(type => new App.BLL.DTO.Tickets.Models.TicketOptionModel
                 {
@@ -931,10 +932,6 @@ public class ResidentService :
                 });
             }
         }
-        else
-        {
-            await AddContactFailuresAsync(failures, newContact, managementCompanyId, cancellationToken);
-        }
 
         if (failures.Count > 0)
         {
@@ -958,77 +955,6 @@ public class ResidentService :
         }
 
         return Result.Ok();
-    }
-
-    private async Task AddContactFailuresAsync(
-        ICollection<ValidationFailureModel> failures,
-        ContactBllDto dto,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken)
-    {
-        if (dto.ContactTypeId == Guid.Empty)
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.ContactTypeId),
-                ErrorMessage = RequiredField(App.Resources.Views.UiText.Contacts)
-            });
-        }
-        else if (!await ServiceUOW.Lookups.ContactTypeExistsAsync(dto.ContactTypeId, cancellationToken))
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.ContactTypeId),
-                ErrorMessage = T("InvalidContactType", "Selected contact type is invalid.")
-            });
-        }
-
-        if (string.IsNullOrWhiteSpace(dto.ContactValue))
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.ContactValue),
-                ErrorMessage = RequiredField(App.Resources.Views.UiText.Contacts)
-            });
-        }
-        else if (dto.ContactValue.Trim().Length > 255)
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.ContactValue),
-                ErrorMessage = T("ContactValueMaxLength", "Contact value must be 255 characters or fewer.")
-            });
-        }
-
-        if (!string.IsNullOrWhiteSpace(dto.Notes) && dto.Notes.Trim().Length > 4000)
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.Notes),
-                ErrorMessage = T("ContactNotesMaxLength", "Notes must be 4000 characters or fewer.")
-            });
-        }
-
-        if (failures.Count > 0)
-        {
-            return;
-        }
-
-        var normalized = NormalizeContact(dto, managementCompanyId);
-        var duplicateExists = await ServiceUOW.Contacts.DuplicateValueExistsAsync(
-            managementCompanyId,
-            normalized.ContactTypeId,
-            normalized.ContactValue,
-            null,
-            cancellationToken);
-        if (duplicateExists)
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.ContactValue),
-                ErrorMessage = T("ContactAlreadyExists", "A contact with the same type and value already exists in this company.")
-            });
-        }
     }
 
     private static void AddResidentContactFailures(
@@ -1068,18 +994,6 @@ public class ResidentService :
             ValidTo = dto.ValidTo,
             Confirmed = dto.Confirmed,
             IsPrimary = dto.IsPrimary
-        };
-    }
-
-    private static ContactBllDto NormalizeContact(ContactBllDto dto, Guid managementCompanyId)
-    {
-        return new ContactBllDto
-        {
-            Id = Guid.NewGuid(),
-            ManagementCompanyId = managementCompanyId,
-            ContactTypeId = dto.ContactTypeId,
-            ContactValue = dto.ContactValue.Trim(),
-            Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim()
         };
     }
 

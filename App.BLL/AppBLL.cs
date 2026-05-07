@@ -62,7 +62,7 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
         _properties ??= new PropertyService(UOW, Customers, DeleteGuard);
 
     public IResidentService Residents =>
-        _residents ??= new ResidentService(UOW, DeleteGuard);
+        _residents ??= new ResidentService(UOW, DeleteGuard, Contacts);
 
     public ILeaseService Leases =>
         _leases ??= new LeaseService(UOW, Residents, Units);

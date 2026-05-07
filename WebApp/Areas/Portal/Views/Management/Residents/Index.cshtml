@@ -99,7 +99,7 @@
                             </td>
                             <td>@(string.IsNullOrWhiteSpace(resident.PreferredLanguage) ? UiText.NoValuePlaceholder : resident.PreferredLanguage)</td>
                             <td class="text-end">
-                                <a asp-controller="ResidentContacts"
+                                <a asp-controller="Contacts"
                                    asp-action="Index"
                                    asp-route-companySlug="@Model.CompanySlug"
                                    asp-route-residentIdCode="@resident.IdCode"

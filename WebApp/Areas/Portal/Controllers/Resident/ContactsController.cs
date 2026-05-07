@@ -21,7 +21,7 @@ namespace WebApp.Areas.Portal.Controllers.Resident;
 [Area("Portal")]
 [Authorize]
 [Route("m/{companySlug}/r/{residentIdCode}/contacts")]
-public class ResidentContactsController : Controller
+public class ContactsController : Controller
 {
     private const string IndexView = "~/Areas/Portal/Views/Management/ResidentContacts/Index.cshtml";
     private const string EditView = "~/Areas/Portal/Views/Management/ResidentContacts/Edit.cshtml";
@@ -31,7 +31,7 @@ public class ResidentContactsController : Controller
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
 
-    public ResidentContactsController(
+    public ContactsController(
         IAppBLL bll,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver)
