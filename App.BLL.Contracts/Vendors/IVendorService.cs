@@ -62,4 +62,35 @@ public interface IVendorService : IBaseService<VendorBllDto>
     Task<Result> RemoveCategoryAsync(
         VendorCategoryRoute route,
         CancellationToken cancellationToken = default);
+
+    Task<Result<VendorContactListModel>> ListContactsAsync(
+        VendorRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<VendorContactListModel>> AddContactAsync(
+        VendorRoute route,
+        VendorContactBllDto dto,
+        App.BLL.DTO.Contacts.ContactBllDto? newContact,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<VendorContactListModel>> UpdateContactAsync(
+        VendorContactRoute route,
+        VendorContactBllDto dto,
+        CancellationToken cancellationToken = default);
+
+    Task<Result> SetPrimaryContactAsync(
+        VendorContactRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result> ConfirmContactAsync(
+        VendorContactRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result> UnconfirmContactAsync(
+        VendorContactRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result> RemoveContactAsync(
+        VendorContactRoute route,
+        CancellationToken cancellationToken = default);
 }

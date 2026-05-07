@@ -1,7 +1,9 @@
+using App.BLL.Contracts.Contacts;
 using App.BLL.Contracts.Vendors;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.Contacts;
 using App.BLL.DTO.Vendors;
 using App.BLL.DTO.Vendors.Models;
 using App.BLL.Mappers.Vendors;
@@ -40,10 +42,13 @@ public class VendorService :
     };
 
     private const int CategoryNotesMaxLength = 4000;
+    private const int VendorContactNameMaxLength = 200;
+    private readonly IContactService _contactService;
 
-    public VendorService(IAppUOW uow)
+    public VendorService(IAppUOW uow, IContactService contactService)
         : base(uow.Vendors, uow, new VendorBllDtoMapper())
     {
+        _contactService = contactService;
     }
 
     public async Task<Result<VendorWorkspaceModel>> ResolveCompanyWorkspaceAsync(
@@ -414,6 +419,268 @@ public class VendorService :
         return Result.Ok();
     }
 
+    public async Task<Result<VendorContactListModel>> ListContactsAsync(
+        VendorRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveVendorAccessAsync(route, ReadAllowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<VendorContactListModel>(access.Errors);
+        }
+
+        return await BuildContactListAsync(route, access.Value, cancellationToken);
+    }
+
+    public async Task<Result<VendorContactListModel>> AddContactAsync(
+        VendorRoute route,
+        VendorContactBllDto dto,
+        ContactBllDto? newContact,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveVendorAccessAsync(route, WriteAllowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<VendorContactListModel>(access.Errors);
+        }
+
+        var validation = await ValidateVendorContactAsync(
+            dto,
+            newContact,
+            access.Value.ManagementCompanyId,
+            access.Value.VendorId,
+            null,
+            cancellationToken);
+        if (validation.IsFailed)
+        {
+            return Result.Fail<VendorContactListModel>(validation.Errors);
+        }
+
+        var transactionStarted = false;
+        try
+        {
+            await ServiceUOW.BeginTransactionAsync(cancellationToken);
+            transactionStarted = true;
+
+            var contactId = dto.ContactId;
+            if (newContact is not null)
+            {
+                var createdContact = await _contactService.CreateAsync(route, newContact, cancellationToken);
+                if (createdContact.IsFailed)
+                {
+                    await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+                    transactionStarted = false;
+                    return Result.Fail<VendorContactListModel>(createdContact.Errors);
+                }
+
+                contactId = createdContact.Value.Id;
+            }
+
+            if (dto.IsPrimary)
+            {
+                await ServiceUOW.VendorContacts.ClearPrimaryAsync(
+                    access.Value.VendorId,
+                    access.Value.ManagementCompanyId,
+                    null,
+                    cancellationToken);
+            }
+
+            var normalized = NormalizeVendorContact(dto);
+            ServiceUOW.VendorContacts.Add(new VendorContactDalDto
+            {
+                VendorId = access.Value.VendorId,
+                ContactId = contactId,
+                ValidFrom = normalized.ValidFrom,
+                ValidTo = normalized.ValidTo,
+                Confirmed = normalized.Confirmed,
+                IsPrimary = normalized.IsPrimary,
+                FullName = normalized.FullName,
+                RoleTitle = normalized.RoleTitle
+            });
+
+            await ServiceUOW.SaveChangesAsync(cancellationToken);
+            await ServiceUOW.CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            if (transactionStarted)
+            {
+                await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+            }
+            throw;
+        }
+
+        return await BuildContactListAsync(route, access.Value, cancellationToken);
+    }
+
+    public async Task<Result<VendorContactListModel>> UpdateContactAsync(
+        VendorContactRoute route,
+        VendorContactBllDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveVendorContactAccessAsync(route, WriteAllowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<VendorContactListModel>(access.Errors);
+        }
+
+        var validation = await ValidateVendorContactAsync(
+            dto,
+            null,
+            access.Value.ManagementCompanyId,
+            access.Value.VendorId,
+            route.VendorContactId,
+            cancellationToken);
+        if (validation.IsFailed)
+        {
+            return Result.Fail<VendorContactListModel>(validation.Errors);
+        }
+
+        var transactionStarted = false;
+        try
+        {
+            await ServiceUOW.BeginTransactionAsync(cancellationToken);
+            transactionStarted = true;
+
+            if (dto.IsPrimary)
+            {
+                await ServiceUOW.VendorContacts.ClearPrimaryAsync(
+                    access.Value.VendorId,
+                    access.Value.ManagementCompanyId,
+                    route.VendorContactId,
+                    cancellationToken);
+            }
+
+            var normalized = NormalizeVendorContact(dto);
+            await ServiceUOW.VendorContacts.UpdateAsync(
+                new VendorContactDalDto
+                {
+                    Id = route.VendorContactId,
+                    VendorId = access.Value.VendorId,
+                    ContactId = normalized.ContactId,
+                    ValidFrom = normalized.ValidFrom,
+                    ValidTo = normalized.ValidTo,
+                    Confirmed = normalized.Confirmed,
+                    IsPrimary = normalized.IsPrimary,
+                    FullName = normalized.FullName,
+                    RoleTitle = normalized.RoleTitle
+                },
+                access.Value.ManagementCompanyId,
+                cancellationToken);
+
+            await ServiceUOW.SaveChangesAsync(cancellationToken);
+            await ServiceUOW.CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            if (transactionStarted)
+            {
+                await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+            }
+            throw;
+        }
+
+        return await BuildContactListAsync(route, access.Value, cancellationToken);
+    }
+
+    public async Task<Result> SetPrimaryContactAsync(
+        VendorContactRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveVendorContactAccessAsync(route, WriteAllowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail(access.Errors);
+        }
+
+        var existing = await ServiceUOW.VendorContacts.FindInCompanyAsync(
+            route.VendorContactId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (existing is null)
+        {
+            return Result.Fail(new NotFoundError(T("VendorContactWasNotFound", "Vendor contact was not found.")));
+        }
+
+        var transactionStarted = false;
+        try
+        {
+            await ServiceUOW.BeginTransactionAsync(cancellationToken);
+            transactionStarted = true;
+            await ServiceUOW.VendorContacts.ClearPrimaryAsync(
+                access.Value.VendorId,
+                access.Value.ManagementCompanyId,
+                route.VendorContactId,
+                cancellationToken);
+
+            await ServiceUOW.VendorContacts.UpdateAsync(
+                new VendorContactDalDto
+                {
+                    Id = existing.Id,
+                    VendorId = existing.VendorId,
+                    ContactId = existing.ContactId,
+                    ValidFrom = existing.ValidFrom,
+                    ValidTo = existing.ValidTo,
+                    Confirmed = existing.Confirmed,
+                    IsPrimary = true,
+                    FullName = existing.FullName,
+                    RoleTitle = existing.RoleTitle
+                },
+                access.Value.ManagementCompanyId,
+                cancellationToken);
+
+            await ServiceUOW.SaveChangesAsync(cancellationToken);
+            await ServiceUOW.CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            if (transactionStarted)
+            {
+                await ServiceUOW.RollbackTransactionAsync(cancellationToken);
+            }
+            throw;
+        }
+
+        return Result.Ok();
+    }
+
+    public async Task<Result> ConfirmContactAsync(
+        VendorContactRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return await SetContactConfirmationAsync(route, true, cancellationToken);
+    }
+
+    public async Task<Result> UnconfirmContactAsync(
+        VendorContactRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        return await SetContactConfirmationAsync(route, false, cancellationToken);
+    }
+
+    public async Task<Result> RemoveContactAsync(
+        VendorContactRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveVendorContactAccessAsync(route, DeleteAllowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail(access.Errors);
+        }
+
+        var deleted = await ServiceUOW.VendorContacts.DeleteInCompanyAsync(
+            route.VendorContactId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!deleted)
+        {
+            return Result.Fail(new NotFoundError(T("VendorContactWasNotFound", "Vendor contact was not found.")));
+        }
+
+        await ServiceUOW.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
+    }
+
     private async Task<Result<VendorAccessContext>> ResolveVendorAccessAsync(
         VendorRoute route,
         HashSet<string> allowedRoleCodes,
@@ -444,6 +711,256 @@ public class VendorService :
             route.VendorId,
             company.Value.CompanySlug,
             company.Value.CompanyName));
+    }
+
+    private async Task<Result<VendorAccessContext>> ResolveVendorContactAccessAsync(
+        VendorContactRoute route,
+        HashSet<string> allowedRoleCodes,
+        CancellationToken cancellationToken)
+    {
+        if (route.VendorContactId == Guid.Empty)
+        {
+            return Result.Fail<VendorAccessContext>(new NotFoundError(T("VendorContactWasNotFound", "Vendor contact was not found.")));
+        }
+
+        var access = await ResolveVendorAccessAsync(route, allowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<VendorAccessContext>(access.Errors);
+        }
+
+        var existing = await ServiceUOW.VendorContacts.FindInCompanyAsync(
+            route.VendorContactId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (existing is null || existing.VendorId != access.Value.VendorId)
+        {
+            return Result.Fail<VendorAccessContext>(new NotFoundError(T("VendorContactWasNotFound", "Vendor contact was not found.")));
+        }
+
+        return access;
+    }
+
+    private async Task<Result<VendorContactListModel>> BuildContactListAsync(
+        VendorRoute route,
+        VendorAccessContext access,
+        CancellationToken cancellationToken)
+    {
+        var profile = await ServiceUOW.Vendors.FindProfileAsync(
+            access.VendorId,
+            access.ManagementCompanyId,
+            cancellationToken);
+        if (profile is null)
+        {
+            return Result.Fail<VendorContactListModel>(new NotFoundError(T("VendorWasNotFound", "Vendor was not found.")));
+        }
+
+        var contacts = await ServiceUOW.VendorContacts.AllByVendorAsync(
+            access.VendorId,
+            access.ManagementCompanyId,
+            cancellationToken);
+        var existingContacts = await _contactService.ListForCompanyAsync(route, cancellationToken);
+        if (existingContacts.IsFailed)
+        {
+            return Result.Fail<VendorContactListModel>(existingContacts.Errors);
+        }
+
+        var contactTypes = await ServiceUOW.Lookups.AllContactTypesAsync(cancellationToken);
+
+        return Result.Ok(new VendorContactListModel
+        {
+            CompanySlug = access.CompanySlug,
+            CompanyName = access.CompanyName,
+            VendorId = access.VendorId,
+            VendorName = profile.Name,
+            Contacts = contacts.Select(ToContactAssignmentModel).ToList(),
+            ExistingContacts = existingContacts.Value,
+            ContactTypes = contactTypes
+                .Select(type => new App.BLL.DTO.Tickets.Models.TicketOptionModel
+                {
+                    Id = type.Id,
+                    Code = type.Code,
+                    Label = type.Label
+                })
+                .ToList()
+        });
+    }
+
+    private async Task<Result> SetContactConfirmationAsync(
+        VendorContactRoute route,
+        bool confirmed,
+        CancellationToken cancellationToken)
+    {
+        var access = await ResolveVendorContactAccessAsync(route, WriteAllowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail(access.Errors);
+        }
+
+        var existing = await ServiceUOW.VendorContacts.FindInCompanyAsync(
+            route.VendorContactId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (existing is null)
+        {
+            return Result.Fail(new NotFoundError(T("VendorContactWasNotFound", "Vendor contact was not found.")));
+        }
+
+        await ServiceUOW.VendorContacts.UpdateAsync(
+            new VendorContactDalDto
+            {
+                Id = existing.Id,
+                VendorId = existing.VendorId,
+                ContactId = existing.ContactId,
+                ValidFrom = existing.ValidFrom,
+                ValidTo = existing.ValidTo,
+                Confirmed = confirmed,
+                IsPrimary = existing.IsPrimary,
+                FullName = existing.FullName,
+                RoleTitle = existing.RoleTitle
+            },
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+
+        await ServiceUOW.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
+    }
+
+    private async Task<Result> ValidateVendorContactAsync(
+        VendorContactBllDto dto,
+        ContactBllDto? newContact,
+        Guid managementCompanyId,
+        Guid vendorId,
+        Guid? exceptVendorContactId,
+        CancellationToken cancellationToken)
+    {
+        var failures = new List<ValidationFailureModel>();
+        AddVendorContactFailures(failures, dto);
+
+        if (newContact is null)
+        {
+            if (dto.ContactId == Guid.Empty)
+            {
+                failures.Add(new ValidationFailureModel
+                {
+                    PropertyName = nameof(dto.ContactId),
+                    ErrorMessage = T("ContactRequired", "Contact is required.")
+                });
+            }
+            else if (!await ServiceUOW.Contacts.ExistsInCompanyAsync(dto.ContactId, managementCompanyId, cancellationToken))
+            {
+                failures.Add(new ValidationFailureModel
+                {
+                    PropertyName = nameof(dto.ContactId),
+                    ErrorMessage = T("InvalidContact", "Selected contact is invalid.")
+                });
+            }
+        }
+
+        if (failures.Count > 0)
+        {
+            return Result.Fail(new ValidationAppError("Validation failed.", failures));
+        }
+
+        var contactId = dto.ContactId;
+        if (newContact is null)
+        {
+            var duplicateLink = await ServiceUOW.VendorContacts.ContactLinkedToVendorAsync(
+                vendorId,
+                contactId,
+                managementCompanyId,
+                exceptVendorContactId,
+                cancellationToken);
+            if (duplicateLink)
+            {
+                return Result.Fail(new ConflictError(T(
+                    "VendorContactAlreadyLinked",
+                    "This contact is already linked to the vendor.")));
+            }
+        }
+
+        return Result.Ok();
+    }
+
+    private static void AddVendorContactFailures(
+        ICollection<ValidationFailureModel> failures,
+        VendorContactBllDto dto)
+    {
+        if (dto.ValidFrom == default)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.ValidFrom),
+                ErrorMessage = RequiredField(App.Resources.Views.UiText.ValidFrom)
+            });
+        }
+
+        if (dto.ValidTo.HasValue && dto.ValidTo.Value < dto.ValidFrom)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.ValidTo),
+                ErrorMessage = T("ValidToCannotBeBeforeValidFrom", "Valid to cannot be before valid from.")
+            });
+        }
+
+        AddMaxLengthFailure(failures, nameof(dto.FullName), dto.FullName, VendorContactNameMaxLength);
+        AddMaxLengthFailure(failures, nameof(dto.RoleTitle), dto.RoleTitle, VendorContactNameMaxLength);
+    }
+
+    private static void AddMaxLengthFailure(
+        ICollection<ValidationFailureModel> failures,
+        string propertyName,
+        string? value,
+        int maxLength)
+    {
+        if (!string.IsNullOrWhiteSpace(value) && value.Trim().Length > maxLength)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = propertyName,
+                ErrorMessage = T("MaxLengthExceeded", $"Value must be {maxLength} characters or fewer.")
+            });
+        }
+    }
+
+    private static VendorContactBllDto NormalizeVendorContact(VendorContactBllDto dto)
+    {
+        return new VendorContactBllDto
+        {
+            Id = dto.Id,
+            VendorId = dto.VendorId,
+            ContactId = dto.ContactId,
+            ValidFrom = dto.ValidFrom,
+            ValidTo = dto.ValidTo,
+            Confirmed = dto.Confirmed,
+            IsPrimary = dto.IsPrimary,
+            FullName = NormalizeOptional(dto.FullName),
+            RoleTitle = NormalizeOptional(dto.RoleTitle)
+        };
+    }
+
+    private static VendorContactAssignmentModel ToContactAssignmentModel(
+        VendorContactAssignmentDalDto contact)
+    {
+        return new VendorContactAssignmentModel
+        {
+            VendorContactId = contact.Id,
+            VendorId = contact.VendorId,
+            ContactId = contact.ContactId,
+            ContactTypeId = contact.ContactTypeId,
+            ContactTypeCode = contact.ContactTypeCode,
+            ContactTypeLabel = contact.ContactTypeLabel,
+            ContactValue = contact.ContactValue,
+            ContactNotes = contact.ContactNotes,
+            ValidFrom = contact.ValidFrom,
+            ValidTo = contact.ValidTo,
+            Confirmed = contact.Confirmed,
+            IsPrimary = contact.IsPrimary,
+            FullName = contact.FullName,
+            RoleTitle = contact.RoleTitle,
+            CreatedAt = contact.CreatedAt
+        };
     }
 
     private async Task<Result<VendorWorkspaceModel>> ResolveCompanyAccessAsync(
@@ -510,6 +1027,11 @@ public class VendorService :
             PropertyName = propertyName,
             ErrorMessage = App.Resources.Views.UiText.RequiredField.Replace("{0}", displayName)
         });
+    }
+
+    private static string RequiredField(string fieldName)
+    {
+        return App.Resources.Views.UiText.RequiredField.Replace("{0}", fieldName);
     }
 
     private static NormalizedVendor Normalize(VendorBllDto dto)

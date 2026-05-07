@@ -169,6 +169,21 @@ public class LookupRepository : ILookupRepository
             .AnyAsync(contactType => contactType.Id == contactTypeId, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<LookupDalDto>> AllContactTypesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.ContactTypes
+            .AsNoTracking()
+            .OrderBy(contactType => contactType.Code)
+            .Select(contactType => new LookupDalDto
+            {
+                Id = contactType.Id,
+                Code = contactType.Code,
+                Label = contactType.Label.ToString()
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public Task<TicketOptionDalDto?> FindTicketStatusByCodeAsync(
         string code,
         CancellationToken cancellationToken = default)

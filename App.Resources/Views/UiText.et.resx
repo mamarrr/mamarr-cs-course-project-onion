@@ -149,6 +149,7 @@
   <data name="ResidentSectionPlaceholder" xml:space="preserve"><value>Sektsiooni „{0}“ sisu on planeeritud ja lisatakse järgmises etapis.</value></data>
   <data name="Representations" xml:space="preserve"><value>Esindused</value></data>
   <data name="Contacts" xml:space="preserve"><value>Kontaktid</value></data>
+  <data name="Contact" xml:space="preserve"><value>Kontakt</value></data>
   <data name="NoValuePlaceholder" xml:space="preserve"><value>—</value></data>
   <data name="CustomerDashboardIntro" xml:space="preserve"><value>Kliendi {0} töölaud ettevõttes {1}.</value></data>
   <data name="CustomerSectionPlaceholder" xml:space="preserve"><value>Sektsiooni „{0}“ sisu on planeeritud ja lisatakse järgmises etapis.</value></data>
@@ -412,5 +413,38 @@
   <data name="RemoveVendorCategoryConfirmation" xml:space="preserve"><value>Kas eemaldada see kategooriaseos?</value></data>
   <data name="VendorCategoryAlreadyAssigned" xml:space="preserve"><value>See kategooria on teenusepakkujale juba maaratud.</value></data>
   <data name="VendorCategoryAssignmentWasNotFound" xml:space="preserve"><value>Teenusepakkuja kategooriaseost ei leitud.</value></data>
+  <data name="VendorContacts" xml:space="preserve"><value>Teenusepakkuja kontaktid</value></data>
+  <data name="ManageContacts" xml:space="preserve"><value>Halda kontakte</value></data>
+  <data name="AttachExistingContact" xml:space="preserve"><value>Seo olemasolev kontakt</value></data>
+  <data name="AttachContact" xml:space="preserve"><value>Seo kontakt</value></data>
+  <data name="CreateAndAttachContact" xml:space="preserve"><value>Loo ja seo kontakt</value></data>
+  <data name="SelectContact" xml:space="preserve"><value>Vali kontakt</value></data>
+  <data name="SelectContactType" xml:space="preserve"><value>Vali kontakti tuup</value></data>
+  <data name="CurrentVendorContacts" xml:space="preserve"><value>Praegused kontaktid</value></data>
+  <data name="NoVendorContacts" xml:space="preserve"><value>Kontakte pole veel seotud.</value></data>
+  <data name="Primary" xml:space="preserve"><value>Peamine</value></data>
+  <data name="SetPrimary" xml:space="preserve"><value>Maara peamiseks</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Kinnita</value></data>
+  <data name="Unconfirm" xml:space="preserve"><value>Tuhista kinnitus</value></data>
+  <data name="EditVendorContact" xml:space="preserve"><value>Muuda teenusepakkuja kontakti</value></data>
+  <data name="RemoveVendorContact" xml:space="preserve"><value>Eemalda teenusepakkuja kontakt</value></data>
+  <data name="BackToVendorContacts" xml:space="preserve"><value>Tagasi kontaktide juurde</value></data>
+  <data name="RemoveVendorContactConfirmation" xml:space="preserve"><value>Eemaldada see kontakt teenusepakkujalt? Jagatud kontaktikirje jaab ettevottele alles.</value></data>
+  <data name="VendorContactAddedSuccessfully" xml:space="preserve"><value>Teenusepakkuja kontakt lisati edukalt.</value></data>
+  <data name="VendorContactUpdatedSuccessfully" xml:space="preserve"><value>Teenusepakkuja kontakt uuendati edukalt.</value></data>
+  <data name="VendorContactRemovedSuccessfully" xml:space="preserve"><value>Teenusepakkuja kontakt eemaldati edukalt.</value></data>
+  <data name="VendorPrimaryContactUpdatedSuccessfully" xml:space="preserve"><value>Peamine kontakt uuendati edukalt.</value></data>
+  <data name="VendorContactConfirmedSuccessfully" xml:space="preserve"><value>Teenusepakkuja kontakt kinnitati edukalt.</value></data>
+  <data name="VendorContactUnconfirmedSuccessfully" xml:space="preserve"><value>Teenusepakkuja kontakti kinnitus eemaldati edukalt.</value></data>
+  <data name="UnableToRemoveVendorContact" xml:space="preserve"><value>Teenusepakkuja kontakti ei saanud eemaldada.</value></data>
+  <data name="UnableToUpdateVendorContact" xml:space="preserve"><value>Teenusepakkuja kontakti ei saanud uuendada.</value></data>
+  <data name="VendorContactWasNotFound" xml:space="preserve"><value>Teenusepakkuja kontakti ei leitud.</value></data>
+  <data name="VendorContactAlreadyLinked" xml:space="preserve"><value>See kontakt on teenusepakkujaga juba seotud.</value></data>
+  <data name="ValidToCannotBeBeforeValidFrom" xml:space="preserve"><value>Kehtivuse lopp ei saa olla enne algust.</value></data>
+  <data name="ContactRequired" xml:space="preserve"><value>Kontakt on kohustuslik.</value></data>
+  <data name="ContactTypeRequired" xml:space="preserve"><value>Kontakti tuup on kohustuslik.</value></data>
+  <data name="ContactValueRequired" xml:space="preserve"><value>Kontakti vaartus on kohustuslik.</value></data>
+  <data name="InvalidContact" xml:space="preserve"><value>Valitud kontakt ei sobi.</value></data>
+  <data name="MaxLengthExceeded" xml:space="preserve"><value>Vaartus on liiga pikk.</value></data>
   <data name="TicketVendorDoesNotSupportCategory" xml:space="preserve"><value>Valitud teenusepakkuja ei ole selle pileti kategooriaga seotud.</value></data>
 </root>

@@ -59,6 +59,9 @@ public interface ILookupRepository
         Guid contactTypeId,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<LookupDalDto>> AllContactTypesAsync(
+        CancellationToken cancellationToken = default);
+
     Task<TicketOptionDalDto?> FindTicketStatusByCodeAsync(
         string code,
         CancellationToken cancellationToken = default);

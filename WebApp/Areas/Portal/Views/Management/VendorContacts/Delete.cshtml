@@ -1,0 +1,41 @@
+@model WebApp.ViewModels.Management.VendorContacts.VendorContactDeleteViewModel
+@using App.Resources.Views
+
+@functions {
+    private static string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@Model.VendorName</p>
+                <h2 class="mb-2">@T("RemoveVendorContact", "Remove vendor contact")</h2>
+                <p class="management-muted mb-0">@Model.ContactLabel</p>
+            </div>
+            <a asp-action="Index"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-vendorId="@Model.VendorId"
+               class="btn btn-outline-secondary">@T("BackToVendorContacts", "Back to contacts")</a>
+        </div>
+    </section>
+
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <h2>@UiText.DeleteConfirmation</h2>
+        <p>@T("RemoveVendorContactConfirmation", "Remove this contact from the vendor? The shared contact record remains available for the company.")</p>
+        <form method="post"
+              asp-action="Delete"
+              asp-route-companySlug="@Model.CompanySlug"
+              asp-route-vendorId="@Model.VendorId"
+              asp-route-vendorContactId="@Model.VendorContactId"
+              class="d-flex gap-2">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger">@UiText.Delete</button>
+            <a asp-action="Index"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-vendorId="@Model.VendorId"
+               class="btn btn-outline-secondary">@UiText.Cancel</a>
+        </form>
+    </section>
+</div>
+

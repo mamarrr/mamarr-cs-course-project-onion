@@ -73,7 +73,11 @@
                asp-route-companySlug="@Model.CompanySlug"
                asp-route-vendorId="@Model.VendorId"
                class="btn btn-outline-secondary">@T("ViewVendorTickets", "View tickets")</a>
-            <span class="management-muted">@T("VendorContactsComingLater", "Contacts are handled in an upcoming workflow page.")</span>
+            <a asp-controller="VendorContacts"
+               asp-action="Index"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-vendorId="@Model.VendorId"
+               class="btn btn-outline-secondary">@T("ManageContacts", "Manage contacts")</a>
         </div>
     </section>
 </div>

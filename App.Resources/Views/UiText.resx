@@ -156,6 +156,7 @@
   <data name="ResidentSectionPlaceholder" xml:space="preserve"><value>{0} content is planned and will be added in a later increment.</value></data>
   <data name="Representations" xml:space="preserve"><value>Representations</value></data>
   <data name="Contacts" xml:space="preserve"><value>Contacts</value></data>
+  <data name="Contact" xml:space="preserve"><value>Contact</value></data>
   <data name="NoValuePlaceholder" xml:space="preserve"><value>—</value></data>
   <data name="CustomerDashboardIntro" xml:space="preserve"><value>Customer workspace for {0} in company {1}.</value></data>
   <data name="CustomerSectionPlaceholder" xml:space="preserve"><value>{0} content is planned and will be added in a later increment.</value></data>
@@ -422,5 +423,38 @@
   <data name="RemoveVendorCategoryConfirmation" xml:space="preserve"><value>Remove this category assignment?</value></data>
   <data name="VendorCategoryAlreadyAssigned" xml:space="preserve"><value>This category is already assigned to the vendor.</value></data>
   <data name="VendorCategoryAssignmentWasNotFound" xml:space="preserve"><value>Vendor category assignment was not found.</value></data>
+  <data name="VendorContacts" xml:space="preserve"><value>Vendor contacts</value></data>
+  <data name="ManageContacts" xml:space="preserve"><value>Manage contacts</value></data>
+  <data name="AttachExistingContact" xml:space="preserve"><value>Attach existing contact</value></data>
+  <data name="AttachContact" xml:space="preserve"><value>Attach contact</value></data>
+  <data name="CreateAndAttachContact" xml:space="preserve"><value>Create and attach contact</value></data>
+  <data name="SelectContact" xml:space="preserve"><value>Select contact</value></data>
+  <data name="SelectContactType" xml:space="preserve"><value>Select contact type</value></data>
+  <data name="CurrentVendorContacts" xml:space="preserve"><value>Current contacts</value></data>
+  <data name="NoVendorContacts" xml:space="preserve"><value>No contacts are linked yet.</value></data>
+  <data name="Primary" xml:space="preserve"><value>Primary</value></data>
+  <data name="SetPrimary" xml:space="preserve"><value>Set primary</value></data>
+  <data name="Confirm" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Unconfirm" xml:space="preserve"><value>Unconfirm</value></data>
+  <data name="EditVendorContact" xml:space="preserve"><value>Edit vendor contact</value></data>
+  <data name="RemoveVendorContact" xml:space="preserve"><value>Remove vendor contact</value></data>
+  <data name="BackToVendorContacts" xml:space="preserve"><value>Back to contacts</value></data>
+  <data name="RemoveVendorContactConfirmation" xml:space="preserve"><value>Remove this contact from the vendor? The shared contact record remains available for the company.</value></data>
+  <data name="VendorContactAddedSuccessfully" xml:space="preserve"><value>Vendor contact added successfully.</value></data>
+  <data name="VendorContactUpdatedSuccessfully" xml:space="preserve"><value>Vendor contact updated successfully.</value></data>
+  <data name="VendorContactRemovedSuccessfully" xml:space="preserve"><value>Vendor contact removed successfully.</value></data>
+  <data name="VendorPrimaryContactUpdatedSuccessfully" xml:space="preserve"><value>Primary contact updated successfully.</value></data>
+  <data name="VendorContactConfirmedSuccessfully" xml:space="preserve"><value>Vendor contact confirmed successfully.</value></data>
+  <data name="VendorContactUnconfirmedSuccessfully" xml:space="preserve"><value>Vendor contact unconfirmed successfully.</value></data>
+  <data name="UnableToRemoveVendorContact" xml:space="preserve"><value>Unable to remove vendor contact.</value></data>
+  <data name="UnableToUpdateVendorContact" xml:space="preserve"><value>Unable to update vendor contact.</value></data>
+  <data name="VendorContactWasNotFound" xml:space="preserve"><value>Vendor contact was not found.</value></data>
+  <data name="VendorContactAlreadyLinked" xml:space="preserve"><value>This contact is already linked to the vendor.</value></data>
+  <data name="ValidToCannotBeBeforeValidFrom" xml:space="preserve"><value>Valid to cannot be before valid from.</value></data>
+  <data name="ContactRequired" xml:space="preserve"><value>Contact is required.</value></data>
+  <data name="ContactTypeRequired" xml:space="preserve"><value>Contact type is required.</value></data>
+  <data name="ContactValueRequired" xml:space="preserve"><value>Contact value is required.</value></data>
+  <data name="InvalidContact" xml:space="preserve"><value>Selected contact is invalid.</value></data>
+  <data name="MaxLengthExceeded" xml:space="preserve"><value>Value is too long.</value></data>
   <data name="TicketVendorDoesNotSupportCategory" xml:space="preserve"><value>Selected vendor is not assigned to this ticket category.</value></data>
 </root>
