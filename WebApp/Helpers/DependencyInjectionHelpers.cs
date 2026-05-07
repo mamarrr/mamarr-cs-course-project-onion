@@ -66,6 +66,8 @@ public static class DependencyInjectionHelpers
         services.AddScoped<IResidentService, ResidentService>();
         services.AddScoped<IUnitService, UnitService>();
         services.AddScoped<ILeaseService, LeaseService>();
+        services.AddScoped<IScheduledWorkService, ScheduledWorkService>();
+        services.AddScoped<IWorkLogService, WorkLogService>();
         services.AddScoped<ITicketService, TicketService>();
         services.AddScoped<IContactService, ContactService>();
 

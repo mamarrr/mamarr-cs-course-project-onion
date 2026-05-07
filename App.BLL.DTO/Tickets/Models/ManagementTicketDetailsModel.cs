@@ -28,6 +28,8 @@ public class ManagementTicketDetailsModel
     public DateTime? ClosedAt { get; init; }
     public string? NextStatusCode { get; init; }
     public string? NextStatusLabel { get; init; }
+    public bool CanAdvanceStatus { get; init; }
+    public IReadOnlyList<string> TransitionBlockingReasons { get; init; } = Array.Empty<string>();
     public IReadOnlyList<ScheduledWorkListItemModel> ScheduledWork { get; init; } =
         Array.Empty<ScheduledWorkListItemModel>();
 }

@@ -48,6 +48,10 @@ public interface ITicketService : IBaseService<TicketBllDto>
         TicketRoute route,
         CancellationToken cancellationToken = default);
 
+    Task<Result<TicketTransitionAvailabilityModel>> GetTransitionAvailabilityAsync(
+        TicketRoute route,
+        CancellationToken cancellationToken = default);
+
     Task<Result<TicketBllDto>> AdvanceStatusAsync(
         TicketRoute route,
         CancellationToken cancellationToken = default);

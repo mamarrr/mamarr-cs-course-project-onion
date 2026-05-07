@@ -254,8 +254,9 @@ public class TicketsController : Controller
                 return ToMvcErrorResult(result.Errors);
             }
 
-            TempData["ManagementTicketsError"] = result.Errors.FirstOrDefault()?.Message
-                                                 ?? T("UnableToAdvanceTicketStatus", "Unable to advance ticket status.");
+            TempData["ManagementTicketsError"] = result.Errors.Count > 0
+                ? string.Join(" ", result.Errors.Select(error => error.Message))
+                : T("UnableToAdvanceTicketStatus", "Unable to advance ticket status.");
             return RedirectToAction(nameof(Details), new { companySlug, ticketId });
         }
 
@@ -534,6 +535,8 @@ public class TicketsController : Controller
             ClosedAt = model.ClosedAt,
             NextStatusCode = model.NextStatusCode,
             NextStatusLabel = model.NextStatusLabel,
+            CanAdvanceStatus = model.CanAdvanceStatus,
+            TransitionBlockingReasons = model.TransitionBlockingReasons,
             ScheduledWork = model.ScheduledWork.Select(ToScheduledWorkItem).ToList()
         };
     }

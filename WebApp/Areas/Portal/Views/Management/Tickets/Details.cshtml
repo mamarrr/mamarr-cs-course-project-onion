@@ -28,7 +28,7 @@
                 </div>
             </div>
             <div class="d-flex gap-2">
-                @if (!string.IsNullOrWhiteSpace(Model.NextStatusLabel))
+                @if (!string.IsNullOrWhiteSpace(Model.NextStatusLabel) && Model.CanAdvanceStatus)
                 {
                     <form method="post"
                           asp-action="AdvanceStatus"
@@ -46,6 +46,18 @@
                    asp-route-ticketId="@Model.TicketId">@UiText.Edit</a>
             </div>
         </div>
+        @if (!Model.CanAdvanceStatus && Model.TransitionBlockingReasons.Count > 0)
+        {
+            <div class="alert alert-warning mt-3 mb-0" role="alert">
+                <strong>@T("TicketTransitionBlocked", "Status advancement is blocked.")</strong>
+                <ul class="mb-0">
+                    @foreach (var reason in Model.TransitionBlockingReasons)
+                    {
+                        <li>@reason</li>
+                    }
+                </ul>
+            </div>
+        }
     </section>
 
     <section class="management-card">
@@ -185,6 +197,12 @@
                                    asp-route-companySlug="@Model.CompanySlug"
                                    asp-route-ticketId="@Model.TicketId"
                                    asp-route-scheduledWorkId="@work.ScheduledWorkId">@UiText.Details</a>
+                                <a class="btn btn-sm btn-outline-secondary"
+                                   asp-controller="WorkLogs"
+                                   asp-action="Index"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-ticketId="@Model.TicketId"
+                                   asp-route-scheduledWorkId="@work.ScheduledWorkId">@T("WorkLogs", "Work logs")</a>
                             </td>
                         </tr>
                     }

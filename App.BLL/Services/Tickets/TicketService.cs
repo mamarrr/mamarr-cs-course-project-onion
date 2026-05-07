@@ -1,6 +1,5 @@
 using App.BLL.Contracts.Common;
 using App.BLL.Contracts.Common.Deletion;
-using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Tickets;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Common;
@@ -12,14 +11,11 @@ using App.BLL.DTO.Tickets;
 using App.BLL.DTO.Tickets.Models;
 using App.BLL.DTO.WorkLogs;
 using App.BLL.DTO.WorkLogs.Models;
-using App.BLL.Mappers.ScheduledWorks;
 using App.BLL.Mappers.Tickets;
-using App.BLL.Mappers.WorkLogs;
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
 using App.DAL.DTO.ScheduledWorks;
 using App.DAL.DTO.Tickets;
-using App.DAL.DTO.WorkLogs;
 using Base.BLL;
 using FluentResults;
 
@@ -59,28 +55,33 @@ public class TicketService :
         "FINANCE"
     };
 
-    private readonly ICustomerService _customerService;
     private readonly IAppUOW _uow;
     private readonly IAppDeleteGuard _deleteGuard;
-    private readonly ScheduledWorkBllDtoMapper _scheduledWorkMapper = new();
-    private readonly WorkLogBllDtoMapper _workLogMapper = new();
+    private readonly IScheduledWorkService _scheduledWorkService;
+    private readonly IWorkLogService _workLogService;
 
     public TicketService(
-        ICustomerService customerService,
         IAppUOW uow,
-        IAppDeleteGuard deleteGuard)
+        IAppDeleteGuard deleteGuard,
+        IScheduledWorkService scheduledWorkService,
+        IWorkLogService workLogService)
         : base(uow.Tickets, uow, new TicketBllDtoMapper())
     {
-        _customerService = customerService;
         _uow = uow;
         _deleteGuard = deleteGuard;
+        _scheduledWorkService = scheduledWorkService;
+        _workLogService = workLogService;
     }
 
     public async Task<Result<ManagementTicketsModel>> SearchAsync(
         ManagementTicketSearchRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            WriteAllowedRoleCodes,
+            cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -124,7 +125,11 @@ public class TicketService :
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            ReadAllowedRoleCodes,
+            cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -140,11 +145,10 @@ public class TicketService :
             return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
         }
 
-        var nextStatusCode = GetNextStatusCode(ticket.StatusCode);
-        var statuses = nextStatusCode is null
-            ? Array.Empty<TicketOptionModel>()
-            : await GetStatusesAsync(cancellationToken);
-        var nextStatus = statuses.FirstOrDefault(status => status.Code == nextStatusCode);
+        var availability = await BuildTransitionAvailabilityAsync(
+            ticket,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
         var scheduledWork = await _uow.ScheduledWorks.AllByTicketAsync(
             route.TicketId,
             workspace.Value.ManagementCompanyId,
@@ -174,8 +178,10 @@ public class TicketService :
             CreatedAt = ticket.CreatedAt,
             DueAt = ticket.DueAt,
             ClosedAt = ticket.ClosedAt,
-            NextStatusCode = nextStatus?.Code,
-            NextStatusLabel = nextStatus?.Label,
+            NextStatusCode = availability.NextStatusCode,
+            NextStatusLabel = availability.NextStatusLabel,
+            CanAdvanceStatus = availability.CanAdvance,
+            TransitionBlockingReasons = availability.BlockingReasons,
             ScheduledWork = scheduledWork.Select(MapScheduledWorkListItem).ToList()
         });
     }
@@ -184,7 +190,11 @@ public class TicketService :
         TicketSelectorOptionsRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            WriteAllowedRoleCodes,
+            cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -222,7 +232,11 @@ public class TicketService :
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            WriteAllowedRoleCodes,
+            cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -269,7 +283,11 @@ public class TicketService :
         TicketSelectorOptionsRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            WriteAllowedRoleCodes,
+            cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -295,7 +313,11 @@ public class TicketService :
             return Result.Fail<TicketBllDto>(validation.Errors);
         }
 
-        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            WriteAllowedRoleCodes,
+            cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail<TicketBllDto>(workspace.Errors);
@@ -360,7 +382,11 @@ public class TicketService :
             return Result.Fail<TicketBllDto>(validation.Errors);
         }
 
-        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            WriteAllowedRoleCodes,
+            cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail<TicketBllDto>(workspace.Errors);
@@ -449,7 +475,11 @@ public class TicketService :
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            DeleteAllowedRoleCodes,
+            cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -483,11 +513,44 @@ public class TicketService :
         return Result.Ok();
     }
 
+    public async Task<Result<TicketTransitionAvailabilityModel>> GetTransitionAvailabilityAsync(
+        TicketRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var workspace = await ResolveCompanyWorkspaceAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            ReadAllowedRoleCodes,
+            cancellationToken);
+        if (workspace.IsFailed)
+        {
+            return Result.Fail<TicketTransitionAvailabilityModel>(workspace.Errors);
+        }
+
+        var ticket = await _uow.Tickets.FindDetailsAsync(
+            route.TicketId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+        if (ticket is null)
+        {
+            return Result.Fail<TicketTransitionAvailabilityModel>(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
+        }
+
+        return Result.Ok(await BuildTransitionAvailabilityAsync(
+            ticket,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken));
+    }
+
     public async Task<Result<TicketBllDto>> AdvanceStatusAsync(
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            WriteAllowedRoleCodes,
+            cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail<TicketBllDto>(workspace.Errors);
@@ -509,102 +572,28 @@ public class TicketService :
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyWorkspaceAsync(
-            route.AppUserId,
-            route.CompanySlug,
-            ReadAllowedRoleCodes,
-            cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkListModel>(workspace.Errors);
-        }
-
-        var ticket = await _uow.Tickets.FindDetailsAsync(
-            route.TicketId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-        if (ticket is null)
-        {
-            return Result.Fail<ScheduledWorkListModel>(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
-        }
-
-        var work = await _uow.ScheduledWorks.AllByTicketAsync(
-            route.TicketId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-
-        return Result.Ok(new ScheduledWorkListModel
-        {
-            CompanySlug = workspace.Value.CompanySlug,
-            CompanyName = workspace.Value.CompanyName,
-            TicketId = ticket.Id,
-            TicketNr = ticket.TicketNr,
-            TicketTitle = ticket.Title,
-            Items = work.Select(MapScheduledWorkListItem).ToList()
-        });
+        return await _scheduledWorkService.ListForTicketAsync(route, cancellationToken);
     }
 
     public async Task<Result<ScheduledWorkDetailsModel>> GetScheduledWorkDetailsAsync(
         ScheduledWorkRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyWorkspaceAsync(
-            route.AppUserId,
-            route.CompanySlug,
-            ReadAllowedRoleCodes,
-            cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkDetailsModel>(workspace.Errors);
-        }
-
-        var details = await _uow.ScheduledWorks.FindDetailsAsync(
-            route.ScheduledWorkId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-        if (details is null || details.TicketId != route.TicketId)
-        {
-            return Result.Fail<ScheduledWorkDetailsModel>(new NotFoundError(T("ScheduledWorkNotFound", "Scheduled work was not found.")));
-        }
-
-        return Result.Ok(MapScheduledWorkDetails(details));
+        return await _scheduledWorkService.GetDetailsAsync(route, cancellationToken);
     }
 
     public async Task<Result<ScheduledWorkFormModel>> GetScheduleCreateFormAsync(
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveTicketForScheduledWorkAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkFormModel>(context.Errors);
-        }
-
-        var plannedStatus = await FindWorkStatusByCodeAsync(WorkWorkflowConstants.Scheduled, cancellationToken);
-        return Result.Ok(await BuildScheduledWorkFormAsync(
-            context.Value.Workspace,
-            context.Value.Ticket,
-            null,
-            plannedStatus?.Id ?? Guid.Empty,
-            cancellationToken));
+        return await _scheduledWorkService.GetCreateFormAsync(route, cancellationToken);
     }
 
     public async Task<Result<ScheduledWorkFormModel>> GetScheduleEditFormAsync(
         ScheduledWorkRoute route,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveScheduledWorkContextAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkFormModel>(context.Errors);
-        }
-
-        return Result.Ok(await BuildScheduledWorkFormAsync(
-            context.Value.Workspace,
-            context.Value.Ticket,
-            context.Value.ScheduledWork,
-            context.Value.ScheduledWork.WorkStatusId,
-            cancellationToken));
+        return await _scheduledWorkService.GetEditFormAsync(route, cancellationToken);
     }
 
     public async Task<Result<ScheduledWorkBllDto>> ScheduleWorkAsync(
@@ -612,85 +601,7 @@ public class TicketService :
         ScheduledWorkBllDto dto,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveTicketForScheduledWorkAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkBllDto>(context.Errors);
-        }
-
-        var scheduleState = ValidateTicketStatusForWorkAction(
-            context.Value.Ticket.StatusCode,
-            TicketWorkflowConstants.Assigned,
-            TicketWorkflowConstants.Completed,
-            T("TicketMustBeAssignedBeforeSchedulingWork", "Assign the ticket before scheduling work."));
-        if (scheduleState.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkBllDto>(scheduleState.Errors);
-        }
-
-        var validation = await ValidateScheduledWorkAsync(
-            dto,
-            context.Value.Workspace.ManagementCompanyId,
-            route.TicketId,
-            cancellationToken);
-        if (validation.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkBllDto>(validation.Errors);
-        }
-
-        var plannedStatus = await FindWorkStatusByCodeAsync(WorkWorkflowConstants.Scheduled, cancellationToken);
-        if (plannedStatus is null)
-        {
-            return Result.Fail<ScheduledWorkBllDto>(new BusinessRuleError(T("ScheduledWorkStatusMissing", "Scheduled work status is not configured.")));
-        }
-
-        var normalized = NormalizeScheduledWork(dto);
-        normalized.Id = Guid.Empty;
-        normalized.TicketId = route.TicketId;
-        normalized.WorkStatusId = plannedStatus.Id;
-
-        var dalDto = _scheduledWorkMapper.Map(normalized);
-        if (dalDto is null)
-        {
-            return Result.Fail<ScheduledWorkBllDto>("Scheduled work mapping failed.");
-        }
-
-        Guid id;
-        await _uow.BeginTransactionAsync(cancellationToken);
-        try
-        {
-            id = _uow.ScheduledWorks.Add(dalDto);
-
-            var ticketStatusUpdate = await StageTicketStatusIfImmediateNextAsync(
-                context.Value.Ticket,
-                TicketWorkflowConstants.Scheduled,
-                context.Value.Workspace.ManagementCompanyId,
-                cancellationToken);
-            if (ticketStatusUpdate.IsFailed)
-            {
-                await _uow.RollbackTransactionAsync(cancellationToken);
-                return Result.Fail<ScheduledWorkBllDto>(ticketStatusUpdate.Errors);
-            }
-
-            await _uow.SaveChangesAsync(cancellationToken);
-            await _uow.CommitTransactionAsync(cancellationToken);
-        }
-        catch
-        {
-            await _uow.RollbackTransactionAsync(cancellationToken);
-            return Result.Fail<ScheduledWorkBllDto>(new ConflictError(T(
-                "ScheduledWorkCreateFailed",
-                "Failed to schedule work due to a data conflict.")));
-        }
-
-        var created = await _uow.ScheduledWorks.FindInCompanyAsync(
-            id,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-
-        return created is null
-            ? Result.Fail<ScheduledWorkBllDto>(new NotFoundError(T("ScheduledWorkNotFound", "Scheduled work was not found.")))
-            : Result.Ok(_scheduledWorkMapper.Map(created)!);
+        return await _scheduledWorkService.ScheduleAsync(route, dto, cancellationToken);
     }
 
     public async Task<Result<ScheduledWorkBllDto>> UpdateScheduleAsync(
@@ -698,39 +609,7 @@ public class TicketService :
         ScheduledWorkBllDto dto,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveScheduledWorkContextAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkBllDto>(context.Errors);
-        }
-
-        var validation = await ValidateScheduledWorkAsync(
-            dto,
-            context.Value.Workspace.ManagementCompanyId,
-            route.TicketId,
-            cancellationToken);
-        if (validation.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkBllDto>(validation.Errors);
-        }
-
-        var normalized = NormalizeScheduledWork(dto);
-        normalized.Id = route.ScheduledWorkId;
-        normalized.TicketId = route.TicketId;
-
-        var dalDto = _scheduledWorkMapper.Map(normalized);
-        if (dalDto is null)
-        {
-            return Result.Fail<ScheduledWorkBllDto>("Scheduled work mapping failed.");
-        }
-
-        var updated = await _uow.ScheduledWorks.UpdateAsync(
-            dalDto,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-
-        await _uow.SaveChangesAsync(cancellationToken);
-        return Result.Ok(_scheduledWorkMapper.Map(updated)!);
+        return await _scheduledWorkService.UpdateScheduleAsync(route, dto, cancellationToken);
     }
 
     public async Task<Result> StartWorkAsync(
@@ -738,71 +617,7 @@ public class TicketService :
         DateTime realStart,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveScheduledWorkContextAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail(context.Errors);
-        }
-
-        var startState = ValidateTicketStatusForWorkAction(
-            context.Value.Ticket.StatusCode,
-            TicketWorkflowConstants.Scheduled,
-            TicketWorkflowConstants.Completed,
-            T("TicketMustBeScheduledBeforeStartingWork", "Move the ticket to scheduled before starting work."));
-        if (startState.IsFailed)
-        {
-            return Result.Fail(startState.Errors);
-        }
-
-        if (realStart == default)
-        {
-            return Result.Fail(new ValidationAppError("Validation failed.", [
-                Failure(nameof(ScheduledWorkBllDto.RealStart), T("RealStartRequired", "Actual start is required."))
-            ]));
-        }
-
-        var inProgressStatus = await FindWorkStatusByCodeAsync(WorkWorkflowConstants.InProgress, cancellationToken);
-        if (inProgressStatus is null)
-        {
-            return Result.Fail(new BusinessRuleError(T("WorkInProgressStatusMissing", "In-progress work status is not configured.")));
-        }
-
-        var dto = context.Value.ScheduledWork;
-        dto.RealStart = realStart;
-        dto.RealEnd = null;
-        dto.WorkStatusId = inProgressStatus.Id;
-
-        await _uow.BeginTransactionAsync(cancellationToken);
-        try
-        {
-            await _uow.ScheduledWorks.UpdateAsync(
-                dto,
-                context.Value.Workspace.ManagementCompanyId,
-                cancellationToken);
-
-            var ticketStatusUpdate = await StageTicketStatusIfImmediateNextAsync(
-                context.Value.Ticket,
-                TicketWorkflowConstants.InProgress,
-                context.Value.Workspace.ManagementCompanyId,
-                cancellationToken);
-            if (ticketStatusUpdate.IsFailed)
-            {
-                await _uow.RollbackTransactionAsync(cancellationToken);
-                return Result.Fail(ticketStatusUpdate.Errors);
-            }
-
-            await _uow.SaveChangesAsync(cancellationToken);
-            await _uow.CommitTransactionAsync(cancellationToken);
-        }
-        catch
-        {
-            await _uow.RollbackTransactionAsync(cancellationToken);
-            return Result.Fail(new ConflictError(T(
-                "ScheduledWorkStartFailed",
-                "Failed to start scheduled work due to a data conflict.")));
-        }
-
-        return Result.Ok();
+        return await _scheduledWorkService.StartWorkAsync(route, realStart, cancellationToken);
     }
 
     public async Task<Result> CompleteWorkAsync(
@@ -810,238 +625,49 @@ public class TicketService :
         DateTime realEnd,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveScheduledWorkContextAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail(context.Errors);
-        }
-
-        var completeState = ValidateTicketStatusForWorkAction(
-            context.Value.Ticket.StatusCode,
-            TicketWorkflowConstants.InProgress,
-            TicketWorkflowConstants.Closed,
-            T("TicketMustBeInProgressBeforeCompletingWork", "Move the ticket to in progress before completing work."));
-        if (completeState.IsFailed)
-        {
-            return Result.Fail(completeState.Errors);
-        }
-
-        if (realEnd == default)
-        {
-            return Result.Fail(new ValidationAppError("Validation failed.", [
-                Failure(nameof(ScheduledWorkBllDto.RealEnd), T("RealEndRequired", "Actual end is required."))
-            ]));
-        }
-
-        var dto = context.Value.ScheduledWork;
-        if (!dto.RealStart.HasValue)
-        {
-            return Result.Fail(new BusinessRuleError(T("ScheduledWorkMustStartBeforeComplete", "Scheduled work must be started before it can be completed.")));
-        }
-
-        if (realEnd < dto.RealStart.Value)
-        {
-            return Result.Fail(new ValidationAppError("Validation failed.", [
-                Failure(nameof(ScheduledWorkBllDto.RealEnd), T("RealEndCannotBeBeforeRealStart", "Actual end cannot be before actual start."))
-            ]));
-        }
-
-        var completedStatus = await FindWorkStatusByCodeAsync(WorkWorkflowConstants.Done, cancellationToken);
-        if (completedStatus is null)
-        {
-            return Result.Fail(new BusinessRuleError(T("WorkCompletedStatusMissing", "Completed work status is not configured.")));
-        }
-
-        dto.RealEnd = realEnd;
-        dto.WorkStatusId = completedStatus.Id;
-
-        await _uow.ScheduledWorks.UpdateAsync(
-            dto,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
-
-        return Result.Ok();
+        return await _scheduledWorkService.CompleteWorkAsync(route, realEnd, cancellationToken);
     }
 
     public async Task<Result> CancelWorkAsync(
         ScheduledWorkRoute route,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveScheduledWorkContextAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail(context.Errors);
-        }
-
-        var cancelledStatus = await FindWorkStatusByCodeAsync(WorkWorkflowConstants.Cancelled, cancellationToken);
-        if (cancelledStatus is null)
-        {
-            return Result.Fail(new BusinessRuleError(T("WorkCancelledStatusMissing", "Cancelled work status is not configured.")));
-        }
-
-        var dto = context.Value.ScheduledWork;
-        dto.WorkStatusId = cancelledStatus.Id;
-
-        await _uow.ScheduledWorks.UpdateAsync(
-            dto,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
-        return Result.Ok();
+        return await _scheduledWorkService.CancelWorkAsync(route, cancellationToken);
     }
 
     public async Task<Result> DeleteScheduledWorkAsync(
         ScheduledWorkRoute route,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveScheduledWorkContextAsync(route, DeleteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail(context.Errors);
-        }
-
-        var hasLogs = await _uow.ScheduledWorks.HasWorkLogsAsync(
-            route.ScheduledWorkId,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-        if (hasLogs)
-        {
-            return Result.Fail(new BusinessRuleError(T("ScheduledWorkDeleteBlockedByLogs", "Scheduled work cannot be deleted while work logs exist.")));
-        }
-
-        var deleted = await _uow.ScheduledWorks.DeleteInCompanyAsync(
-            route.ScheduledWorkId,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-        if (!deleted)
-        {
-            return Result.Fail(new NotFoundError(T("ScheduledWorkNotFound", "Scheduled work was not found.")));
-        }
-
-        await _uow.SaveChangesAsync(cancellationToken);
-        return Result.Ok();
+        return await _scheduledWorkService.DeleteAsync(route, cancellationToken);
     }
 
     public async Task<Result<WorkLogListModel>> ListWorkLogsForScheduledWorkAsync(
         ScheduledWorkRoute route,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveScheduledWorkContextAsync(route, ReadAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail<WorkLogListModel>(context.Errors);
-        }
-
-        var details = await _uow.ScheduledWorks.FindDetailsAsync(
-            route.ScheduledWorkId,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-        if (details is null || details.TicketId != route.TicketId)
-        {
-            return Result.Fail<WorkLogListModel>(new NotFoundError(T("ScheduledWorkNotFound", "Scheduled work was not found.")));
-        }
-
-        var items = await _uow.WorkLogs.AllByScheduledWorkAsync(
-            route.ScheduledWorkId,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-        var totals = await _uow.WorkLogs.TotalsForScheduledWorkAsync(
-            route.ScheduledWorkId,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-        var canViewCosts = CostVisibleRoleCodes.Contains(context.Value.Workspace.RoleCode ?? string.Empty);
-
-        return Result.Ok(new WorkLogListModel
-        {
-            CompanySlug = context.Value.Workspace.CompanySlug,
-            CompanyName = context.Value.Workspace.CompanyName,
-            TicketId = details.TicketId,
-            TicketNr = details.TicketNr,
-            TicketTitle = details.TicketTitle,
-            ScheduledWorkId = details.Id,
-            VendorName = details.VendorName,
-            WorkStatusLabel = details.WorkStatusLabel,
-            CanViewCosts = canViewCosts,
-            Totals = MapWorkLogTotals(totals, canViewCosts),
-            Items = items.Select(item => MapWorkLogListItem(item, canViewCosts)).ToList()
-        });
+        return await _workLogService.ListForScheduledWorkAsync(route, cancellationToken);
     }
 
     public async Task<Result<WorkLogFormModel>> GetWorkLogCreateFormAsync(
         ScheduledWorkRoute route,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveScheduledWorkContextAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail<WorkLogFormModel>(context.Errors);
-        }
-
-        var closedGuard = ValidateTicketNotClosedForWorkLogMutation(context.Value.Ticket);
-        if (closedGuard.IsFailed)
-        {
-            return Result.Fail<WorkLogFormModel>(closedGuard.Errors);
-        }
-
-        return await BuildWorkLogFormAsync(context.Value, null, cancellationToken);
+        return await _workLogService.GetCreateFormAsync(route, cancellationToken);
     }
 
     public async Task<Result<WorkLogFormModel>> GetWorkLogEditFormAsync(
         WorkLogRoute route,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveWorkLogContextAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail<WorkLogFormModel>(context.Errors);
-        }
-
-        var closedGuard = ValidateTicketNotClosedForWorkLogMutation(context.Value.ScheduledContext.Ticket);
-        if (closedGuard.IsFailed)
-        {
-            return Result.Fail<WorkLogFormModel>(closedGuard.Errors);
-        }
-
-        return await BuildWorkLogFormAsync(context.Value.ScheduledContext, context.Value.WorkLog, cancellationToken);
+        return await _workLogService.GetEditFormAsync(route, cancellationToken);
     }
 
     public async Task<Result<WorkLogDeleteModel>> GetWorkLogDeleteModelAsync(
         WorkLogRoute route,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveWorkLogContextAsync(route, DeleteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail<WorkLogDeleteModel>(context.Errors);
-        }
-
-        var closedGuard = ValidateTicketNotClosedForWorkLogMutation(context.Value.ScheduledContext.Ticket);
-        if (closedGuard.IsFailed)
-        {
-            return Result.Fail<WorkLogDeleteModel>(closedGuard.Errors);
-        }
-
-        var details = await _uow.ScheduledWorks.FindDetailsAsync(
-            route.ScheduledWorkId,
-            context.Value.ScheduledContext.Workspace.ManagementCompanyId,
-            cancellationToken);
-        if (details is null)
-        {
-            return Result.Fail<WorkLogDeleteModel>(new NotFoundError(T("ScheduledWorkNotFound", "Scheduled work was not found.")));
-        }
-
-        return Result.Ok(new WorkLogDeleteModel
-        {
-            CompanySlug = context.Value.ScheduledContext.Workspace.CompanySlug,
-            CompanyName = context.Value.ScheduledContext.Workspace.CompanyName,
-            TicketId = details.TicketId,
-            TicketNr = details.TicketNr,
-            ScheduledWorkId = details.Id,
-            WorkLogId = context.Value.WorkLog.Id,
-            VendorName = details.VendorName,
-            Description = context.Value.WorkLog.Description
-        });
+        return await _workLogService.GetDeleteModelAsync(route, cancellationToken);
     }
 
     public async Task<Result<WorkLogBllDto>> AddWorkLogAsync(
@@ -1049,51 +675,7 @@ public class TicketService :
         WorkLogBllDto dto,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveScheduledWorkContextAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail<WorkLogBllDto>(context.Errors);
-        }
-
-        var closedGuard = ValidateTicketNotClosedForWorkLogMutation(context.Value.Ticket);
-        if (closedGuard.IsFailed)
-        {
-            return Result.Fail<WorkLogBllDto>(closedGuard.Errors);
-        }
-
-        var validation = ValidateWorkLog(dto);
-        if (validation.IsFailed)
-        {
-            return Result.Fail<WorkLogBllDto>(validation.Errors);
-        }
-
-        var normalized = NormalizeWorkLog(dto);
-        normalized.Id = Guid.Empty;
-        normalized.ScheduledWorkId = route.ScheduledWorkId;
-        normalized.AppUserId = route.AppUserId;
-        if (!CostVisibleRoleCodes.Contains(context.Value.Workspace.RoleCode ?? string.Empty))
-        {
-            normalized.MaterialCost = null;
-            normalized.LaborCost = null;
-        }
-
-        var dalDto = _workLogMapper.Map(normalized);
-        if (dalDto is null)
-        {
-            return Result.Fail<WorkLogBllDto>("Work log mapping failed.");
-        }
-
-        var id = _uow.WorkLogs.Add(dalDto);
-        await _uow.SaveChangesAsync(cancellationToken);
-
-        var created = await _uow.WorkLogs.FindInCompanyAsync(
-            id,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-
-        return created is null
-            ? Result.Fail<WorkLogBllDto>(new NotFoundError(T("WorkLogNotFound", "Work log was not found.")))
-            : Result.Ok(_workLogMapper.Map(created)!);
+        return await _workLogService.AddAsync(route, dto, cancellationToken);
     }
 
     public async Task<Result<WorkLogBllDto>> UpdateWorkLogAsync(
@@ -1101,76 +683,14 @@ public class TicketService :
         WorkLogBllDto dto,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveWorkLogContextAsync(route, WriteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail<WorkLogBllDto>(context.Errors);
-        }
-
-        var closedGuard = ValidateTicketNotClosedForWorkLogMutation(context.Value.ScheduledContext.Ticket);
-        if (closedGuard.IsFailed)
-        {
-            return Result.Fail<WorkLogBllDto>(closedGuard.Errors);
-        }
-
-        var validation = ValidateWorkLog(dto);
-        if (validation.IsFailed)
-        {
-            return Result.Fail<WorkLogBllDto>(validation.Errors);
-        }
-
-        var normalized = NormalizeWorkLog(dto);
-        normalized.Id = route.WorkLogId;
-        normalized.ScheduledWorkId = route.ScheduledWorkId;
-        normalized.AppUserId = context.Value.WorkLog.AppUserId;
-        if (!CostVisibleRoleCodes.Contains(context.Value.ScheduledContext.Workspace.RoleCode ?? string.Empty))
-        {
-            normalized.MaterialCost = context.Value.WorkLog.MaterialCost;
-            normalized.LaborCost = context.Value.WorkLog.LaborCost;
-        }
-
-        var dalDto = _workLogMapper.Map(normalized);
-        if (dalDto is null)
-        {
-            return Result.Fail<WorkLogBllDto>("Work log mapping failed.");
-        }
-
-        var updated = await _uow.WorkLogs.UpdateAsync(
-            dalDto,
-            context.Value.ScheduledContext.Workspace.ManagementCompanyId,
-            cancellationToken);
-
-        await _uow.SaveChangesAsync(cancellationToken);
-        return Result.Ok(_workLogMapper.Map(updated)!);
+        return await _workLogService.UpdateAsync(route, dto, cancellationToken);
     }
 
     public async Task<Result> DeleteWorkLogAsync(
         WorkLogRoute route,
         CancellationToken cancellationToken = default)
     {
-        var context = await ResolveWorkLogContextAsync(route, DeleteAllowedRoleCodes, cancellationToken);
-        if (context.IsFailed)
-        {
-            return Result.Fail(context.Errors);
-        }
-
-        var closedGuard = ValidateTicketNotClosedForWorkLogMutation(context.Value.ScheduledContext.Ticket);
-        if (closedGuard.IsFailed)
-        {
-            return Result.Fail(closedGuard.Errors);
-        }
-
-        var deleted = await _uow.WorkLogs.DeleteInCompanyAsync(
-            route.WorkLogId,
-            context.Value.ScheduledContext.Workspace.ManagementCompanyId,
-            cancellationToken);
-        if (!deleted)
-        {
-            return Result.Fail(new NotFoundError(T("WorkLogNotFound", "Work log was not found.")));
-        }
-
-        await _uow.SaveChangesAsync(cancellationToken);
-        return Result.Ok();
+        return await _workLogService.DeleteAsync(route, cancellationToken);
     }
 
     private async Task<Result> AdvanceStatusCoreAsync(
@@ -1194,14 +714,15 @@ public class TicketService :
             return Result.Fail(new BusinessRuleError(T("TicketAlreadyAtFinalStatus", "Ticket is already at the final status.")));
         }
 
-        var scheduledWorkGuard = await ValidateScheduledWorkTransitionPrerequisiteAsync(
-            ticket.Id,
+        var availability = await BuildTransitionAvailabilityAsync(
+            ticket,
             managementCompanyId,
-            nextStatusCode,
             cancellationToken);
-        if (scheduledWorkGuard.IsFailed)
+        if (!availability.CanAdvance)
         {
-            return Result.Fail(scheduledWorkGuard.Errors);
+            return Result.Fail(availability.BlockingReasons
+                .Select(reason => new BusinessRuleError(reason))
+                .ToList());
         }
 
         var nextStatus = await _uow.Lookups.FindTicketStatusByCodeAsync(nextStatusCode, cancellationToken);
@@ -1227,20 +748,6 @@ public class TicketService :
 
         await _uow.SaveChangesAsync(cancellationToken);
         return Result.Ok();
-    }
-
-    private async Task<Result<CompanyWorkspaceModel>> ResolveCompanyWorkspaceAsync(
-        Guid userId,
-        string companySlug,
-        CancellationToken cancellationToken)
-    {
-        return await _customerService.ResolveCompanyWorkspaceAsync(
-            new App.BLL.DTO.Common.Routes.ManagementCompanyRoute
-            {
-                AppUserId = userId,
-                CompanySlug = companySlug
-            },
-            cancellationToken);
     }
 
     private async Task<Result<CompanyWorkspaceModel>> ResolveCompanyWorkspaceAsync(
@@ -1284,357 +791,94 @@ public class TicketService :
         });
     }
 
-    private async Task<Result<ScheduledWorkTicketContext>> ResolveTicketForScheduledWorkAsync(
-        TicketRoute route,
-        ISet<string> allowedRoleCodes,
-        CancellationToken cancellationToken)
-    {
-        var workspace = await ResolveCompanyWorkspaceAsync(
-            route.AppUserId,
-            route.CompanySlug,
-            allowedRoleCodes,
-            cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkTicketContext>(workspace.Errors);
-        }
-
-        var ticket = await _uow.Tickets.FindDetailsAsync(
-            route.TicketId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-        if (ticket is null)
-        {
-            return Result.Fail<ScheduledWorkTicketContext>(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
-        }
-
-        return Result.Ok(new ScheduledWorkTicketContext(workspace.Value, ticket));
-    }
-
-    private async Task<Result<ScheduledWorkContext>> ResolveScheduledWorkContextAsync(
-        ScheduledWorkRoute route,
-        ISet<string> allowedRoleCodes,
-        CancellationToken cancellationToken)
-    {
-        var ticketContext = await ResolveTicketForScheduledWorkAsync(route, allowedRoleCodes, cancellationToken);
-        if (ticketContext.IsFailed)
-        {
-            return Result.Fail<ScheduledWorkContext>(ticketContext.Errors);
-        }
-
-        var scheduledWork = await _uow.ScheduledWorks.FindInCompanyAsync(
-            route.ScheduledWorkId,
-            ticketContext.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-        if (scheduledWork is null || scheduledWork.TicketId != route.TicketId)
-        {
-            return Result.Fail<ScheduledWorkContext>(new NotFoundError(T("ScheduledWorkNotFound", "Scheduled work was not found.")));
-        }
-
-        return Result.Ok(new ScheduledWorkContext(
-            ticketContext.Value.Workspace,
-            ticketContext.Value.Ticket,
-            scheduledWork));
-    }
-
-    private async Task<Result<WorkLogContext>> ResolveWorkLogContextAsync(
-        WorkLogRoute route,
-        ISet<string> allowedRoleCodes,
-        CancellationToken cancellationToken)
-    {
-        var scheduledContext = await ResolveScheduledWorkContextAsync(route, allowedRoleCodes, cancellationToken);
-        if (scheduledContext.IsFailed)
-        {
-            return Result.Fail<WorkLogContext>(scheduledContext.Errors);
-        }
-
-        var workLog = await _uow.WorkLogs.FindInCompanyAsync(
-            route.WorkLogId,
-            scheduledContext.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-        if (workLog is null || workLog.ScheduledWorkId != route.ScheduledWorkId)
-        {
-            return Result.Fail<WorkLogContext>(new NotFoundError(T("WorkLogNotFound", "Work log was not found.")));
-        }
-
-        return Result.Ok(new WorkLogContext(scheduledContext.Value, workLog));
-    }
-
-    private async Task<ScheduledWorkFormModel> BuildScheduledWorkFormAsync(
-        CompanyWorkspaceModel workspace,
+    private async Task<TicketTransitionAvailabilityModel> BuildTransitionAvailabilityAsync(
         TicketDetailsDalDto ticket,
-        ScheduledWorkDalDto? scheduledWork,
-        Guid workStatusId,
+        Guid managementCompanyId,
         CancellationToken cancellationToken)
     {
-        return new ScheduledWorkFormModel
+        var nextStatusCode = GetNextStatusCode(ticket.StatusCode);
+        if (nextStatusCode is null)
         {
-            CompanySlug = workspace.CompanySlug,
-            CompanyName = workspace.CompanyName,
+            return new TicketTransitionAvailabilityModel
+            {
+                TicketId = ticket.Id,
+                CurrentStatusCode = ticket.StatusCode,
+                CanAdvance = false,
+                BlockingReasons =
+                [
+                    T("TicketAlreadyAtFinalStatus", "Ticket is already at the final status.")
+                ]
+            };
+        }
+
+        var statuses = await GetStatusesAsync(cancellationToken);
+        var nextStatus = statuses.FirstOrDefault(status => status.Code == nextStatusCode);
+        var blockingReasons = await GetTransitionBlockingReasonsAsync(
+            ticket,
+            managementCompanyId,
+            nextStatusCode,
+            cancellationToken);
+
+        return new TicketTransitionAvailabilityModel
+        {
             TicketId = ticket.Id,
-            TicketNr = ticket.TicketNr,
-            TicketTitle = ticket.Title,
-            ScheduledWorkId = scheduledWork?.Id,
-            VendorId = scheduledWork?.VendorId ?? ticket.VendorId ?? Guid.Empty,
-            WorkStatusId = workStatusId,
-            ScheduledStart = scheduledWork?.ScheduledStart ?? DateTime.UtcNow,
-            ScheduledEnd = scheduledWork?.ScheduledEnd,
-            RealStart = scheduledWork?.RealStart,
-            RealEnd = scheduledWork?.RealEnd,
-            Notes = scheduledWork?.Notes,
-            Vendors = (await _uow.Vendors.OptionsForTicketAsync(
-                    workspace.ManagementCompanyId,
-                    ticket.TicketCategoryId,
-                    cancellationToken))
-                .Select(MapOption)
-                .ToList(),
-            WorkStatuses = (await _uow.Lookups.AllWorkStatusesAsync(cancellationToken))
-                .Select(MapOption)
-                .ToList()
+            CurrentStatusCode = ticket.StatusCode,
+            NextStatusCode = nextStatus?.Code ?? nextStatusCode,
+            NextStatusLabel = nextStatus?.Label,
+            CanAdvance = blockingReasons.Count == 0,
+            BlockingReasons = blockingReasons
         };
     }
 
-    private async Task<Result<WorkLogFormModel>> BuildWorkLogFormAsync(
-        ScheduledWorkContext context,
-        WorkLogDalDto? workLog,
-        CancellationToken cancellationToken)
-    {
-        var details = await _uow.ScheduledWorks.FindDetailsAsync(
-            context.ScheduledWork.Id,
-            context.Workspace.ManagementCompanyId,
-            cancellationToken);
-        if (details is null || details.TicketId != context.Ticket.Id)
-        {
-            return Result.Fail<WorkLogFormModel>(new NotFoundError(T("ScheduledWorkNotFound", "Scheduled work was not found.")));
-        }
-
-        return Result.Ok(new WorkLogFormModel
-        {
-            CompanySlug = context.Workspace.CompanySlug,
-            CompanyName = context.Workspace.CompanyName,
-            TicketId = context.Ticket.Id,
-            TicketNr = context.Ticket.TicketNr,
-            TicketTitle = context.Ticket.Title,
-            ScheduledWorkId = context.ScheduledWork.Id,
-            WorkLogId = workLog?.Id,
-            VendorName = details.VendorName,
-            CanViewCosts = CostVisibleRoleCodes.Contains(context.Workspace.RoleCode ?? string.Empty),
-            WorkStart = workLog?.WorkStart,
-            WorkEnd = workLog?.WorkEnd,
-            Hours = workLog?.Hours,
-            MaterialCost = workLog?.MaterialCost,
-            LaborCost = workLog?.LaborCost,
-            Description = workLog?.Description
-        });
-    }
-
-    private async Task<Result> ValidateScheduledWorkAsync(
-        ScheduledWorkBllDto dto,
-        Guid managementCompanyId,
-        Guid ticketId,
-        CancellationToken cancellationToken)
-    {
-        var failures = new List<ValidationFailureModel>();
-
-        if (dto.VendorId == Guid.Empty)
-        {
-            failures.Add(Failure(nameof(dto.VendorId), T("VendorRequired", "Vendor is required.")));
-        }
-        else if (!await _uow.ScheduledWorks.VendorBelongsToTicketCompanyAsync(
-                     dto.VendorId,
-                     ticketId,
-                     managementCompanyId,
-                     cancellationToken))
-        {
-            failures.Add(Failure(nameof(dto.VendorId), T("InvalidTicketVendor", "Selected vendor is invalid.")));
-        }
-        else if (!await _uow.ScheduledWorks.VendorSupportsTicketCategoryAsync(
-                     dto.VendorId,
-                     ticketId,
-                     cancellationToken))
-        {
-            failures.Add(Failure(nameof(dto.VendorId), T(
-                "TicketVendorDoesNotSupportCategory",
-                "Selected vendor is not assigned to this ticket category.")));
-        }
-
-        if (dto.WorkStatusId == Guid.Empty)
-        {
-            failures.Add(Failure(nameof(dto.WorkStatusId), T("WorkStatusRequired", "Work status is required.")));
-        }
-        else if (!await _uow.Lookups.WorkStatusExistsAsync(dto.WorkStatusId, cancellationToken))
-        {
-            failures.Add(Failure(nameof(dto.WorkStatusId), T("InvalidWorkStatus", "Selected work status is invalid.")));
-        }
-
-        if (dto.ScheduledStart == default)
-        {
-            failures.Add(Failure(nameof(dto.ScheduledStart), T("ScheduledStartRequired", "Scheduled start is required.")));
-        }
-
-        if (dto.ScheduledEnd.HasValue && dto.ScheduledEnd.Value < dto.ScheduledStart)
-        {
-            failures.Add(Failure(nameof(dto.ScheduledEnd), T("ScheduledEndCannotBeBeforeScheduledStart", "Scheduled end cannot be before scheduled start.")));
-        }
-
-        if (dto.RealEnd.HasValue && dto.RealStart.HasValue && dto.RealEnd.Value < dto.RealStart.Value)
-        {
-            failures.Add(Failure(nameof(dto.RealEnd), T("RealEndCannotBeBeforeRealStart", "Actual end cannot be before actual start.")));
-        }
-
-        if (!string.IsNullOrWhiteSpace(dto.Notes) && dto.Notes.Trim().Length > 4000)
-        {
-            failures.Add(Failure(nameof(dto.Notes), T("ScheduledWorkNotesMaxLength", "Notes must be 4000 characters or fewer.")));
-        }
-
-        return failures.Count == 0
-            ? Result.Ok()
-            : Result.Fail(new ValidationAppError("Validation failed.", failures));
-    }
-
-    private static Result ValidateWorkLog(WorkLogBllDto dto)
-    {
-        var failures = new List<ValidationFailureModel>();
-
-        if (dto.Hours is < 0)
-        {
-            failures.Add(Failure(nameof(dto.Hours), T("WorkLogHoursNonNegative", "Hours must be zero or greater.")));
-        }
-
-        if (dto.MaterialCost is < 0)
-        {
-            failures.Add(Failure(nameof(dto.MaterialCost), T("WorkLogMaterialCostNonNegative", "Material cost must be zero or greater.")));
-        }
-
-        if (dto.LaborCost is < 0)
-        {
-            failures.Add(Failure(nameof(dto.LaborCost), T("WorkLogLaborCostNonNegative", "Labor cost must be zero or greater.")));
-        }
-
-        if (dto.WorkEnd.HasValue && dto.WorkStart.HasValue && dto.WorkEnd.Value < dto.WorkStart.Value)
-        {
-            failures.Add(Failure(nameof(dto.WorkEnd), T("WorkLogEndCannotBeBeforeStart", "Work end cannot be before work start.")));
-        }
-
-        if (!string.IsNullOrWhiteSpace(dto.Description) && dto.Description.Trim().Length > 4000)
-        {
-            failures.Add(Failure(nameof(dto.Description), T("WorkLogDescriptionMaxLength", "Description must be 4000 characters or fewer.")));
-        }
-
-        var hasMeaningfulField = dto.WorkStart.HasValue
-                                 || dto.WorkEnd.HasValue
-                                 || dto.Hours.HasValue
-                                 || dto.MaterialCost.HasValue
-                                 || dto.LaborCost.HasValue
-                                 || !string.IsNullOrWhiteSpace(dto.Description);
-        if (!hasMeaningfulField)
-        {
-            failures.Add(Failure(nameof(dto.Description), T("WorkLogRequiresMeaningfulField", "Enter at least one work log value.")));
-        }
-
-        return failures.Count == 0
-            ? Result.Ok()
-            : Result.Fail(new ValidationAppError("Validation failed.", failures));
-    }
-
-    private async Task<Result> ValidateScheduledWorkTransitionPrerequisiteAsync(
-        Guid ticketId,
+    private async Task<IReadOnlyList<string>> GetTransitionBlockingReasonsAsync(
+        TicketDetailsDalDto ticket,
         Guid managementCompanyId,
         string nextStatusCode,
         CancellationToken cancellationToken)
     {
-        if (string.Equals(nextStatusCode, TicketWorkflowConstants.Scheduled, StringComparison.OrdinalIgnoreCase)
-            && !await _uow.ScheduledWorks.ExistsForTicketAsync(ticketId, managementCompanyId, cancellationToken))
+        var blockingReasons = new List<string>();
+
+        if (string.Equals(nextStatusCode, TicketWorkflowConstants.Assigned, StringComparison.OrdinalIgnoreCase)
+            && !ticket.VendorId.HasValue)
         {
-            return Result.Fail(new BusinessRuleError(T(
+            blockingReasons.Add(T(
+                "TicketAssignedRequiresVendor",
+                "Assign a vendor before moving the ticket to assigned."));
+        }
+
+        if (string.Equals(nextStatusCode, TicketWorkflowConstants.Scheduled, StringComparison.OrdinalIgnoreCase)
+            && !await _uow.ScheduledWorks.ExistsForTicketAsync(ticket.Id, managementCompanyId, cancellationToken))
+        {
+            blockingReasons.Add(T(
                 "TicketScheduledRequiresScheduledWork",
-                "Schedule vendor work before moving the ticket to scheduled.")));
+                "Schedule vendor work before moving the ticket to scheduled."));
         }
 
         if (string.Equals(nextStatusCode, TicketWorkflowConstants.InProgress, StringComparison.OrdinalIgnoreCase)
-            && !await _uow.ScheduledWorks.AnyStartedForTicketAsync(ticketId, managementCompanyId, cancellationToken))
+            && !await _uow.ScheduledWorks.AnyStartedForTicketAsync(ticket.Id, managementCompanyId, cancellationToken))
         {
-            return Result.Fail(new BusinessRuleError(T(
+            blockingReasons.Add(T(
                 "TicketInProgressRequiresStartedWork",
-                "Start scheduled work before moving the ticket to in progress.")));
+                "Start scheduled work before moving the ticket to in progress."));
         }
 
         if (string.Equals(nextStatusCode, TicketWorkflowConstants.Completed, StringComparison.OrdinalIgnoreCase)
-            && !await _uow.ScheduledWorks.AnyCompletedForTicketAsync(ticketId, managementCompanyId, cancellationToken))
+            && !await _uow.ScheduledWorks.AnyCompletedForTicketAsync(ticket.Id, managementCompanyId, cancellationToken))
         {
-            return Result.Fail(new BusinessRuleError(T(
+            blockingReasons.Add(T(
                 "TicketCompletedRequiresCompletedWork",
-                "Complete scheduled work before moving the ticket to completed.")));
+                "Complete scheduled work before moving the ticket to completed."));
         }
 
         if (string.Equals(nextStatusCode, TicketWorkflowConstants.Completed, StringComparison.OrdinalIgnoreCase)
-            && !await _uow.WorkLogs.ExistsForTicketAsync(ticketId, managementCompanyId, cancellationToken))
+            && !await _uow.WorkLogs.ExistsForTicketAsync(ticket.Id, managementCompanyId, cancellationToken))
         {
-            return Result.Fail(new BusinessRuleError(T(
+            blockingReasons.Add(T(
                 "TicketCompletedRequiresWorkLog",
-                "Add at least one work log before moving the ticket to completed.")));
+                "Add at least one work log before moving the ticket to completed."));
         }
 
-        return Result.Ok();
-    }
-
-    private async Task<Result> StageTicketStatusIfImmediateNextAsync(
-        TicketDetailsDalDto ticket,
-        string targetStatusCode,
-        Guid managementCompanyId,
-        CancellationToken cancellationToken)
-    {
-        var currentIndex = StatusIndex(ticket.StatusCode);
-        var targetIndex = StatusIndex(targetStatusCode);
-        if (currentIndex < 0 || targetIndex < 0 || currentIndex >= targetIndex || targetIndex != currentIndex + 1)
-        {
-            return Result.Ok();
-        }
-
-        var targetStatus = await _uow.Lookups.FindTicketStatusByCodeAsync(targetStatusCode, cancellationToken);
-        if (targetStatus is null)
-        {
-            return Result.Fail(new BusinessRuleError(T(
-                "TicketTargetStatusMissing",
-                "Target ticket status is not configured.")));
-        }
-
-        var updated = await _uow.Tickets.UpdateStatusAsync(
-            new TicketStatusUpdateDalDto
-            {
-                Id = ticket.Id,
-                ManagementCompanyId = managementCompanyId,
-                TicketStatusId = targetStatus.Id,
-                ClosedAt = targetStatusCode == TicketWorkflowConstants.Closed ? DateTime.UtcNow : null
-            },
-            cancellationToken);
-
-        return updated
-            ? Result.Ok()
-            : Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
-    }
-
-    private static Result ValidateTicketStatusForWorkAction(
-        string statusCode,
-        string minimumStatusCode,
-        string blockedAtOrAfterStatusCode,
-        string errorMessage)
-    {
-        var currentIndex = StatusIndex(statusCode);
-        var minimumIndex = StatusIndex(minimumStatusCode);
-        var blockedIndex = StatusIndex(blockedAtOrAfterStatusCode);
-
-        return currentIndex >= minimumIndex && currentIndex < blockedIndex
-            ? Result.Ok()
-            : Result.Fail(new BusinessRuleError(errorMessage));
-    }
-
-    private async Task<TicketOptionModel?> FindWorkStatusByCodeAsync(
-        string code,
-        CancellationToken cancellationToken)
-    {
-        var status = await _uow.Lookups.FindWorkStatusByCodeAsync(code, cancellationToken);
-        return status is null ? null : MapOption(status);
+        return blockingReasons;
     }
 
     private async Task<TicketSelectorOptionsModel> BuildOptionsAsync(
@@ -1930,31 +1174,6 @@ public class TicketService :
         };
     }
 
-    private static ScheduledWorkDetailsModel MapScheduledWorkDetails(ScheduledWorkDetailsDalDto work)
-    {
-        return new ScheduledWorkDetailsModel
-        {
-            CompanySlug = work.CompanySlug,
-            CompanyName = work.CompanyName,
-            TicketId = work.TicketId,
-            TicketNr = work.TicketNr,
-            TicketTitle = work.TicketTitle,
-            ScheduledWorkId = work.Id,
-            VendorId = work.VendorId,
-            VendorName = work.VendorName,
-            WorkStatusId = work.WorkStatusId,
-            WorkStatusCode = work.WorkStatusCode,
-            WorkStatusLabel = work.WorkStatusLabel,
-            ScheduledStart = work.ScheduledStart,
-            ScheduledEnd = work.ScheduledEnd,
-            RealStart = work.RealStart,
-            RealEnd = work.RealEnd,
-            Notes = work.Notes,
-            CreatedAt = work.CreatedAt,
-            WorkLogCount = work.WorkLogCount
-        };
-    }
-
     private static string? GetNextStatusCode(string statusCode)
     {
         var index = StatusIndex(statusCode);
@@ -2023,76 +1242,6 @@ public class TicketService :
             dto.Description.Trim());
     }
 
-    private static ScheduledWorkBllDto NormalizeScheduledWork(ScheduledWorkBllDto dto)
-    {
-        return new ScheduledWorkBllDto
-        {
-            Id = dto.Id,
-            VendorId = dto.VendorId,
-            TicketId = dto.TicketId,
-            WorkStatusId = dto.WorkStatusId,
-            ScheduledStart = dto.ScheduledStart,
-            ScheduledEnd = dto.ScheduledEnd,
-            RealStart = dto.RealStart,
-            RealEnd = dto.RealEnd,
-            Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim()
-        };
-    }
-
-    private static WorkLogBllDto NormalizeWorkLog(WorkLogBllDto dto)
-    {
-        return new WorkLogBllDto
-        {
-            Id = dto.Id,
-            ScheduledWorkId = dto.ScheduledWorkId,
-            AppUserId = dto.AppUserId,
-            WorkStart = dto.WorkStart,
-            WorkEnd = dto.WorkEnd,
-            Hours = dto.Hours,
-            MaterialCost = dto.MaterialCost,
-            LaborCost = dto.LaborCost,
-            Description = string.IsNullOrWhiteSpace(dto.Description) ? null : dto.Description.Trim()
-        };
-    }
-
-    private static Result ValidateTicketNotClosedForWorkLogMutation(TicketDetailsDalDto ticket)
-    {
-        return string.Equals(ticket.StatusCode, TicketWorkflowConstants.Closed, StringComparison.OrdinalIgnoreCase)
-            ? Result.Fail(new BusinessRuleError(T(
-                "WorkLogClosedTicketBlocked",
-                "Work logs cannot be changed after the ticket is closed.")))
-            : Result.Ok();
-    }
-
-    private static WorkLogListItemModel MapWorkLogListItem(WorkLogListItemDalDto log, bool canViewCosts)
-    {
-        return new WorkLogListItemModel
-        {
-            WorkLogId = log.Id,
-            AppUserId = log.AppUserId,
-            AppUserName = string.IsNullOrWhiteSpace(log.AppUserName) ? "-" : log.AppUserName,
-            WorkStart = log.WorkStart,
-            WorkEnd = log.WorkEnd,
-            Hours = log.Hours,
-            MaterialCost = canViewCosts ? log.MaterialCost : null,
-            LaborCost = canViewCosts ? log.LaborCost : null,
-            Description = log.Description,
-            CreatedAt = log.CreatedAt
-        };
-    }
-
-    private static WorkLogTotalsModel MapWorkLogTotals(WorkLogTotalsDalDto totals, bool canViewCosts)
-    {
-        return new WorkLogTotalsModel
-        {
-            Count = totals.Count,
-            Hours = totals.Hours,
-            MaterialCost = canViewCosts ? totals.MaterialCost : 0m,
-            LaborCost = canViewCosts ? totals.LaborCost : 0m,
-            TotalCost = canViewCosts ? totals.TotalCost : 0m
-        };
-    }
-
     private static TicketRoute ToTicketRoute(ManagementCompanyRoute route, Guid ticketId)
     {
         return new TicketRoute
@@ -2135,29 +1284,8 @@ public class TicketService :
         ];
     }
 
-    private static class WorkWorkflowConstants
-    {
-        public const string Scheduled = "SCHEDULED";
-        public const string InProgress = "IN_PROGRESS";
-        public const string Done = "DONE";
-        public const string Cancelled = "CANCELLED";
-    }
-
     private sealed record NormalizedTicket(
         string TicketNr,
         string Title,
         string Description);
-
-    private sealed record ScheduledWorkTicketContext(
-        CompanyWorkspaceModel Workspace,
-        TicketDetailsDalDto Ticket);
-
-    private sealed record ScheduledWorkContext(
-        CompanyWorkspaceModel Workspace,
-        TicketDetailsDalDto Ticket,
-        ScheduledWorkDalDto ScheduledWork);
-
-    private sealed record WorkLogContext(
-        ScheduledWorkContext ScheduledContext,
-        WorkLogDalDto WorkLog);
 }

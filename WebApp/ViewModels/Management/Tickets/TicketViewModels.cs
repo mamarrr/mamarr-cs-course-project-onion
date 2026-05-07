@@ -184,6 +184,8 @@ public class TicketDetailsPageViewModel : IAppChromePage
     public DateTime? ClosedAt { get; set; }
     public string? NextStatusCode { get; set; }
     public string? NextStatusLabel { get; set; }
+    public bool CanAdvanceStatus { get; set; }
+    public IReadOnlyList<string> TransitionBlockingReasons { get; set; } = Array.Empty<string>();
     public IReadOnlyList<ScheduledWorkListItemViewModel> ScheduledWork { get; set; } =
         Array.Empty<ScheduledWorkListItemViewModel>();
 }

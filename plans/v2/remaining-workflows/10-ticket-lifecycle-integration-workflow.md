@@ -6,7 +6,11 @@ Tighten ticket lifecycle transitions so they depend on real workflow records: ve
 
 ## Current state
 
-Ticket service supports basic CRUD, details, search, and AdvanceStatusAsync. It currently validates basic vendor/due date guards but does not require ScheduledWork or WorkLog records.
+Ticket service supports basic CRUD, details, search, and AdvanceStatusAsync.
+
+Plans 08 and 09 are considered complete. Scheduled work and work log workflows exist and are exposed publicly through `ITicketService / IAppBLL.Tickets`.
+
+`TicketService` has become too large because it currently contains core ticket behavior, scheduled-work behavior, work-log behavior, and lifecycle-transition behavior in one implementation class. Phase 10 must refactor this implementation shape while keeping the same public facade.
 
 ## End state
 
@@ -17,6 +21,10 @@ The completed workflow supports:
 - SCHEDULED -> IN_PROGRESS requires actual start
 - IN_PROGRESS -> COMPLETED requires completed scheduled work and work logs
 - COMPLETED -> CLOSED remains resolution verification
+- `TicketService` remains the only public controller-facing ticket facade
+- scheduled-work behavior is extracted from `TicketService` into `IScheduledWorkService` / `ScheduledWorkService`
+- work-log behavior is extracted from `TicketService` into `IWorkLogService` / `WorkLogService`
+- controllers still call only `_bll.Tickets`; they do not call `IScheduledWorkService`, `IWorkLogService`, `ScheduledWorkService`, or `WorkLogService` directly
 
 ## Domain plan
 
@@ -46,6 +54,64 @@ public class CanonicalDto : BaseEntity
 ```
 
 Projection/page models are allowed for list, profile, details, form, totals, or selector pages. Do not add create/update/delete DTOs unless the canonical DTO cannot represent the operation cleanly.
+
+## Service extraction plan
+
+Phase 10 must extract the plan 08 and plan 09 implementation code out of `TicketService` without changing the public AppBLL surface.
+
+Add BLL contracts and concrete implementation services:
+
+```text
+App.BLL.Contracts/Tickets/IScheduledWorkService.cs
+App.BLL.Contracts/Tickets/IWorkLogService.cs
+App.BLL/Services/Tickets/ScheduledWorkService.cs
+App.BLL/Services/Tickets/WorkLogService.cs
+```
+
+These are regular BLL services with contracts, but they are **not** AppBLL facades:
+
+```csharp
+public interface IScheduledWorkService :
+    IBaseService<ScheduledWorkBllDto>
+{
+    // scheduled-work workflow methods currently delegated by ITicketService
+}
+
+public class ScheduledWorkService :
+    BaseService<ScheduledWorkBllDto, ScheduledWorkDalDto, IScheduledWorkRepository, IAppUOW>,
+    IScheduledWorkService
+{
+    // scheduled-work workflow implementation
+}
+
+public interface IWorkLogService :
+    IBaseService<WorkLogBllDto>
+{
+    // work-log workflow methods currently delegated by ITicketService
+}
+
+public class WorkLogService :
+    BaseService<WorkLogBllDto, WorkLogDalDto, IWorkLogRepository, IAppUOW>,
+    IWorkLogService
+{
+    // work-log workflow implementation
+}
+```
+
+Rules:
+
+- Add `IScheduledWorkService` and `IWorkLogService` under `App.BLL.Contracts`.
+- These service contracts are for BLL composition and DI only.
+- These services are **not** first-class AppBLL facades.
+- Do **not** add `IAppBLL.ScheduledWorks`.
+- Do **not** add `IAppBLL.WorkLogs`.
+- Register the interfaces with their implementations in DI so they can be injected into `TicketService`.
+- `TicketService` wraps/delegates to them and remains the only service exposed through `IAppBLL.Tickets`.
+- Controllers call only `IAppBLL.Tickets`.
+- Controllers must not depend on `IScheduledWorkService`, `IWorkLogService`, `ScheduledWorkService`, or `WorkLogService` directly.
+- The extracted services must follow the same BLL architecture rules as other services: tenant resolution, RBAC, IDOR protection, validation, lifecycle rules, transactions, UOW persistence, BLL DTOs, and FluentResults errors.
+- Shared lifecycle logic should be coordinated through `TicketService` or a private/internal lifecycle helper to avoid circular dependencies.
+- Extracted services must not depend on `ITicketService`; this avoids a circular dependency between `TicketService` and its delegated services.
 
 ## DAL plan
 
@@ -93,25 +159,45 @@ Steps:
 
 ## BLL plan
 
-Service contract:
+Service contracts:
 
 ```text
-Extend ITicketService
+Extend ITicketService for the controller-facing public ticket facade.
+Add IScheduledWorkService and IWorkLogService as BLL composition contracts behind TicketService.
+Do not expose scheduled work or work logs through IAppBLL.
 ```
 
 Service methods:
 
 ```csharp
-Task<Result> GetTransitionAvailabilityAsync(TicketRoute route);
+Task<Result<TicketTransitionAvailabilityModel>> GetTransitionAvailabilityAsync(TicketRoute route);
 Task<Result> AdvanceStatusAsync(TicketRoute route) with stronger prerequisites;
 ```
+
+Delegation shape:
+
+```csharp
+public class TicketService : BaseService<TicketBllDto, TicketDalDto, ITicketRepository, IAppUOW>, ITicketService
+{
+    private readonly IScheduledWorkService _scheduledWorkService;
+    private readonly IWorkLogService _workLogService;
+
+    public Task<Result<ScheduledWorkListModel>> ListScheduledWorkForTicketAsync(...)
+        => _scheduledWorkService.ListForTicketAsync(...);
+
+    public Task<Result<WorkLogListModel>> ListWorkLogsForScheduledWorkAsync(...)
+        => _workLogService.ListForScheduledWorkAsync(...);
+}
+```
+
+The method names inside `IScheduledWorkService` and `IWorkLogService` can be shorter than the public `ITicketService` names, but MVC/controller-facing access remains on `ITicketService`.
 
 Service implementation requirements:
 
 - Place implementation under `App.BLL/Services`.
 - Inherit from `BaseService<TBllDto, TDalDto, TRepository, IAppUOW>` where there is a persisted entity.
 - Resolve current company/parent context from route.
-- Check active management-company role only. Do not allow customer or resident context access for ticket lifecycle transitions.
+- Check active management-company role only. Do not allow customer or resident context access for ticket lifecycle, scheduled work, or work logs.
 - Validate IDs through tenant-safe repository methods.
 - Normalize strings before persistence.
 - Return existing BLL error types: `UnauthorizedError`, `ForbiddenError`, `NotFoundError`, `ValidationAppError`, `ConflictError`, `BusinessRuleError`.
@@ -124,35 +210,54 @@ Service implementation requirements:
 - SCHEDULED -> IN_PROGRESS requires started scheduled work.
 - IN_PROGRESS -> COMPLETED requires completed scheduled work and work logs.
 - COMPLETED -> CLOSED allowed for management roles until verification workflow is added.
-- Read/list/details allowed for OWNER, MANAGER, FINANCE, SUPPORT.
-- Advancing lifecycle state allowed for OWNER, MANAGER, SUPPORT unless a stricter transition rule is added.
-- Customer context and resident context are not allowed to advance ticket lifecycle states.
 - Blocking reasons returned through BusinessRuleError or availability model.
 
 ## AppBLL wiring
 
 No new `IAppBLL` property is required.
 
+Do **not** update `IAppBLL` or `AppBLL` to expose scheduled work or work logs directly.
+
 Update:
 
 ```text
 App.BLL.Contracts/Tickets/ITicketService.cs
+App.BLL.Contracts/Tickets/IScheduledWorkService.cs
+App.BLL.Contracts/Tickets/IWorkLogService.cs
 App.BLL/Services/Tickets/TicketService.cs
+App.BLL/Services/Tickets/ScheduledWorkService.cs
+App.BLL/Services/Tickets/WorkLogService.cs
 ```
 
 Steps:
 
-1. Extend existing `ITicketService` methods for transition availability and stronger `AdvanceStatusAsync` prerequisites.
-2. Implement lifecycle checks in `TicketService`, using `IScheduledWorkRepository` and `IWorkLogRepository` through `IAppUOW`.
-3. Do not add a new `IAppBLL` property or separate lifecycle facade.
-4. Avoid circular dependencies.
+1. Keep scheduled-work and work-log controller-facing methods on `ITicketService`.
+2. Add `IScheduledWorkService` and `IWorkLogService` contracts for BLL composition.
+3. Move scheduled-work implementation into `ScheduledWorkService : BaseService<...>, IScheduledWorkService`.
+4. Move work-log implementation into `WorkLogService : BaseService<...>, IWorkLogService`.
+5. Inject `IScheduledWorkService` and `IWorkLogService` into `TicketService`.
+6. `TicketService` delegates scheduled-work and work-log `ITicketService` methods to the extracted services.
+7. Do not add `IAppBLL.ScheduledWorks` or `IAppBLL.WorkLogs`.
+8. Avoid circular dependencies; extracted services must not depend on `ITicketService`.
+
+## DI plan
+
+Register the extracted services by interface before or alongside `ITicketService`:
+
+```csharp
+services.AddScoped<IScheduledWorkService, ScheduledWorkService>();
+services.AddScoped<IWorkLogService, WorkLogService>();
+services.AddScoped<ITicketService, TicketService>();
+```
+
+Do not register them as AppBLL facades. Their purpose is implementation decomposition behind `TicketService`.
 
 ## WebApp MVC plan
 
 - Update Ticket Details ViewModel/page to show transition availability and blocking reasons.
 - Update AdvanceStatus POST to show blocking reasons.
 - Add links from ticket details to schedule work and work logs.
-- Scheduled-work start/complete methods on `ITicketService` can update ticket status when prerequisites are met.
+- `TicketService` remains the controller-facing entry point; it may delegate scheduled-work start/complete to `IScheduledWorkService`, and lifecycle status updates should be coordinated without circular service dependencies.
 
 Controller rules:
 
@@ -201,4 +306,10 @@ Add English and Estonian entries together.
 - Ticket advancement enforces real workflow prerequisites.
 - Ticket details explains why transition is blocked.
 - Scheduled work and work logs are linked.
+- `IScheduledWorkService` and `IWorkLogService` BLL contracts exist.
+- Scheduled-work implementation is extracted from `TicketService` into `ScheduledWorkService : BaseService<...>, IScheduledWorkService`.
+- Work-log implementation is extracted from `TicketService` into `WorkLogService : BaseService<...>, IWorkLogService`.
+- `TicketService` delegates scheduled-work and work-log calls to the extracted services through their interfaces.
+- `IAppBLL` still exposes only `Tickets`; no `ScheduledWorks` or `WorkLogs` AppBLL properties are added.
+- MVC controllers still call only `_bll.Tickets`.
 - No API controller.

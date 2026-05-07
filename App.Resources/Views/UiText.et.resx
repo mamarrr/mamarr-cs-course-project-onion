@@ -430,6 +430,8 @@
   <data name="RealEndCannotBeBeforeRealStart" xml:space="preserve"><value>Tegelik lõpp ei saa olla enne tegelikku algust.</value></data>
   <data name="ScheduledWorkDeleteBlockedByLogs" xml:space="preserve"><value>Planeeritud tööd ei saa kustutada, kui töölogid on olemas.</value></data>
   <data name="VendorRequired" xml:space="preserve"><value>Teenusepakkuja on kohustuslik.</value></data>
+  <data name="TicketAssignedRequiresVendor" xml:space="preserve"><value>Maaratud olekusse viimiseks maarake teenusepakkuja.</value></data>
+  <data name="TicketTransitionBlocked" xml:space="preserve"><value>Staatuse muutmine on blokeeritud.</value></data>
   <data name="WorkStatusRequired" xml:space="preserve"><value>Töö staatus on kohustuslik.</value></data>
   <data name="InvalidWorkStatus" xml:space="preserve"><value>Valitud töö staatus ei ole korrektne.</value></data>
   <data name="ScheduledStartRequired" xml:space="preserve"><value>Planeeritud algus on kohustuslik.</value></data>

@@ -37,6 +37,8 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private IUnitService? _units;
     private ILeaseService? _leases;
     private ITicketService? _tickets;
+    private IScheduledWorkService? _scheduledWorks;
+    private IWorkLogService? _workLogs;
     private IVendorService? _vendors;
     private IContactService? _contacts;
     private IAppDeleteGuard? _deleteGuard;
@@ -68,7 +70,13 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
         _leases ??= new LeaseService(UOW, Residents, Units);
 
     public ITicketService Tickets =>
-        _tickets ??= new TicketService(Customers, UOW, DeleteGuard);
+        _tickets ??= new TicketService(UOW, DeleteGuard, ScheduledWorks, WorkLogs);
+
+    private IScheduledWorkService ScheduledWorks =>
+        _scheduledWorks ??= new ScheduledWorkService(UOW);
+
+    private IWorkLogService WorkLogs =>
+        _workLogs ??= new WorkLogService(UOW);
 
     private IContactService Contacts =>
         _contacts ??= new ContactService(UOW);

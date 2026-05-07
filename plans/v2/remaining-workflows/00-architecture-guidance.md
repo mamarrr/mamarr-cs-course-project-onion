@@ -32,12 +32,14 @@ Resident user links:
   skipped in the current roadmap. Do not implement plan 07 unless it is explicitly reintroduced later.
 
 Scheduled work:
-  public methods on ITicketService / IAppBLL.Tickets
-  optional internal helper only if TicketService becomes too large
+  controller-facing public methods stay on ITicketService / IAppBLL.Tickets
+  implementation should be extracted into IScheduledWorkService / ScheduledWorkService once TicketService becomes too large
+  IScheduledWorkService is a BLL composition contract injected into TicketService and is not exposed through IAppBLL
 
 Work logs:
-  public methods on ITicketService / IAppBLL.Tickets
-  optional internal helper only if TicketService becomes too large
+  controller-facing public methods stay on ITicketService / IAppBLL.Tickets
+  implementation should be extracted into IWorkLogService / WorkLogService once TicketService becomes too large
+  IWorkLogService is a BLL composition contract injected into TicketService and is not exposed through IAppBLL
 ```
 
 Do not add these public contracts by default:
@@ -48,9 +50,9 @@ IVendorContactService
 IResidentContactService
 ICustomerRepresentativeService
 IResidentUserService
-IScheduledWorkService
-IWorkLogService
 ```
+
+`IScheduledWorkService` and `IWorkLogService` are allowed BLL composition contracts when needed to keep `TicketService` maintainable. They are not AppBLL facades and must not be called directly from MVC controllers.
 
 
 ## Scope
@@ -134,6 +136,53 @@ Parent domain facades expose contact workflows to WebApp/API. `ContactService` r
 - BLL services return `FluentResults.Result` / `Result<T>`.
 - BLL services do not expose EF or domain entities.
 - Prefer canonical DTO + route model.
+
+### Extracted ticket subworkflow services
+
+Scheduled-work and work-log implementation may be extracted from `TicketService` into BLL composition contracts plus concrete BLL classes:
+
+```text
+App.BLL.Contracts/Tickets/IScheduledWorkService.cs
+App.BLL.Contracts/Tickets/IWorkLogService.cs
+App.BLL/Services/Tickets/ScheduledWorkService.cs
+App.BLL/Services/Tickets/WorkLogService.cs
+```
+
+These services should follow the same service architecture as other persisted workflow services:
+
+```csharp
+public interface IScheduledWorkService : IBaseService<ScheduledWorkBllDto>
+{
+}
+
+public class ScheduledWorkService :
+    BaseService<ScheduledWorkBllDto, ScheduledWorkDalDto, IScheduledWorkRepository, IAppUOW>,
+    IScheduledWorkService
+{
+}
+
+public interface IWorkLogService : IBaseService<WorkLogBllDto>
+{
+}
+
+public class WorkLogService :
+    BaseService<WorkLogBllDto, WorkLogDalDto, IWorkLogRepository, IAppUOW>,
+    IWorkLogService
+{
+}
+```
+
+Rules:
+
+- add `IScheduledWorkService` and `IWorkLogService` under `App.BLL.Contracts`,
+- register them in DI by interface,
+- inject them into `TicketService`,
+- keep MVC/controller-facing methods on `ITicketService`,
+- keep `_bll.Tickets` as the only MVC/controller entry point,
+- do not add `IAppBLL.ScheduledWorks` or `IAppBLL.WorkLogs`,
+- controllers must not depend on `IScheduledWorkService` or `IWorkLogService` directly,
+- avoid circular dependencies; extracted services must not depend on `ITicketService`,
+- tenant/RBAC/lifecycle validation remains centralized in BLL.
 
 ### WebApp MVC
 
@@ -340,8 +389,8 @@ For each first-class domain service:
 For subworkflows exposed through an existing parent facade, do **not** add a new `IAppBLL` property. Add methods to the parent service contract instead. For the remaining roadmap this means:
 
 ```text
-Scheduled work -> ITicketService / IAppBLL.Tickets
-Work logs -> ITicketService / IAppBLL.Tickets
+Scheduled work -> controller-facing public methods on ITicketService / IAppBLL.Tickets; IScheduledWorkService / ScheduledWorkService may implement/delegate behind TicketService
+Work logs -> controller-facing public methods on ITicketService / IAppBLL.Tickets; IWorkLogService / WorkLogService may implement/delegate behind TicketService
 Ticket lifecycle integration -> ITicketService / IAppBLL.Tickets
 ```
 
@@ -438,9 +487,9 @@ Nested workflows can use fewer pages and be embedded into parent profile/details
 1. Plans 01–05: implemented or being fixed.
 2. Plan 06: skipped/deferred.
 3. Plan 07: skipped/deferred.
-4. Plan 08: implement next as a management-company ticket-operation workflow.
-5. Plan 09: implement after scheduled work.
-6. Plan 10: implement after scheduled work and work logs.
+4. Plan 08: implemented as a management-company ticket-operation workflow.
+5. Plan 09: implemented as a management-company ticket-operation workflow.
+6. Plan 10: implement after scheduled work and work logs; also extract scheduled-work and work-log implementation services from `TicketService` into `IScheduledWorkService` / `ScheduledWorkService` and `IWorkLogService` / `WorkLogService`.
 ```
 
 ## Definition of done per workflow
@@ -456,6 +505,7 @@ A workflow is complete when:
 - parent pages contain links or embedded summaries,
 - user-visible text is localized or prepared for resources,
 - no API controllers were added.
+- for phase 10, scheduled-work and work-log implementation code is extracted from `TicketService` into BLL composition contracts plus concrete services injected behind `ITicketService` while MVC still calls only `_bll.Tickets`.
 
 ## More rules
 

@@ -440,6 +440,8 @@
   <data name="RealEndCannotBeBeforeRealStart" xml:space="preserve"><value>Actual end cannot be before actual start.</value></data>
   <data name="ScheduledWorkDeleteBlockedByLogs" xml:space="preserve"><value>Scheduled work cannot be deleted while work logs exist.</value></data>
   <data name="VendorRequired" xml:space="preserve"><value>Vendor is required.</value></data>
+  <data name="TicketAssignedRequiresVendor" xml:space="preserve"><value>Assign a vendor before moving the ticket to assigned.</value></data>
+  <data name="TicketTransitionBlocked" xml:space="preserve"><value>Status advancement is blocked.</value></data>
   <data name="WorkStatusRequired" xml:space="preserve"><value>Work status is required.</value></data>
   <data name="InvalidWorkStatus" xml:space="preserve"><value>Selected work status is invalid.</value></data>
   <data name="ScheduledStartRequired" xml:space="preserve"><value>Scheduled start is required.</value></data>
