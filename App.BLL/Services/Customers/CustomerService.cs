@@ -181,7 +181,7 @@ public class CustomerService :
         CustomerRoute route,
         CancellationToken cancellationToken = default)
     {
-        var access = await ResolveAccessAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, cancellationToken);
+        var access = await ResolveAccessAsync(route, cancellationToken);
         if (access.IsFailed)
         {
             return Result.Fail(access.Errors);
@@ -283,7 +283,7 @@ public class CustomerService :
         CustomerBllDto dto,
         CancellationToken cancellationToken = default)
     {
-        var access = await ResolveAccessAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, cancellationToken);
+        var access = await ResolveAccessAsync(route, cancellationToken);
         if (access.IsFailed)
         {
             return Result.Fail(access.Errors);
@@ -353,7 +353,7 @@ public class CustomerService :
         string confirmationName,
         CancellationToken cancellationToken = default)
     {
-        var access = await ResolveAccessAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, cancellationToken);
+        var access = await ResolveAccessAsync(route, cancellationToken);
         if (access.IsFailed)
         {
             return Result.Fail(access.Errors);
@@ -410,23 +410,16 @@ public class CustomerService :
     }
 
     private async Task<Result<CustomerAccessContext>> ResolveAccessAsync(
-        Guid appUserId,
-        string companySlug,
-        string customerSlug,
+        CustomerRoute route,
         CancellationToken cancellationToken)
     {
-        if (appUserId == Guid.Empty)
+        if (route.AppUserId == Guid.Empty)
         {
             return Result.Fail(new UnauthorizedError("Authentication is required."));
         }
 
         var access = await GetWorkspaceAsync(
-            new CustomerRoute
-            {
-                AppUserId = appUserId,
-                CompanySlug = companySlug,
-                CustomerSlug = customerSlug
-            },
+            route,
             cancellationToken);
 
         return access.IsFailed
