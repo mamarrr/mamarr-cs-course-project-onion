@@ -1,5 +1,4 @@
 using App.BLL.Contracts.Onboarding;
-using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Onboarding.Models;
 using App.BLL.DTO.Onboarding.Queries;
@@ -11,14 +10,50 @@ namespace App.BLL.Services.Onboarding;
 public class WorkspaceService : IWorkspaceService
 {
     private readonly IAppUOW _uow;
-    private readonly IOnboardingService _onboardingService;
 
     public WorkspaceService(
-        IAppUOW uow,
-        IOnboardingService onboardingService)
+        IAppUOW uow)
     {
         _uow = uow;
-        _onboardingService = onboardingService;
+    }
+
+    public async Task<Result<bool>> HasAnyContextAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var hasManagementContext = (await _uow.ManagementCompanies.ActiveUserManagementContextsAsync(
+            appUserId,
+            cancellationToken)).Count > 0;
+
+        if (hasManagementContext)
+        {
+            return Result.Ok(true);
+        }
+
+        return Result.Ok(await _uow.Residents.HasActiveUserResidentContextAsync(appUserId, cancellationToken));
+    }
+
+    public async Task<Result<string?>> GetDefaultManagementCompanySlugAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
+    {
+        return Result.Ok<string?>((await _uow.ManagementCompanies.ActiveUserManagementContextsAsync(
+                appUserId,
+                cancellationToken))
+            .Select(context => context.Slug)
+            .FirstOrDefault());
+    }
+
+    public Task<Result<bool>> UserHasManagementCompanyAccessAsync(
+        ManagementCompanyRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(route.CompanySlug))
+        {
+            return Task.FromResult(Result.Ok(false));
+        }
+
+        return HasManagementCompanyAccessAsync(route, cancellationToken);
     }
 
     public async Task<Result<WorkspaceCatalogModel>> GetCatalogAsync(
@@ -105,7 +140,7 @@ public class WorkspaceService : IWorkspaceService
 
         if (rememberedContext.ContextType == "management" && !string.IsNullOrWhiteSpace(rememberedContext.ManagementCompanySlug))
         {
-            var hasSelectedManagementAccess = await _onboardingService.UserHasManagementCompanyAccessAsync(
+            var hasSelectedManagementAccess = await UserHasManagementCompanyAccessAsync(
                 new ManagementCompanyRoute
                 {
                     AppUserId = query.AppUserId,
@@ -151,7 +186,7 @@ public class WorkspaceService : IWorkspaceService
             }
         }
 
-        var defaultManagementCompanySlug = await _onboardingService.GetDefaultManagementCompanySlugAsync(
+        var defaultManagementCompanySlug = await GetDefaultManagementCompanySlugAsync(
             query.AppUserId,
             cancellationToken);
         if (!string.IsNullOrWhiteSpace(defaultManagementCompanySlug.Value))
@@ -289,19 +324,13 @@ public class WorkspaceService : IWorkspaceService
         "MANAGER"
     };
 
-    private static bool AreSameContext(WorkspaceContextModel left, WorkspaceContextModel right)
+    private async Task<Result<bool>> HasManagementCompanyAccessAsync(
+        ManagementCompanyRoute route,
+        CancellationToken cancellationToken)
     {
-        if (!string.Equals(left.ContextType, right.ContextType, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return left.ContextType switch
-        {
-            "management" => string.Equals(left.CompanySlug, right.CompanySlug, StringComparison.OrdinalIgnoreCase),
-            "customer" => left.CustomerId == right.CustomerId,
-            "resident" => true,
-            _ => false
-        };
+        return Result.Ok(await _uow.ManagementCompanies.ActiveUserManagementContextExistsBySlugAsync(
+            route.AppUserId,
+            route.CompanySlug,
+            cancellationToken));
     }
 }

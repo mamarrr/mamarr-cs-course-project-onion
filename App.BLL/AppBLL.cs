@@ -26,7 +26,6 @@ namespace App.BLL;
 public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 {
     private ICustomerService? _customers;
-    private IOnboardingService? _onboarding;
     private IWorkspaceService? _workspaces;
     private IManagementCompanyService? _managementCompanies;
     private ICompanyMembershipService? _companyMemberships;
@@ -41,11 +40,8 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private IAppDeleteGuard DeleteGuard =>
         _deleteGuard ??= new AppDeleteGuard(UOW);
 
-    public IOnboardingService Onboarding =>
-        _onboarding ??= new OnboardingService(UOW);
-
     public IWorkspaceService Workspaces =>
-        _workspaces ??= new WorkspaceService(UOW, Onboarding);
+        _workspaces ??= new WorkspaceService(UOW);
 
     public ICompanyMembershipService CompanyMemberships =>
         _companyMemberships ??= new CompanyMembershipService(UOW);

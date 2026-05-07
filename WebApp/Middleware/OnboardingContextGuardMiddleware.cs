@@ -24,7 +24,7 @@ public class OnboardingContextGuardMiddleware
 
     public async Task InvokeAsync(
         HttpContext context,
-        IOnboardingService onboardingService,
+        IWorkspaceService workspaceService,
         IIdentityAccountService identityAccountService)
     {
         var path = context.Request.Path;
@@ -63,7 +63,7 @@ public class OnboardingContextGuardMiddleware
 
             var accessResult = string.IsNullOrWhiteSpace(companySlug)
                 ? null
-                : await onboardingService.UserHasManagementCompanyAccessAsync(
+                : await workspaceService.UserHasManagementCompanyAccessAsync(
                     new ManagementCompanyRoute
                     {
                         AppUserId = appUserId.Value,
@@ -82,7 +82,7 @@ public class OnboardingContextGuardMiddleware
             return;
         }
 
-        var hasContext = await onboardingService.HasAnyContextAsync(appUserId.Value, context.RequestAborted);
+        var hasContext = await workspaceService.HasAnyContextAsync(appUserId.Value, context.RequestAborted);
         if (hasContext.Value)
         {
             await _next(context);

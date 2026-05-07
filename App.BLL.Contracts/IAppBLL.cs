@@ -20,6 +20,5 @@ public interface IAppBLL : IBaseBLL
     ITicketService Tickets { get; }
     IManagementCompanyService ManagementCompanies { get; }
     ICompanyMembershipService CompanyMemberships { get; }
-    IOnboardingService Onboarding { get; }
     IWorkspaceService Workspaces { get; }
 }

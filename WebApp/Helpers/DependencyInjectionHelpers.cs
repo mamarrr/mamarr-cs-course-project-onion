@@ -55,7 +55,6 @@ public static class DependencyInjectionHelpers
     public static IServiceCollection AddAppBll(this IServiceCollection services)
     {
         services.AddScoped<IAppBLL, AppBLL>();
-        services.AddScoped<IOnboardingService, OnboardingService>();
         services.AddScoped<IWorkspaceService, WorkspaceService>();
         services.AddScoped<IAppDeleteGuard, AppDeleteGuard>();
         services.AddScoped<ICompanyMembershipService, CompanyMembershipService>();

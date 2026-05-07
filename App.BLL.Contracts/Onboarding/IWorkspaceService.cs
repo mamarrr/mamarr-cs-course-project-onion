@@ -7,12 +7,21 @@ namespace App.BLL.Contracts.Onboarding;
 
 public interface IWorkspaceService
 {
-    
+    Task<Result<bool>> HasAnyContextAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<string?>> GetDefaultManagementCompanySlugAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<bool>> UserHasManagementCompanyAccessAsync(
+        ManagementCompanyRoute route,
+        CancellationToken cancellationToken = default);
 
     Task<Result<WorkspaceCatalogModel>> GetCatalogAsync(
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default);
-    
 
     Task<Result<WorkspaceRedirectModel?>> ResolveContextRedirectAsync(
         ResolveWorkspaceRedirectQuery query,
