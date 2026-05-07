@@ -33,6 +33,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="ApiControllers\" />
       <Folder Include="Areas\Admin\" />
       <Folder Include="Areas\Portal\Controllers\Tickets\" />
       <Folder Include="ViewModels\Unit\" />
