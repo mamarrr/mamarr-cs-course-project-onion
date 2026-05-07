@@ -31,13 +31,6 @@ public class ManagementCustomerListItemViewModel
     public string? BillingEmail { get; set; }
     public string? BillingAddress { get; set; }
     public string? Phone { get; set; }
-    public IReadOnlyList<ManagementCustomerPropertyLinkViewModel> Properties { get; set; } = Array.Empty<ManagementCustomerPropertyLinkViewModel>();
-}
-
-public class ManagementCustomerPropertyLinkViewModel
-{
-    public string PropertySlug { get; set; } = default!;
-    public string PropertyName { get; set; } = default!;
 }
 
 public class AddManagementCustomerViewModel

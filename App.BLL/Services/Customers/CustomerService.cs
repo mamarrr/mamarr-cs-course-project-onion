@@ -93,22 +93,6 @@ public class CustomerService :
             access.Value.ManagementCompanyId,
             cancellationToken);
 
-        var propertyLinks = await ServiceUOW.Customers.AllPropertyLinksByCompanyIdAsync(
-            access.Value.ManagementCompanyId,
-            cancellationToken);
-
-        var linksByCustomerId = propertyLinks
-            .GroupBy(link => link.CustomerId)
-            .ToDictionary(
-                group => group.Key,
-                group => (IReadOnlyList<CustomerPropertyLinkModel>)group
-                    .Select(link => new CustomerPropertyLinkModel
-                    {
-                        PropertySlug = link.PropertySlug,
-                        PropertyName = link.PropertyName
-                    })
-                    .ToList());
-
         return Result.Ok((IReadOnlyList<CustomerListItemModel>)customers
             .Select(customer => new CustomerListItemModel
             {
@@ -121,10 +105,7 @@ public class CustomerService :
                 RegistryCode = customer.RegistryCode,
                 BillingEmail = customer.BillingEmail,
                 BillingAddress = customer.BillingAddress,
-                Phone = customer.Phone,
-                Properties = linksByCustomerId.GetValueOrDefault(
-                    customer.Id,
-                    Array.Empty<CustomerPropertyLinkModel>())
+                Phone = customer.Phone
             })
             .ToList());
     }

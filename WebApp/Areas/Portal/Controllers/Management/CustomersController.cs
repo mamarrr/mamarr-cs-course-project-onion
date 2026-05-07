@@ -220,12 +220,7 @@ public class CustomersController : Controller
             RegistryCode = model.RegistryCode,
             BillingEmail = model.BillingEmail,
             BillingAddress = model.BillingAddress,
-            Phone = model.Phone,
-            Properties = model.Properties.Select(link => new ManagementCustomerPropertyLinkViewModel
-            {
-                PropertySlug = link.PropertySlug,
-                PropertyName = link.PropertyName
-            }).ToList()
+            Phone = model.Phone
         }).ToList();
     }
 

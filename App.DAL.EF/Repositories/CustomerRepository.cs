@@ -71,25 +71,6 @@ public class CustomerRepository :
         return customers;
     }
 
-    public async Task<IReadOnlyList<CustomerPropertyLinkDalDto>> AllPropertyLinksByCompanyIdAsync(
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default)
-    {
-        var properties = await _dbContext.Properties
-            .AsNoTracking()
-            .Where(p => p.Customer!.ManagementCompanyId == managementCompanyId)
-            .OrderBy(p => p.Label)
-            .Select(p => new CustomerPropertyLinkDalDto
-            {
-                CustomerId = p.CustomerId,
-                PropertySlug = p.Slug,
-                PropertyName = p.Label.ToString()
-            })
-            .ToListAsync(cancellationToken);
-
-        return properties;
-    }
-
     public async Task<bool> CustomerSlugExistsInCompanyAsync(
         Guid managementCompanyId,
         string slug,

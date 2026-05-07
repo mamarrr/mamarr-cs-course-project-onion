@@ -14,10 +14,6 @@ public interface ICustomerRepository : IBaseRepository<CustomerDalDto>
         Guid managementCompanyId,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<CustomerPropertyLinkDalDto>> AllPropertyLinksByCompanyIdAsync(
-        Guid managementCompanyId,
-        CancellationToken cancellationToken = default);
-
     Task<bool> CustomerSlugExistsInCompanyAsync(
         Guid managementCompanyId,
         string slug,
