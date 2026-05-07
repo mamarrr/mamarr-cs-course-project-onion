@@ -8,7 +8,6 @@ using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -24,18 +23,15 @@ namespace WebApp.Areas.Portal.Controllers.Customer;
 public class CustomerProfileController : Controller
 {
     private readonly IAppChromeBuilder _appChromeBuilder;
-    private readonly CustomerProfileMvcMapper _mapper;
     private readonly IAppBLL _bll;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public CustomerProfileController(
         IAppChromeBuilder appChromeBuilder,
-        CustomerProfileMvcMapper mapper,
         IAppBLL bll,
         ICurrentPortalContextResolver portalContextResolver)
     {
         _appChromeBuilder = appChromeBuilder;
-        _mapper = mapper;
         _bll = bll;
         _portalContextResolver = portalContextResolver;
     }
@@ -168,7 +164,19 @@ public class CustomerProfileController : Controller
             CustomerSlug = profile.Slug,
             CustomerName = profile.Name,
             SuccessMessage = TempData[nameof(UiText.ProfileUpdatedSuccessfully)] as string,
-            Edit = edit ?? _mapper.ToEditViewModel(profile)
+            Edit = edit ?? ToEditViewModel(profile)
+        };
+    }
+
+    private static CustomerProfileEditViewModel ToEditViewModel(CustomerProfileModel profile)
+    {
+        return new CustomerProfileEditViewModel
+        {
+            Name = profile.Name,
+            RegistryCode = profile.RegistryCode,
+            BillingEmail = profile.BillingEmail,
+            BillingAddress = profile.BillingAddress,
+            Phone = profile.Phone
         };
     }
 

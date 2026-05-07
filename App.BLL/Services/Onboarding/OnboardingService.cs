@@ -7,7 +7,6 @@ using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.ManagementCompanies;
 using App.BLL.DTO.Onboarding.Commands;
 using App.BLL.DTO.Onboarding.Models;
-using App.BLL.DTO.Onboarding.Queries;
 using App.BLL.Shared.Routing;
 using App.DAL.Contracts;
 using App.DAL.DTO.ManagementCompanies;
@@ -118,24 +117,17 @@ public class OnboardingService : IOnboardingService
         }
     }
 
-    private async Task<Result<OnboardingStateModel>> GetStateAsync(
-        GetOnboardingStateQuery query,
+    public async Task<Result<OnboardingStateModel>> GetStateAsync(
+        Guid appUserId,
         CancellationToken cancellationToken = default)
     {
-        var hasAnyContext = await HasAnyContextAsync(query.AppUserId, cancellationToken);
-        var defaultSlug = await GetDefaultManagementCompanySlugAsync(query.AppUserId, cancellationToken);
+        var hasAnyContext = await HasAnyContextAsync(appUserId, cancellationToken);
+        var defaultSlug = await GetDefaultManagementCompanySlugAsync(appUserId, cancellationToken);
         return Result.Ok(new OnboardingStateModel
         {
             HasAnyContext = hasAnyContext.Value,
             DefaultManagementCompanySlug = defaultSlug.Value
         });
-    }
-
-    public Task<Result<OnboardingStateModel>> GetStateAsync(
-        Guid appUserId,
-        CancellationToken cancellationToken = default)
-    {
-        return GetStateAsync(new GetOnboardingStateQuery { AppUserId = appUserId }, cancellationToken);
     }
 
     public Task<Result> CompleteAsync(

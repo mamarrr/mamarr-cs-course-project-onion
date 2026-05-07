@@ -8,7 +8,6 @@ using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Residents;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -24,20 +23,17 @@ namespace WebApp.Areas.Portal.Controllers.Management;
 public class ResidentsController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly ILogger<ResidentsController> _logger;
 
     public ResidentsController(
         IAppBLL bll,
-        ResidentMvcMapper residentMapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver,
         ILogger<ResidentsController> logger)
     {
         _bll = bll;
-        _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
         _logger = logger;

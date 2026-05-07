@@ -2,13 +2,11 @@ using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Units;
-using App.BLL.DTO.Units.Commands;
 using App.BLL.DTO.Units.Models;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -24,18 +22,15 @@ namespace WebApp.Areas.Portal.Controllers.Unit;
 public class ProfileController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly UnitMvcMapper _unitMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public ProfileController(
         IAppBLL bll,
-        UnitMvcMapper unitMapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
-        _unitMapper = unitMapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
     }
@@ -168,7 +163,18 @@ public class ProfileController : Controller
             UnitSlug = profile.UnitSlug,
             UnitName = profile.UnitNr,
             SuccessMessage = TempData[nameof(UiText.ProfileUpdatedSuccessfully)] as string,
-            Edit = edit ?? _unitMapper.ToEditViewModel(profile)
+            Edit = edit ?? ToEditViewModel(profile)
+        };
+    }
+
+    private static UnitProfileEditViewModel ToEditViewModel(UnitProfileModel profile)
+    {
+        return new UnitProfileEditViewModel
+        {
+            UnitNr = profile.UnitNr,
+            FloorNr = profile.FloorNr,
+            SizeM2 = profile.SizeM2,
+            Notes = profile.Notes
         };
     }
 
@@ -204,7 +210,7 @@ public class ProfileController : Controller
         {
             foreach (var failure in validation.Failures)
             {
-                var key = failure.PropertyName == nameof(DeleteUnitCommand.ConfirmationUnitNr)
+                var key = failure.PropertyName == "ConfirmationUnitNr"
                     ? nameof(UnitProfileEditViewModel.DeleteConfirmation)
                     : validationFallbackKey;
 

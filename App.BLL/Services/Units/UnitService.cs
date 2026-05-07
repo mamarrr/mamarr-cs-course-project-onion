@@ -88,7 +88,22 @@ public class UnitService :
 
         return unit is null
             ? Result.Fail(new NotFoundError("Unit context was not found."))
-            : Result.Ok(UnitBllMapper.MapWorkspace(route.AppUserId, unit));
+            : Result.Ok(new UnitWorkspaceModel
+            {
+                AppUserId = route.AppUserId,
+                ManagementCompanyId = unit.ManagementCompanyId,
+                CompanySlug = unit.CompanySlug,
+                CompanyName = unit.CompanyName,
+                CustomerId = unit.CustomerId,
+                CustomerSlug = unit.CustomerSlug,
+                CustomerName = unit.CustomerName,
+                PropertyId = unit.PropertyId,
+                PropertySlug = unit.PropertySlug,
+                PropertyName = unit.PropertyName,
+                UnitId = unit.Id,
+                UnitSlug = unit.Slug,
+                UnitNr = unit.UnitNr
+            });
     }
 
     public async Task<Result<PropertyUnitsModel>> ListForPropertyAsync(
@@ -117,7 +132,15 @@ public class UnitService :
             PropertyId = property.Value.PropertyId,
             PropertySlug = property.Value.PropertySlug,
             PropertyName = property.Value.PropertyName,
-            Units = units.Select(UnitBllMapper.MapListItem).ToList()
+            Units = units.Select(unit => new UnitListItemModel
+            {
+                UnitId = unit.Id,
+                PropertyId = unit.PropertyId,
+                UnitSlug = unit.Slug,
+                UnitNr = unit.UnitNr,
+                FloorNr = unit.FloorNr,
+                SizeM2 = unit.SizeM2
+            }).ToList()
         });
     }
 
@@ -344,7 +367,24 @@ public class UnitService :
 
         return profile is null
             ? Result.Fail(new NotFoundError("Unit profile was not found."))
-            : Result.Ok(UnitBllMapper.MapProfile(profile));
+            : Result.Ok(new UnitProfileModel
+            {
+                UnitId = profile.Id,
+                PropertyId = profile.PropertyId,
+                CustomerId = profile.CustomerId,
+                ManagementCompanyId = profile.ManagementCompanyId,
+                CompanySlug = profile.CompanySlug,
+                CompanyName = profile.CompanyName,
+                CustomerSlug = profile.CustomerSlug,
+                CustomerName = profile.CustomerName,
+                PropertySlug = profile.PropertySlug,
+                PropertyName = profile.PropertyName,
+                UnitSlug = profile.Slug,
+                UnitNr = profile.UnitNr,
+                FloorNr = profile.FloorNr,
+                SizeM2 = profile.SizeM2,
+                Notes = profile.Notes
+            });
     }
 
     private static Result ValidateCreate(UnitBllDto dto)

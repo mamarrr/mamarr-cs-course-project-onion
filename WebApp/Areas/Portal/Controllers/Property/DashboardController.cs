@@ -6,7 +6,6 @@ using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -22,18 +21,15 @@ namespace WebApp.Areas.Portal.Controllers.Property;
 public class DashboardController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly PropertyMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public DashboardController(
         IAppBLL bll,
-        PropertyMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
-        _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
     }

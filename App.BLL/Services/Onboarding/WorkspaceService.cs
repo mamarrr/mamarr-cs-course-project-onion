@@ -1,6 +1,6 @@
 using App.BLL.Contracts.Onboarding;
 using App.BLL.DTO.Common.Errors;
-using App.BLL.DTO.Onboarding.Commands;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Onboarding.Models;
 using App.BLL.DTO.Onboarding.Queries;
 using App.DAL.Contracts;
@@ -95,17 +95,80 @@ public class WorkspaceService : IWorkspaceService
         });
     }
 
-    public Task<Result<WorkspaceCatalogModel>> GetCatalogAsync(
-        App.BLL.DTO.Common.Routes.ManagementCompanyRoute route,
+    public async Task<Result<WorkspaceCatalogModel>> GetCatalogAsync(
+        ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)
     {
-        return GetWorkspaceCatalogAsync(
-            new GetWorkspaceCatalogQuery
-            {
-                AppUserId = route.AppUserId,
-                CompanySlug = route.CompanySlug
-            },
+        var normalizedSlug = route.CompanySlug.Trim();
+
+        var managementContexts = await _uow.ManagementCompanies.ActiveUserManagementContextsAsync(
+            route.AppUserId,
             cancellationToken);
+
+        var managementOptions = managementContexts
+            .Select(context => new WorkspaceOptionModel
+            {
+                Id = context.ManagementCompanyId,
+                ContextType = "management",
+                Name = context.CompanyName,
+                Slug = context.Slug,
+                ManagementCompanySlug = context.Slug,
+                IsDefault = string.Equals(context.Slug, managementContexts.FirstOrDefault()?.Slug, StringComparison.OrdinalIgnoreCase)
+            })
+            .ToList();
+
+        var selectedManagementContext = managementContexts
+            .FirstOrDefault(context => string.Equals(context.Slug, normalizedSlug, StringComparison.OrdinalIgnoreCase));
+
+        var managementCompanyName = selectedManagementContext?.CompanyName
+                                    ?? managementContexts.Select(context => context.CompanyName).FirstOrDefault()
+                                    ?? "Management Workspace";
+
+        var canManageCompanyUsers = selectedManagementContext is not null
+                                    && CompanyUserManagerRoles.Contains(selectedManagementContext.RoleCode);
+
+        var customerOptions = (await _uow.Customers.ActiveUserCustomerContextsAsync(
+                route.AppUserId,
+                cancellationToken))
+            .Select(customer => new WorkspaceOptionModel
+            {
+                Id = customer.CustomerId,
+                ContextType = "customer",
+                Name = customer.Name,
+                Slug = customer.Slug,
+                ManagementCompanySlug = customer.ManagementCompanySlug
+            })
+            .ToList();
+
+        var residentContext = await _uow.Residents.FirstActiveUserResidentContextAsync(
+            route.AppUserId,
+            cancellationToken);
+
+        var residentOption = residentContext is null
+            ? null
+            : new WorkspaceOptionModel
+            {
+                Id = residentContext.ResidentId,
+                ContextType = "resident",
+                Name = residentContext.DisplayName,
+                Slug = residentContext.IdCode,
+                ManagementCompanySlug = residentContext.ManagementCompanySlug
+            };
+
+        var defaultContext = managementOptions.FirstOrDefault(option => option.IsDefault)
+                             ?? residentOption
+                             ?? customerOptions.FirstOrDefault();
+
+        return Result.Ok(new WorkspaceCatalogModel
+        {
+            ManagementCompanyName = managementCompanyName,
+            CanManageCompanyUsers = canManageCompanyUsers,
+            HasResidentContext = residentOption is not null,
+            ManagementCompanies = managementOptions,
+            Customers = customerOptions,
+            Resident = residentOption,
+            DefaultContext = defaultContext
+        });
     }
 
     public async Task<Result<WorkspaceRedirectModel?>> ResolveContextRedirectAsync(
@@ -117,7 +180,7 @@ public class WorkspaceService : IWorkspaceService
         if (rememberedContext.ContextType == "management" && !string.IsNullOrWhiteSpace(rememberedContext.ManagementCompanySlug))
         {
             var hasSelectedManagementAccess = await _onboardingService.UserHasManagementCompanyAccessAsync(
-                new App.BLL.DTO.Common.Routes.ManagementCompanyRoute
+                new ManagementCompanyRoute
                 {
                     AppUserId = query.AppUserId,
                     CompanySlug = rememberedContext.ManagementCompanySlug
@@ -199,16 +262,46 @@ public class WorkspaceService : IWorkspaceService
         return Result.Ok<WorkspaceRedirectModel?>(null);
     }
 
-    public async Task<Result<WorkspaceSelectionAuthorizationModel>> AuthorizeContextSelectionAsync(
+    public Task<Result<WorkspaceSelectionAuthorizationModel>> AuthorizeContextSelectionAsync(
         AuthorizeContextSelectionQuery query,
         CancellationToken cancellationToken = default)
     {
-        var normalizedType = query.ContextType.Trim().ToLowerInvariant();
+        return AuthorizeContextSelectionAsync(
+            query.AppUserId,
+            query.ContextType,
+            query.ContextId,
+            cancellationToken);
+    }
+
+    public async Task<Result> SelectAsync(
+        Guid appUserId,
+        string contextType,
+        Guid? contextId,
+        CancellationToken cancellationToken = default)
+    {
+        var authorization = await AuthorizeContextSelectionAsync(
+            appUserId,
+            contextType,
+            contextId,
+            cancellationToken);
+
+        return authorization.IsSuccess && authorization.Value.Authorized
+            ? Result.Ok()
+            : Result.Fail(new ForbiddenError("Workspace context is not available."));
+    }
+
+    private async Task<Result<WorkspaceSelectionAuthorizationModel>> AuthorizeContextSelectionAsync(
+        Guid appUserId,
+        string contextType,
+        Guid? contextId,
+        CancellationToken cancellationToken)
+    {
+        var normalizedType = contextType.Trim().ToLowerInvariant();
 
         switch (normalizedType)
         {
             case "management":
-                if (!query.ContextId.HasValue)
+                if (!contextId.HasValue)
                 {
                     return Result.Ok(new WorkspaceSelectionAuthorizationModel
                     {
@@ -218,8 +311,8 @@ public class WorkspaceService : IWorkspaceService
                 }
 
                 var managementCompany = await _uow.ManagementCompanies.ActiveUserManagementContextByCompanyIdAsync(
-                    query.AppUserId,
-                    query.ContextId.Value,
+                    appUserId,
+                    contextId.Value,
                     cancellationToken);
 
                 if (managementCompany == null)
@@ -240,7 +333,7 @@ public class WorkspaceService : IWorkspaceService
                 });
 
             case "customer":
-                if (!query.ContextId.HasValue)
+                if (!contextId.HasValue)
                 {
                     return Result.Ok(new WorkspaceSelectionAuthorizationModel
                     {
@@ -250,20 +343,20 @@ public class WorkspaceService : IWorkspaceService
                 }
 
                 var hasCustomerContext = await _uow.Customers.ActiveUserCustomerContextExistsAsync(
-                    query.AppUserId,
-                    query.ContextId.Value,
+                    appUserId,
+                    contextId.Value,
                     cancellationToken);
 
                 return Result.Ok(new WorkspaceSelectionAuthorizationModel
                 {
                     Authorized = hasCustomerContext,
                     NormalizedType = normalizedType,
-                    CustomerId = hasCustomerContext ? query.ContextId : null
+                    CustomerId = hasCustomerContext ? contextId : null
                 });
 
             case "resident":
                 var hasResidentContext = await _uow.Residents.HasActiveUserResidentContextAsync(
-                    query.AppUserId,
+                    appUserId,
                     cancellationToken);
 
                 return Result.Ok(new WorkspaceSelectionAuthorizationModel
@@ -279,100 +372,6 @@ public class WorkspaceService : IWorkspaceService
                     NormalizedType = normalizedType
                 });
         }
-    }
-
-    private async Task<Result<WorkspaceCatalogModel>> GetWorkspaceCatalogAsync(
-        GetWorkspaceCatalogQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var normalizedSlug = query.CompanySlug.Trim();
-
-        var managementContexts = await _uow.ManagementCompanies.ActiveUserManagementContextsAsync(
-            query.AppUserId,
-            cancellationToken);
-
-        var managementOptions = managementContexts
-            .Select(context => new WorkspaceOptionModel
-            {
-                Id = context.ManagementCompanyId,
-                ContextType = "management",
-                Name = context.CompanyName,
-                Slug = context.Slug,
-                ManagementCompanySlug = context.Slug,
-                IsDefault = string.Equals(context.Slug, managementContexts.FirstOrDefault()?.Slug, StringComparison.OrdinalIgnoreCase)
-            })
-            .ToList();
-
-        var selectedManagementContext = managementContexts
-            .FirstOrDefault(context => string.Equals(context.Slug, normalizedSlug, StringComparison.OrdinalIgnoreCase));
-
-        var managementCompanyName = selectedManagementContext?.CompanyName
-                                    ?? managementContexts.Select(context => context.CompanyName).FirstOrDefault()
-                                    ?? "Management Workspace";
-
-        var canManageCompanyUsers = selectedManagementContext is not null
-                                    && CompanyUserManagerRoles.Contains(selectedManagementContext.RoleCode);
-
-        var customerOptions = (await _uow.Customers.ActiveUserCustomerContextsAsync(
-                query.AppUserId,
-                cancellationToken))
-            .Select(customer => new WorkspaceOptionModel
-            {
-                Id = customer.CustomerId,
-                ContextType = "customer",
-                Name = customer.Name,
-                Slug = customer.Slug,
-                ManagementCompanySlug = customer.ManagementCompanySlug
-            })
-            .ToList();
-
-        var residentContext = await _uow.Residents.FirstActiveUserResidentContextAsync(
-            query.AppUserId,
-            cancellationToken);
-
-        var residentOption = residentContext is null
-            ? null
-            : new WorkspaceOptionModel
-            {
-                Id = residentContext.ResidentId,
-                ContextType = "resident",
-                Name = residentContext.DisplayName,
-                Slug = residentContext.IdCode,
-                ManagementCompanySlug = residentContext.ManagementCompanySlug
-            };
-
-        var defaultContext = managementOptions.FirstOrDefault(option => option.IsDefault)
-                             ?? residentOption
-                             ?? customerOptions.FirstOrDefault();
-
-        return Result.Ok(new WorkspaceCatalogModel
-        {
-            ManagementCompanyName = managementCompanyName,
-            CanManageCompanyUsers = canManageCompanyUsers,
-            HasResidentContext = residentOption is not null,
-            ManagementCompanies = managementOptions,
-            Customers = customerOptions,
-            Resident = residentOption,
-            DefaultContext = defaultContext
-        });
-    }
-
-    public async Task<Result> SelectAsync(
-        SelectWorkspaceCommand command,
-        CancellationToken cancellationToken = default)
-    {
-        var authorization = await AuthorizeContextSelectionAsync(
-            new AuthorizeContextSelectionQuery
-            {
-                AppUserId = command.AppUserId,
-                ContextType = command.ContextType,
-                ContextId = command.ContextId
-            },
-            cancellationToken);
-
-        return authorization.IsSuccess && authorization.Value.Authorized
-            ? Result.Ok()
-            : Result.Fail(new ForbiddenError("Workspace context is not available."));
     }
 
     private static readonly HashSet<string> CompanyUserManagerRoles = new(StringComparer.OrdinalIgnoreCase)

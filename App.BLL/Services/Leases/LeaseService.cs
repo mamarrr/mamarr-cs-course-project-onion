@@ -8,7 +8,6 @@ using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Leases;
 using App.BLL.DTO.Leases.Models;
-using App.BLL.DTO.Leases.Queries;
 using App.BLL.DTO.Residents.Models;
 using App.BLL.DTO.Units.Models;
 using App.BLL.Mappers.Leases;
@@ -42,9 +41,36 @@ public class LeaseService :
         CancellationToken cancellationToken = default)
     {
         var context = await ResolveResidentAsync(route, cancellationToken);
-        return context.IsFailed
-            ? Result.Fail<ResidentLeaseListModel>(context.Errors)
-            : await ListForResidentAsync(ToResidentLeasesQuery(context.Value), cancellationToken);
+        if (context.IsFailed)
+        {
+            return Result.Fail<ResidentLeaseListModel>(context.Errors);
+        }
+
+        var leases = await ServiceUOW.Leases.AllByResidentAsync(
+            context.Value.ResidentId,
+            context.Value.ManagementCompanyId,
+            cancellationToken);
+
+        return Result.Ok(new ResidentLeaseListModel
+        {
+            Leases = leases.Select(lease => new ResidentLeaseModel
+            {
+                LeaseId = lease.LeaseId,
+                ResidentId = lease.ResidentId,
+                UnitId = lease.UnitId,
+                PropertyId = lease.PropertyId,
+                PropertyName = lease.PropertyName,
+                PropertySlug = lease.PropertySlug,
+                UnitNr = lease.UnitNr,
+                UnitSlug = lease.UnitSlug,
+                LeaseRoleId = lease.LeaseRoleId,
+                LeaseRoleCode = lease.LeaseRoleCode,
+                LeaseRoleLabel = lease.LeaseRoleLabel,
+                StartDate = lease.StartDate,
+                EndDate = lease.EndDate,
+                Notes = lease.Notes
+            }).ToList()
+        });
     }
 
     public async Task<Result<UnitLeaseListModel>> ListForUnitAsync(
@@ -52,9 +78,35 @@ public class LeaseService :
         CancellationToken cancellationToken = default)
     {
         var context = await ResolveUnitAsync(route, cancellationToken);
-        return context.IsFailed
-            ? Result.Fail<UnitLeaseListModel>(context.Errors)
-            : await ListForUnitAsync(ToUnitLeasesQuery(context.Value), cancellationToken);
+        if (context.IsFailed)
+        {
+            return Result.Fail<UnitLeaseListModel>(context.Errors);
+        }
+
+        var leases = await ServiceUOW.Leases.AllByUnitAsync(
+            context.Value.UnitId,
+            context.Value.PropertyId,
+            context.Value.ManagementCompanyId,
+            cancellationToken);
+
+        return Result.Ok(new UnitLeaseListModel
+        {
+            Leases = leases.Select(lease => new UnitLeaseModel
+            {
+                LeaseId = lease.LeaseId,
+                ResidentId = lease.ResidentId,
+                UnitId = lease.UnitId,
+                PropertyId = lease.PropertyId,
+                ResidentFullName = lease.ResidentFullName,
+                ResidentIdCode = lease.ResidentIdCode,
+                LeaseRoleId = lease.LeaseRoleId,
+                LeaseRoleCode = lease.LeaseRoleCode,
+                LeaseRoleLabel = lease.LeaseRoleLabel,
+                StartDate = lease.StartDate,
+                EndDate = lease.EndDate,
+                Notes = lease.Notes
+            }).ToList()
+        });
     }
 
     public async Task<Result<LeaseModel>> GetForResidentAsync(
@@ -62,9 +114,29 @@ public class LeaseService :
         CancellationToken cancellationToken = default)
     {
         var context = await ResolveResidentAsync(route, cancellationToken);
-        return context.IsFailed
-            ? Result.Fail<LeaseModel>(context.Errors)
-            : await GetForResidentAsync(ToResidentLeaseQuery(context.Value, route.LeaseId), cancellationToken);
+        if (context.IsFailed)
+        {
+            return Result.Fail<LeaseModel>(context.Errors);
+        }
+
+        var lease = await ServiceUOW.Leases.FirstByIdForResidentAsync(
+            route.LeaseId,
+            context.Value.ResidentId,
+            context.Value.ManagementCompanyId,
+            cancellationToken);
+
+        return lease is null
+            ? Result.Fail(new NotFoundError(LeaseNotFoundMessage()))
+            : Result.Ok(new LeaseModel
+            {
+                LeaseId = lease.LeaseId,
+                LeaseRoleId = lease.LeaseRoleId,
+                ResidentId = lease.ResidentId,
+                UnitId = lease.UnitId,
+                StartDate = lease.StartDate,
+                EndDate = lease.EndDate,
+                Notes = lease.Notes
+            });
     }
 
     public async Task<Result<LeaseModel>> GetForUnitAsync(
@@ -72,9 +144,30 @@ public class LeaseService :
         CancellationToken cancellationToken = default)
     {
         var context = await ResolveUnitAsync(route, cancellationToken);
-        return context.IsFailed
-            ? Result.Fail<LeaseModel>(context.Errors)
-            : await GetForUnitAsync(ToUnitLeaseQuery(context.Value, route.LeaseId), cancellationToken);
+        if (context.IsFailed)
+        {
+            return Result.Fail<LeaseModel>(context.Errors);
+        }
+
+        var lease = await ServiceUOW.Leases.FirstByIdForUnitAsync(
+            route.LeaseId,
+            context.Value.UnitId,
+            context.Value.PropertyId,
+            context.Value.ManagementCompanyId,
+            cancellationToken);
+
+        return lease is null
+            ? Result.Fail(new NotFoundError(LeaseNotFoundMessage()))
+            : Result.Ok(new LeaseModel
+            {
+                LeaseId = lease.LeaseId,
+                LeaseRoleId = lease.LeaseRoleId,
+                ResidentId = lease.ResidentId,
+                UnitId = lease.UnitId,
+                StartDate = lease.StartDate,
+                EndDate = lease.EndDate,
+                Notes = lease.Notes
+            });
     }
 
     public async Task<Result<LeaseBllDto>> CreateForResidentAsync(
@@ -404,9 +497,31 @@ public class LeaseService :
         CancellationToken cancellationToken = default)
     {
         var context = await ResolveResidentAsync(route, cancellationToken);
-        return context.IsFailed
-            ? Result.Fail<LeasePropertySearchResultModel>(context.Errors)
-            : await SearchPropertiesAsync(ToSearchPropertiesQuery(context.Value, searchTerm), cancellationToken);
+        if (context.IsFailed)
+        {
+            return Result.Fail<LeasePropertySearchResultModel>(context.Errors);
+        }
+
+        var properties = await ServiceUOW.Properties.SearchForLeaseAssignmentAsync(
+            context.Value.ManagementCompanyId,
+            searchTerm,
+            cancellationToken);
+
+        return Result.Ok(new LeasePropertySearchResultModel
+        {
+            Properties = properties.Select(property => new LeasePropertySearchItemModel
+            {
+                PropertyId = property.PropertyId,
+                CustomerId = property.CustomerId,
+                PropertySlug = property.PropertySlug,
+                PropertyName = property.PropertyName,
+                CustomerSlug = property.CustomerSlug,
+                CustomerName = property.CustomerName,
+                AddressLine = property.AddressLine,
+                City = property.City,
+                PostalCode = property.PostalCode
+            }).ToList()
+        });
     }
 
     public async Task<Result<LeaseUnitOptionsModel>> ListUnitsForPropertyAsync(
@@ -415,106 +530,14 @@ public class LeaseService :
         CancellationToken cancellationToken = default)
     {
         var context = await ResolveResidentAsync(route, cancellationToken);
-        return context.IsFailed
-            ? Result.Fail<LeaseUnitOptionsModel>(context.Errors)
-            : await ListUnitsForPropertyAsync(ToUnitsForPropertyQuery(context.Value, propertyId), cancellationToken);
-    }
-
-    public async Task<Result<LeaseResidentSearchResultModel>> SearchResidentsAsync(
-        UnitRoute route,
-        string? searchTerm,
-        CancellationToken cancellationToken = default)
-    {
-        var context = await ResolveUnitAsync(route, cancellationToken);
-        return context.IsFailed
-            ? Result.Fail<LeaseResidentSearchResultModel>(context.Errors)
-            : await SearchResidentsAsync(ToSearchResidentsQuery(context.Value, searchTerm), cancellationToken);
-    }
-
-    private async Task<Result<ResidentLeaseListModel>> ListForResidentAsync(
-        GetResidentLeasesQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var leases = await ServiceUOW.Leases.AllByResidentAsync(
-            query.ResidentId,
-            query.ManagementCompanyId,
-            cancellationToken);
-
-        return Result.Ok(new ResidentLeaseListModel
+        if (context.IsFailed)
         {
-            Leases = leases.Select(LeaseBllMapper.MapResidentLease).ToList()
-        });
-    }
+            return Result.Fail<LeaseUnitOptionsModel>(context.Errors);
+        }
 
-    private async Task<Result<UnitLeaseListModel>> ListForUnitAsync(
-        GetUnitLeasesQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var leases = await ServiceUOW.Leases.AllByUnitAsync(
-            query.UnitId,
-            query.PropertyId,
-            query.ManagementCompanyId,
-            cancellationToken);
-
-        return Result.Ok(new UnitLeaseListModel
-        {
-            Leases = leases.Select(LeaseBllMapper.MapUnitLease).ToList()
-        });
-    }
-
-    private async Task<Result<LeaseModel>> GetForResidentAsync(
-        GetResidentLeaseQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var lease = await ServiceUOW.Leases.FirstByIdForResidentAsync(
-            query.LeaseId,
-            query.ResidentId,
-            query.ManagementCompanyId,
-            cancellationToken);
-
-        return lease is null
-            ? Result.Fail(new NotFoundError(LeaseNotFoundMessage()))
-            : Result.Ok(LeaseBllMapper.MapLease(lease));
-    }
-
-    private async Task<Result<LeaseModel>> GetForUnitAsync(
-        GetUnitLeaseQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var lease = await ServiceUOW.Leases.FirstByIdForUnitAsync(
-            query.LeaseId,
-            query.UnitId,
-            query.PropertyId,
-            query.ManagementCompanyId,
-            cancellationToken);
-
-        return lease is null
-            ? Result.Fail(new NotFoundError(LeaseNotFoundMessage()))
-            : Result.Ok(LeaseBllMapper.MapLease(lease));
-    }
-
-    private async Task<Result<LeasePropertySearchResultModel>> SearchPropertiesAsync(
-        SearchLeasePropertiesQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var properties = await ServiceUOW.Properties.SearchForLeaseAssignmentAsync(
-            query.ManagementCompanyId,
-            query.SearchTerm,
-            cancellationToken);
-
-        return Result.Ok(new LeasePropertySearchResultModel
-        {
-            Properties = properties.Select(LeaseBllMapper.MapProperty).ToList()
-        });
-    }
-
-    private async Task<Result<LeaseUnitOptionsModel>> ListUnitsForPropertyAsync(
-        GetLeaseUnitsForPropertyQuery query,
-        CancellationToken cancellationToken = default)
-    {
         var propertyExists = await ServiceUOW.Properties.ExistsInCompanyAsync(
-            query.PropertyId,
-            query.ManagementCompanyId,
+            propertyId,
+            context.Value.ManagementCompanyId,
             cancellationToken);
         if (!propertyExists)
         {
@@ -523,28 +546,46 @@ public class LeaseService :
         }
 
         var units = await ServiceUOW.Units.ListForLeaseAssignmentAsync(
-            query.PropertyId,
-            query.ManagementCompanyId,
+            propertyId,
+            context.Value.ManagementCompanyId,
             cancellationToken);
 
         return Result.Ok(new LeaseUnitOptionsModel
         {
-            Units = units.Select(LeaseBllMapper.MapUnitOption).ToList()
+            Units = units.Select(unit => new LeaseUnitOptionModel
+            {
+                UnitId = unit.UnitId,
+                UnitSlug = unit.UnitSlug,
+                UnitNr = unit.UnitNr,
+                FloorNr = unit.FloorNr
+            }).ToList()
         });
     }
 
-    private async Task<Result<LeaseResidentSearchResultModel>> SearchResidentsAsync(
-        SearchLeaseResidentsQuery query,
+    public async Task<Result<LeaseResidentSearchResultModel>> SearchResidentsAsync(
+        UnitRoute route,
+        string? searchTerm,
         CancellationToken cancellationToken = default)
     {
+        var context = await ResolveUnitAsync(route, cancellationToken);
+        if (context.IsFailed)
+        {
+            return Result.Fail<LeaseResidentSearchResultModel>(context.Errors);
+        }
+
         var residents = await ServiceUOW.Residents.SearchForLeaseAssignmentAsync(
-            query.ManagementCompanyId,
-            query.SearchTerm,
+            context.Value.ManagementCompanyId,
+            searchTerm,
             cancellationToken);
 
         return Result.Ok(new LeaseResidentSearchResultModel
         {
-            Residents = residents.Select(LeaseBllMapper.MapResidentSearchItem).ToList()
+            Residents = residents.Select(resident => new LeaseResidentSearchItemModel
+            {
+                ResidentId = resident.ResidentId,
+                FullName = resident.FullName,
+                IdCode = resident.IdCode
+            }).ToList()
         });
     }
 
@@ -555,7 +596,12 @@ public class LeaseService :
 
         return Result.Ok(new LeaseRoleOptionsModel
         {
-            Roles = roles.Select(LeaseBllMapper.MapLeaseRole).ToList()
+            Roles = roles.Select(role => new LeaseRoleOptionModel
+            {
+                LeaseRoleId = role.LeaseRoleId,
+                Code = role.Code,
+                Label = role.Label
+            }).ToList()
         });
     }
 
@@ -634,52 +680,6 @@ public class LeaseService :
         return _unitService.ResolveWorkspaceAsync(route, cancellationToken);
     }
 
-    private static GetResidentLeasesQuery ToResidentLeasesQuery(ResidentWorkspaceModel context)
-    {
-        return LeaseBllMapper.ToResidentLeasesQuery(context);
-    }
-
-    private static GetUnitLeasesQuery ToUnitLeasesQuery(UnitWorkspaceModel context)
-    {
-        return LeaseBllMapper.ToUnitLeasesQuery(context);
-    }
-
-    private static GetResidentLeaseQuery ToResidentLeaseQuery(ResidentWorkspaceModel context, Guid leaseId)
-    {
-        return new GetResidentLeaseQuery
-        {
-            AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            ResidentId = context.ResidentId,
-            ResidentIdCode = context.ResidentIdCode,
-            FullName = context.FullName,
-            LeaseId = leaseId
-        };
-    }
-
-    private static GetUnitLeaseQuery ToUnitLeaseQuery(UnitWorkspaceModel context, Guid leaseId)
-    {
-        return new GetUnitLeaseQuery
-        {
-            AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerId = context.CustomerId,
-            CustomerSlug = context.CustomerSlug,
-            CustomerName = context.CustomerName,
-            PropertyId = context.PropertyId,
-            PropertySlug = context.PropertySlug,
-            PropertyName = context.PropertyName,
-            UnitId = context.UnitId,
-            UnitSlug = context.UnitSlug,
-            UnitNr = context.UnitNr,
-            LeaseId = leaseId
-        };
-    }
-
     private static ResidentLeaseRoute ToResidentLeaseRoute(ResidentRoute route, Guid leaseId)
     {
         return new ResidentLeaseRoute
@@ -704,54 +704,4 @@ public class LeaseService :
         };
     }
 
-    private static SearchLeasePropertiesQuery ToSearchPropertiesQuery(ResidentWorkspaceModel context, string? searchTerm)
-    {
-        return new SearchLeasePropertiesQuery
-        {
-            AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            ResidentId = context.ResidentId,
-            ResidentIdCode = context.ResidentIdCode,
-            FullName = context.FullName,
-            SearchTerm = searchTerm
-        };
-    }
-
-    private static GetLeaseUnitsForPropertyQuery ToUnitsForPropertyQuery(ResidentWorkspaceModel context, Guid propertyId)
-    {
-        return new GetLeaseUnitsForPropertyQuery
-        {
-            AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            ResidentId = context.ResidentId,
-            ResidentIdCode = context.ResidentIdCode,
-            FullName = context.FullName,
-            PropertyId = propertyId
-        };
-    }
-
-    private static SearchLeaseResidentsQuery ToSearchResidentsQuery(UnitWorkspaceModel context, string? searchTerm)
-    {
-        return new SearchLeaseResidentsQuery
-        {
-            AppUserId = context.AppUserId,
-            ManagementCompanyId = context.ManagementCompanyId,
-            CompanySlug = context.CompanySlug,
-            CompanyName = context.CompanyName,
-            CustomerId = context.CustomerId,
-            CustomerSlug = context.CustomerSlug,
-            CustomerName = context.CustomerName,
-            PropertyId = context.PropertyId,
-            PropertySlug = context.PropertySlug,
-            PropertyName = context.PropertyName,
-            UnitId = context.UnitId,
-            UnitSlug = context.UnitSlug,
-            UnitNr = context.UnitNr,
-            SearchTerm = searchTerm
-        };
-    }
 }

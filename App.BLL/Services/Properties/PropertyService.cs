@@ -7,8 +7,8 @@ using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Customers.Models;
 using App.BLL.DTO.Properties;
 using App.BLL.DTO.Properties.Models;
-using App.BLL.Shared.Routing;
 using App.BLL.Mappers.Properties;
+using App.BLL.Shared.Routing;
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
 using App.DAL.DTO.Properties;
@@ -57,7 +57,19 @@ public class PropertyService :
 
         return property is null
             ? Result.Fail(new NotFoundError("Property context was not found."))
-            : Result.Ok(PropertyBllMapper.MapWorkspace(customer.Value, property));
+            : Result.Ok(new PropertyWorkspaceModel
+            {
+                AppUserId = customer.Value.AppUserId,
+                ManagementCompanyId = customer.Value.ManagementCompanyId,
+                CompanySlug = customer.Value.CompanySlug,
+                CompanyName = customer.Value.CompanyName,
+                CustomerId = customer.Value.CustomerId,
+                CustomerSlug = customer.Value.CustomerSlug,
+                CustomerName = customer.Value.CustomerName,
+                PropertyId = property.Id,
+                PropertySlug = property.Slug,
+                PropertyName = property.Name
+            });
     }
 
     public async Task<Result<PropertyDashboardModel>> GetDashboardAsync(
@@ -85,7 +97,20 @@ public class PropertyService :
             cancellationToken);
 
         return Result.Ok((IReadOnlyList<PropertyListItemModel>)properties
-            .Select(PropertyBllMapper.MapListItem)
+            .Select(property => new PropertyListItemModel
+            {
+                PropertyId = property.Id,
+                CustomerId = property.CustomerId,
+                ManagementCompanyId = property.ManagementCompanyId,
+                PropertyName = property.Name,
+                PropertySlug = property.Slug,
+                AddressLine = property.AddressLine,
+                City = property.City,
+                PostalCode = property.PostalCode,
+                PropertyTypeId = property.PropertyTypeId,
+                PropertyTypeCode = property.PropertyTypeCode,
+                PropertyTypeLabel = property.PropertyTypeLabel
+            })
             .ToList());
     }
 
@@ -108,7 +133,12 @@ public class PropertyService :
         var options = await ServiceUOW.Lookups.AllPropertyTypeOptionsAsync(cancellationToken);
 
         return Result.Ok((IReadOnlyList<PropertyTypeOptionModel>)options
-            .Select(PropertyBllMapper.MapTypeOption)
+            .Select(option => new PropertyTypeOptionModel
+            {
+                Id = option.Id,
+                Code = option.Code,
+                Label = option.Label
+            })
             .ToList());
     }
 
@@ -336,7 +366,25 @@ public class PropertyService :
 
         return profile is null
             ? Result.Fail(new NotFoundError("Property profile was not found."))
-            : Result.Ok(PropertyBllMapper.MapProfile(profile));
+            : Result.Ok(new PropertyProfileModel
+            {
+                PropertyId = profile.Id,
+                CustomerId = profile.CustomerId,
+                ManagementCompanyId = profile.ManagementCompanyId,
+                CompanySlug = profile.CompanySlug,
+                CompanyName = profile.CompanyName,
+                CustomerSlug = profile.CustomerSlug,
+                CustomerName = profile.CustomerName,
+                PropertySlug = profile.Slug,
+                Name = profile.Name,
+                AddressLine = profile.AddressLine,
+                City = profile.City,
+                PostalCode = profile.PostalCode,
+                Notes = profile.Notes,
+                PropertyTypeId = profile.PropertyTypeId,
+                PropertyTypeCode = profile.PropertyTypeCode,
+                PropertyTypeLabel = profile.PropertyTypeLabel
+            });
     }
 
     private static Result Validate(PropertyBllDto dto, bool requirePropertyType)

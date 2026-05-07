@@ -5,7 +5,6 @@ using App.BLL.DTO.Customers.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using WebApp.Mappers.Mvc.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -21,20 +20,17 @@ namespace WebApp.Areas.Portal.Controllers.Customer;
 public class CustomerDashboardController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly CustomerWorkspaceMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly ILogger<CustomerDashboardController> _logger;
 
     public CustomerDashboardController(
         IAppBLL bll,
-        CustomerWorkspaceMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver,
         ILogger<CustomerDashboardController> logger)
     {
         _bll = bll;
-        _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
         _logger = logger;

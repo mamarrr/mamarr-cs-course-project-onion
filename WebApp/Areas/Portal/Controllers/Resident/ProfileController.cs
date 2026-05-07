@@ -8,7 +8,6 @@ using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Residents;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -24,18 +23,15 @@ namespace WebApp.Areas.Portal.Controllers.Resident;
 public class ProfileController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly ResidentMvcMapper _residentMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public ProfileController(
         IAppBLL bll,
-        ResidentMvcMapper residentMapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
-        _residentMapper = residentMapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
     }
@@ -168,9 +164,20 @@ public class ProfileController : Controller
             CompanySlug = profile.CompanySlug,
             CompanyName = profile.CompanyName,
             SuccessMessage = TempData[nameof(UiText.ProfileUpdatedSuccessfully)] as string,
-            Edit = edit ?? _residentMapper.ToEditViewModel(profile),
+            Edit = edit ?? ToEditViewModel(profile),
             ResidentDisplayName = residentDisplayName,
             ResidentIdCode = profile.ResidentIdCode
+        };
+    }
+
+    private static ResidentProfileEditViewModel ToEditViewModel(ResidentProfileModel profile)
+    {
+        return new ResidentProfileEditViewModel
+        {
+            FirstName = profile.FirstName,
+            LastName = profile.LastName,
+            IdCode = profile.ResidentIdCode,
+            PreferredLanguage = profile.PreferredLanguage
         };
     }
 

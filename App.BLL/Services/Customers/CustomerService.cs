@@ -70,7 +70,13 @@ public class CustomerService :
             return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
-        return Result.Ok(CustomerWorkspaceBllMapper.MapCompany(company, route.AppUserId));
+        return Result.Ok(new CompanyWorkspaceModel
+        {
+            AppUserId = route.AppUserId,
+            ManagementCompanyId = company.Id,
+            CompanySlug = company.Slug,
+            CompanyName = company.Name
+        });
     }
 
     public async Task<Result<IReadOnlyList<CustomerListItemModel>>> ListForCompanyAsync(
@@ -104,10 +110,22 @@ public class CustomerService :
                     .ToList());
 
         return Result.Ok((IReadOnlyList<CustomerListItemModel>)customers
-            .Select(customer => CustomerWorkspaceBllMapper.MapListItem(
-                customer,
-                access.Value,
-                linksByCustomerId.GetValueOrDefault(customer.Id, Array.Empty<CustomerPropertyLinkModel>())))
+            .Select(customer => new CustomerListItemModel
+            {
+                CustomerId = customer.Id,
+                ManagementCompanyId = customer.ManagementCompanyId,
+                CompanySlug = access.Value.CompanySlug,
+                CompanyName = access.Value.CompanyName,
+                CustomerSlug = customer.Slug,
+                Name = customer.Name,
+                RegistryCode = customer.RegistryCode,
+                BillingEmail = customer.BillingEmail,
+                BillingAddress = customer.BillingAddress,
+                Phone = customer.Phone,
+                Properties = linksByCustomerId.GetValueOrDefault(
+                    customer.Id,
+                    Array.Empty<CustomerPropertyLinkModel>())
+            })
             .ToList());
     }
 
@@ -147,7 +165,16 @@ public class CustomerService :
             cancellationToken);
         if (roleCode is not null && AccessAllowedRoleCodes.Contains(roleCode))
         {
-            return Result.Ok(CustomerWorkspaceBllMapper.MapWorkspace(customer, route.AppUserId));
+            return Result.Ok(new CustomerWorkspaceModel
+            {
+                AppUserId = route.AppUserId,
+                ManagementCompanyId = customer.ManagementCompanyId,
+                CompanySlug = customer.CompanySlug,
+                CompanyName = customer.CompanyName,
+                CustomerId = customer.Id,
+                CustomerSlug = customer.Slug,
+                CustomerName = customer.Name
+            });
         }
 
         var hasCustomerContext = await ServiceUOW.Customers.ActiveUserCustomerContextExistsAsync(
@@ -156,7 +183,16 @@ public class CustomerService :
             cancellationToken);
 
         return hasCustomerContext
-            ? Result.Ok(CustomerWorkspaceBllMapper.MapWorkspace(customer, route.AppUserId))
+            ? Result.Ok(new CustomerWorkspaceModel
+            {
+                AppUserId = route.AppUserId,
+                ManagementCompanyId = customer.ManagementCompanyId,
+                CompanySlug = customer.CompanySlug,
+                CompanyName = customer.CompanyName,
+                CustomerId = customer.Id,
+                CustomerSlug = customer.Slug,
+                CustomerName = customer.Name
+            })
             : Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
     }
 
@@ -177,7 +213,19 @@ public class CustomerService :
 
         return profile is null
             ? Result.Fail(new NotFoundError("Customer profile was not found."))
-            : Result.Ok(CustomerProfileBllMapper.Map(profile));
+            : Result.Ok(new CustomerProfileModel
+            {
+                Id = profile.Id,
+                ManagementCompanyId = profile.ManagementCompanyId,
+                CompanySlug = profile.CompanySlug,
+                CompanyName = profile.CompanyName,
+                Name = profile.Name,
+                Slug = profile.Slug,
+                RegistryCode = profile.RegistryCode,
+                BillingEmail = profile.BillingEmail,
+                BillingAddress = profile.BillingAddress,
+                Phone = profile.Phone
+            });
     }
 
     public async Task<Result<CustomerBllDto>> CreateAsync(

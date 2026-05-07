@@ -55,11 +55,6 @@ public class LeaseModel
     public string? Notes { get; init; }
 }
 
-public class LeaseCommandModel
-{
-    public Guid LeaseId { get; init; }
-}
-
 public class LeasePropertySearchResultModel
 {
     public IReadOnlyList<LeasePropertySearchItemModel> Properties { get; init; } = Array.Empty<LeasePropertySearchItemModel>();

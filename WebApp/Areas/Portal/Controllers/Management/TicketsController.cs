@@ -1,10 +1,13 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
+using App.BLL.DTO.Tickets;
+using App.BLL.DTO.Tickets.Models;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Tickets;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -20,18 +23,15 @@ namespace WebApp.Areas.Portal.Controllers.Management;
 public class TicketsController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly ManagementTicketMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public TicketsController(
         IAppBLL bll,
-        ManagementTicketMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
-        _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
     }
@@ -49,7 +49,7 @@ public class TicketsController : Controller
         }
 
         var result = await _bll.Tickets.SearchAsync(
-            _mapper.ToListRoute(companySlug, filter, appUserId.Value),
+            ToListRoute(companySlug, filter, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -63,7 +63,7 @@ public class TicketsController : Controller
             UiText.Tickets,
             cancellationToken);
 
-        return View(_mapper.ToPage(result.Value, chrome));
+        return View(ToPage(result.Value, chrome));
     }
 
     [HttpGet("create")]
@@ -95,8 +95,8 @@ public class TicketsController : Controller
         }
 
         var result = await _bll.Tickets.CreateAsync(
-            _mapper.ToCompanyRoute(companySlug, appUserId.Value),
-            _mapper.ToCreateDto(vm.Form),
+            ToCompanyRoute(companySlug, appUserId.Value),
+            ToCreateDto(vm.Form),
             cancellationToken);
 
         if (result.IsFailed)
@@ -128,7 +128,7 @@ public class TicketsController : Controller
         }
 
         var result = await _bll.Tickets.GetDetailsAsync(
-            _mapper.ToTicketRoute(companySlug, ticketId, appUserId.Value),
+            ToTicketRoute(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -142,7 +142,7 @@ public class TicketsController : Controller
             result.Value.TicketNr,
             cancellationToken);
 
-        return View(_mapper.ToDetailsPage(result.Value, chrome));
+        return View(ToDetailsPage(result.Value, chrome));
     }
 
     [HttpGet("{ticketId:guid}/edit")]
@@ -176,8 +176,8 @@ public class TicketsController : Controller
         }
 
         var result = await _bll.Tickets.UpdateAsync(
-            _mapper.ToTicketRoute(companySlug, ticketId, appUserId.Value),
-            _mapper.ToUpdateDto(vm.Form),
+            ToTicketRoute(companySlug, ticketId, appUserId.Value),
+            ToUpdateDto(vm.Form),
             cancellationToken);
 
         if (result.IsFailed)
@@ -210,7 +210,7 @@ public class TicketsController : Controller
         }
 
         var result = await _bll.Tickets.DeleteAsync(
-            _mapper.ToTicketRoute(companySlug, ticketId, appUserId.Value),
+            ToTicketRoute(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -243,7 +243,7 @@ public class TicketsController : Controller
         }
 
         var result = await _bll.Tickets.AdvanceStatusAsync(
-            _mapper.ToTicketRoute(companySlug, ticketId, appUserId.Value),
+            ToTicketRoute(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -275,12 +275,12 @@ public class TicketsController : Controller
         }
 
         var options = await _bll.Tickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorRoute(companySlug, customerId, null, null, null, appUserId.Value),
+            ToSelectorRoute(companySlug, customerId, null, null, null, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
             ? ToMvcErrorResult(options.Errors)
-            : Json(_mapper.ToJsonOptions(options.Value.Properties));
+            : Json(ToJsonOptions(options.Value.Properties));
     }
 
     [HttpGet("options/units", Name = PortalRouteNames.ManagementTicketUnitOptions)]
@@ -296,12 +296,12 @@ public class TicketsController : Controller
         }
 
         var options = await _bll.Tickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorRoute(companySlug, null, propertyId, null, null, appUserId.Value),
+            ToSelectorRoute(companySlug, null, propertyId, null, null, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
             ? ToMvcErrorResult(options.Errors)
-            : Json(_mapper.ToJsonOptions(options.Value.Units));
+            : Json(ToJsonOptions(options.Value.Units));
     }
 
     [HttpGet("options/residents", Name = PortalRouteNames.ManagementTicketResidentOptions)]
@@ -317,12 +317,12 @@ public class TicketsController : Controller
         }
 
         var options = await _bll.Tickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorRoute(companySlug, null, null, unitId, null, appUserId.Value),
+            ToSelectorRoute(companySlug, null, null, unitId, null, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
             ? ToMvcErrorResult(options.Errors)
-            : Json(_mapper.ToJsonOptions(options.Value.Residents));
+            : Json(ToJsonOptions(options.Value.Residents));
     }
 
     [HttpGet("options/vendors", Name = PortalRouteNames.ManagementTicketVendorOptions)]
@@ -338,12 +338,264 @@ public class TicketsController : Controller
         }
 
         var options = await _bll.Tickets.GetSelectorOptionsAsync(
-            _mapper.ToSelectorRoute(companySlug, null, null, null, categoryId, appUserId.Value),
+            ToSelectorRoute(companySlug, null, null, null, categoryId, appUserId.Value),
             cancellationToken);
 
         return options.IsFailed
             ? ToMvcErrorResult(options.Errors)
-            : Json(_mapper.ToJsonOptions(options.Value.Vendors));
+            : Json(ToJsonOptions(options.Value.Vendors));
+    }
+
+    private static ManagementTicketSearchRoute ToListRoute(
+        string companySlug,
+        TicketFilterViewModel filter,
+        Guid appUserId)
+    {
+        return new ManagementTicketSearchRoute
+        {
+            CompanySlug = companySlug,
+            AppUserId = appUserId,
+            Search = filter.Search,
+            StatusId = filter.StatusId,
+            PriorityId = filter.PriorityId,
+            CategoryId = filter.CategoryId,
+            CustomerId = filter.CustomerId,
+            PropertyId = filter.PropertyId,
+            UnitId = filter.UnitId,
+            VendorId = filter.VendorId,
+            DueFrom = filter.DueFrom,
+            DueTo = filter.DueTo
+        };
+    }
+
+    private static TicketRoute ToTicketRoute(string companySlug, Guid ticketId, Guid appUserId)
+    {
+        return new TicketRoute
+        {
+            CompanySlug = companySlug,
+            TicketId = ticketId,
+            AppUserId = appUserId
+        };
+    }
+
+    private static TicketSelectorOptionsRoute ToSelectorRoute(
+        string companySlug,
+        Guid? customerId,
+        Guid? propertyId,
+        Guid? unitId,
+        Guid? categoryId,
+        Guid appUserId)
+    {
+        return new TicketSelectorOptionsRoute
+        {
+            CompanySlug = companySlug,
+            AppUserId = appUserId,
+            CustomerId = customerId,
+            PropertyId = propertyId,
+            UnitId = unitId,
+            CategoryId = categoryId
+        };
+    }
+
+    private static ManagementCompanyRoute ToCompanyRoute(string companySlug, Guid appUserId)
+    {
+        return new ManagementCompanyRoute
+        {
+            CompanySlug = companySlug,
+            AppUserId = appUserId
+        };
+    }
+
+    private static TicketBllDto ToCreateDto(TicketFormViewModel form)
+    {
+        return new TicketBllDto
+        {
+            TicketNr = form.TicketNr,
+            Title = form.Title,
+            Description = form.Description,
+            TicketCategoryId = form.TicketCategoryId,
+            TicketPriorityId = form.TicketPriorityId,
+            CustomerId = form.CustomerId,
+            PropertyId = form.PropertyId,
+            UnitId = form.UnitId,
+            ResidentId = form.ResidentId,
+            VendorId = form.VendorId,
+            DueAt = form.DueAt
+        };
+    }
+
+    private static TicketBllDto ToUpdateDto(TicketFormViewModel form)
+    {
+        return new TicketBllDto
+        {
+            TicketNr = form.TicketNr,
+            Title = form.Title,
+            Description = form.Description,
+            TicketCategoryId = form.TicketCategoryId,
+            TicketStatusId = form.TicketStatusId,
+            TicketPriorityId = form.TicketPriorityId,
+            CustomerId = form.CustomerId,
+            PropertyId = form.PropertyId,
+            UnitId = form.UnitId,
+            ResidentId = form.ResidentId,
+            VendorId = form.VendorId,
+            DueAt = form.DueAt
+        };
+    }
+
+    private static TicketsPageViewModel ToPage(
+        ManagementTicketsModel model,
+        AppChromeViewModel chrome)
+    {
+        return new TicketsPageViewModel
+        {
+            AppChrome = chrome,
+            CompanySlug = model.CompanySlug,
+            CompanyName = model.CompanyName,
+            Filter = new TicketFilterViewModel
+            {
+                Search = model.Filter.Search,
+                StatusId = model.Filter.StatusId,
+                PriorityId = model.Filter.PriorityId,
+                CategoryId = model.Filter.CategoryId,
+                CustomerId = model.Filter.CustomerId,
+                PropertyId = model.Filter.PropertyId,
+                UnitId = model.Filter.UnitId,
+                VendorId = model.Filter.VendorId,
+                DueFrom = model.Filter.DueFrom,
+                DueTo = model.Filter.DueTo
+            },
+            Tickets = model.Tickets.Select(ToListItem).ToList(),
+            Options = ToOptions(model.Options)
+        };
+    }
+
+    private static TicketFormPageViewModel ToFormPage(
+        ManagementTicketFormModel model,
+        AppChromeViewModel chrome,
+        bool isEdit,
+        TicketFormViewModel? formOverride = null)
+    {
+        return new TicketFormPageViewModel
+        {
+            AppChrome = chrome,
+            CompanySlug = model.CompanySlug,
+            CompanyName = model.CompanyName,
+            IsEdit = isEdit,
+            Form = formOverride ?? new TicketFormViewModel
+            {
+                TicketId = model.TicketId,
+                TicketNr = model.TicketNr,
+                Title = model.Title,
+                Description = model.Description,
+                TicketCategoryId = model.TicketCategoryId,
+                TicketStatusId = model.TicketStatusId,
+                TicketPriorityId = model.TicketPriorityId,
+                CustomerId = model.CustomerId,
+                PropertyId = model.PropertyId,
+                UnitId = model.UnitId,
+                ResidentId = model.ResidentId,
+                VendorId = model.VendorId,
+                DueAt = model.DueAt
+            },
+            Options = ToOptions(model.Options)
+        };
+    }
+
+    private static TicketDetailsPageViewModel ToDetailsPage(
+        ManagementTicketDetailsModel model,
+        AppChromeViewModel chrome)
+    {
+        return new TicketDetailsPageViewModel
+        {
+            AppChrome = chrome,
+            CompanySlug = model.CompanySlug,
+            CompanyName = model.CompanyName,
+            TicketId = model.TicketId,
+            TicketNr = model.TicketNr,
+            Title = model.Title,
+            Description = model.Description,
+            StatusCode = model.StatusCode,
+            StatusLabel = model.StatusLabel,
+            PriorityLabel = model.PriorityLabel,
+            CategoryLabel = model.CategoryLabel,
+            CustomerName = model.CustomerName,
+            CustomerSlug = model.CustomerSlug,
+            PropertyName = model.PropertyName,
+            PropertySlug = model.PropertySlug,
+            UnitNr = model.UnitNr,
+            UnitSlug = model.UnitSlug,
+            ResidentName = model.ResidentName,
+            ResidentIdCode = model.ResidentIdCode,
+            VendorName = model.VendorName,
+            CreatedAt = model.CreatedAt,
+            DueAt = model.DueAt,
+            ClosedAt = model.ClosedAt,
+            NextStatusCode = model.NextStatusCode,
+            NextStatusLabel = model.NextStatusLabel
+        };
+    }
+
+    private static TicketSelectOptionsViewModel ToOptions(TicketSelectorOptionsModel model)
+    {
+        return new TicketSelectOptionsViewModel
+        {
+            Statuses = ToSelectList(model.Statuses),
+            Priorities = ToSelectList(model.Priorities),
+            Categories = ToSelectList(model.Categories),
+            Customers = ToSelectList(model.Customers),
+            Properties = ToSelectList(model.Properties),
+            Units = ToSelectList(model.Units),
+            Residents = ToSelectList(model.Residents),
+            Vendors = ToSelectList(model.Vendors)
+        };
+    }
+
+    private static IReadOnlyList<TicketOptionJsonViewModel> ToJsonOptions(IReadOnlyList<TicketOptionModel> options)
+    {
+        return options
+            .Select(option => new TicketOptionJsonViewModel
+            {
+                Id = option.Id,
+                Label = option.Label
+            })
+            .ToList();
+    }
+
+    private static TicketListItemViewModel ToListItem(ManagementTicketListItemModel model)
+    {
+        return new TicketListItemViewModel
+        {
+            TicketId = model.TicketId,
+            TicketNr = model.TicketNr,
+            Title = model.Title,
+            StatusCode = model.StatusCode,
+            StatusLabel = model.StatusLabel,
+            PriorityLabel = model.PriorityLabel,
+            CategoryLabel = model.CategoryLabel,
+            CustomerName = model.CustomerName,
+            CustomerSlug = model.CustomerSlug,
+            PropertyName = model.PropertyName,
+            PropertySlug = model.PropertySlug,
+            UnitNr = model.UnitNr,
+            UnitSlug = model.UnitSlug,
+            ResidentName = model.ResidentName,
+            ResidentIdCode = model.ResidentIdCode,
+            VendorName = model.VendorName,
+            DueAt = model.DueAt,
+            CreatedAt = model.CreatedAt
+        };
+    }
+
+    private static IReadOnlyList<SelectListItem> ToSelectList(IReadOnlyList<TicketOptionModel> options)
+    {
+        return options
+            .Select(option => new SelectListItem
+            {
+                Value = option.Id.ToString(),
+                Text = option.Label
+            })
+            .ToList();
     }
 
     private async Task<(IActionResult? response, TicketFormPageViewModel? model)> BuildCreatePageAsync(
@@ -358,7 +610,7 @@ public class TicketsController : Controller
         }
 
         var result = await _bll.Tickets.GetCreateFormAsync(
-            _mapper.ToSelectorRoute(
+            ToSelectorRoute(
                 companySlug,
                 formOverride?.CustomerId,
                 formOverride?.PropertyId,
@@ -378,7 +630,7 @@ public class TicketsController : Controller
             T("CreateTicket", "Create ticket"),
             cancellationToken);
 
-        return (null, _mapper.ToFormPage(result.Value, chrome, isEdit: false, formOverride));
+        return (null, ToFormPage(result.Value, chrome, isEdit: false, formOverride));
     }
 
     private async Task<(IActionResult? response, TicketFormPageViewModel? model)> BuildEditPageAsync(
@@ -394,7 +646,7 @@ public class TicketsController : Controller
         }
 
         var result = await _bll.Tickets.GetEditFormAsync(
-            _mapper.ToTicketRoute(companySlug, ticketId, appUserId.Value),
+            ToTicketRoute(companySlug, ticketId, appUserId.Value),
             cancellationToken);
 
         if (result.IsFailed)
@@ -408,7 +660,7 @@ public class TicketsController : Controller
             T("EditTicket", "Edit ticket"),
             cancellationToken);
 
-        return (null, _mapper.ToFormPage(result.Value, chrome, isEdit: true, formOverride));
+        return (null, ToFormPage(result.Value, chrome, isEdit: true, formOverride));
     }
 
     private async Task<AppChromeViewModel> BuildChromeAsync(

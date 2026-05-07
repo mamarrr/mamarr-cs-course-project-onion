@@ -3,14 +3,12 @@ using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Customers.Models;
 using App.BLL.DTO.Properties;
-using App.BLL.DTO.Properties.Commands;
+using App.BLL.DTO.Properties.Models;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using WebApp.Mappers.Mvc.Customers;
-using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -26,23 +24,17 @@ namespace WebApp.Areas.Portal.Controllers.Customer;
 public class CustomerPropertiesController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly CustomerWorkspaceMvcMapper _customerMapper;
-    private readonly PropertyMvcMapper _propertyMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly ILogger<CustomerPropertiesController> _logger;
 
     public CustomerPropertiesController(
         IAppBLL bll,
-        CustomerWorkspaceMvcMapper customerMapper,
-        PropertyMvcMapper propertyMapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver,
         ILogger<CustomerPropertiesController> logger)
     {
         _bll = bll;
-        _customerMapper = customerMapper;
-        _propertyMapper = propertyMapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
         _logger = logger;
@@ -153,13 +145,38 @@ public class CustomerPropertiesController : Controller
             CustomerSlug = context.CustomerSlug,
             CustomerName = context.CustomerName,
             Properties = listResult.IsSuccess
-                ? _propertyMapper.ToCustomerPropertyListItems(listResult.Value)
+                ? ToCustomerPropertyListItems(listResult.Value)
                 : Array.Empty<CustomerPropertyListItemViewModel>(),
             AddProperty = addPropertyOverride ?? new AddPropertyViewModel(),
             PropertyTypeOptions = propertyTypeResult.IsSuccess
-                ? _propertyMapper.ToPropertyTypeOptions(propertyTypeResult.Value)
+                ? ToPropertyTypeOptions(propertyTypeResult.Value)
                 : Array.Empty<PropertyTypeOptionViewModel>()
         };
+    }
+
+    private static IReadOnlyList<CustomerPropertyListItemViewModel> ToCustomerPropertyListItems(
+        IReadOnlyList<PropertyListItemModel> properties)
+    {
+        return properties.Select(property => new CustomerPropertyListItemViewModel
+        {
+            PropertyId = property.PropertyId,
+            PropertySlug = property.PropertySlug,
+            PropertyName = property.PropertyName,
+            AddressLine = property.AddressLine,
+            City = property.City,
+            PostalCode = property.PostalCode,
+            PropertyTypeLabel = property.PropertyTypeLabel
+        }).ToList();
+    }
+
+    private static IReadOnlyList<PropertyTypeOptionViewModel> ToPropertyTypeOptions(
+        IReadOnlyList<PropertyTypeOptionModel> propertyTypes)
+    {
+        return propertyTypes.Select(propertyType => new PropertyTypeOptionViewModel
+        {
+            Id = propertyType.Id,
+            Label = propertyType.Label
+        }).ToList();
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
@@ -202,7 +219,7 @@ public class CustomerPropertiesController : Controller
         {
             foreach (var failure in validation.Failures)
             {
-                var key = failure.PropertyName == nameof(CreatePropertyCommand.PropertyTypeId)
+                var key = failure.PropertyName == nameof(PropertyBllDto.PropertyTypeId)
                     ? "AddProperty.PropertyTypeId"
                     : failure.PropertyName is null
                         ? string.Empty

@@ -1,5 +1,4 @@
 using App.BLL.DTO.Common.Routes;
-using App.BLL.DTO.Onboarding.Commands;
 using App.BLL.DTO.Onboarding.Models;
 using App.BLL.DTO.Onboarding.Queries;
 using FluentResults;
@@ -17,7 +16,9 @@ public interface IWorkspaceService
         CancellationToken cancellationToken = default);
 
     Task<Result> SelectAsync(
-        SelectWorkspaceCommand command,
+        Guid appUserId,
+        string contextType,
+        Guid? contextId,
         CancellationToken cancellationToken = default);
 
     Task<Result<WorkspaceRedirectModel?>> ResolveContextRedirectAsync(

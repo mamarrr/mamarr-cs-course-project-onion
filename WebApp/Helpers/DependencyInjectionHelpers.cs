@@ -22,13 +22,6 @@ using App.DAL.Contracts;
 using App.DAL.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using WebApp.Mappers.Mvc.Customers;
-using WebApp.Mappers.Mvc.Leases;
-using WebApp.Mappers.Mvc.Onboarding;
-using WebApp.Mappers.Mvc.Properties;
-using WebApp.Mappers.Mvc.Residents;
-using WebApp.Mappers.Mvc.Tickets;
-using WebApp.Mappers.Mvc.Units;
 using WebApp.Services.Identity;
 
 namespace WebApp.Helpers;
@@ -77,18 +70,4 @@ public static class DependencyInjectionHelpers
         return services;
     }
 
-    public static IServiceCollection AddWebAppMappers(this IServiceCollection services)
-    {
-        services.AddScoped<CustomerProfileMvcMapper>();
-        services.AddScoped<CustomerWorkspaceMvcMapper>();
-        services.AddScoped<CompanyCustomerMvcMapper>();
-        services.AddScoped<PropertyMvcMapper>();
-        services.AddScoped<UnitMvcMapper>();
-        services.AddScoped<ResidentMvcMapper>();
-        services.AddScoped<LeaseViewModelMapper>();
-        services.AddScoped<ManagementTicketMvcMapper>();
-        services.AddScoped<OnboardingViewModelMapper>();
-
-        return services;
-    }
 }

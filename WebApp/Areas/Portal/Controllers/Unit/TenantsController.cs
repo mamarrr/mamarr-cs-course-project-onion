@@ -9,8 +9,6 @@ using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using WebApp.Mappers.Mvc.Leases;
-using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -29,21 +27,15 @@ public class TenantsController : Controller
     private const string ErrorTempDataKey = "UnitTenantsError";
 
     private readonly IAppBLL _bll;
-    private readonly UnitMvcMapper _unitMapper;
-    private readonly LeaseViewModelMapper _leaseMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public TenantsController(
         IAppBLL bll,
-        UnitMvcMapper unitMapper,
-        LeaseViewModelMapper leaseMapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
-        _unitMapper = unitMapper;
-        _leaseMapper = leaseMapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
     }
@@ -268,7 +260,7 @@ public class TenantsController : Controller
             ? Array.Empty<LeaseResidentSearchItemModel>()
             : (await _bll.Leases.SearchResidentsAsync(ToUnitRoute(context), residentSearchTerm, cancellationToken)).Value.Residents;
 
-        var leases = leaseList.Value.Leases.Select(_leaseMapper.ToUnitLeaseViewModel).ToList();
+        var leases = leaseList.Value.Leases.Select(ToUnitLeaseViewModel).ToList();
 
         var activeEditLeaseId = requestedEditLeaseId;
         var editLease = editOverride ?? new EditUnitLeaseViewModel();
@@ -342,6 +334,22 @@ public class TenantsController : Controller
                 CurrentLevel = WorkspaceLevel.Unit
             },
             cancellationToken);
+    }
+
+    private static UnitTenantLeaseListItemViewModel ToUnitLeaseViewModel(UnitLeaseModel lease)
+    {
+        return new UnitTenantLeaseListItemViewModel
+        {
+            LeaseId = lease.LeaseId,
+            ResidentId = lease.ResidentId,
+            ResidentFullName = lease.ResidentFullName,
+            ResidentIdCode = lease.ResidentIdCode,
+            LeaseRoleId = lease.LeaseRoleId,
+            LeaseRoleLabel = lease.LeaseRoleLabel,
+            StartDate = lease.StartDate.ToDateTime(TimeOnly.MinValue),
+            EndDate = lease.EndDate?.ToDateTime(TimeOnly.MinValue),
+            Notes = lease.Notes
+        };
     }
 
     private static void ApplyCreateErrors(IReadOnlyList<IError> errors, ModelStateDictionary modelState)

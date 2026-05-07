@@ -9,7 +9,6 @@ using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using WebApp.Mappers.Mvc.Leases;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -30,18 +29,15 @@ public class UnitsController : Controller
     private readonly IAppBLL _bll;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
-    private readonly LeaseViewModelMapper _leaseMapper;
 
     public UnitsController(
         IAppBLL bll,
         IAppChromeBuilder appChromeBuilder,
-        ICurrentPortalContextResolver portalContextResolver,
-        LeaseViewModelMapper leaseMapper)
+        ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
-        _leaseMapper = leaseMapper;
     }
 
     [HttpGet("", Name = PortalRouteNames.ResidentUnits)]
@@ -310,7 +306,7 @@ public class UnitsController : Controller
 
         var residentDisplayName = string.IsNullOrWhiteSpace(context.FullName) ? context.ResidentIdCode : context.FullName;
         var residentSupportingText = string.IsNullOrWhiteSpace(context.FullName) ? null : context.ResidentIdCode;
-        var leases = leaseList.Value.Leases.Select(_leaseMapper.ToResidentLeaseViewModel).ToList();
+        var leases = leaseList.Value.Leases.Select(ToResidentLeaseViewModel).ToList();
 
         var activeEditLeaseId = requestedEditLeaseId;
         var editLease = editOverride ?? new EditResidentLeaseViewModel();
@@ -391,6 +387,23 @@ public class UnitsController : Controller
                 CurrentLevel = WorkspaceLevel.Resident
             },
             cancellationToken);
+    }
+
+    private static ResidentLeaseListItemViewModel ToResidentLeaseViewModel(ResidentLeaseModel lease)
+    {
+        return new ResidentLeaseListItemViewModel
+        {
+            LeaseId = lease.LeaseId,
+            PropertyId = lease.PropertyId,
+            PropertyName = lease.PropertyName,
+            UnitId = lease.UnitId,
+            UnitNr = lease.UnitNr,
+            LeaseRoleId = lease.LeaseRoleId,
+            LeaseRoleLabel = lease.LeaseRoleLabel,
+            StartDate = lease.StartDate.ToDateTime(TimeOnly.MinValue),
+            EndDate = lease.EndDate?.ToDateTime(TimeOnly.MinValue),
+            Notes = lease.Notes
+        };
     }
 
     private Guid? GetAppUserId()

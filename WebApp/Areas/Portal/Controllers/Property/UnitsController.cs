@@ -2,13 +2,11 @@ using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Units;
-using App.BLL.DTO.Units.Commands;
 using App.BLL.DTO.Units.Models;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Units;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -24,18 +22,15 @@ namespace WebApp.Areas.Portal.Controllers.Property;
 public class UnitsController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly UnitMvcMapper _unitMapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public UnitsController(
         IAppBLL bll,
-        UnitMvcMapper unitMapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
-        _unitMapper = unitMapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
     }
@@ -174,11 +169,11 @@ public class UnitsController : Controller
         {
             var key = failure.PropertyName switch
             {
-                nameof(CreateUnitCommand.UnitNr) =>
+                nameof(UnitBllDto.UnitNr) =>
                     nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.UnitNr),
-                nameof(CreateUnitCommand.FloorNr) =>
+                nameof(UnitBllDto.FloorNr) =>
                     nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.FloorNr),
-                nameof(CreateUnitCommand.SizeM2) =>
+                nameof(UnitBllDto.SizeM2) =>
                     nameof(UnitsPageViewModel.AddUnit) + "." + nameof(AddUnitViewModel.SizeM2),
                 _ => string.Empty
             };

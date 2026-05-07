@@ -8,7 +8,6 @@ using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using WebApp.Mappers.Mvc.Properties;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -24,18 +23,15 @@ namespace WebApp.Areas.Portal.Controllers.Property;
 public class ProfileController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly PropertyMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
 
     public ProfileController(
         IAppBLL bll,
-        PropertyMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver)
     {
         _bll = bll;
-        _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
     }
@@ -173,7 +169,19 @@ public class ProfileController : Controller
             PropertySlug = profile.PropertySlug,
             PropertyName = profile.Name,
             SuccessMessage = TempData[nameof(UiText.ProfileUpdatedSuccessfully)] as string,
-            Edit = edit ?? _mapper.ToEditViewModel(profile)
+            Edit = edit ?? ToEditViewModel(profile)
+        };
+    }
+
+    private static PropertyProfileEditViewModel ToEditViewModel(PropertyProfileModel profile)
+    {
+        return new PropertyProfileEditViewModel
+        {
+            Name = profile.Name,
+            AddressLine = profile.AddressLine,
+            City = profile.City,
+            PostalCode = profile.PostalCode,
+            Notes = profile.Notes
         };
     }
 

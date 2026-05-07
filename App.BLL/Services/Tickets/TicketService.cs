@@ -6,10 +6,8 @@ using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Customers.Models;
-using App.BLL.DTO.Customers.Queries;
 using App.BLL.DTO.Tickets;
 using App.BLL.DTO.Tickets.Models;
-using App.BLL.DTO.Tickets.Queries;
 using App.BLL.Mappers.Tickets;
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
@@ -40,39 +38,207 @@ public class TicketService :
         _deleteGuard = deleteGuard;
     }
 
-    public Task<Result<ManagementTicketsModel>> SearchAsync(
+    public async Task<Result<ManagementTicketsModel>> SearchAsync(
         ManagementTicketSearchRoute route,
         CancellationToken cancellationToken = default)
     {
-        return GetTicketsAsync(ToTicketsQuery(route), cancellationToken);
+        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        if (workspace.IsFailed)
+        {
+            return Result.Fail(workspace.Errors);
+        }
+
+        var filter = ToFilterDto(route);
+        var tickets = await _uow.Tickets.AllByCompanyAsync(
+            workspace.Value.ManagementCompanyId,
+            filter,
+            cancellationToken);
+
+        return Result.Ok(new ManagementTicketsModel
+        {
+            CompanySlug = workspace.Value.CompanySlug,
+            CompanyName = workspace.Value.CompanyName,
+            Tickets = tickets.Select(MapListItem).ToList(),
+            Filter = new TicketFilterModel
+            {
+                Search = route.Search,
+                StatusId = route.StatusId,
+                PriorityId = route.PriorityId,
+                CategoryId = route.CategoryId,
+                CustomerId = route.CustomerId,
+                PropertyId = route.PropertyId,
+                UnitId = route.UnitId,
+                VendorId = route.VendorId,
+                DueFrom = route.DueFrom,
+                DueTo = route.DueTo
+            },
+            Options = await BuildOptionsAsync(
+                workspace.Value.ManagementCompanyId,
+                route.CustomerId,
+                route.PropertyId,
+                route.UnitId,
+                route.CategoryId,
+                cancellationToken)
+        });
     }
 
-    public Task<Result<ManagementTicketDetailsModel>> GetDetailsAsync(
+    public async Task<Result<ManagementTicketDetailsModel>> GetDetailsAsync(
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        return GetDetailsAsync(ToTicketQuery(route), cancellationToken);
+        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        if (workspace.IsFailed)
+        {
+            return Result.Fail(workspace.Errors);
+        }
+
+        var ticket = await _uow.Tickets.FindDetailsAsync(
+            route.TicketId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+
+        if (ticket is null)
+        {
+            return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
+        }
+
+        var nextStatusCode = GetNextStatusCode(ticket.StatusCode);
+        var statuses = nextStatusCode is null
+            ? Array.Empty<TicketOptionModel>()
+            : await GetStatusesAsync(cancellationToken);
+        var nextStatus = statuses.FirstOrDefault(status => status.Code == nextStatusCode);
+
+        return Result.Ok(new ManagementTicketDetailsModel
+        {
+            CompanySlug = workspace.Value.CompanySlug,
+            CompanyName = workspace.Value.CompanyName,
+            TicketId = ticket.Id,
+            TicketNr = ticket.TicketNr,
+            Title = ticket.Title,
+            Description = ticket.Description,
+            StatusCode = ticket.StatusCode,
+            StatusLabel = ticket.StatusLabel,
+            PriorityLabel = ticket.PriorityLabel,
+            CategoryLabel = ticket.CategoryLabel,
+            CustomerName = ticket.CustomerName,
+            CustomerSlug = ticket.CustomerSlug,
+            PropertyName = ticket.PropertyName,
+            PropertySlug = ticket.PropertySlug,
+            UnitNr = ticket.UnitNr,
+            UnitSlug = ticket.UnitSlug,
+            ResidentName = ticket.ResidentName,
+            ResidentIdCode = ticket.ResidentIdCode,
+            VendorName = ticket.VendorName,
+            CreatedAt = ticket.CreatedAt,
+            DueAt = ticket.DueAt,
+            ClosedAt = ticket.ClosedAt,
+            NextStatusCode = nextStatus?.Code,
+            NextStatusLabel = nextStatus?.Label
+        });
     }
 
-    public Task<Result<ManagementTicketFormModel>> GetCreateFormAsync(
+    public async Task<Result<ManagementTicketFormModel>> GetCreateFormAsync(
         TicketSelectorOptionsRoute route,
         CancellationToken cancellationToken = default)
     {
-        return GetCreateFormAsync(ToTicketsQuery(route), cancellationToken);
+        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        if (workspace.IsFailed)
+        {
+            return Result.Fail(workspace.Errors);
+        }
+
+        var options = await BuildOptionsAsync(
+            workspace.Value.ManagementCompanyId,
+            route.CustomerId,
+            route.PropertyId,
+            route.UnitId,
+            route.CategoryId,
+            cancellationToken);
+
+        var createdStatus = options.Statuses.FirstOrDefault(status => status.Code == TicketWorkflowConstants.Created);
+        var mediumPriority = options.Priorities.FirstOrDefault(priority => priority.Code == "MEDIUM");
+
+        return Result.Ok(new ManagementTicketFormModel
+        {
+            CompanySlug = workspace.Value.CompanySlug,
+            CompanyName = workspace.Value.CompanyName,
+            TicketNr = await _uow.Tickets.GetNextTicketNrAsync(
+                workspace.Value.ManagementCompanyId,
+                DateTime.UtcNow,
+                cancellationToken),
+            TicketStatusId = createdStatus?.Id ?? Guid.Empty,
+            TicketPriorityId = mediumPriority?.Id ?? Guid.Empty,
+            CustomerId = route.CustomerId,
+            PropertyId = route.PropertyId,
+            UnitId = route.UnitId,
+            Options = options
+        });
     }
 
-    public Task<Result<ManagementTicketFormModel>> GetEditFormAsync(
+    public async Task<Result<ManagementTicketFormModel>> GetEditFormAsync(
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        return GetEditFormAsync(ToTicketQuery(route), cancellationToken);
+        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        if (workspace.IsFailed)
+        {
+            return Result.Fail(workspace.Errors);
+        }
+
+        var ticket = await _uow.Tickets.FindForEditAsync(
+            route.TicketId,
+            workspace.Value.ManagementCompanyId,
+            cancellationToken);
+
+        if (ticket is null)
+        {
+            return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
+        }
+
+        return Result.Ok(new ManagementTicketFormModel
+        {
+            CompanySlug = workspace.Value.CompanySlug,
+            CompanyName = workspace.Value.CompanyName,
+            TicketId = ticket.Id,
+            TicketNr = ticket.TicketNr,
+            Title = ticket.Title.ToString(),
+            Description = ticket.Description.ToString(),
+            TicketCategoryId = ticket.TicketCategoryId,
+            TicketStatusId = ticket.TicketStatusId,
+            TicketPriorityId = ticket.TicketPriorityId,
+            CustomerId = ticket.CustomerId,
+            PropertyId = ticket.PropertyId,
+            UnitId = ticket.UnitId,
+            ResidentId = ticket.ResidentId,
+            VendorId = ticket.VendorId,
+            DueAt = ticket.DueAt,
+            Options = await BuildOptionsAsync(
+                workspace.Value.ManagementCompanyId,
+                ticket.CustomerId,
+                ticket.PropertyId,
+                ticket.UnitId,
+                ticket.TicketCategoryId,
+                cancellationToken)
+        });
     }
 
-    public Task<Result<TicketSelectorOptionsModel>> GetSelectorOptionsAsync(
+    public async Task<Result<TicketSelectorOptionsModel>> GetSelectorOptionsAsync(
         TicketSelectorOptionsRoute route,
         CancellationToken cancellationToken = default)
     {
-        return GetSelectorOptionsAsync(ToSelectorQuery(route), cancellationToken);
+        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        if (workspace.IsFailed)
+        {
+            return Result.Fail(workspace.Errors);
+        }
+
+        return Result.Ok(await BuildOptionsAsync(
+            workspace.Value.ManagementCompanyId,
+            route.CustomerId,
+            route.PropertyId,
+            route.UnitId,
+            route.CategoryId,
+            cancellationToken));
     }
 
     public async Task<Result<TicketBllDto>> CreateAsync(
@@ -316,209 +482,6 @@ public class TicketService :
         }
 
         return await FindAsync(route.TicketId, workspace.Value.ManagementCompanyId, cancellationToken);
-    }
-
-    private async Task<Result<ManagementTicketsModel>> GetTicketsAsync(
-        GetManagementTicketsQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var workspace = await ResolveCompanyAsync(query.UserId, query.CompanySlug, cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail(workspace.Errors);
-        }
-
-        var filter = ToFilterDto(query);
-        var tickets = await _uow.Tickets.AllByCompanyAsync(
-            workspace.Value.ManagementCompanyId,
-            filter,
-            cancellationToken);
-
-        return Result.Ok(new ManagementTicketsModel
-        {
-            CompanySlug = workspace.Value.CompanySlug,
-            CompanyName = workspace.Value.CompanyName,
-            Tickets = tickets.Select(MapListItem).ToList(),
-            Filter = new TicketFilterModel
-            {
-                Search = query.Search,
-                StatusId = query.StatusId,
-                PriorityId = query.PriorityId,
-                CategoryId = query.CategoryId,
-                CustomerId = query.CustomerId,
-                PropertyId = query.PropertyId,
-                UnitId = query.UnitId,
-                VendorId = query.VendorId,
-                DueFrom = query.DueFrom,
-                DueTo = query.DueTo
-            },
-            Options = await BuildOptionsAsync(
-                workspace.Value.ManagementCompanyId,
-                query.CustomerId,
-                query.PropertyId,
-                query.UnitId,
-                query.CategoryId,
-                cancellationToken)
-        });
-    }
-
-    private async Task<Result<ManagementTicketDetailsModel>> GetDetailsAsync(
-        GetManagementTicketQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var workspace = await ResolveCompanyAsync(query.UserId, query.CompanySlug, cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail(workspace.Errors);
-        }
-
-        var ticket = await _uow.Tickets.FindDetailsAsync(
-            query.TicketId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-
-        if (ticket is null)
-        {
-            return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
-        }
-
-        var nextStatusCode = GetNextStatusCode(ticket.StatusCode);
-        var statuses = nextStatusCode is null
-            ? Array.Empty<TicketOptionModel>()
-            : await GetStatusesAsync(cancellationToken);
-        var nextStatus = statuses.FirstOrDefault(status => status.Code == nextStatusCode);
-
-        return Result.Ok(new ManagementTicketDetailsModel
-        {
-            CompanySlug = workspace.Value.CompanySlug,
-            CompanyName = workspace.Value.CompanyName,
-            TicketId = ticket.Id,
-            TicketNr = ticket.TicketNr,
-            Title = ticket.Title,
-            Description = ticket.Description,
-            StatusCode = ticket.StatusCode,
-            StatusLabel = ticket.StatusLabel,
-            PriorityLabel = ticket.PriorityLabel,
-            CategoryLabel = ticket.CategoryLabel,
-            CustomerName = ticket.CustomerName,
-            CustomerSlug = ticket.CustomerSlug,
-            PropertyName = ticket.PropertyName,
-            PropertySlug = ticket.PropertySlug,
-            UnitNr = ticket.UnitNr,
-            UnitSlug = ticket.UnitSlug,
-            ResidentName = ticket.ResidentName,
-            ResidentIdCode = ticket.ResidentIdCode,
-            VendorName = ticket.VendorName,
-            CreatedAt = ticket.CreatedAt,
-            DueAt = ticket.DueAt,
-            ClosedAt = ticket.ClosedAt,
-            NextStatusCode = nextStatus?.Code,
-            NextStatusLabel = nextStatus?.Label
-        });
-    }
-
-    private async Task<Result<ManagementTicketFormModel>> GetCreateFormAsync(
-        GetManagementTicketsQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var workspace = await ResolveCompanyAsync(query.UserId, query.CompanySlug, cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail(workspace.Errors);
-        }
-
-        var options = await BuildOptionsAsync(
-            workspace.Value.ManagementCompanyId,
-            query.CustomerId,
-            query.PropertyId,
-            query.UnitId,
-            query.CategoryId,
-            cancellationToken);
-
-        var createdStatus = options.Statuses.FirstOrDefault(status => status.Code == TicketWorkflowConstants.Created);
-        var mediumPriority = options.Priorities.FirstOrDefault(priority => priority.Code == "MEDIUM");
-
-        return Result.Ok(new ManagementTicketFormModel
-        {
-            CompanySlug = workspace.Value.CompanySlug,
-            CompanyName = workspace.Value.CompanyName,
-            TicketNr = await _uow.Tickets.GetNextTicketNrAsync(
-                workspace.Value.ManagementCompanyId,
-                DateTime.UtcNow,
-                cancellationToken),
-            TicketStatusId = createdStatus?.Id ?? Guid.Empty,
-            TicketPriorityId = mediumPriority?.Id ?? Guid.Empty,
-            CustomerId = query.CustomerId,
-            PropertyId = query.PropertyId,
-            UnitId = query.UnitId,
-            Options = options
-        });
-    }
-
-    private async Task<Result<ManagementTicketFormModel>> GetEditFormAsync(
-        GetManagementTicketQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var workspace = await ResolveCompanyAsync(query.UserId, query.CompanySlug, cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail(workspace.Errors);
-        }
-
-        var ticket = await _uow.Tickets.FindForEditAsync(
-            query.TicketId,
-            workspace.Value.ManagementCompanyId,
-            cancellationToken);
-
-        if (ticket is null)
-        {
-            return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
-        }
-
-        return Result.Ok(new ManagementTicketFormModel
-        {
-            CompanySlug = workspace.Value.CompanySlug,
-            CompanyName = workspace.Value.CompanyName,
-            TicketId = ticket.Id,
-            TicketNr = ticket.TicketNr,
-            Title = ticket.Title.ToString(),
-            Description = ticket.Description.ToString(),
-            TicketCategoryId = ticket.TicketCategoryId,
-            TicketStatusId = ticket.TicketStatusId,
-            TicketPriorityId = ticket.TicketPriorityId,
-            CustomerId = ticket.CustomerId,
-            PropertyId = ticket.PropertyId,
-            UnitId = ticket.UnitId,
-            ResidentId = ticket.ResidentId,
-            VendorId = ticket.VendorId,
-            DueAt = ticket.DueAt,
-            Options = await BuildOptionsAsync(
-                workspace.Value.ManagementCompanyId,
-                ticket.CustomerId,
-                ticket.PropertyId,
-                ticket.UnitId,
-                ticket.TicketCategoryId,
-                cancellationToken)
-        });
-    }
-
-    private async Task<Result<TicketSelectorOptionsModel>> GetSelectorOptionsAsync(
-        GetManagementTicketSelectorOptionsQuery query,
-        CancellationToken cancellationToken = default)
-    {
-        var workspace = await ResolveCompanyAsync(query.UserId, query.CompanySlug, cancellationToken);
-        if (workspace.IsFailed)
-        {
-            return Result.Fail(workspace.Errors);
-        }
-
-        return Result.Ok(await BuildOptionsAsync(
-            workspace.Value.ManagementCompanyId,
-            query.CustomerId,
-            query.PropertyId,
-            query.UnitId,
-            query.CategoryId,
-            cancellationToken));
     }
 
     private async Task<Result> AdvanceStatusCoreAsync(
@@ -795,20 +758,20 @@ public class TicketService :
         ]));
     }
 
-    private static TicketListFilterDalDto ToFilterDto(GetManagementTicketsQuery query)
+    private static TicketListFilterDalDto ToFilterDto(ManagementTicketSearchRoute route)
     {
         return new TicketListFilterDalDto
         {
-            Search = string.IsNullOrWhiteSpace(query.Search) ? null : query.Search.Trim(),
-            StatusId = query.StatusId,
-            PriorityId = query.PriorityId,
-            CategoryId = query.CategoryId,
-            CustomerId = query.CustomerId,
-            PropertyId = query.PropertyId,
-            UnitId = query.UnitId,
-            VendorId = query.VendorId,
-            DueFrom = query.DueFrom,
-            DueTo = query.DueTo
+            Search = string.IsNullOrWhiteSpace(route.Search) ? null : route.Search.Trim(),
+            StatusId = route.StatusId,
+            PriorityId = route.PriorityId,
+            CategoryId = route.CategoryId,
+            CustomerId = route.CustomerId,
+            PropertyId = route.PropertyId,
+            UnitId = route.UnitId,
+            VendorId = route.VendorId,
+            DueFrom = route.DueFrom,
+            DueTo = route.DueTo
         };
     }
 
@@ -906,70 +869,6 @@ public class TicketService :
             dto.TicketNr.Trim(),
             dto.Title.Trim(),
             dto.Description.Trim());
-    }
-
-    private static GetManagementTicketsQuery ToTicketsQuery(ManagementCompanyRoute route)
-    {
-        return new GetManagementTicketsQuery
-        {
-            UserId = route.AppUserId,
-            CompanySlug = route.CompanySlug
-        };
-    }
-
-    private static GetManagementTicketsQuery ToTicketsQuery(ManagementTicketSearchRoute route)
-    {
-        return new GetManagementTicketsQuery
-        {
-            UserId = route.AppUserId,
-            CompanySlug = route.CompanySlug,
-            Search = route.Search,
-            StatusId = route.StatusId,
-            PriorityId = route.PriorityId,
-            CategoryId = route.CategoryId,
-            CustomerId = route.CustomerId,
-            PropertyId = route.PropertyId,
-            UnitId = route.UnitId,
-            VendorId = route.VendorId,
-            DueFrom = route.DueFrom,
-            DueTo = route.DueTo
-        };
-    }
-
-    private static GetManagementTicketsQuery ToTicketsQuery(TicketSelectorOptionsRoute route)
-    {
-        return new GetManagementTicketsQuery
-        {
-            UserId = route.AppUserId,
-            CompanySlug = route.CompanySlug,
-            CustomerId = route.CustomerId,
-            PropertyId = route.PropertyId,
-            UnitId = route.UnitId,
-            CategoryId = route.CategoryId
-        };
-    }
-
-    private static GetManagementTicketQuery ToTicketQuery(TicketRoute route)
-    {
-        return new GetManagementTicketQuery
-        {
-            UserId = route.AppUserId,
-            CompanySlug = route.CompanySlug,
-            TicketId = route.TicketId
-        };
-    }
-
-    private static GetManagementTicketSelectorOptionsQuery ToSelectorQuery(TicketSelectorOptionsRoute route)
-    {
-        return new GetManagementTicketSelectorOptionsQuery
-        {
-            UserId = route.AppUserId,
-            CompanySlug = route.CompanySlug,
-            CustomerId = route.CustomerId,
-            PropertyId = route.PropertyId,
-            UnitId = route.UnitId,
-            CategoryId = route.CategoryId
-        };
     }
 
     private static TicketRoute ToTicketRoute(ManagementCompanyRoute route, Guid ticketId)

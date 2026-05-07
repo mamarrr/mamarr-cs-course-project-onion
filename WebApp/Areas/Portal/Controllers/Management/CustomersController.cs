@@ -3,11 +3,10 @@ using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Customers;
 using App.BLL.DTO.Customers.Errors;
-using App.BLL.DTO.Customers.Queries;
+using App.BLL.DTO.Customers.Models;
 using App.Resources.Views;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Customers;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -23,20 +22,17 @@ namespace WebApp.Areas.Portal.Controllers.Management;
 public class CustomersController : Controller
 {
     private readonly IAppBLL _bll;
-    private readonly CompanyCustomerMvcMapper _mapper;
     private readonly IAppChromeBuilder _appChromeBuilder;
     private readonly ICurrentPortalContextResolver _portalContextResolver;
     private readonly ILogger<CustomersController> _logger;
 
     public CustomersController(
         IAppBLL bll,
-        CompanyCustomerMvcMapper mapper,
         IAppChromeBuilder appChromeBuilder,
         ICurrentPortalContextResolver portalContextResolver,
         ILogger<CustomersController> logger)
     {
         _bll = bll;
-        _mapper = mapper;
         _appChromeBuilder = appChromeBuilder;
         _portalContextResolver = portalContextResolver;
         _logger = logger;
@@ -51,8 +47,8 @@ public class CustomersController : Controller
             return Challenge();
         }
 
-        var query = _mapper.ToQuery(companySlug, appUserId.Value);
-        var pageVm = await BuildPageViewModelAsync(query, cancellationToken);
+        var route = new ManagementCompanyRoute { AppUserId = appUserId.Value, CompanySlug = companySlug };
+        var pageVm = await BuildPageViewModelAsync(route, cancellationToken);
         if (pageVm.response is not null)
         {
             return pageVm.response;
@@ -94,7 +90,7 @@ public class CustomersController : Controller
                 modelErrors);
 
             var invalidVm = await BuildPageViewModelAsync(
-                _mapper.ToQuery(companySlug, appUserId.Value),
+                new ManagementCompanyRoute { AppUserId = appUserId.Value, CompanySlug = companySlug },
                 cancellationToken,
                 vm.AddCustomer);
             if (invalidVm.response is not null)
@@ -149,7 +145,7 @@ public class CustomersController : Controller
             }
 
             var invalidVm = await BuildPageViewModelAsync(
-                _mapper.ToQuery(companySlug, appUserId.Value),
+                new ManagementCompanyRoute { AppUserId = appUserId.Value, CompanySlug = companySlug },
                 cancellationToken,
                 vm.AddCustomer);
             if (invalidVm.response is not null)
@@ -170,12 +166,12 @@ public class CustomersController : Controller
     }
 
     private async Task<(IActionResult? response, CustomersPageViewModel? model)> BuildPageViewModelAsync(
-        GetCompanyCustomersQuery query,
+        ManagementCompanyRoute route,
         CancellationToken cancellationToken,
         AddManagementCustomerViewModel? addCustomerOverride = null)
     {
         var company = await _bll.Customers.ResolveCompanyWorkspaceAsync(
-            new ManagementCompanyRoute { AppUserId = query.UserId, CompanySlug = query.CompanySlug },
+            route,
             cancellationToken);
         if (company.IsFailed)
         {
@@ -183,7 +179,7 @@ public class CustomersController : Controller
         }
 
         var listResult = await _bll.Customers.ListForCompanyAsync(
-            new ManagementCompanyRoute { AppUserId = query.UserId, CompanySlug = query.CompanySlug },
+            route,
             cancellationToken);
         if (listResult.IsFailed)
         {
@@ -208,9 +204,29 @@ public class CustomersController : Controller
                 cancellationToken),
             CompanySlug = company.Value.CompanySlug,
             CompanyName = company.Value.CompanyName,
-            Customers = _mapper.ToListItems(listResult.Value),
+            Customers = ToListItems(listResult.Value),
             AddCustomer = addCustomerOverride ?? new AddManagementCustomerViewModel()
         });
+    }
+
+    private static IReadOnlyList<ManagementCustomerListItemViewModel> ToListItems(
+        IReadOnlyList<CustomerListItemModel> models)
+    {
+        return models.Select(model => new ManagementCustomerListItemViewModel
+        {
+            CustomerId = model.CustomerId,
+            CustomerSlug = model.CustomerSlug,
+            Name = model.Name,
+            RegistryCode = model.RegistryCode,
+            BillingEmail = model.BillingEmail,
+            BillingAddress = model.BillingAddress,
+            Phone = model.Phone,
+            Properties = model.Properties.Select(link => new ManagementCustomerPropertyLinkViewModel
+            {
+                PropertySlug = link.PropertySlug,
+                PropertyName = link.PropertyName
+            }).ToList()
+        }).ToList();
     }
 
     private IActionResult ToMvcErrorResult(IReadOnlyList<FluentResults.IError> errors)

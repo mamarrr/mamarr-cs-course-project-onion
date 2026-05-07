@@ -2,11 +2,13 @@ using System.Globalization;
 using App.BLL.Contracts;
 using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.Onboarding;
+using App.BLL.DTO.ManagementCompanies;
+using App.BLL.DTO.Onboarding.Commands;
 using App.BLL.DTO.Onboarding.Models;
 using App.BLL.DTO.Onboarding.Queries;
+using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Mappers.Mvc.Onboarding;
 using WebApp.Services.Identity;
 using WebApp.ViewModels.Onboarding;
 
@@ -17,16 +19,13 @@ public class OnboardingController : Controller
 {
     private readonly IAppBLL _bll;
     private readonly IIdentityAccountService _identityAccountService;
-    private readonly OnboardingViewModelMapper _mapper;
 
     public OnboardingController(
         IAppBLL bll,
-        IIdentityAccountService identityAccountService,
-        OnboardingViewModelMapper mapper)
+        IIdentityAccountService identityAccountService)
     {
         _bll = bll;
         _identityAccountService = identityAccountService;
-        _mapper = mapper;
     }
 
     [AllowAnonymous]
@@ -95,12 +94,18 @@ public class OnboardingController : Controller
         }
 
         var result = await _identityAccountService.CreateUserAsync(
-            _mapper.Map(vm),
+            new RegisterAccountCommand
+            {
+                Email = vm.Email,
+                Password = vm.Password,
+                FirstName = vm.FirstName,
+                LastName = vm.LastName
+            },
             HttpContext.RequestAborted);
 
         if (result.IsFailed)
         {
-            _mapper.AddErrors(ModelState, result);
+            AddErrors(result);
 
             return View(vm);
         }
@@ -138,7 +143,12 @@ public class OnboardingController : Controller
         }
 
         var result = await _identityAccountService.PasswordSignInAsync(
-            _mapper.Map(vm),
+            new LoginAccountCommand
+            {
+                Email = vm.Email,
+                Password = vm.Password,
+                RememberMe = vm.RememberMe
+            },
             HttpContext.RequestAborted);
 
         if (result.IsFailed)
@@ -260,12 +270,20 @@ public class OnboardingController : Controller
 
         var result = await _bll.Onboarding.CreateManagementCompanyAsync(
             appUserId.Value,
-            _mapper.Map(vm),
+            new ManagementCompanyBllDto
+            {
+                Name = vm.Name,
+                RegistryCode = vm.RegistryCode,
+                VatNumber = vm.VatNumber,
+                Email = vm.Email,
+                Phone = vm.Phone,
+                Address = vm.Address
+            },
             HttpContext.RequestAborted);
 
         if (result.IsFailed)
         {
-            _mapper.AddErrors(ModelState, result);
+            AddErrors(result);
 
             return View(vm);
         }
@@ -312,7 +330,13 @@ public class OnboardingController : Controller
         }
 
         var result = await _bll.Onboarding.CreateJoinRequestAsync(
-            _mapper.Map(appUserId.Value, vm),
+            new CreateCompanyJoinRequestCommand
+            {
+                AppUserId = appUserId.Value,
+                RegistryCode = vm.RegistryCode,
+                RequestedRoleId = vm.RequestedRoleId.Value,
+                Message = vm.Message
+            },
             cancellationToken);
 
         if (result.IsFailed)
@@ -414,6 +438,14 @@ public class OnboardingController : Controller
                 Selected = selectedRoleId.HasValue && selectedRoleId.Value == r.RoleId
             })
             .ToList();
+    }
+
+    private void AddErrors(ResultBase result)
+    {
+        foreach (var error in result.Errors)
+        {
+            ModelState.AddModelError(string.Empty, error.Message);
+        }
     }
 
 }

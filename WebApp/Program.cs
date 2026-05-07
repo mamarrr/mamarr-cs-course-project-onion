@@ -55,7 +55,6 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddAppBll();
-builder.Services.AddWebAppMappers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IIdentityAccountService, IdentityAccountService>();
 builder.Services.AddScoped<IAppChromeBuilder, AppChromeBuilder>();

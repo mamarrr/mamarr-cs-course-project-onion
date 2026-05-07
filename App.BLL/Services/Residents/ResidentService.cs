@@ -127,7 +127,19 @@ public class ResidentService :
             cancellationToken);
         if (roleCode is not null && AccessAllowedRoleCodes.Contains(roleCode))
         {
-            return Result.Ok(ResidentBllMapper.MapWorkspace(route.AppUserId, resident));
+            return Result.Ok(new ResidentWorkspaceModel
+            {
+                AppUserId = route.AppUserId,
+                ManagementCompanyId = resident.ManagementCompanyId,
+                CompanySlug = resident.CompanySlug,
+                CompanyName = resident.CompanyName,
+                ResidentId = resident.Id,
+                ResidentIdCode = resident.IdCode,
+                FirstName = resident.FirstName,
+                LastName = resident.LastName,
+                FullName = BuildFullName(resident.FirstName, resident.LastName),
+                PreferredLanguage = resident.PreferredLanguage
+            });
         }
 
         var hasResidentContext = await ServiceUOW.Residents.HasActiveUserResidentContextAsync(
@@ -136,7 +148,19 @@ public class ResidentService :
             cancellationToken);
 
         return hasResidentContext
-            ? Result.Ok(ResidentBllMapper.MapWorkspace(route.AppUserId, resident))
+            ? Result.Ok(new ResidentWorkspaceModel
+            {
+                AppUserId = route.AppUserId,
+                ManagementCompanyId = resident.ManagementCompanyId,
+                CompanySlug = resident.CompanySlug,
+                CompanyName = resident.CompanyName,
+                ResidentId = resident.Id,
+                ResidentIdCode = resident.IdCode,
+                FirstName = resident.FirstName,
+                LastName = resident.LastName,
+                FullName = BuildFullName(resident.FirstName, resident.LastName),
+                PreferredLanguage = resident.PreferredLanguage
+            })
             : Result.Fail(new ForbiddenError("Access denied."));
     }
 
@@ -160,7 +184,15 @@ public class ResidentService :
             ManagementCompanyId = company.Value.ManagementCompanyId,
             CompanySlug = company.Value.CompanySlug,
             CompanyName = company.Value.CompanyName,
-            Residents = residents.Select(ResidentBllMapper.MapListItem).ToList()
+            Residents = residents.Select(resident => new ResidentListItemModel
+            {
+                ResidentId = resident.Id,
+                FirstName = resident.FirstName,
+                LastName = resident.LastName,
+                FullName = BuildFullName(resident.FirstName, resident.LastName),
+                IdCode = resident.IdCode,
+                PreferredLanguage = resident.PreferredLanguage
+            }).ToList()
         });
     }
 
@@ -389,7 +421,18 @@ public class ResidentService :
 
         return profile is null
             ? Result.Fail(new NotFoundError("Resident profile was not found."))
-            : Result.Ok(ResidentBllMapper.MapProfile(profile));
+            : Result.Ok(new ResidentProfileModel
+            {
+                ResidentId = profile.Id,
+                ManagementCompanyId = profile.ManagementCompanyId,
+                CompanySlug = profile.CompanySlug,
+                CompanyName = profile.CompanyName,
+                ResidentIdCode = profile.IdCode,
+                FirstName = profile.FirstName,
+                LastName = profile.LastName,
+                FullName = BuildFullName(profile.FirstName, profile.LastName),
+                PreferredLanguage = profile.PreferredLanguage
+            });
     }
 
     private static Result Validate(ResidentBllDto dto)
@@ -434,6 +477,13 @@ public class ResidentService :
             string.IsNullOrWhiteSpace(dto.PreferredLanguage)
                 ? null
                 : dto.PreferredLanguage.Trim());
+    }
+
+    private static string BuildFullName(string firstName, string lastName)
+    {
+        return string.Join(
+            " ",
+            new[] { firstName, lastName }.Where(value => !string.IsNullOrWhiteSpace(value)));
     }
 
     private sealed record NormalizedResident(
