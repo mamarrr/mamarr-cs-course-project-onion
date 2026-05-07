@@ -2,37 +2,53 @@
 
 ## 1. Purpose
 
-This repository implements a multi-tenant property maintenance CRM for ticket lifecycle management, role-based access control, and strict tenant data isolation.
+This repository implements a layered .NET 10 multi-tenant property maintenance CRM for management company operations, property/unit/resident workflows, ticket lifecycle management, role-based access control, and strict tenant data isolation.
+
+Current state:
+- Core `Portal` MVC business workflows are complete for management companies, customers, properties, units, residents, tickets, scheduled work, work logs, vendors, contacts, leases, and workspace selection.
+- `WebApp/Areas/Admin` is deferred future work and must follow `plans/v2/admin/admin-ui-implementation-plan.md`.
+- Tests are deferred by project override.
+- REST API controllers are deferred future work; public API contracts remain DTO-first and versioned.
 
 Primary goals:
 - Keep tenant data isolated by management company boundaries.
 - Enforce role-based permissions and prevent IDOR.
 - Support the ticket lifecycle from creation to closure.
 - Maintain English and Estonian localization in UI and persisted domain data.
-- Keep public API contracts stable, versioned, and DTO-first.
+- Keep future public API contracts stable, versioned, and DTO-first.
 
 ## 2. Repository Map
 
 Core projects and references:
 - `App.Domain`: domain entities and identity entities.
-- `App.DAL.EF`: EF Core context, mappings, migrations, seeding, and value conversions.
-- `App.DTO`: public API DTO contracts by version.
-- `WebApp`: MVC UI, REST API controllers, startup configuration, auth, Swagger, and localization middleware.
+- `App.BLL.Contracts`: service interfaces and BLL boundary contracts. See `App.BLL.Contracts/README.md`.
+- `App.BLL`: business services, workflow validation, tenant checks, authorization policy, and BLL mappers.
+- `App.BLL.DTO`: BLL models and result DTOs used by application services.
+- `App.DAL.Contracts`: repository and unit-of-work contracts.
+- `App.DAL.DTO`: DAL projection/read/write DTOs used by repositories.
+- `App.DAL.EF`: EF Core context, mappings, migrations, repositories, mappers, seeding, and value conversions.
+- `App.DTO`: future public REST API DTO contracts by version.
+- `WebApp`: MVC areas, Razor views, ViewModels, UI mappers, startup configuration, auth, Swagger, and localization middleware.
+- `Base.*`: shared base abstractions for domain, BLL, DAL, contracts, EF helpers, and common helpers.
 - `Base.Domain/LangStr.cs`: persisted multilingual value object.
 - `App.Resources`: `.resx` resources for static UI and validation text.
 - `Docs/schema.sql`: domain schema reference.
+- `plans/v2/admin/admin-ui-implementation-plan.md`: required plan for future Admin UI implementation.
 
 ## 3. Architecture Rules
 
 Domain entities belong in `App.Domain` and must not depend on MVC, API, or persistence-specific behavior.
 
-Persistence concerns belong in `App.DAL.EF`, including EF configuration, `LangStr` to `jsonb` conversion, migrations, and idempotent initialization logic.
+Persistence concerns belong in `App.DAL.EF`, including EF configuration, `LangStr` to `jsonb` conversion, migrations, repository implementations, DAL mappers, and idempotent initialization logic. Repositories and UOW methods use DAL DTOs where projection or transport across the DAL boundary is needed, and they do not return `FluentResults` by default.
 
-Business rules, workflow, tenant checks, lifecycle transitions, permission checks, and authorization business rules must live in dedicated BLL services within a dedicated BLL layer/project. Do not place business policy inline in controllers or create interim `WebApp` services for it. Keep BLL services small and focused on one bounded responsibility.
+Business rules, workflow, tenant checks, lifecycle transitions, permission checks, and authorization business rules belong in `App.BLL` services behind `App.BLL.Contracts`. BLL service boundaries and BLL application flow use `FluentResults`. Keep services small and focused on one bounded responsibility.
 
-`WebApp` hosts MVC and REST API surfaces:
-- MVC controllers return views and use strongly typed view models.
-- API controllers return versioned DTOs from `App.DTO`.
+`WebApp` hosts MVC and future REST API surfaces:
+- MVC controllers depend on `IAppBLL`, not directly on `AppDbContext`, repositories, or DAL DTOs.
+- MVC controllers return views and map BLL models into strongly typed ViewModels.
+- `WebApp/Areas/Public` owns public home and onboarding.
+- `WebApp/Areas/Portal` owns completed management, customer, property, unit, resident, and ticket workflows.
+- Future API controllers return versioned DTOs from `App.DTO`.
 - Public API endpoints must never return domain entities.
 - MVC and API controllers map transport-specific request models to shared BLL contracts independently.
 - Split MVC controllers by feature section or subpage when navigation separates those areas.
@@ -59,21 +75,24 @@ Security hardening:
 - Keep HTTPS metadata and production JWT settings secure.
 - Preserve IDOR protections when refactoring queries or moving logic between layers.
 
-## 5. Domain Workflows
+## 5. Roles and Domain Workflows
 
-System personas:
+Identity roles:
 - `SystemAdmin`
-- Management company roles: `Manager`, `Support specialist`, `Finance`
-- Customer representative roles: `Primary`, `Technical`, `Billing`
-- `Resident`
+- `User`
 
-Current startup identity seeding uses `user` and `admin` in `App.DAL.EF/Seeding/InitialData.cs`. The operational roles above remain target behavior and must be aligned with identity roles and authorization policies as the domain matures.
+Management company role codes:
+- `OWNER`
+- `MANAGER`
+- `SUPPORT`
+- `FINANCE`
+
+Startup identity seeding uses `user` and `admin` in `App.DAL.EF/Seeding/InitialData.cs`. Management company role labels are seeded lookup data and must remain stable by `CODE`.
 
 Permission baseline:
-- Residents create and view own tickets, add requested details, and confirm completion for own tickets.
-- Management roles assign vendors, schedule work, progress status, review work logs, and close tickets.
-- Customer representatives view customer portfolio tickets, comment, monitor, and confirm or challenge resolution.
-- `SystemAdmin` handles platform-level administration and global maintenance.
+- Resident self-service is limited to explicitly implemented and tenant-safe resident-context workflows. Do not add or expand resident user linking or resident workspace access unless a future plan reintroduces it.
+- Management company members manage company profile data, customers, properties, units, residents, vendors, contacts, tickets, scheduled work, work logs, and company users according to their role.
+- `SystemAdmin` handles future platform-level administration and global maintenance through the deferred Admin UI.
 
 Canonical ticket lifecycle:
 
@@ -90,7 +109,7 @@ Do not skip intermediate states unless explicit business policy permits it and t
 
 ## 6. API Standards
 
-Use URL versioning consistently for REST endpoints. Existing style is in `WebApp/ApiControllers/Identity/AccountController.cs`.
+REST API controllers are future work. When adding them, use URL versioning consistently and keep the existing Swagger/JWT setup aligned with endpoint requirements.
 
 Public API rules:
 - Use DTOs from `App.DTO/v1` or the appropriate versioned DTO namespace.
@@ -105,7 +124,7 @@ JWT auth and Swagger configuration live in `WebApp/Program.cs` and `WebApp/Confi
 ## 7. Localization
 
 Supported cultures are English and Estonian. Use the correct localization mechanism:
-- `LangStr` is for persisted multilingual domain data that can differ per record, such as lookup labels, job titles, and user-entered localized entity fields.
+- `LangStr` is for persisted multilingual domain data that can differ per record, such as lookup labels and user-entered localized entity fields.
 - `.resx` resources in `App.Resources` are for static UI text, labels, headings, validation messages, select placeholders, buttons, and user-visible controller or service messages.
 
 Do not use `.resx` resources as a substitute for persisted multilingual business data. Do not use `LangStr` for static UI chrome.
@@ -122,7 +141,7 @@ Do not use `.resx` resources as a substitute for persisted multilingual business
 - Do not reimplement fallback logic in controllers or Razor; rely on `LangStr`.
 
 Resource rules:
-- ViewModels must use resource-backed `[Display]`, `[Required]`, `[StringLength]`, and other user-visible validation attributes.
+- ViewModels must use resource-backed `[Display]`, `[Required]`, `[StringLength]`, and other user-visible validation attributes when labels or validation text are user-visible.
 - User-visible controller and service messages must come from resources, or from codes that the web layer maps to resources.
 - Add or update English and Estonian resource entries together.
 - Static select placeholders such as "Select role" belong in resources; persisted role labels loaded from DB belong in `LangStr`.
@@ -130,12 +149,9 @@ Resource rules:
 Localization references:
 - `Base.Domain/LangStr.cs`
 - `WebApp/Program.cs`
-- `WebApp/Areas/Admin/Controllers/ContactTypeController.cs`
-- `WebApp/ViewModels/Onboarding/LoginViewModel.cs`
-- `WebApp/ViewModels/Onboarding/RegisterViewModel.cs`
-- `WebApp/ViewModels/Onboarding/CreateManagementCompanyViewModel.cs`
-- `App.BLL/ManagementUsers/ManagementUserAdminService.cs`
+- `App.DAL.EF/Seeding/InitialData.cs`
 - `App.Resources`
+- Current Portal controllers and ViewModels under `WebApp/Areas/Portal` and `WebApp/ViewModels`
 
 ## 8. Database, Migrations, and Seeding
 
@@ -155,7 +171,17 @@ Lookup and reference data rules:
 
 ## 9. UI and MVC Standards
 
-Admin UI lives in `WebApp/Areas/Admin` and is restricted to the `SystemAdmin` role. Admin CRUD scaffolding is performed manually by the project owner; AI contributors should delegate explicit admin scaffolding tasks back to the user.
+Area ownership:
+- `WebApp/Areas/Public` owns public home and onboarding.
+- `WebApp/Areas/Portal` owns completed business workflows for management, customer, property, unit, resident, tickets, scheduled work, vendors, contacts, leases, and workspace navigation.
+- `WebApp/Areas/Admin` is future work. Implement it only according to `plans/v2/admin/admin-ui-implementation-plan.md`.
+
+Future Admin UI requirements:
+- Use an MVC area protected by `SystemAdmin`.
+- Build functional, designed, pleasant-to-use pages; do not rely on simple scaffolded CRUD.
+- Follow the current layer pattern: MVC controller -> `IAppBLL` -> Admin BLL service -> `IAppUOW` -> DAL repository -> DAL mapper -> `AppDbContext`.
+- Use strongly typed ViewModels and UI mappers.
+- Avoid `ViewBag` and `ViewData`.
 
 Client UI should be responsive, professional, and clear:
 - Show immediate success confirmation when actions complete.
@@ -171,7 +197,7 @@ Primary application shell:
 Dashboard intent:
 - Management company: operational control for lifecycle management and vendor coordination.
 - Customer: portfolio transparency for maintenance progress and unresolved blockers.
-- Resident: simple workspace for submitting and tracking own maintenance issues.
+- Resident: simple workspace for current resident access.
 
 MVC rules:
 - Avoid `ViewBag` and `ViewData`.
@@ -215,8 +241,7 @@ AI contributors must:
 - Preserve tenant isolation and ownership checks.
 - Avoid exposing domain entities directly through public API endpoints.
 - Keep lookup `CODE` values stable.
-- Keep implementation aligned with `Docs/schema.sql`, `WebApp/Program.cs`, and DAL mappings.
-- Keep BLL placement strict: business logic belongs in the dedicated BLL layer/project.
-- Delegate explicit Admin scaffolding requests back to the user.
+- Keep implementation aligned with `Docs/schema.sql`, `WebApp/Program.cs`, BLL contracts, and DAL mappings.
+- Keep BLL placement strict: business logic belongs in `App.BLL` behind `App.BLL.Contracts`.
 - Avoid destructive schema or seed changes without an explicit requirement and migration plan.
 - Keep `AGENTS.md` concise and repo-specific; move long explanations, historical bug narratives, and detailed implementation walkthroughs to docs or plans.
