@@ -10,6 +10,7 @@ using App.DAL.EF.Mappers.ScheduledWorks;
 using App.DAL.EF.Mappers.Tickets;
 using App.DAL.EF.Mappers.Units;
 using App.DAL.EF.Mappers.Vendors;
+using App.DAL.EF.Mappers.WorkLogs;
 using App.DAL.EF.Repositories;
 using Base.DAL.EF;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -33,6 +34,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private readonly VendorContactDalMapper _vendorContactMapper = new();
     private readonly VendorTicketCategoryDalMapper _vendorTicketCategoryMapper = new();
     private readonly ScheduledWorkDalMapper _scheduledWorkMapper = new();
+    private readonly WorkLogDalMapper _workLogMapper = new();
     private IContactRepository? _contacts;
     private ICustomerRepository? _customers;
     private IManagementCompanyRepository? _managementCompanies;
@@ -48,6 +50,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private IVendorContactRepository? _vendorContacts;
     private IVendorTicketCategoryRepository? _vendorTicketCategories;
     private IScheduledWorkRepository? _scheduledWorks;
+    private IWorkLogRepository? _workLogs;
 
     public AppUOW(AppDbContext dbContext) : base(dbContext)
     {
@@ -87,6 +90,9 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
 
     public IScheduledWorkRepository ScheduledWorks =>
         _scheduledWorks ??= new ScheduledWorkRepository(UowDbContext, _scheduledWorkMapper);
+
+    public IWorkLogRepository WorkLogs =>
+        _workLogs ??= new WorkLogRepository(UowDbContext, _workLogMapper);
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

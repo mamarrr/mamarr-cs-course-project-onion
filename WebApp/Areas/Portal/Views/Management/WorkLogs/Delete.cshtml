@@ -1,0 +1,29 @@
+@model WebApp.ViewModels.Management.WorkLogs.WorkLogDeleteViewModel
+@using App.Resources.Views
+@{
+    string Empty(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<section class="management-card">
+    <p class="management-eyebrow mb-2">@Model.TicketNr</p>
+    <h2>@T("DeleteWorkLog", "Delete work log")</h2>
+    <p class="management-muted">@string.Format(T("DeleteWorkLogConfirmation", "Delete this work log for {0}?"), Model.VendorName)</p>
+    <p>@Empty(Model.Description)</p>
+
+    <form method="post"
+          asp-action="DeleteConfirmed"
+          asp-route-companySlug="@Model.CompanySlug"
+          asp-route-ticketId="@Model.TicketId"
+          asp-route-scheduledWorkId="@Model.ScheduledWorkId"
+          asp-route-workLogId="@Model.WorkLogId"
+          class="d-flex gap-2">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-danger">@UiText.Delete</button>
+        <a class="btn btn-outline-secondary"
+           asp-action="Index"
+           asp-route-companySlug="@Model.CompanySlug"
+           asp-route-ticketId="@Model.TicketId"
+           asp-route-scheduledWorkId="@Model.ScheduledWorkId">@UiText.Cancel</a>
+    </form>
+</section>

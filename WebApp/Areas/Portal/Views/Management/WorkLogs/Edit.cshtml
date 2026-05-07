@@ -1,0 +1,22 @@
+@model WebApp.ViewModels.Management.WorkLogs.WorkLogFormPageViewModel
+@using App.Resources.Views
+@{
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<section class="management-card">
+    <p class="management-eyebrow mb-2">@Model.TicketNr</p>
+    <h2>@T("EditWorkLog", "Edit work log")</h2>
+    <p class="management-muted">@Model.VendorName</p>
+
+    <form method="post"
+          asp-action="Edit"
+          asp-route-companySlug="@Model.CompanySlug"
+          asp-route-ticketId="@Model.TicketId"
+          asp-route-scheduledWorkId="@Model.ScheduledWorkId"
+          asp-route-workLogId="@Model.Form.WorkLogId"
+          class="management-form">
+        @Html.AntiForgeryToken()
+        <partial name="_WorkLogForm" model="Model" />
+    </form>
+</section>

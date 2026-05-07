@@ -36,6 +36,8 @@ public interface IAppUOW : IBaseUOW
 
     IScheduledWorkRepository ScheduledWorks { get; }
 
+    IWorkLogRepository WorkLogs { get; }
+
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);

@@ -1,0 +1,59 @@
+@model WebApp.ViewModels.Management.WorkLogs.WorkLogFormPageViewModel
+@using App.Resources.Views
+@{
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+    var hoursClass = Model.CanViewCosts ? "col-md-4" : "col-md-12";
+}
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<input asp-for="Form.WorkLogId" type="hidden" />
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="Form.WorkStart" class="form-label">@T("WorkStart", "Work start")</label>
+        <input asp-for="Form.WorkStart" class="form-control" />
+        <span asp-validation-for="Form.WorkStart" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Form.WorkEnd" class="form-label">@T("WorkEnd", "Work end")</label>
+        <input asp-for="Form.WorkEnd" class="form-control" />
+        <span asp-validation-for="Form.WorkEnd" class="text-danger"></span>
+    </div>
+
+    <div class="@hoursClass">
+        <label asp-for="Form.Hours" class="form-label">@T("Hours", "Hours")</label>
+        <input asp-for="Form.Hours" class="form-control" />
+        <span asp-validation-for="Form.Hours" class="text-danger"></span>
+    </div>
+
+    @if (Model.CanViewCosts)
+    {
+        <div class="col-md-4">
+            <label asp-for="Form.MaterialCost" class="form-label">@T("MaterialCost", "Material cost")</label>
+            <input asp-for="Form.MaterialCost" class="form-control" />
+            <span asp-validation-for="Form.MaterialCost" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label asp-for="Form.LaborCost" class="form-label">@T("LaborCost", "Labor cost")</label>
+            <input asp-for="Form.LaborCost" class="form-control" />
+            <span asp-validation-for="Form.LaborCost" class="text-danger"></span>
+        </div>
+    }
+
+    <div class="col-12">
+        <label asp-for="Form.Description" class="form-label">@T("Description", "Description")</label>
+        <textarea asp-for="Form.Description" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Form.Description" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="d-flex gap-2 mt-4">
+    <button type="submit" class="management-btn">@UiText.SaveChanges</button>
+    <a class="btn btn-outline-secondary"
+       asp-action="Index"
+       asp-route-companySlug="@Model.CompanySlug"
+       asp-route-ticketId="@Model.TicketId"
+       asp-route-scheduledWorkId="@Model.ScheduledWorkId">@UiText.Cancel</a>
+</div>

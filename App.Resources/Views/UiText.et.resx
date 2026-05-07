@@ -518,4 +518,34 @@
   <data name="InvalidContact" xml:space="preserve"><value>Valitud kontakt ei sobi.</value></data>
   <data name="MaxLengthExceeded" xml:space="preserve"><value>Vaartus on liiga pikk.</value></data>
   <data name="TicketVendorDoesNotSupportCategory" xml:space="preserve"><value>Valitud teenusepakkuja ei ole selle pileti kategooriaga seotud.</value></data>
+  <data name="WorkLogs" xml:space="preserve"><value>Toopaevikud</value></data>
+  <data name="CreateWorkLog" xml:space="preserve"><value>Lisa toopaevik</value></data>
+  <data name="EditWorkLog" xml:space="preserve"><value>Muuda toopaevikut</value></data>
+  <data name="DeleteWorkLog" xml:space="preserve"><value>Kustuta toopaevik</value></data>
+  <data name="ViewWorkLogs" xml:space="preserve"><value>Vaata toopaevikuid</value></data>
+  <data name="NoWorkLogs" xml:space="preserve"><value>Toopaevikuid pole veel lisatud.</value></data>
+  <data name="WorkLogCreatedSuccessfully" xml:space="preserve"><value>Toopaevik lisati edukalt.</value></data>
+  <data name="WorkLogUpdatedSuccessfully" xml:space="preserve"><value>Toopaevik uuendati edukalt.</value></data>
+  <data name="WorkLogDeletedSuccessfully" xml:space="preserve"><value>Toopaevik kustutati edukalt.</value></data>
+  <data name="UnableToDeleteWorkLog" xml:space="preserve"><value>Toopaevikut ei saanud kustutada.</value></data>
+  <data name="DeleteWorkLogConfirmation" xml:space="preserve"><value>Kustutada see toopaevik teenusepakkujale {0}?</value></data>
+  <data name="WorkStart" xml:space="preserve"><value>Too algus</value></data>
+  <data name="WorkEnd" xml:space="preserve"><value>Too lopp</value></data>
+  <data name="Hours" xml:space="preserve"><value>Tunnid</value></data>
+  <data name="MaterialCost" xml:space="preserve"><value>Materjalikulu</value></data>
+  <data name="LaborCost" xml:space="preserve"><value>Tookulu</value></data>
+  <data name="TotalCost" xml:space="preserve"><value>Kogukulu</value></data>
+  <data name="LogCount" xml:space="preserve"><value>Logid</value></data>
+  <data name="WorkWindow" xml:space="preserve"><value>Tooaeg</value></data>
+  <data name="LoggedBy" xml:space="preserve"><value>Sisestaja</value></data>
+  <data name="ScheduledWorkLogSummary" xml:space="preserve"><value>{0} toopaevikut on salvestatud.</value></data>
+  <data name="WorkLogClosedTicketBlocked" xml:space="preserve"><value>Toopaevikuid ei saa muuta parast pileti sulgemist.</value></data>
+  <data name="TicketCompletedRequiresWorkLog" xml:space="preserve"><value>Lisa vahemalt uks toopaevik enne pileti lopetatuks markimist.</value></data>
+  <data name="WorkLogRequiresMeaningfulField" xml:space="preserve"><value>Sisesta vahemalt uks toopaeviku vaartus.</value></data>
+  <data name="WorkLogEndCannotBeBeforeStart" xml:space="preserve"><value>Too lopp ei saa olla enne too algust.</value></data>
+  <data name="WorkLogHoursNonNegative" xml:space="preserve"><value>Tunnid peavad olema null voi rohkem.</value></data>
+  <data name="WorkLogMaterialCostNonNegative" xml:space="preserve"><value>Materjalikulu peab olema null voi rohkem.</value></data>
+  <data name="WorkLogLaborCostNonNegative" xml:space="preserve"><value>Tookulu peab olema null voi rohkem.</value></data>
+  <data name="WorkLogDescriptionMaxLength" xml:space="preserve"><value>Kirjeldus peab olema kuni 4000 margi pikkune.</value></data>
+  <data name="WorkLogNotFound" xml:space="preserve"><value>Toopaevikut ei leitud.</value></data>
 </root>

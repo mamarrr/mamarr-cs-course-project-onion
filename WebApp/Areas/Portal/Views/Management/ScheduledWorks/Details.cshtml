@@ -23,6 +23,12 @@
                 <span class="management-badge">@Model.Item.WorkStatusLabel</span>
             </div>
             <div class="d-flex gap-2">
+                <a class="management-btn"
+                   asp-controller="WorkLogs"
+                   asp-action="Index"
+                   asp-route-companySlug="@Model.CompanySlug"
+                   asp-route-ticketId="@Model.TicketId"
+                   asp-route-scheduledWorkId="@Model.ScheduledWorkId">@T("WorkLogs", "Work logs") (@Model.Item.WorkLogCount)</a>
                 <a class="btn btn-outline-secondary"
                    asp-action="Edit"
                    asp-route-companySlug="@Model.CompanySlug"
@@ -89,6 +95,25 @@
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-outline-secondary">@T("CancelWork", "Cancel work")</button>
             </form>
+        </div>
+    </section>
+
+    <section class="management-card">
+        <h2>@T("WorkLogs", "Work logs")</h2>
+        <p class="management-muted">@string.Format(T("ScheduledWorkLogSummary", "{0} work logs have been recorded."), Model.Item.WorkLogCount)</p>
+        <div class="d-flex gap-2">
+            <a class="management-btn"
+               asp-controller="WorkLogs"
+               asp-action="Create"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-ticketId="@Model.TicketId"
+               asp-route-scheduledWorkId="@Model.ScheduledWorkId">@T("CreateWorkLog", "Add work log")</a>
+            <a class="btn btn-outline-secondary"
+               asp-controller="WorkLogs"
+               asp-action="Index"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-ticketId="@Model.TicketId"
+               asp-route-scheduledWorkId="@Model.ScheduledWorkId">@T("ViewWorkLogs", "View work logs")</a>
         </div>
     </section>
 

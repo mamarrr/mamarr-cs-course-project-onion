@@ -6,4 +6,5 @@ public class CompanyWorkspaceModel
     public Guid ManagementCompanyId { get; init; }
     public string CompanySlug { get; init; } = default!;
     public string CompanyName { get; init; } = default!;
+    public string? RoleCode { get; init; }
 }

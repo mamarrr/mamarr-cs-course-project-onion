@@ -528,4 +528,34 @@
   <data name="InvalidContact" xml:space="preserve"><value>Selected contact is invalid.</value></data>
   <data name="MaxLengthExceeded" xml:space="preserve"><value>Value is too long.</value></data>
   <data name="TicketVendorDoesNotSupportCategory" xml:space="preserve"><value>Selected vendor is not assigned to this ticket category.</value></data>
+  <data name="WorkLogs" xml:space="preserve"><value>Work logs</value></data>
+  <data name="CreateWorkLog" xml:space="preserve"><value>Add work log</value></data>
+  <data name="EditWorkLog" xml:space="preserve"><value>Edit work log</value></data>
+  <data name="DeleteWorkLog" xml:space="preserve"><value>Delete work log</value></data>
+  <data name="ViewWorkLogs" xml:space="preserve"><value>View work logs</value></data>
+  <data name="NoWorkLogs" xml:space="preserve"><value>No work logs have been added yet.</value></data>
+  <data name="WorkLogCreatedSuccessfully" xml:space="preserve"><value>Work log added successfully.</value></data>
+  <data name="WorkLogUpdatedSuccessfully" xml:space="preserve"><value>Work log updated successfully.</value></data>
+  <data name="WorkLogDeletedSuccessfully" xml:space="preserve"><value>Work log deleted successfully.</value></data>
+  <data name="UnableToDeleteWorkLog" xml:space="preserve"><value>Unable to delete work log.</value></data>
+  <data name="DeleteWorkLogConfirmation" xml:space="preserve"><value>Delete this work log for {0}?</value></data>
+  <data name="WorkStart" xml:space="preserve"><value>Work start</value></data>
+  <data name="WorkEnd" xml:space="preserve"><value>Work end</value></data>
+  <data name="Hours" xml:space="preserve"><value>Hours</value></data>
+  <data name="MaterialCost" xml:space="preserve"><value>Material cost</value></data>
+  <data name="LaborCost" xml:space="preserve"><value>Labor cost</value></data>
+  <data name="TotalCost" xml:space="preserve"><value>Total cost</value></data>
+  <data name="LogCount" xml:space="preserve"><value>Logs</value></data>
+  <data name="WorkWindow" xml:space="preserve"><value>Work window</value></data>
+  <data name="LoggedBy" xml:space="preserve"><value>Logged by</value></data>
+  <data name="ScheduledWorkLogSummary" xml:space="preserve"><value>{0} work logs have been recorded.</value></data>
+  <data name="WorkLogClosedTicketBlocked" xml:space="preserve"><value>Work logs cannot be changed after the ticket is closed.</value></data>
+  <data name="TicketCompletedRequiresWorkLog" xml:space="preserve"><value>Add at least one work log before moving the ticket to completed.</value></data>
+  <data name="WorkLogRequiresMeaningfulField" xml:space="preserve"><value>Enter at least one work log value.</value></data>
+  <data name="WorkLogEndCannotBeBeforeStart" xml:space="preserve"><value>Work end cannot be before work start.</value></data>
+  <data name="WorkLogHoursNonNegative" xml:space="preserve"><value>Hours must be zero or greater.</value></data>
+  <data name="WorkLogMaterialCostNonNegative" xml:space="preserve"><value>Material cost must be zero or greater.</value></data>
+  <data name="WorkLogLaborCostNonNegative" xml:space="preserve"><value>Labor cost must be zero or greater.</value></data>
+  <data name="WorkLogDescriptionMaxLength" xml:space="preserve"><value>Description must be 4000 characters or fewer.</value></data>
+  <data name="WorkLogNotFound" xml:space="preserve"><value>Work log was not found.</value></data>
 </root>

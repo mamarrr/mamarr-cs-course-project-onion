@@ -46,6 +46,11 @@ public class ScheduledWorkRoute : TicketRoute
     public Guid ScheduledWorkId { get; init; }
 }
 
+public class WorkLogRoute : ScheduledWorkRoute
+{
+    public Guid WorkLogId { get; init; }
+}
+
 public class VendorRoute : ManagementCompanyRoute
 {
     public Guid VendorId { get; init; }

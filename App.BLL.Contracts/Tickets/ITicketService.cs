@@ -3,6 +3,8 @@ using App.BLL.DTO.ScheduledWorks;
 using App.BLL.DTO.ScheduledWorks.Models;
 using App.BLL.DTO.Tickets;
 using App.BLL.DTO.Tickets.Models;
+using App.BLL.DTO.WorkLogs;
+using App.BLL.DTO.WorkLogs.Models;
 using Base.BLL.Contracts;
 using FluentResults;
 
@@ -92,5 +94,35 @@ public interface ITicketService : IBaseService<TicketBllDto>
 
     Task<Result> DeleteScheduledWorkAsync(
         ScheduledWorkRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<WorkLogListModel>> ListWorkLogsForScheduledWorkAsync(
+        ScheduledWorkRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<WorkLogFormModel>> GetWorkLogCreateFormAsync(
+        ScheduledWorkRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<WorkLogFormModel>> GetWorkLogEditFormAsync(
+        WorkLogRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<WorkLogDeleteModel>> GetWorkLogDeleteModelAsync(
+        WorkLogRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<WorkLogBllDto>> AddWorkLogAsync(
+        ScheduledWorkRoute route,
+        WorkLogBllDto dto,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<WorkLogBllDto>> UpdateWorkLogAsync(
+        WorkLogRoute route,
+        WorkLogBllDto dto,
+        CancellationToken cancellationToken = default);
+
+    Task<Result> DeleteWorkLogAsync(
+        WorkLogRoute route,
         CancellationToken cancellationToken = default);
 }
