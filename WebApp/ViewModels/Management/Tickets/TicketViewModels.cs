@@ -3,6 +3,7 @@ using App.Resources.Views;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using WebApp.UI.Chrome;
+using WebApp.ViewModels.Management.ScheduledWorks;
 
 namespace WebApp.ViewModels.Management.Tickets;
 
@@ -183,6 +184,8 @@ public class TicketDetailsPageViewModel : IAppChromePage
     public DateTime? ClosedAt { get; set; }
     public string? NextStatusCode { get; set; }
     public string? NextStatusLabel { get; set; }
+    public IReadOnlyList<ScheduledWorkListItemViewModel> ScheduledWork { get; set; } =
+        Array.Empty<ScheduledWorkListItemViewModel>();
 }
 
 public class TicketSelectOptionsViewModel

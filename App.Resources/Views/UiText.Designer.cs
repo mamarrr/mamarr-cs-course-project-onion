@@ -141,6 +141,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Actual window.
+        /// </summary>
+        public static string ActualWindow {
+            get {
+                return ResourceManager.GetString("ActualWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add company user.
         /// </summary>
         public static string AddCompanyUser {
@@ -236,6 +245,24 @@ namespace App.Resources.Views {
         public static string AddUnit {
             get {
                 return ResourceManager.GetString("AddUnit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add vendor.
+        /// </summary>
+        public static string AddVendor {
+            get {
+                return ResourceManager.GetString("AddVendor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create a maintenance provider for ticket assignment and scheduled work..
+        /// </summary>
+        public static string AddVendorDescription {
+            get {
+                return ResourceManager.GetString("AddVendorDescription", resourceCulture);
             }
         }
         
@@ -357,6 +384,33 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assign category.
+        /// </summary>
+        public static string AssignCategory {
+            get {
+                return ResourceManager.GetString("AssignCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attach contact.
+        /// </summary>
+        public static string AttachContact {
+            get {
+                return ResourceManager.GetString("AttachContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attach existing contact.
+        /// </summary>
+        public static string AttachExistingContact {
+            get {
+                return ResourceManager.GetString("AttachExistingContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Authorization.
         /// </summary>
         public static string Authorization {
@@ -366,11 +420,74 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Back to assignments.
+        /// </summary>
+        public static string BackToCategoryAssignments {
+            get {
+                return ResourceManager.GetString("BackToCategoryAssignments", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Back to resident.
+        /// </summary>
+        public static string BackToResident {
+            get {
+                return ResourceManager.GetString("BackToResident", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Back to contacts.
+        /// </summary>
+        public static string BackToResidentContacts {
+            get {
+                return ResourceManager.GetString("BackToResidentContacts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Back to scheduled work.
+        /// </summary>
+        public static string BackToScheduledWork {
+            get {
+                return ResourceManager.GetString("BackToScheduledWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Back to ticket.
+        /// </summary>
+        public static string BackToTicket {
+            get {
+                return ResourceManager.GetString("BackToTicket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Back to users.
         /// </summary>
         public static string BackToUsers {
             get {
                 return ResourceManager.GetString("BackToUsers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Back to vendor.
+        /// </summary>
+        public static string BackToVendor {
+            get {
+                return ResourceManager.GetString("BackToVendor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Back to contacts.
+        /// </summary>
+        public static string BackToVendorContacts {
+            get {
+                return ResourceManager.GetString("BackToVendorContacts", resourceCulture);
             }
         }
         
@@ -398,6 +515,33 @@ namespace App.Resources.Views {
         public static string Cancel {
             get {
                 return ResourceManager.GetString("Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel work.
+        /// </summary>
+        public static string CancelWork {
+            get {
+                return ResourceManager.GetString("CancelWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Categories.
+        /// </summary>
+        public static string Categories {
+            get {
+                return ResourceManager.GetString("Categories", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Category assignments.
+        /// </summary>
+        public static string CategoryAssignments {
+            get {
+                return ResourceManager.GetString("CategoryAssignments", resourceCulture);
             }
         }
         
@@ -501,6 +645,69 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Complete work.
+        /// </summary>
+        public static string CompleteWork {
+            get {
+                return ResourceManager.GetString("CompleteWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm.
+        /// </summary>
+        public static string Confirm {
+            get {
+                return ResourceManager.GetString("Confirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contact.
+        /// </summary>
+        public static string Contact {
+            get {
+                return ResourceManager.GetString("Contact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A contact with the same type and value already exists in this company..
+        /// </summary>
+        public static string ContactAlreadyExists {
+            get {
+                return ResourceManager.GetString("ContactAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notes must be 4000 characters or fewer..
+        /// </summary>
+        public static string ContactNotesMaxLength {
+            get {
+                return ResourceManager.GetString("ContactNotesMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contact was not found..
+        /// </summary>
+        public static string ContactNotFound {
+            get {
+                return ResourceManager.GetString("ContactNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contact is required..
+        /// </summary>
+        public static string ContactRequired {
+            get {
+                return ResourceManager.GetString("ContactRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Contacts.
         /// </summary>
         public static string Contacts {
@@ -508,13 +715,31 @@ namespace App.Resources.Views {
                 return ResourceManager.GetString("Contacts", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to Contact.
+        ///   Looks up a localized string similar to Contact type is required..
         /// </summary>
-        public static string Contact {
+        public static string ContactTypeRequired {
             get {
-                return ResourceManager.GetString("Contact", resourceCulture);
+                return ResourceManager.GetString("ContactTypeRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contact value must be 255 characters or fewer..
+        /// </summary>
+        public static string ContactValueMaxLength {
+            get {
+                return ResourceManager.GetString("ContactValueMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contact value is required..
+        /// </summary>
+        public static string ContactValueRequired {
+            get {
+                return ResourceManager.GetString("ContactValueRequired", resourceCulture);
             }
         }
         
@@ -533,6 +758,15 @@ namespace App.Resources.Views {
         public static string CreateAccount {
             get {
                 return ResourceManager.GetString("CreateAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create and attach contact.
+        /// </summary>
+        public static string CreateAndAttachContact {
+            get {
+                return ResourceManager.GetString("CreateAndAttachContact", resourceCulture);
             }
         }
         
@@ -573,6 +807,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Create scheduled work.
+        /// </summary>
+        public static string CreateScheduledWork {
+            get {
+                return ResourceManager.GetString("CreateScheduledWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Create ticket.
         /// </summary>
         public static string CreateTicket {
@@ -587,6 +830,15 @@ namespace App.Resources.Views {
         public static string CreateYourManagementCompany {
             get {
                 return ResourceManager.GetString("CreateYourManagementCompany", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current assignments.
+        /// </summary>
+        public static string CurrentAssignments {
+            get {
+                return ResourceManager.GetString("CurrentAssignments", resourceCulture);
             }
         }
         
@@ -623,6 +875,15 @@ namespace App.Resources.Views {
         public static string CurrentOwner {
             get {
                 return ResourceManager.GetString("CurrentOwner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current contacts.
+        /// </summary>
+        public static string CurrentResidentContacts {
+            get {
+                return ResourceManager.GetString("CurrentResidentContacts", resourceCulture);
             }
         }
         
@@ -677,6 +938,15 @@ namespace App.Resources.Views {
         public static string CurrentUsersDescription {
             get {
                 return ResourceManager.GetString("CurrentUsersDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current contacts.
+        /// </summary>
+        public static string CurrentVendorContacts {
+            get {
+                return ResourceManager.GetString("CurrentVendorContacts", resourceCulture);
             }
         }
         
@@ -825,6 +1095,33 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delete scheduled work.
+        /// </summary>
+        public static string DeleteScheduledWork {
+            get {
+                return ResourceManager.GetString("DeleteScheduledWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete scheduled work for {0}? This is blocked when work logs exist..
+        /// </summary>
+        public static string DeleteScheduledWorkConfirmation {
+            get {
+                return ResourceManager.GetString("DeleteScheduledWorkConfirmation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete scheduled work only when no work logs exist..
+        /// </summary>
+        public static string DeleteScheduledWorkDescription {
+            get {
+                return ResourceManager.GetString("DeleteScheduledWorkDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete this ticket?.
         /// </summary>
         public static string DeleteTicketConfirmation {
@@ -839,6 +1136,24 @@ namespace App.Resources.Views {
         public static string DeleteTicketDescription {
             get {
                 return ResourceManager.GetString("DeleteTicketDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete vendor.
+        /// </summary>
+        public static string DeleteVendor {
+            get {
+                return ResourceManager.GetString("DeleteVendor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm deletion of {0}. Vendors with tickets, scheduled work, contacts, or category assignments cannot be deleted..
+        /// </summary>
+        public static string DeleteVendorDescription {
+            get {
+                return ResourceManager.GetString("DeleteVendorDescription", resourceCulture);
             }
         }
         
@@ -915,6 +1230,33 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit category assignment.
+        /// </summary>
+        public static string EditCategoryAssignment {
+            get {
+                return ResourceManager.GetString("EditCategoryAssignment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit resident contact.
+        /// </summary>
+        public static string EditResidentContact {
+            get {
+                return ResourceManager.GetString("EditResidentContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit scheduled work.
+        /// </summary>
+        public static string EditScheduledWork {
+            get {
+                return ResourceManager.GetString("EditScheduledWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit ticket.
         /// </summary>
         public static string EditTicket {
@@ -938,6 +1280,33 @@ namespace App.Resources.Views {
         public static string EditUserDescription {
             get {
                 return ResourceManager.GetString("EditUserDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit vendor.
+        /// </summary>
+        public static string EditVendor {
+            get {
+                return ResourceManager.GetString("EditVendor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit vendor contact.
+        /// </summary>
+        public static string EditVendorContact {
+            get {
+                return ResourceManager.GetString("EditVendorContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update provider details without changing existing ticket ownership..
+        /// </summary>
+        public static string EditVendorDescription {
+            get {
+                return ResourceManager.GetString("EditVendorDescription", resourceCulture);
             }
         }
         
@@ -1091,6 +1460,24 @@ namespace App.Resources.Views {
         public static string InProgress {
             get {
                 return ResourceManager.GetString("InProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selected contact is invalid..
+        /// </summary>
+        public static string InvalidContact {
+            get {
+                return ResourceManager.GetString("InvalidContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selected contact type is invalid..
+        /// </summary>
+        public static string InvalidContactType {
+            get {
+                return ResourceManager.GetString("InvalidContactType", resourceCulture);
             }
         }
         
@@ -1356,6 +1743,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Manage categories.
+        /// </summary>
+        public static string ManageCategories {
+            get {
+                return ResourceManager.GetString("ManageCategories", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manage contacts.
+        /// </summary>
+        public static string ManageContacts {
+            get {
+                return ResourceManager.GetString("ManageContacts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Management.
         /// </summary>
         public static string Management {
@@ -1415,6 +1820,15 @@ namespace App.Resources.Views {
         public static string ManagementWorkspace {
             get {
                 return ResourceManager.GetString("ManagementWorkspace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Value is too long..
+        /// </summary>
+        public static string MaxLengthExceeded {
+            get {
+                return ResourceManager.GetString("MaxLengthExceeded", resourceCulture);
             }
         }
         
@@ -1487,6 +1901,15 @@ namespace App.Resources.Views {
         public static string NewOwnerRequired {
             get {
                 return ResourceManager.GetString("NewOwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No categories are assigned yet..
+        /// </summary>
+        public static string NoCategoryAssignments {
+            get {
+                return ResourceManager.GetString("NoCategoryAssignments", resourceCulture);
             }
         }
         
@@ -1590,6 +2013,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No contacts are linked yet..
+        /// </summary>
+        public static string NoResidentContacts {
+            get {
+                return ResourceManager.GetString("NoResidentContacts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No resident context.
         /// </summary>
         public static string NoResidentContext {
@@ -1622,6 +2054,15 @@ namespace App.Resources.Views {
         public static string NoResidentsFoundDescription {
             get {
                 return ResourceManager.GetString("NoResidentsFoundDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No scheduled work has been added yet..
+        /// </summary>
+        public static string NoScheduledWork {
+            get {
+                return ResourceManager.GetString("NoScheduledWork", resourceCulture);
             }
         }
         
@@ -1694,6 +2135,33 @@ namespace App.Resources.Views {
         public static string NoValuePlaceholder {
             get {
                 return ResourceManager.GetString("NoValuePlaceholder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No contacts are linked yet..
+        /// </summary>
+        public static string NoVendorContacts {
+            get {
+                return ResourceManager.GetString("NoVendorContacts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No vendors found.
+        /// </summary>
+        public static string NoVendorsFound {
+            get {
+                return ResourceManager.GetString("NoVendorsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create the first vendor before assigning providers to tickets or scheduled work..
+        /// </summary>
+        public static string NoVendorsFoundDescription {
+            get {
+                return ResourceManager.GetString("NoVendorsFoundDescription", resourceCulture);
             }
         }
         
@@ -1820,6 +2288,15 @@ namespace App.Resources.Views {
         public static string PreferredLanguage {
             get {
                 return ResourceManager.GetString("PreferredLanguage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Primary.
+        /// </summary>
+        public static string Primary {
+            get {
+                return ResourceManager.GetString("Primary", resourceCulture);
             }
         }
         
@@ -1977,6 +2454,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Actual end.
+        /// </summary>
+        public static string RealEnd {
+            get {
+                return ResourceManager.GetString("RealEnd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Actual start.
+        /// </summary>
+        public static string RealStart {
+            get {
+                return ResourceManager.GetString("RealStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Register.
         /// </summary>
         public static string Register {
@@ -2040,11 +2535,56 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove resident contact.
+        /// </summary>
+        public static string RemoveResidentContact {
+            get {
+                return ResourceManager.GetString("RemoveResidentContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove this contact from the resident? The shared contact record remains available for the company..
+        /// </summary>
+        public static string RemoveResidentContactConfirmation {
+            get {
+                return ResourceManager.GetString("RemoveResidentContactConfirmation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove this user from the company?.
         /// </summary>
         public static string RemoveUserFromCompanyConfirm {
             get {
                 return ResourceManager.GetString("RemoveUserFromCompanyConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove this category assignment?.
+        /// </summary>
+        public static string RemoveVendorCategoryConfirmation {
+            get {
+                return ResourceManager.GetString("RemoveVendorCategoryConfirmation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove vendor contact.
+        /// </summary>
+        public static string RemoveVendorContact {
+            get {
+                return ResourceManager.GetString("RemoveVendorContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove this contact from the vendor? The shared contact record remains available for the company..
+        /// </summary>
+        public static string RemoveVendorContactConfirmation {
+            get {
+                return ResourceManager.GetString("RemoveVendorContactConfirmation", resourceCulture);
             }
         }
         
@@ -2130,6 +2670,78 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Resident contact added successfully..
+        /// </summary>
+        public static string ResidentContactAddedSuccessfully {
+            get {
+                return ResourceManager.GetString("ResidentContactAddedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This contact is already linked to the resident..
+        /// </summary>
+        public static string ResidentContactAlreadyLinked {
+            get {
+                return ResourceManager.GetString("ResidentContactAlreadyLinked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resident contact confirmed successfully..
+        /// </summary>
+        public static string ResidentContactConfirmedSuccessfully {
+            get {
+                return ResourceManager.GetString("ResidentContactConfirmedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resident contact removed successfully..
+        /// </summary>
+        public static string ResidentContactRemovedSuccessfully {
+            get {
+                return ResourceManager.GetString("ResidentContactRemovedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resident contacts.
+        /// </summary>
+        public static string ResidentContacts {
+            get {
+                return ResourceManager.GetString("ResidentContacts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resident contact unconfirmed successfully..
+        /// </summary>
+        public static string ResidentContactUnconfirmedSuccessfully {
+            get {
+                return ResourceManager.GetString("ResidentContactUnconfirmedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resident contact updated successfully..
+        /// </summary>
+        public static string ResidentContactUpdatedSuccessfully {
+            get {
+                return ResourceManager.GetString("ResidentContactUpdatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resident contact was not found..
+        /// </summary>
+        public static string ResidentContactWasNotFound {
+            get {
+                return ResourceManager.GetString("ResidentContactWasNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resident Dashboard.
         /// </summary>
         public static string ResidentDashboard {
@@ -2180,6 +2792,15 @@ namespace App.Resources.Views {
         public static string ResidentOnboardingDescription {
             get {
                 return ResourceManager.GetString("ResidentOnboardingDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Primary contact updated successfully..
+        /// </summary>
+        public static string ResidentPrimaryContactUpdatedSuccessfully {
+            get {
+                return ResourceManager.GetString("ResidentPrimaryContactUpdatedSuccessfully", resourceCulture);
             }
         }
         
@@ -2283,6 +2904,105 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Schedule.
+        /// </summary>
+        public static string Schedule {
+            get {
+                return ResourceManager.GetString("Schedule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled end.
+        /// </summary>
+        public static string ScheduledEnd {
+            get {
+                return ResourceManager.GetString("ScheduledEnd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled start.
+        /// </summary>
+        public static string ScheduledStart {
+            get {
+                return ResourceManager.GetString("ScheduledStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled work.
+        /// </summary>
+        public static string ScheduledWork {
+            get {
+                return ResourceManager.GetString("ScheduledWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled work cancelled successfully..
+        /// </summary>
+        public static string ScheduledWorkCancelledSuccessfully {
+            get {
+                return ResourceManager.GetString("ScheduledWorkCancelledSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled work completed successfully..
+        /// </summary>
+        public static string ScheduledWorkCompletedSuccessfully {
+            get {
+                return ResourceManager.GetString("ScheduledWorkCompletedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled work created successfully..
+        /// </summary>
+        public static string ScheduledWorkCreatedSuccessfully {
+            get {
+                return ResourceManager.GetString("ScheduledWorkCreatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled work deleted successfully..
+        /// </summary>
+        public static string ScheduledWorkDeletedSuccessfully {
+            get {
+                return ResourceManager.GetString("ScheduledWorkDeletedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled work started successfully..
+        /// </summary>
+        public static string ScheduledWorkStartedSuccessfully {
+            get {
+                return ResourceManager.GetString("ScheduledWorkStartedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor work scheduled for this ticket..
+        /// </summary>
+        public static string ScheduledWorkTicketSummary {
+            get {
+                return ResourceManager.GetString("ScheduledWorkTicketSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled work updated successfully..
+        /// </summary>
+        public static string ScheduledWorkUpdatedSuccessfully {
+            get {
+                return ResourceManager.GetString("ScheduledWorkUpdatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search.
         /// </summary>
         public static string Search {
@@ -2306,6 +3026,24 @@ namespace App.Resources.Views {
         public static string SearchResidents {
             get {
                 return ResourceManager.GetString("SearchResidents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select contact.
+        /// </summary>
+        public static string SelectContact {
+            get {
+                return ResourceManager.GetString("SelectContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select contact type.
+        /// </summary>
+        public static string SelectContactType {
+            get {
+                return ResourceManager.GetString("SelectContactType", resourceCulture);
             }
         }
         
@@ -2427,6 +3165,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Set primary.
+        /// </summary>
+        public static string SetPrimary {
+            get {
+                return ResourceManager.GetString("SetPrimary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set up your access to enter the platform..
         /// </summary>
         public static string SetupAccessPrompt {
@@ -2468,6 +3215,15 @@ namespace App.Resources.Views {
         public static string StartSetup {
             get {
                 return ResourceManager.GetString("StartSetup", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start work.
+        /// </summary>
+        public static string StartWork {
+            get {
+                return ResourceManager.GetString("StartWork", resourceCulture);
             }
         }
         
@@ -2742,6 +3498,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Selected vendor is not assigned to this ticket category..
+        /// </summary>
+        public static string TicketVendorDoesNotSupportCategory {
+            get {
+                return ResourceManager.GetString("TicketVendorDoesNotSupportCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ticket workspace.
         /// </summary>
         public static string TicketWorkspace {
@@ -2886,6 +3651,33 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to cancel scheduled work..
+        /// </summary>
+        public static string UnableToCancelScheduledWork {
+            get {
+                return ResourceManager.GetString("UnableToCancelScheduledWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to complete scheduled work..
+        /// </summary>
+        public static string UnableToCompleteScheduledWork {
+            get {
+                return ResourceManager.GetString("UnableToCompleteScheduledWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to delete because dependent records exist..
+        /// </summary>
+        public static string UnableToDeleteBecauseDependentRecordsExist {
+            get {
+                return ResourceManager.GetString("UnableToDeleteBecauseDependentRecordsExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to delete lease..
         /// </summary>
         public static string UnableToDeleteLease {
@@ -2900,6 +3692,15 @@ namespace App.Resources.Views {
         public static string UnableToDeleteProfile {
             get {
                 return ResourceManager.GetString("UnableToDeleteProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to delete scheduled work..
+        /// </summary>
+        public static string UnableToDeleteScheduledWork {
+            get {
+                return ResourceManager.GetString("UnableToDeleteScheduledWork", resourceCulture);
             }
         }
         
@@ -2976,6 +3777,42 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to remove resident contact..
+        /// </summary>
+        public static string UnableToRemoveResidentContact {
+            get {
+                return ResourceManager.GetString("UnableToRemoveResidentContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to remove category assignment..
+        /// </summary>
+        public static string UnableToRemoveVendorCategory {
+            get {
+                return ResourceManager.GetString("UnableToRemoveVendorCategory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to remove vendor contact..
+        /// </summary>
+        public static string UnableToRemoveVendorContact {
+            get {
+                return ResourceManager.GetString("UnableToRemoveVendorContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to start scheduled work..
+        /// </summary>
+        public static string UnableToStartScheduledWork {
+            get {
+                return ResourceManager.GetString("UnableToStartScheduledWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to submit join request..
         /// </summary>
         public static string UnableToSubmitJoinRequest {
@@ -3012,11 +3849,38 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to update resident contact..
+        /// </summary>
+        public static string UnableToUpdateResidentContact {
+            get {
+                return ResourceManager.GetString("UnableToUpdateResidentContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to update user..
         /// </summary>
         public static string UnableToUpdateUser {
             get {
                 return ResourceManager.GetString("UnableToUpdateUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to update vendor contact..
+        /// </summary>
+        public static string UnableToUpdateVendorContact {
+            get {
+                return ResourceManager.GetString("UnableToUpdateVendorContact", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unconfirm.
+        /// </summary>
+        public static string Unconfirm {
+            get {
+                return ResourceManager.GetString("Unconfirm", resourceCulture);
             }
         }
         
@@ -3165,6 +4029,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Valid to cannot be before valid from..
+        /// </summary>
+        public static string ValidToCannotBeBeforeValidFrom {
+            get {
+                return ResourceManager.GetString("ValidToCannotBeBeforeValidFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to VAT number.
         /// </summary>
         public static string VatNumber {
@@ -3174,11 +4047,290 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Vendor added successfully..
+        /// </summary>
+        public static string VendorAddedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorAddedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This category is already assigned to the vendor..
+        /// </summary>
+        public static string VendorCategoryAlreadyAssigned {
+            get {
+                return ResourceManager.GetString("VendorCategoryAlreadyAssigned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Category assigned successfully..
+        /// </summary>
+        public static string VendorCategoryAssignedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorCategoryAssignedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor category assignment was not found..
+        /// </summary>
+        public static string VendorCategoryAssignmentWasNotFound {
+            get {
+                return ResourceManager.GetString("VendorCategoryAssignmentWasNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Category assignment removed successfully..
+        /// </summary>
+        public static string VendorCategoryRemovedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorCategoryRemovedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Category assignment updated successfully..
+        /// </summary>
+        public static string VendorCategoryUpdatedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorCategoryUpdatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor contact added successfully..
+        /// </summary>
+        public static string VendorContactAddedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorContactAddedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This contact is already linked to the vendor..
+        /// </summary>
+        public static string VendorContactAlreadyLinked {
+            get {
+                return ResourceManager.GetString("VendorContactAlreadyLinked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor contact confirmed successfully..
+        /// </summary>
+        public static string VendorContactConfirmedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorContactConfirmedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor contact removed successfully..
+        /// </summary>
+        public static string VendorContactRemovedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorContactRemovedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor contacts.
+        /// </summary>
+        public static string VendorContacts {
+            get {
+                return ResourceManager.GetString("VendorContacts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contacts are handled in an upcoming workflow page..
+        /// </summary>
+        public static string VendorContactsComingLater {
+            get {
+                return ResourceManager.GetString("VendorContactsComingLater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor contact unconfirmed successfully..
+        /// </summary>
+        public static string VendorContactUnconfirmedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorContactUnconfirmedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor contact updated successfully..
+        /// </summary>
+        public static string VendorContactUpdatedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorContactUpdatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor contact was not found..
+        /// </summary>
+        public static string VendorContactWasNotFound {
+            get {
+                return ResourceManager.GetString("VendorContactWasNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to delete vendor because tickets, scheduled work, contacts, or category assignments exist..
+        /// </summary>
+        public static string VendorDeleteBlockedByDependencies {
+            get {
+                return ResourceManager.GetString("VendorDeleteBlockedByDependencies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete confirmation does not match the current vendor registry code..
+        /// </summary>
+        public static string VendorDeleteConfirmationMismatch {
+            get {
+                return ResourceManager.GetString("VendorDeleteConfirmationMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor deleted successfully..
+        /// </summary>
+        public static string VendorDeletedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorDeletedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Contacts and category assignments are handled in upcoming workflow pages..
+        /// </summary>
+        public static string VendorNestedWorkflowsComingLater {
+            get {
+                return ResourceManager.GetString("VendorNestedWorkflowsComingLater", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Primary contact updated successfully..
+        /// </summary>
+        public static string VendorPrimaryContactUpdatedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorPrimaryContactUpdatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor profile.
+        /// </summary>
+        public static string VendorProfile {
+            get {
+                return ResourceManager.GetString("VendorProfile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor registry.
+        /// </summary>
+        public static string VendorRegistry {
+            get {
+                return ResourceManager.GetString("VendorRegistry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor with this registry code already exists in this company..
+        /// </summary>
+        public static string VendorRegistryCodeAlreadyExists {
+            get {
+                return ResourceManager.GetString("VendorRegistryCodeAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Vendors.
         /// </summary>
         public static string Vendors {
             get {
                 return ResourceManager.GetString("Vendors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Manage maintenance providers for {0}..
+        /// </summary>
+        public static string VendorsPageIntro {
+            get {
+                return ResourceManager.GetString("VendorsPageIntro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor updated successfully..
+        /// </summary>
+        public static string VendorUpdatedSuccessfully {
+            get {
+                return ResourceManager.GetString("VendorUpdatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor was not found..
+        /// </summary>
+        public static string VendorWasNotFound {
+            get {
+                return ResourceManager.GetString("VendorWasNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Vendor workflow.
+        /// </summary>
+        public static string VendorWorkflow {
+            get {
+                return ResourceManager.GetString("VendorWorkflow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View scheduled work.
+        /// </summary>
+        public static string ViewScheduledWork {
+            get {
+                return ResourceManager.GetString("ViewScheduledWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to View tickets.
+        /// </summary>
+        public static string ViewVendorTickets {
+            get {
+                return ResourceManager.GetString("ViewVendorTickets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work actions.
+        /// </summary>
+        public static string WorkActions {
+            get {
+                return ResourceManager.GetString("WorkActions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work status.
+        /// </summary>
+        public static string WorkStatus {
+            get {
+                return ResourceManager.GetString("WorkStatus", resourceCulture);
             }
         }
         

@@ -1,0 +1,81 @@
+@model WebApp.ViewModels.Management.ScheduledWorks.ScheduledWorkIndexViewModel
+@using App.Resources.Views
+@{
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div class="management-grid">
+    @if (TempData["ManagementScheduledWorkSuccess"] is string successMessage)
+    {
+        <div class="alert alert-success" role="alert">@successMessage</div>
+    }
+
+    @if (TempData["ManagementScheduledWorkError"] is string errorMessage)
+    {
+        <div class="alert alert-danger" role="alert">@errorMessage</div>
+    }
+
+    <section class="management-card">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-start">
+            <div>
+                <p class="management-eyebrow mb-2">@Model.TicketNr</p>
+                <h2 class="mb-1">@T("ScheduledWork", "Scheduled work")</h2>
+                <p class="management-muted mb-0">@Model.TicketTitle</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="management-btn"
+                   asp-action="Create"
+                   asp-route-companySlug="@Model.CompanySlug"
+                   asp-route-ticketId="@Model.TicketId">@T("CreateScheduledWork", "Create scheduled work")</a>
+                <a class="btn btn-outline-secondary"
+                   asp-controller="Tickets"
+                   asp-action="Details"
+                   asp-route-companySlug="@Model.CompanySlug"
+                   asp-route-ticketId="@Model.TicketId">@T("BackToTicket", "Back to ticket")</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="management-card">
+        @if (Model.Items.Count == 0)
+        {
+            <p class="management-muted mb-0">@T("NoScheduledWork", "No scheduled work has been added yet.")</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>@UiText.Vendors</th>
+                        <th>@T("WorkStatus", "Work status")</th>
+                        <th>@T("ScheduledStart", "Scheduled start")</th>
+                        <th>@T("ScheduledEnd", "Scheduled end")</th>
+                        <th>@T("ActualWindow", "Actual window")</th>
+                        <th class="text-end">@UiText.Details</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>@item.VendorName</td>
+                            <td><span class="management-badge">@item.WorkStatusLabel</span></td>
+                            <td>@item.ScheduledStart.ToString("g")</td>
+                            <td>@(item.ScheduledEnd?.ToString("g") ?? "-")</td>
+                            <td>@(item.RealStart?.ToString("g") ?? "-") - @(item.RealEnd?.ToString("g") ?? "-")</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-secondary"
+                                   asp-action="Details"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-ticketId="@Model.TicketId"
+                                   asp-route-scheduledWorkId="@item.ScheduledWorkId">@UiText.Details</a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>

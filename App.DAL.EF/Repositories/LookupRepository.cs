@@ -262,6 +262,54 @@ public class LookupRepository : ILookupRepository
             .AnyAsync(status => status.Id == statusId, cancellationToken);
     }
 
+    public Task<TicketOptionDalDto?> FindWorkStatusByCodeAsync(
+        string code,
+        CancellationToken cancellationToken = default)
+    {
+        var normalized = code.Trim();
+        return _dbContext.WorkStatuses
+            .AsNoTracking()
+            .Where(status => status.Code == normalized)
+            .Select(status => new TicketOptionDalDto
+            {
+                Id = status.Id,
+                Code = status.Code,
+                Label = status.Label.ToString()
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public Task<TicketOptionDalDto?> FindWorkStatusByIdAsync(
+        Guid statusId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.WorkStatuses
+            .AsNoTracking()
+            .Where(status => status.Id == statusId)
+            .Select(status => new TicketOptionDalDto
+            {
+                Id = status.Id,
+                Code = status.Code,
+                Label = status.Label.ToString()
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<TicketOptionDalDto>> AllWorkStatusesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await TicketLookupOptions(_dbContext.WorkStatuses).ToListAsync(cancellationToken);
+    }
+
+    public Task<bool> WorkStatusExistsAsync(
+        Guid statusId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.WorkStatuses
+            .AsNoTracking()
+            .AnyAsync(status => status.Id == statusId, cancellationToken);
+    }
+
     private async Task<LookupDalDto?> FindByCodeAsync<TLookup>(
         string code,
         CancellationToken cancellationToken)

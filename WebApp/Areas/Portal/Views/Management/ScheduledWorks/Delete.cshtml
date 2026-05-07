@@ -1,0 +1,26 @@
+@model WebApp.ViewModels.Management.ScheduledWorks.ScheduledWorkDeleteViewModel
+@using App.Resources.Views
+@{
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<section class="management-card">
+    <p class="management-eyebrow mb-2">@Model.TicketNr</p>
+    <h2>@T("DeleteScheduledWork", "Delete scheduled work")</h2>
+    <p class="management-muted">@string.Format(T("DeleteScheduledWorkConfirmation", "Delete scheduled work for {0}? This is blocked when work logs exist."), Model.VendorName)</p>
+
+    <form method="post"
+          asp-action="DeleteConfirmed"
+          asp-route-companySlug="@Model.CompanySlug"
+          asp-route-ticketId="@Model.TicketId"
+          asp-route-scheduledWorkId="@Model.ScheduledWorkId"
+          class="d-flex gap-2">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-danger">@UiText.Delete</button>
+        <a class="btn btn-outline-secondary"
+           asp-action="Details"
+           asp-route-companySlug="@Model.CompanySlug"
+           asp-route-ticketId="@Model.TicketId"
+           asp-route-scheduledWorkId="@Model.ScheduledWorkId">@UiText.Cancel</a>
+    </form>
+</section>

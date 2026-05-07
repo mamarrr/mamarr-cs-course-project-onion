@@ -90,4 +90,19 @@ public interface ILookupRepository
     Task<bool> TicketStatusExistsAsync(
         Guid statusId,
         CancellationToken cancellationToken = default);
+
+    Task<TicketOptionDalDto?> FindWorkStatusByCodeAsync(
+        string code,
+        CancellationToken cancellationToken = default);
+
+    Task<TicketOptionDalDto?> FindWorkStatusByIdAsync(
+        Guid statusId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<TicketOptionDalDto>> AllWorkStatusesAsync(
+        CancellationToken cancellationToken = default);
+
+    Task<bool> WorkStatusExistsAsync(
+        Guid statusId,
+        CancellationToken cancellationToken = default);
 }

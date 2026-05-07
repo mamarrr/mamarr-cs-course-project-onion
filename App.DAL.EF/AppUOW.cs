@@ -6,6 +6,7 @@ using App.DAL.EF.Mappers.Leases;
 using App.DAL.EF.Mappers.ManagementCompanies;
 using App.DAL.EF.Mappers.Properties;
 using App.DAL.EF.Mappers.Residents;
+using App.DAL.EF.Mappers.ScheduledWorks;
 using App.DAL.EF.Mappers.Tickets;
 using App.DAL.EF.Mappers.Units;
 using App.DAL.EF.Mappers.Vendors;
@@ -31,6 +32,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private readonly VendorDalMapper _vendorMapper = new();
     private readonly VendorContactDalMapper _vendorContactMapper = new();
     private readonly VendorTicketCategoryDalMapper _vendorTicketCategoryMapper = new();
+    private readonly ScheduledWorkDalMapper _scheduledWorkMapper = new();
     private IContactRepository? _contacts;
     private ICustomerRepository? _customers;
     private IManagementCompanyRepository? _managementCompanies;
@@ -45,6 +47,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private IVendorRepository? _vendors;
     private IVendorContactRepository? _vendorContacts;
     private IVendorTicketCategoryRepository? _vendorTicketCategories;
+    private IScheduledWorkRepository? _scheduledWorks;
 
     public AppUOW(AppDbContext dbContext) : base(dbContext)
     {
@@ -81,6 +84,9 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
 
     public IVendorTicketCategoryRepository VendorTicketCategories =>
         _vendorTicketCategories ??= new VendorTicketCategoryRepository(UowDbContext, _vendorTicketCategoryMapper);
+
+    public IScheduledWorkRepository ScheduledWorks =>
+        _scheduledWorks ??= new ScheduledWorkRepository(UowDbContext, _scheduledWorkMapper);
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

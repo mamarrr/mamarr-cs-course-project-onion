@@ -1,0 +1,62 @@
+@model WebApp.ViewModels.Management.ScheduledWorks.ScheduledWorkFormPageViewModel
+@using App.Resources.Views
+@{
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<input asp-for="Form.ScheduledWorkId" type="hidden" />
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="Form.VendorId" class="form-label">@UiText.Vendors</label>
+        <select asp-for="Form.VendorId" asp-items="Model.Vendors" class="form-select">
+            <option value="">@UiText.SelectVendor</option>
+        </select>
+        <span asp-validation-for="Form.VendorId" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Form.WorkStatusId" class="form-label">@T("WorkStatus", "Work status")</label>
+        <select asp-for="Form.WorkStatusId" asp-items="Model.WorkStatuses" class="form-select"></select>
+        <span asp-validation-for="Form.WorkStatusId" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Form.ScheduledStart" class="form-label">@T("ScheduledStart", "Scheduled start")</label>
+        <input asp-for="Form.ScheduledStart" class="form-control" />
+        <span asp-validation-for="Form.ScheduledStart" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Form.ScheduledEnd" class="form-label">@T("ScheduledEnd", "Scheduled end")</label>
+        <input asp-for="Form.ScheduledEnd" class="form-control" />
+        <span asp-validation-for="Form.ScheduledEnd" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Form.RealStart" class="form-label">@T("RealStart", "Actual start")</label>
+        <input asp-for="Form.RealStart" class="form-control" />
+        <span asp-validation-for="Form.RealStart" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="Form.RealEnd" class="form-label">@T("RealEnd", "Actual end")</label>
+        <input asp-for="Form.RealEnd" class="form-control" />
+        <span asp-validation-for="Form.RealEnd" class="text-danger"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="Form.Notes" class="form-label">@UiText.Notes</label>
+        <textarea asp-for="Form.Notes" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Form.Notes" class="text-danger"></span>
+    </div>
+</div>
+
+<div class="d-flex gap-2 mt-4">
+    <button type="submit" class="management-btn">@UiText.SaveChanges</button>
+    <a class="btn btn-outline-secondary"
+       asp-action="Index"
+       asp-route-companySlug="@Model.CompanySlug"
+       asp-route-ticketId="@Model.TicketId">@UiText.Cancel</a>
+</div>

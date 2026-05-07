@@ -1,3 +1,5 @@
+using App.BLL.DTO.ScheduledWorks.Models;
+
 namespace App.BLL.DTO.Tickets.Models;
 
 public class ManagementTicketDetailsModel
@@ -26,4 +28,6 @@ public class ManagementTicketDetailsModel
     public DateTime? ClosedAt { get; init; }
     public string? NextStatusCode { get; init; }
     public string? NextStatusLabel { get; init; }
+    public IReadOnlyList<ScheduledWorkListItemModel> ScheduledWork { get; init; } =
+        Array.Empty<ScheduledWorkListItemModel>();
 }

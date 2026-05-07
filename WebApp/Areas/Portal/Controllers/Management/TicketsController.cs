@@ -13,6 +13,7 @@ using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
 using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
+using WebApp.ViewModels.Management.ScheduledWorks;
 using WebApp.ViewModels.Management.Tickets;
 
 namespace WebApp.Areas.Portal.Controllers.Management;
@@ -532,7 +533,28 @@ public class TicketsController : Controller
             DueAt = model.DueAt,
             ClosedAt = model.ClosedAt,
             NextStatusCode = model.NextStatusCode,
-            NextStatusLabel = model.NextStatusLabel
+            NextStatusLabel = model.NextStatusLabel,
+            ScheduledWork = model.ScheduledWork.Select(ToScheduledWorkItem).ToList()
+        };
+    }
+
+    private static ScheduledWorkListItemViewModel ToScheduledWorkItem(App.BLL.DTO.ScheduledWorks.Models.ScheduledWorkListItemModel model)
+    {
+        return new ScheduledWorkListItemViewModel
+        {
+            ScheduledWorkId = model.ScheduledWorkId,
+            VendorId = model.VendorId,
+            VendorName = model.VendorName,
+            WorkStatusId = model.WorkStatusId,
+            WorkStatusCode = model.WorkStatusCode,
+            WorkStatusLabel = model.WorkStatusLabel,
+            ScheduledStart = model.ScheduledStart,
+            ScheduledEnd = model.ScheduledEnd,
+            RealStart = model.RealStart,
+            RealEnd = model.RealEnd,
+            Notes = model.Notes,
+            CreatedAt = model.CreatedAt,
+            WorkLogCount = model.WorkLogCount
         };
     }
 

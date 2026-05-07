@@ -1,0 +1,21 @@
+@model WebApp.ViewModels.Management.ScheduledWorks.ScheduledWorkFormPageViewModel
+@using App.Resources.Views
+@{
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<section class="management-card">
+    <p class="management-eyebrow mb-2">@Model.TicketNr</p>
+    <h2>@T("EditScheduledWork", "Edit scheduled work")</h2>
+    <p class="management-muted">@Model.TicketTitle</p>
+
+    <form method="post"
+          asp-action="Edit"
+          asp-route-companySlug="@Model.CompanySlug"
+          asp-route-ticketId="@Model.TicketId"
+          asp-route-scheduledWorkId="@Model.Form.ScheduledWorkId"
+          class="management-form">
+        @Html.AntiForgeryToken()
+        <partial name="_ScheduledWorkForm" model="Model" />
+    </form>
+</section>

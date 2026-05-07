@@ -388,6 +388,59 @@
   <data name="VendorWorkflow" xml:space="preserve"><value>Teenusepakkuja toovoog</value></data>
   <data name="CategoryAssignments" xml:space="preserve"><value>Kategooriaseosed</value></data>
   <data name="ScheduledWork" xml:space="preserve"><value>Planeeritud tood</value></data>
+  <data name="CreateScheduledWork" xml:space="preserve"><value>Lisa planeeritud töö</value></data>
+  <data name="EditScheduledWork" xml:space="preserve"><value>Muuda planeeritud tööd</value></data>
+  <data name="DeleteScheduledWork" xml:space="preserve"><value>Kustuta planeeritud töö</value></data>
+  <data name="ViewScheduledWork" xml:space="preserve"><value>Vaata planeeritud töid</value></data>
+  <data name="BackToTicket" xml:space="preserve"><value>Tagasi pileti juurde</value></data>
+  <data name="BackToScheduledWork" xml:space="preserve"><value>Tagasi planeeritud tööde juurde</value></data>
+  <data name="NoScheduledWork" xml:space="preserve"><value>Planeeritud töid ei ole veel lisatud.</value></data>
+  <data name="ScheduledWorkTicketSummary" xml:space="preserve"><value>Selle pileti jaoks planeeritud teenusepakkuja töö.</value></data>
+  <data name="WorkStatus" xml:space="preserve"><value>Töö staatus</value></data>
+  <data name="ScheduledStart" xml:space="preserve"><value>Planeeritud algus</value></data>
+  <data name="ScheduledEnd" xml:space="preserve"><value>Planeeritud lõpp</value></data>
+  <data name="RealStart" xml:space="preserve"><value>Tegelik algus</value></data>
+  <data name="RealEnd" xml:space="preserve"><value>Tegelik lõpp</value></data>
+  <data name="ActualWindow" xml:space="preserve"><value>Tegelik aeg</value></data>
+  <data name="Schedule" xml:space="preserve"><value>Ajakava</value></data>
+  <data name="WorkActions" xml:space="preserve"><value>Töö tegevused</value></data>
+  <data name="StartWork" xml:space="preserve"><value>Alusta tööd</value></data>
+  <data name="CompleteWork" xml:space="preserve"><value>Lõpeta töö</value></data>
+  <data name="CancelWork" xml:space="preserve"><value>Tühista töö</value></data>
+  <data name="DeleteScheduledWorkDescription" xml:space="preserve"><value>Kustuta planeeritud töö ainult siis, kui töölogisid ei ole.</value></data>
+  <data name="DeleteScheduledWorkConfirmation" xml:space="preserve"><value>Kustutada planeeritud töö teenusepakkujale {0}? Seda ei saa teha, kui töölogid on olemas.</value></data>
+  <data name="ScheduledWorkCreatedSuccessfully" xml:space="preserve"><value>Planeeritud töö lisati edukalt.</value></data>
+  <data name="ScheduledWorkUpdatedSuccessfully" xml:space="preserve"><value>Planeeritud töö uuendati edukalt.</value></data>
+  <data name="ScheduledWorkDeletedSuccessfully" xml:space="preserve"><value>Planeeritud töö kustutati edukalt.</value></data>
+  <data name="ScheduledWorkStartedSuccessfully" xml:space="preserve"><value>Planeeritud töö alustati edukalt.</value></data>
+  <data name="ScheduledWorkCompletedSuccessfully" xml:space="preserve"><value>Planeeritud töö lõpetati edukalt.</value></data>
+  <data name="ScheduledWorkCancelledSuccessfully" xml:space="preserve"><value>Planeeritud töö tühistati edukalt.</value></data>
+  <data name="UnableToDeleteScheduledWork" xml:space="preserve"><value>Planeeritud tööd ei saanud kustutada.</value></data>
+  <data name="UnableToStartScheduledWork" xml:space="preserve"><value>Planeeritud tööd ei saanud alustada.</value></data>
+  <data name="UnableToCompleteScheduledWork" xml:space="preserve"><value>Planeeritud tööd ei saanud lõpetada.</value></data>
+  <data name="UnableToCancelScheduledWork" xml:space="preserve"><value>Planeeritud tööd ei saanud tühistada.</value></data>
+  <data name="ScheduledWorkNotFound" xml:space="preserve"><value>Planeeritud tööd ei leitud.</value></data>
+  <data name="ScheduledWorkStatusMissing" xml:space="preserve"><value>Planeeritud töö staatus ei ole seadistatud.</value></data>
+  <data name="RealStartRequired" xml:space="preserve"><value>Tegelik algus on kohustuslik.</value></data>
+  <data name="RealEndRequired" xml:space="preserve"><value>Tegelik lõpp on kohustuslik.</value></data>
+  <data name="WorkInProgressStatusMissing" xml:space="preserve"><value>Töös staatust ei ole seadistatud.</value></data>
+  <data name="WorkCompletedStatusMissing" xml:space="preserve"><value>Lõpetatud töö staatust ei ole seadistatud.</value></data>
+  <data name="WorkCancelledStatusMissing" xml:space="preserve"><value>Tühistatud töö staatust ei ole seadistatud.</value></data>
+  <data name="ScheduledWorkMustStartBeforeComplete" xml:space="preserve"><value>Planeeritud töö tuleb enne lõpetamist alustada.</value></data>
+  <data name="RealEndCannotBeBeforeRealStart" xml:space="preserve"><value>Tegelik lõpp ei saa olla enne tegelikku algust.</value></data>
+  <data name="ScheduledWorkDeleteBlockedByLogs" xml:space="preserve"><value>Planeeritud tööd ei saa kustutada, kui töölogid on olemas.</value></data>
+  <data name="VendorRequired" xml:space="preserve"><value>Teenusepakkuja on kohustuslik.</value></data>
+  <data name="WorkStatusRequired" xml:space="preserve"><value>Töö staatus on kohustuslik.</value></data>
+  <data name="InvalidWorkStatus" xml:space="preserve"><value>Valitud töö staatus ei ole korrektne.</value></data>
+  <data name="ScheduledStartRequired" xml:space="preserve"><value>Planeeritud algus on kohustuslik.</value></data>
+  <data name="ScheduledEndCannotBeBeforeScheduledStart" xml:space="preserve"><value>Planeeritud lõpp ei saa olla enne planeeritud algust.</value></data>
+  <data name="ScheduledWorkNotesMaxLength" xml:space="preserve"><value>Märkmed võivad olla kuni 4000 tähemärki.</value></data>
+  <data name="TicketScheduledRequiresScheduledWork" xml:space="preserve"><value>Enne pileti planeerituks märkimist planeeri teenusepakkuja töö.</value></data>
+  <data name="TicketInProgressRequiresStartedWork" xml:space="preserve"><value>Enne pileti töösse märkimist alusta planeeritud töö.</value></data>
+  <data name="TicketCompletedRequiresCompletedWork" xml:space="preserve"><value>Enne pileti lõpetatuks märkimist lõpeta planeeritud töö.</value></data>
+  <data name="TicketMustBeAssignedBeforeSchedulingWork" xml:space="preserve"><value>Määra pilet enne töö planeerimist.</value></data>
+  <data name="TicketMustBeScheduledBeforeStartingWork" xml:space="preserve"><value>Märgi pilet planeerituks enne töö alustamist.</value></data>
+  <data name="TicketMustBeInProgressBeforeCompletingWork" xml:space="preserve"><value>Märgi pilet töösse enne töö lõpetamist.</value></data>
   <data name="ViewVendorTickets" xml:space="preserve"><value>Vaata pileteid</value></data>
   <data name="VendorNestedWorkflowsComingLater" xml:space="preserve"><value>Kontaktid ja kategooriaseosed lisatakse jargmistes toovoogude lehtedes.</value></data>
   <data name="VendorAddedSuccessfully" xml:space="preserve"><value>Teenusepakkuja lisati edukalt.</value></data>

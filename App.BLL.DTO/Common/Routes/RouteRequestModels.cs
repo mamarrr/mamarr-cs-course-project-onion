@@ -41,6 +41,11 @@ public class TicketRoute : ManagementCompanyRoute
     public Guid TicketId { get; init; }
 }
 
+public class ScheduledWorkRoute : TicketRoute
+{
+    public Guid ScheduledWorkId { get; init; }
+}
+
 public class VendorRoute : ManagementCompanyRoute
 {
     public Guid VendorId { get; init; }

@@ -34,6 +34,8 @@ public interface IAppUOW : IBaseUOW
 
     IVendorTicketCategoryRepository VendorTicketCategories { get; }
 
+    IScheduledWorkRepository ScheduledWorks { get; }
+
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);

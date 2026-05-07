@@ -2,6 +2,7 @@
 @using App.Resources.Views
 @{
     string Empty(string? value) => string.IsNullOrWhiteSpace(value) ? "-" : value;
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
 }
 
 <div class="management-grid management-grid-2">
@@ -130,6 +131,67 @@
             <dt class="col-sm-4">@UiText.Vendors</dt>
             <dd class="col-sm-8">@Empty(Model.VendorName)</dd>
         </dl>
+    </section>
+
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-start mb-3">
+            <div>
+                <h2>@UiText.ScheduledWork</h2>
+                <p class="management-muted mb-0">@T("ScheduledWorkTicketSummary", "Vendor work scheduled for this ticket.")</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="management-btn"
+                   asp-controller="ScheduledWorks"
+                   asp-action="Create"
+                   asp-route-companySlug="@Model.CompanySlug"
+                   asp-route-ticketId="@Model.TicketId">@T("CreateScheduledWork", "Create scheduled work")</a>
+                <a class="btn btn-outline-secondary"
+                   asp-controller="ScheduledWorks"
+                   asp-action="Index"
+                   asp-route-companySlug="@Model.CompanySlug"
+                   asp-route-ticketId="@Model.TicketId">@T("ViewScheduledWork", "View scheduled work")</a>
+            </div>
+        </div>
+
+        @if (Model.ScheduledWork.Count == 0)
+        {
+            <p class="management-muted mb-0">@T("NoScheduledWork", "No scheduled work has been added yet.")</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>@UiText.Vendors</th>
+                        <th>@T("WorkStatus", "Work status")</th>
+                        <th>@T("ScheduledStart", "Scheduled start")</th>
+                        <th>@T("ScheduledEnd", "Scheduled end")</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var work in Model.ScheduledWork.Take(5))
+                    {
+                        <tr>
+                            <td>@work.VendorName</td>
+                            <td><span class="management-badge">@work.WorkStatusLabel</span></td>
+                            <td>@work.ScheduledStart.ToString("g")</td>
+                            <td>@(work.ScheduledEnd?.ToString("g") ?? "-")</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-secondary"
+                                   asp-controller="ScheduledWorks"
+                                   asp-action="Details"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-ticketId="@Model.TicketId"
+                                   asp-route-scheduledWorkId="@work.ScheduledWorkId">@UiText.Details</a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
     </section>
 
     <section class="management-card">

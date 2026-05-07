@@ -1,6 +1,7 @@
 using App.BLL;
 using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Deletion;
+using App.BLL.Contracts.Contacts;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
@@ -10,6 +11,7 @@ using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
 using App.BLL.Services.Common.Deletion;
+using App.BLL.Services.Contacts;
 using App.BLL.Services.Customers;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
@@ -65,6 +67,7 @@ public static class DependencyInjectionHelpers
         services.AddScoped<IUnitService, UnitService>();
         services.AddScoped<ILeaseService, LeaseService>();
         services.AddScoped<ITicketService, TicketService>();
+        services.AddScoped<IContactService, ContactService>();
 
         return services;
     }

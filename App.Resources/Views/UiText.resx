@@ -398,6 +398,59 @@
   <data name="VendorWorkflow" xml:space="preserve"><value>Vendor workflow</value></data>
   <data name="CategoryAssignments" xml:space="preserve"><value>Category assignments</value></data>
   <data name="ScheduledWork" xml:space="preserve"><value>Scheduled work</value></data>
+  <data name="CreateScheduledWork" xml:space="preserve"><value>Create scheduled work</value></data>
+  <data name="EditScheduledWork" xml:space="preserve"><value>Edit scheduled work</value></data>
+  <data name="DeleteScheduledWork" xml:space="preserve"><value>Delete scheduled work</value></data>
+  <data name="ViewScheduledWork" xml:space="preserve"><value>View scheduled work</value></data>
+  <data name="BackToTicket" xml:space="preserve"><value>Back to ticket</value></data>
+  <data name="BackToScheduledWork" xml:space="preserve"><value>Back to scheduled work</value></data>
+  <data name="NoScheduledWork" xml:space="preserve"><value>No scheduled work has been added yet.</value></data>
+  <data name="ScheduledWorkTicketSummary" xml:space="preserve"><value>Vendor work scheduled for this ticket.</value></data>
+  <data name="WorkStatus" xml:space="preserve"><value>Work status</value></data>
+  <data name="ScheduledStart" xml:space="preserve"><value>Scheduled start</value></data>
+  <data name="ScheduledEnd" xml:space="preserve"><value>Scheduled end</value></data>
+  <data name="RealStart" xml:space="preserve"><value>Actual start</value></data>
+  <data name="RealEnd" xml:space="preserve"><value>Actual end</value></data>
+  <data name="ActualWindow" xml:space="preserve"><value>Actual window</value></data>
+  <data name="Schedule" xml:space="preserve"><value>Schedule</value></data>
+  <data name="WorkActions" xml:space="preserve"><value>Work actions</value></data>
+  <data name="StartWork" xml:space="preserve"><value>Start work</value></data>
+  <data name="CompleteWork" xml:space="preserve"><value>Complete work</value></data>
+  <data name="CancelWork" xml:space="preserve"><value>Cancel work</value></data>
+  <data name="DeleteScheduledWorkDescription" xml:space="preserve"><value>Delete scheduled work only when no work logs exist.</value></data>
+  <data name="DeleteScheduledWorkConfirmation" xml:space="preserve"><value>Delete scheduled work for {0}? This is blocked when work logs exist.</value></data>
+  <data name="ScheduledWorkCreatedSuccessfully" xml:space="preserve"><value>Scheduled work created successfully.</value></data>
+  <data name="ScheduledWorkUpdatedSuccessfully" xml:space="preserve"><value>Scheduled work updated successfully.</value></data>
+  <data name="ScheduledWorkDeletedSuccessfully" xml:space="preserve"><value>Scheduled work deleted successfully.</value></data>
+  <data name="ScheduledWorkStartedSuccessfully" xml:space="preserve"><value>Scheduled work started successfully.</value></data>
+  <data name="ScheduledWorkCompletedSuccessfully" xml:space="preserve"><value>Scheduled work completed successfully.</value></data>
+  <data name="ScheduledWorkCancelledSuccessfully" xml:space="preserve"><value>Scheduled work cancelled successfully.</value></data>
+  <data name="UnableToDeleteScheduledWork" xml:space="preserve"><value>Unable to delete scheduled work.</value></data>
+  <data name="UnableToStartScheduledWork" xml:space="preserve"><value>Unable to start scheduled work.</value></data>
+  <data name="UnableToCompleteScheduledWork" xml:space="preserve"><value>Unable to complete scheduled work.</value></data>
+  <data name="UnableToCancelScheduledWork" xml:space="preserve"><value>Unable to cancel scheduled work.</value></data>
+  <data name="ScheduledWorkNotFound" xml:space="preserve"><value>Scheduled work was not found.</value></data>
+  <data name="ScheduledWorkStatusMissing" xml:space="preserve"><value>Scheduled work status is not configured.</value></data>
+  <data name="RealStartRequired" xml:space="preserve"><value>Actual start is required.</value></data>
+  <data name="RealEndRequired" xml:space="preserve"><value>Actual end is required.</value></data>
+  <data name="WorkInProgressStatusMissing" xml:space="preserve"><value>In-progress work status is not configured.</value></data>
+  <data name="WorkCompletedStatusMissing" xml:space="preserve"><value>Completed work status is not configured.</value></data>
+  <data name="WorkCancelledStatusMissing" xml:space="preserve"><value>Cancelled work status is not configured.</value></data>
+  <data name="ScheduledWorkMustStartBeforeComplete" xml:space="preserve"><value>Scheduled work must be started before it can be completed.</value></data>
+  <data name="RealEndCannotBeBeforeRealStart" xml:space="preserve"><value>Actual end cannot be before actual start.</value></data>
+  <data name="ScheduledWorkDeleteBlockedByLogs" xml:space="preserve"><value>Scheduled work cannot be deleted while work logs exist.</value></data>
+  <data name="VendorRequired" xml:space="preserve"><value>Vendor is required.</value></data>
+  <data name="WorkStatusRequired" xml:space="preserve"><value>Work status is required.</value></data>
+  <data name="InvalidWorkStatus" xml:space="preserve"><value>Selected work status is invalid.</value></data>
+  <data name="ScheduledStartRequired" xml:space="preserve"><value>Scheduled start is required.</value></data>
+  <data name="ScheduledEndCannotBeBeforeScheduledStart" xml:space="preserve"><value>Scheduled end cannot be before scheduled start.</value></data>
+  <data name="ScheduledWorkNotesMaxLength" xml:space="preserve"><value>Notes must be 4000 characters or fewer.</value></data>
+  <data name="TicketScheduledRequiresScheduledWork" xml:space="preserve"><value>Schedule vendor work before moving the ticket to scheduled.</value></data>
+  <data name="TicketInProgressRequiresStartedWork" xml:space="preserve"><value>Start scheduled work before moving the ticket to in progress.</value></data>
+  <data name="TicketCompletedRequiresCompletedWork" xml:space="preserve"><value>Complete scheduled work before moving the ticket to completed.</value></data>
+  <data name="TicketMustBeAssignedBeforeSchedulingWork" xml:space="preserve"><value>Assign the ticket before scheduling work.</value></data>
+  <data name="TicketMustBeScheduledBeforeStartingWork" xml:space="preserve"><value>Move the ticket to scheduled before starting work.</value></data>
+  <data name="TicketMustBeInProgressBeforeCompletingWork" xml:space="preserve"><value>Move the ticket to in progress before completing work.</value></data>
   <data name="ViewVendorTickets" xml:space="preserve"><value>View tickets</value></data>
   <data name="VendorNestedWorkflowsComingLater" xml:space="preserve"><value>Contacts and category assignments are handled in upcoming workflow pages.</value></data>
   <data name="VendorAddedSuccessfully" xml:space="preserve"><value>Vendor added successfully.</value></data>

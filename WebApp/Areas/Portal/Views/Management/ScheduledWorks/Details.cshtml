@@ -1,0 +1,104 @@
+@model WebApp.ViewModels.Management.ScheduledWorks.ScheduledWorkDetailsViewModel
+@using App.Resources.Views
+@{
+    string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div class="management-grid management-grid-2">
+    @if (TempData["ManagementScheduledWorkSuccess"] is string successMessage)
+    {
+        <div class="alert alert-success" role="alert" style="grid-column: 1 / -1;">@successMessage</div>
+    }
+
+    @if (TempData["ManagementScheduledWorkError"] is string errorMessage)
+    {
+        <div class="alert alert-danger" role="alert" style="grid-column: 1 / -1;">@errorMessage</div>
+    }
+
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-start">
+            <div>
+                <p class="management-eyebrow mb-2">@Model.TicketNr</p>
+                <h2 class="mb-2">@Model.Item.VendorName</h2>
+                <span class="management-badge">@Model.Item.WorkStatusLabel</span>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary"
+                   asp-action="Edit"
+                   asp-route-companySlug="@Model.CompanySlug"
+                   asp-route-ticketId="@Model.TicketId"
+                   asp-route-scheduledWorkId="@Model.ScheduledWorkId">@UiText.Edit</a>
+                <a class="btn btn-outline-secondary"
+                   asp-action="Index"
+                   asp-route-companySlug="@Model.CompanySlug"
+                   asp-route-ticketId="@Model.TicketId">@T("BackToScheduledWork", "Back to scheduled work")</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="management-card">
+        <h2>@T("Schedule", "Schedule")</h2>
+        <dl class="row mb-0">
+            <dt class="col-sm-4">@T("ScheduledStart", "Scheduled start")</dt>
+            <dd class="col-sm-8">@Model.Item.ScheduledStart.ToString("g")</dd>
+            <dt class="col-sm-4">@T("ScheduledEnd", "Scheduled end")</dt>
+            <dd class="col-sm-8">@(Model.Item.ScheduledEnd?.ToString("g") ?? "-")</dd>
+            <dt class="col-sm-4">@T("RealStart", "Actual start")</dt>
+            <dd class="col-sm-8">@(Model.Item.RealStart?.ToString("g") ?? "-")</dd>
+            <dt class="col-sm-4">@T("RealEnd", "Actual end")</dt>
+            <dd class="col-sm-8">@(Model.Item.RealEnd?.ToString("g") ?? "-")</dd>
+            <dt class="col-sm-4">@UiText.Notes</dt>
+            <dd class="col-sm-8">@(string.IsNullOrWhiteSpace(Model.Item.Notes) ? "-" : Model.Item.Notes)</dd>
+        </dl>
+    </section>
+
+    <section class="management-card">
+        <h2>@T("WorkActions", "Work actions")</h2>
+        <div class="d-grid gap-3">
+            <form method="post"
+                  asp-action="Start"
+                  asp-route-companySlug="@Model.CompanySlug"
+                  asp-route-ticketId="@Model.TicketId"
+                  asp-route-scheduledWorkId="@Model.ScheduledWorkId">
+                @Html.AntiForgeryToken()
+                <label asp-for="StartForm.ActionAt" class="form-label">@T("RealStart", "Actual start")</label>
+                <div class="d-flex gap-2">
+                    <input asp-for="StartForm.ActionAt" class="form-control" />
+                    <button type="submit" class="management-btn">@T("StartWork", "Start work")</button>
+                </div>
+            </form>
+
+            <form method="post"
+                  asp-action="Complete"
+                  asp-route-companySlug="@Model.CompanySlug"
+                  asp-route-ticketId="@Model.TicketId"
+                  asp-route-scheduledWorkId="@Model.ScheduledWorkId">
+                @Html.AntiForgeryToken()
+                <label asp-for="CompleteForm.ActionAt" class="form-label">@T("RealEnd", "Actual end")</label>
+                <div class="d-flex gap-2">
+                    <input asp-for="CompleteForm.ActionAt" class="form-control" />
+                    <button type="submit" class="management-btn">@T("CompleteWork", "Complete work")</button>
+                </div>
+            </form>
+
+            <form method="post"
+                  asp-action="Cancel"
+                  asp-route-companySlug="@Model.CompanySlug"
+                  asp-route-ticketId="@Model.TicketId"
+                  asp-route-scheduledWorkId="@Model.ScheduledWorkId">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-secondary">@T("CancelWork", "Cancel work")</button>
+            </form>
+        </div>
+    </section>
+
+    <section class="management-card">
+        <h2>@UiText.DangerZone</h2>
+        <p class="management-muted">@T("DeleteScheduledWorkDescription", "Delete scheduled work only when no work logs exist.")</p>
+        <a class="btn btn-outline-danger"
+           asp-action="Delete"
+           asp-route-companySlug="@Model.CompanySlug"
+           asp-route-ticketId="@Model.TicketId"
+           asp-route-scheduledWorkId="@Model.ScheduledWorkId">@UiText.Delete</a>
+    </section>
+</div>
