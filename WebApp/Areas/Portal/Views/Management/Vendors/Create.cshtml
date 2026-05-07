@@ -1,0 +1,26 @@
+@model WebApp.ViewModels.Management.Vendors.VendorFormPageViewModel
+@using App.Resources.Views
+
+@functions {
+    private static string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<section class="management-card">
+    <h2>@T("AddVendor", "Add vendor")</h2>
+    <p class="management-muted">@T("AddVendorDescription", "Create a maintenance provider for ticket assignment and scheduled work.")</p>
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <form method="post" asp-action="Create" asp-route-companySlug="@Model.CompanySlug" class="row g-3">
+        @Html.AntiForgeryToken()
+        <partial name="_VendorForm" model="Model" />
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="management-btn">@T("AddVendor", "Add vendor")</button>
+            <a asp-action="Index" asp-route-companySlug="@Model.CompanySlug" class="btn btn-outline-secondary">@UiText.Cancel</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

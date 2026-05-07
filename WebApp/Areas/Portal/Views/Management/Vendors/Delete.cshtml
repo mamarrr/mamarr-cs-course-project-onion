@@ -1,0 +1,44 @@
+@model WebApp.ViewModels.Management.Vendors.VendorDeleteViewModel
+@using App.Resources.Views
+
+@functions {
+    private static string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<section class="management-card">
+    <h2>@T("DeleteVendor", "Delete vendor")</h2>
+    <p class="management-muted">@string.Format(T("DeleteVendorDescription", "Confirm deletion of {0}. Vendors with tickets, scheduled work, contacts, or category assignments cannot be deleted."), Model.Name)</p>
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <dl class="row">
+        <dt class="col-sm-3">@UiText.Name</dt>
+        <dd class="col-sm-9">@Model.Name</dd>
+        <dt class="col-sm-3">@UiText.RegistryCode</dt>
+        <dd class="col-sm-9">@Model.RegistryCode</dd>
+    </dl>
+
+    <form method="post"
+          asp-action="Delete"
+          asp-route-companySlug="@Model.CompanySlug"
+          asp-route-vendorId="@Model.VendorId"
+          class="row g-3">
+        @Html.AntiForgeryToken()
+        <div class="col-md-6">
+            <label asp-for="ConfirmationRegistryCode" class="form-label"></label>
+            <input asp-for="ConfirmationRegistryCode" class="form-control" />
+            <span asp-validation-for="ConfirmationRegistryCode" class="text-danger"></span>
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="btn btn-danger">@UiText.Delete</button>
+            <a asp-action="Details"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-vendorId="@Model.VendorId"
+               class="btn btn-outline-secondary">@UiText.Cancel</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

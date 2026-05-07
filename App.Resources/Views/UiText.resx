@@ -383,4 +383,28 @@
   <data name="ContactAlreadyExists" xml:space="preserve"><value>A contact with the same type and value already exists in this company.</value></data>
   <data name="ContactValueMaxLength" xml:space="preserve"><value>Contact value must be 255 characters or fewer.</value></data>
   <data name="ContactNotesMaxLength" xml:space="preserve"><value>Notes must be 4000 characters or fewer.</value></data>
+  <data name="VendorRegistry" xml:space="preserve"><value>Vendor registry</value></data>
+  <data name="VendorsPageIntro" xml:space="preserve"><value>Manage maintenance providers for {0}.</value></data>
+  <data name="AddVendor" xml:space="preserve"><value>Add vendor</value></data>
+  <data name="AddVendorDescription" xml:space="preserve"><value>Create a maintenance provider for ticket assignment and scheduled work.</value></data>
+  <data name="EditVendor" xml:space="preserve"><value>Edit vendor</value></data>
+  <data name="EditVendorDescription" xml:space="preserve"><value>Update provider details without changing existing ticket ownership.</value></data>
+  <data name="DeleteVendor" xml:space="preserve"><value>Delete vendor</value></data>
+  <data name="DeleteVendorDescription" xml:space="preserve"><value>Confirm deletion of {0}. Vendors with tickets, scheduled work, contacts, or category assignments cannot be deleted.</value></data>
+  <data name="NoVendorsFound" xml:space="preserve"><value>No vendors found</value></data>
+  <data name="NoVendorsFoundDescription" xml:space="preserve"><value>Create the first vendor before assigning providers to tickets or scheduled work.</value></data>
+  <data name="VendorProfile" xml:space="preserve"><value>Vendor profile</value></data>
+  <data name="VendorWorkflow" xml:space="preserve"><value>Vendor workflow</value></data>
+  <data name="CategoryAssignments" xml:space="preserve"><value>Category assignments</value></data>
+  <data name="ScheduledWork" xml:space="preserve"><value>Scheduled work</value></data>
+  <data name="ViewVendorTickets" xml:space="preserve"><value>View tickets</value></data>
+  <data name="VendorNestedWorkflowsComingLater" xml:space="preserve"><value>Contacts and category assignments are handled in upcoming workflow pages.</value></data>
+  <data name="VendorAddedSuccessfully" xml:space="preserve"><value>Vendor added successfully.</value></data>
+  <data name="VendorUpdatedSuccessfully" xml:space="preserve"><value>Vendor updated successfully.</value></data>
+  <data name="VendorDeletedSuccessfully" xml:space="preserve"><value>Vendor deleted successfully.</value></data>
+  <data name="VendorWasNotFound" xml:space="preserve"><value>Vendor was not found.</value></data>
+  <data name="VendorRegistryCodeAlreadyExists" xml:space="preserve"><value>Vendor with this registry code already exists in this company.</value></data>
+  <data name="VendorDeleteConfirmationMismatch" xml:space="preserve"><value>Delete confirmation does not match the current vendor registry code.</value></data>
+  <data name="VendorDeleteBlockedByDependencies" xml:space="preserve"><value>Unable to delete vendor because tickets, scheduled work, contacts, or category assignments exist.</value></data>
+  <data name="Categories" xml:space="preserve"><value>Categories</value></data>
 </root>

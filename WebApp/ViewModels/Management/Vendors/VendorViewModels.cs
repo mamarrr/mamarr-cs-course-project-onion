@@ -27,6 +27,21 @@ public class VendorsPageViewModel : IAppChromePage
     public VendorOptionsViewModel Options { get; set; } = new();
 }
 
+public class VendorIndexViewModel : IAppChromePage
+{
+    [ValidateNever]
+    public AppChromeViewModel AppChrome { get; init; } = new();
+
+    [ValidateNever]
+    public string CompanySlug { get; set; } = default!;
+
+    [ValidateNever]
+    public string CompanyName { get; set; } = default!;
+
+    [ValidateNever]
+    public IReadOnlyList<VendorListItemViewModel> Vendors { get; set; } = Array.Empty<VendorListItemViewModel>();
+}
+
 public class VendorFilterViewModel
 {
     [Display(Name = "Search", ResourceType = typeof(UiText))]
@@ -90,6 +105,63 @@ public class VendorDetailsPageViewModel : IAppChromePage
 
     [ValidateNever]
     public VendorOptionsViewModel Options { get; set; } = new();
+}
+
+public class VendorDetailsViewModel : IAppChromePage
+{
+    [ValidateNever]
+    public AppChromeViewModel AppChrome { get; init; } = new();
+
+    [ValidateNever]
+    public string CompanySlug { get; set; } = default!;
+
+    [ValidateNever]
+    public string CompanyName { get; set; } = default!;
+
+    public Guid VendorId { get; set; }
+    public string Name { get; set; } = default!;
+    public string RegistryCode { get; set; } = default!;
+    public string Notes { get; set; } = default!;
+    public DateTime CreatedAt { get; set; }
+    public int ActiveCategoryCount { get; set; }
+    public int AssignedTicketCount { get; set; }
+    public int ContactCount { get; set; }
+    public int ScheduledWorkCount { get; set; }
+}
+
+public class VendorFormPageViewModel : IAppChromePage
+{
+    [ValidateNever]
+    public AppChromeViewModel AppChrome { get; init; } = new();
+
+    [ValidateNever]
+    public string CompanySlug { get; set; } = default!;
+
+    [ValidateNever]
+    public string CompanyName { get; set; } = default!;
+
+    public Guid? VendorId { get; set; }
+    public VendorFormViewModel Form { get; set; } = new();
+}
+
+public class VendorDeleteViewModel : IAppChromePage
+{
+    [ValidateNever]
+    public AppChromeViewModel AppChrome { get; init; } = new();
+
+    [ValidateNever]
+    public string CompanySlug { get; set; } = default!;
+
+    [ValidateNever]
+    public string CompanyName { get; set; } = default!;
+
+    public Guid VendorId { get; set; }
+    public string Name { get; set; } = default!;
+    public string RegistryCode { get; set; } = default!;
+
+    [Required(ErrorMessageResourceType = typeof(UiText), ErrorMessageResourceName = nameof(UiText.RequiredField))]
+    [Display(Name = "RegistryCode", ResourceType = typeof(UiText))]
+    public string ConfirmationRegistryCode { get; set; } = default!;
 }
 
 public class VendorFormViewModel

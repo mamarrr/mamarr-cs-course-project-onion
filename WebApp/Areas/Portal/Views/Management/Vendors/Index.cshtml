@@ -1,0 +1,82 @@
+@model WebApp.ViewModels.Management.Vendors.VendorIndexViewModel
+@using App.Resources.Views
+@using WebApp.UI.Routing
+
+@functions {
+    private static string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@T("VendorRegistry", "Vendor registry")</p>
+                <h2 class="mb-2">@UiText.Vendors</h2>
+                <p class="management-muted mb-0">@string.Format(T("VendorsPageIntro", "Manage maintenance providers for {0}."), Model.CompanyName)</p>
+            </div>
+            <div class="d-flex flex-column align-items-lg-end gap-2">
+                <span class="management-badge @(Model.Vendors.Count > 0 ? "success" : "warning")">
+                    @string.Format(UiText.ActiveRecords, Model.Vendors.Count)
+                </span>
+                <a asp-action="Create" asp-route-companySlug="@Model.CompanySlug" class="management-btn">
+                    @T("AddVendor", "Add vendor")
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="management-card" style="grid-column: 1 / -1;">
+        @if (TempData["ManagementVendorsSuccess"] is string successMessage)
+        {
+            <div class="alert alert-success" role="alert">@successMessage</div>
+        }
+
+        @if (Model.Vendors.Count == 0)
+        {
+            <div class="border rounded p-3 bg-light-subtle">
+                <strong>@T("NoVendorsFound", "No vendors found")</strong>
+                <p class="management-muted mb-0">@T("NoVendorsFoundDescription", "Create the first vendor before assigning providers to tickets or scheduled work.")</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>@UiText.Name</th>
+                        <th>@UiText.RegistryCode</th>
+                        <th>@UiText.Notes</th>
+                        <th>@T("Categories", "Categories")</th>
+                        <th>@UiText.Tickets</th>
+                        <th>@UiText.Contacts</th>
+                        <th class="text-end">@T("Actions", "Actions")</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var vendor in Model.Vendors)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-route="@PortalRouteNames.ManagementVendorDetails"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-vendorId="@vendor.VendorId">@vendor.Name</a>
+                            </td>
+                            <td>@vendor.RegistryCode</td>
+                            <td>@vendor.Notes</td>
+                            <td>@vendor.ActiveCategoryCount</td>
+                            <td>@vendor.AssignedTicketCount</td>
+                            <td>@vendor.ContactCount</td>
+                            <td class="text-end">
+                                <a asp-action="Edit"
+                                   asp-route-companySlug="@Model.CompanySlug"
+                                   asp-route-vendorId="@vendor.VendorId">@UiText.Edit</a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>

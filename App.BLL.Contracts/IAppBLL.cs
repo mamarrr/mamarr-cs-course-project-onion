@@ -6,6 +6,7 @@ using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
+using App.BLL.Contracts.Vendors;
 using Base.BLL.Contracts;
 
 namespace App.BLL.Contracts;
@@ -18,6 +19,7 @@ public interface IAppBLL : IBaseBLL
     IResidentService Residents { get; }
     ILeaseService Leases { get; }
     ITicketService Tickets { get; }
+    IVendorService Vendors { get; }
     IManagementCompanyService ManagementCompanies { get; }
     ICompanyMembershipService CompanyMemberships { get; }
     IWorkspaceService Workspaces { get; }

@@ -8,6 +8,7 @@ using App.BLL.Contracts.Properties;
 using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
+using App.BLL.Contracts.Vendors;
 using App.BLL.Services.Common.Deletion;
 using App.BLL.Services.Customers;
 using App.BLL.Services.Leases;
@@ -17,6 +18,7 @@ using App.BLL.Services.Properties;
 using App.BLL.Services.Residents;
 using App.BLL.Services.Tickets;
 using App.BLL.Services.Units;
+using App.BLL.Services.Vendors;
 using App.DAL.Contracts;
 using Base.BLL;
 
@@ -33,6 +35,7 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private IUnitService? _units;
     private ILeaseService? _leases;
     private ITicketService? _tickets;
+    private IVendorService? _vendors;
     private IAppDeleteGuard? _deleteGuard;
 
     private IAppDeleteGuard DeleteGuard =>
@@ -63,6 +66,9 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 
     public ITicketService Tickets =>
         _tickets ??= new TicketService(Customers, UOW, DeleteGuard);
+
+    public IVendorService Vendors =>
+        _vendors ??= new VendorService(UOW);
 
     public IUnitService Units =>
         _units ??= new UnitService(UOW, Properties, DeleteGuard);

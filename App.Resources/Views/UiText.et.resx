@@ -373,4 +373,28 @@
   <data name="ContactAlreadyExists" xml:space="preserve"><value>Sama tüübi ja väärtusega kontakt on selles ettevõttes juba olemas.</value></data>
   <data name="ContactValueMaxLength" xml:space="preserve"><value>Kontakti väärtus võib olla kuni 255 märki.</value></data>
   <data name="ContactNotesMaxLength" xml:space="preserve"><value>Märkmed võivad olla kuni 4000 märki.</value></data>
+  <data name="VendorRegistry" xml:space="preserve"><value>Teenusepakkujate register</value></data>
+  <data name="VendorsPageIntro" xml:space="preserve"><value>Halda ettevotte {0} hooldusteenuse pakkujaid.</value></data>
+  <data name="AddVendor" xml:space="preserve"><value>Lisa teenusepakkuja</value></data>
+  <data name="AddVendorDescription" xml:space="preserve"><value>Loo hooldusteenuse pakkuja piletitele ja planeeritud toodele maaramiseks.</value></data>
+  <data name="EditVendor" xml:space="preserve"><value>Muuda teenusepakkujat</value></data>
+  <data name="EditVendorDescription" xml:space="preserve"><value>Uuenda teenusepakkuja andmeid olemasolevaid piletiseoseid muutmata.</value></data>
+  <data name="DeleteVendor" xml:space="preserve"><value>Kustuta teenusepakkuja</value></data>
+  <data name="DeleteVendorDescription" xml:space="preserve"><value>Kinnita teenusepakkuja {0} kustutamine. Piletite, planeeritud toode, kontaktide voi kategooriaseostega teenusepakkujat ei saa kustutada.</value></data>
+  <data name="NoVendorsFound" xml:space="preserve"><value>Teenusepakkujaid ei leitud</value></data>
+  <data name="NoVendorsFoundDescription" xml:space="preserve"><value>Loo esimene teenusepakkuja enne piletite voi planeeritud toode maaramist.</value></data>
+  <data name="VendorProfile" xml:space="preserve"><value>Teenusepakkuja profiil</value></data>
+  <data name="VendorWorkflow" xml:space="preserve"><value>Teenusepakkuja toovoog</value></data>
+  <data name="CategoryAssignments" xml:space="preserve"><value>Kategooriaseosed</value></data>
+  <data name="ScheduledWork" xml:space="preserve"><value>Planeeritud tood</value></data>
+  <data name="ViewVendorTickets" xml:space="preserve"><value>Vaata pileteid</value></data>
+  <data name="VendorNestedWorkflowsComingLater" xml:space="preserve"><value>Kontaktid ja kategooriaseosed lisatakse jargmistes toovoogude lehtedes.</value></data>
+  <data name="VendorAddedSuccessfully" xml:space="preserve"><value>Teenusepakkuja lisati edukalt.</value></data>
+  <data name="VendorUpdatedSuccessfully" xml:space="preserve"><value>Teenusepakkuja uuendati edukalt.</value></data>
+  <data name="VendorDeletedSuccessfully" xml:space="preserve"><value>Teenusepakkuja kustutati edukalt.</value></data>
+  <data name="VendorWasNotFound" xml:space="preserve"><value>Teenusepakkujat ei leitud.</value></data>
+  <data name="VendorRegistryCodeAlreadyExists" xml:space="preserve"><value>Sama registrikoodiga teenusepakkuja on selles ettevottes juba olemas.</value></data>
+  <data name="VendorDeleteConfirmationMismatch" xml:space="preserve"><value>Kustutamise kinnitus ei vasta teenusepakkuja praegusele registrikoodile.</value></data>
+  <data name="VendorDeleteBlockedByDependencies" xml:space="preserve"><value>Teenusepakkujat ei saa kustutada, sest olemas on piletid, planeeritud tood, kontaktid voi kategooriaseosed.</value></data>
+  <data name="Categories" xml:space="preserve"><value>Kategooriad</value></data>
 </root>

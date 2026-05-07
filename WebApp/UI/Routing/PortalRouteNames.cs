@@ -8,6 +8,8 @@ public static class PortalRouteNames
     public const string ManagementCustomers = "portal.management.customers";
     public const string ManagementResidents = "portal.management.residents";
     public const string ManagementUsers = "portal.management.users";
+    public const string ManagementVendors = "portal.management.vendors";
+    public const string ManagementVendorDetails = "portal.management.vendors.details";
 
     public const string CustomerDashboard = "portal.customer.dashboard";
     public const string CustomerProfile = "portal.customer.profile";

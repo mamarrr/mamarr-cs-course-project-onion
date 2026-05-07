@@ -52,7 +52,7 @@ public class NavigationBuilder : INavigationBuilder
                 IsVisible = canManageCompanyUsers,
                 IsActive = activeSection == Sections.CompanyUsers
             },
-            Disabled(UiText.Vendors, Sections.Vendors, activeSection)
+            Link(UiText.Vendors, Route(PortalRouteNames.ManagementVendors, new { companySlug }), Sections.Vendors, activeSection)
         };
     }
 

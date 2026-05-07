@@ -1,0 +1,33 @@
+@model WebApp.ViewModels.Management.Vendors.VendorFormPageViewModel
+@using App.Resources.Views
+
+@functions {
+    private static string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<section class="management-card">
+    <h2>@T("EditVendor", "Edit vendor")</h2>
+    <p class="management-muted">@T("EditVendorDescription", "Update provider details without changing existing ticket ownership.")</p>
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <form method="post"
+          asp-action="Edit"
+          asp-route-companySlug="@Model.CompanySlug"
+          asp-route-vendorId="@Model.VendorId"
+          class="row g-3">
+        @Html.AntiForgeryToken()
+        <partial name="_VendorForm" model="Model" />
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="management-btn">@UiText.SaveChanges</button>
+            <a asp-action="Details"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-vendorId="@Model.VendorId"
+               class="btn btn-outline-secondary">@UiText.Cancel</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
