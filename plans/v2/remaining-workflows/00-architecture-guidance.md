@@ -92,6 +92,23 @@ App.BLL          BLL services, BLL mappers, workflow validation, tenant/RBAC/bus
 WebApp           MVC ViewModels, Management-area controllers, Razor views, navigation, TempData
 ```
 
+## Contact service boundary
+
+`IContactService` and `ContactService` are public reusable BLL components for shared contact creation, validation, duplicate checks, listing, updates, and dependency-safe deletion.
+
+Do not expose contacts as a first-class `IAppBLL` facade:
+
+```text
+Do not add:
+  IAppBLL.Contacts
+
+Use instead:
+  VendorService composes ContactService internally for vendor contact workflows.
+  ResidentService composes ContactService internally for resident contact workflows.
+```
+
+Parent domain facades expose contact workflows to WebApp/API. `ContactService` remains reusable infrastructure inside those parent services.
+
 ## Layer rules
 
 ### Domain
@@ -325,6 +342,8 @@ For each service:
 2. Add private service field to `AppBLL`.
 3. Add lazy property implementation.
 4. Avoid circular service dependencies.
+
+Exception: reusable helper services such as `ContactService` may have public contracts and implementations without becoming first-class `IAppBLL` properties. Compose them inside the parent domain service that owns the user-facing workflow.
 
 ## Authorization baseline
 

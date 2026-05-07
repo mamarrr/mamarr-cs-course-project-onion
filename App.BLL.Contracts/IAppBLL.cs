@@ -1,4 +1,3 @@
-using App.BLL.Contracts.Contacts;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
@@ -13,7 +12,6 @@ namespace App.BLL.Contracts;
 
 public interface IAppBLL : IBaseBLL
 {
-    IContactService Contacts { get; }
     ICustomerService Customers { get; }
     IPropertyService Properties { get; }
     IUnitService Units { get; }

@@ -1,6 +1,5 @@
 using App.BLL.Contracts;
 using App.BLL.Contracts.Common.Deletion;
-using App.BLL.Contracts.Contacts;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
@@ -10,7 +9,6 @@ using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
 using App.BLL.Services.Common.Deletion;
-using App.BLL.Services.Contacts;
 using App.BLL.Services.Customers;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
@@ -26,7 +24,6 @@ namespace App.BLL;
 
 public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 {
-    private IContactService? _contacts;
     private ICustomerService? _customers;
     private IWorkspaceService? _workspaces;
     private IManagementCompanyService? _managementCompanies;
@@ -49,9 +46,6 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 
     public IManagementCompanyService ManagementCompanies =>
         _managementCompanies ??= new ManagementCompanyService(UOW, CompanyMemberships);
-
-    public IContactService Contacts =>
-        _contacts ??= new ContactService(UOW);
 
     public ICustomerService Customers =>
         _customers ??= new CustomerService(

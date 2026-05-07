@@ -128,21 +128,32 @@ Service implementation requirements:
 - Duplicate company/type/value rejected with ConflictError.
 - Delete blocked if linked to resident or vendor contact.
 
-## AppBLL wiring
+## BLL composition boundary
 
-Update:
+Do not expose Contact as a first-class `IAppBLL` facade.
 
 ```text
-App.BLL.Contracts/IAppBLL.cs
-App.BLL/AppBLL.cs
+Keep:
+IContactService
+ContactService
+
+Do not add:
+IAppBLL.Contacts
 ```
 
-Steps:
+`IContactService` is a public reusable BLL service contract and `ContactService` is a public reusable BLL service implementation, but parent domain services own the WebApp/API-facing workflows.
 
-1. Add service property to `IAppBLL`.
-2. Add private lazy service field to `AppBLL`.
-3. Instantiate service with UOW and dependent services.
-4. Avoid circular dependencies.
+Future vendor/resident contact workflows should compose it internally:
+
+```csharp
+private readonly IContactService _contacts;
+
+public VendorService(IAppUOW uow, ...)
+    : base(...)
+{
+    _contacts = new ContactService(uow);
+}
+```
 
 ## WebApp MVC plan
 
@@ -195,7 +206,7 @@ Add English and Estonian entries together.
 
 ## Definition of done
 
-- ContactService is wired into IAppBLL.
+- ContactService exists as a reusable BLL service but is not exposed through IAppBLL.
 - Contact repository has tenant-safe methods.
 - Vendor/resident contact workflows can reuse contact creation.
 - No API controller.
