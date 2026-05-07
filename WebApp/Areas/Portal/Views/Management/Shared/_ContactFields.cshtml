@@ -1,0 +1,20 @@
+@model WebApp.ViewModels.Management.Contacts.ContactFormViewModel
+@using App.Resources.Views
+
+<div class="form-field">
+    <label asp-for="ContactTypeId"></label>
+    <select asp-for="ContactTypeId" asp-items="Model.ContactTypes"></select>
+    <span asp-validation-for="ContactTypeId"></span>
+</div>
+
+<div class="form-field">
+    <label asp-for="ContactValue"></label>
+    <input asp-for="ContactValue" autocomplete="off" />
+    <span asp-validation-for="ContactValue"></span>
+</div>
+
+<div class="form-field">
+    <label asp-for="Notes"></label>
+    <textarea asp-for="Notes" rows="3"></textarea>
+    <span asp-validation-for="Notes"></span>
+</div>

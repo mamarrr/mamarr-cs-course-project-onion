@@ -6,6 +6,11 @@ public class ManagementCompanyRoute
     public string CompanySlug { get; init; } = default!;
 }
 
+public class ContactRoute : ManagementCompanyRoute
+{
+    public Guid ContactId { get; init; }
+}
+
 public class CustomerRoute : ManagementCompanyRoute
 {
     public string CustomerSlug { get; init; } = default!;

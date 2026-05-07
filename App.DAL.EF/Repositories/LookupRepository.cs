@@ -160,6 +160,15 @@ public class LookupRepository : ILookupRepository
         return FindByCodeAsync<ContactType>(code, cancellationToken);
     }
 
+    public Task<bool> ContactTypeExistsAsync(
+        Guid contactTypeId,
+        CancellationToken cancellationToken = default)
+    {
+        return _dbContext.ContactTypes
+            .AsNoTracking()
+            .AnyAsync(contactType => contactType.Id == contactTypeId, cancellationToken);
+    }
+
     public Task<TicketOptionDalDto?> FindTicketStatusByCodeAsync(
         string code,
         CancellationToken cancellationToken = default)

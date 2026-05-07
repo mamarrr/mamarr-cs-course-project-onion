@@ -368,4 +368,9 @@
   <data name="TicketCreatedStatusMissing" xml:space="preserve"><value>Loodud pileti staatus pole seadistatud.</value></data>
   <data name="TicketNextStatusMissing" xml:space="preserve"><value>Järgmine pileti staatus pole seadistatud.</value></data>
   <data name="TicketAlreadyAtFinalStatus" xml:space="preserve"><value>Pilet on juba lõppstaatuses.</value></data>
+  <data name="ContactNotFound" xml:space="preserve"><value>Kontakti ei leitud.</value></data>
+  <data name="InvalidContactType" xml:space="preserve"><value>Valitud kontakti tüüp ei sobi.</value></data>
+  <data name="ContactAlreadyExists" xml:space="preserve"><value>Sama tüübi ja väärtusega kontakt on selles ettevõttes juba olemas.</value></data>
+  <data name="ContactValueMaxLength" xml:space="preserve"><value>Kontakti väärtus võib olla kuni 255 märki.</value></data>
+  <data name="ContactNotesMaxLength" xml:space="preserve"><value>Märkmed võivad olla kuni 4000 märki.</value></data>
 </root>

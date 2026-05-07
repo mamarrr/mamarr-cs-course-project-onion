@@ -378,4 +378,9 @@
   <data name="TicketCreatedStatusMissing" xml:space="preserve"><value>Created ticket status is not configured.</value></data>
   <data name="TicketNextStatusMissing" xml:space="preserve"><value>Next ticket status is not configured.</value></data>
   <data name="TicketAlreadyAtFinalStatus" xml:space="preserve"><value>Ticket is already at the final status.</value></data>
+  <data name="ContactNotFound" xml:space="preserve"><value>Contact was not found.</value></data>
+  <data name="InvalidContactType" xml:space="preserve"><value>Selected contact type is invalid.</value></data>
+  <data name="ContactAlreadyExists" xml:space="preserve"><value>A contact with the same type and value already exists in this company.</value></data>
+  <data name="ContactValueMaxLength" xml:space="preserve"><value>Contact value must be 255 characters or fewer.</value></data>
+  <data name="ContactNotesMaxLength" xml:space="preserve"><value>Notes must be 4000 characters or fewer.</value></data>
 </root>

@@ -55,6 +55,10 @@ public interface ILookupRepository
         string code,
         CancellationToken cancellationToken = default);
 
+    Task<bool> ContactTypeExistsAsync(
+        Guid contactTypeId,
+        CancellationToken cancellationToken = default);
+
     Task<TicketOptionDalDto?> FindTicketStatusByCodeAsync(
         string code,
         CancellationToken cancellationToken = default);
