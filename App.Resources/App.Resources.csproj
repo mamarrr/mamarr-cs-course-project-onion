@@ -11,9 +11,9 @@
         <Generator>PublicResXFileCodeGenerator</Generator>
         <LastGenOutput>Home.Designer.cs</LastGenOutput>
       </EmbeddedResource>
-      <EmbeddedResource Update="Views\AdminScaffoldText.resx">
+      <EmbeddedResource Update="Views\AdminText.resx">
         <Generator>PublicResXFileCodeGenerator</Generator>
-        <LastGenOutput>AdminScaffoldText.Designer.cs</LastGenOutput>
+        <LastGenOutput>AdminText.Designer.cs</LastGenOutput>
       </EmbeddedResource>
       <EmbeddedResource Update="Views\UiText.resx">
         <Generator>PublicResXFileCodeGenerator</Generator>
@@ -31,10 +31,10 @@
         <AutoGen>True</AutoGen>
         <DependentUpon>Home.resx</DependentUpon>
       </Compile>
-      <Compile Update="Views\AdminScaffoldText.Designer.cs">
+      <Compile Update="Views\AdminText.Designer.cs">
         <DesignTime>True</DesignTime>
         <AutoGen>True</AutoGen>
-        <DependentUpon>AdminScaffoldText.resx</DependentUpon>
+        <DependentUpon>AdminText.resx</DependentUpon>
       </Compile>
       <Compile Update="Views\UiText.Designer.cs">
         <DesignTime>True</DesignTime>

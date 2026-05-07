@@ -1,0 +1,25 @@
+@model WebApp.ViewModels.Admin.Companies.AdminCompanyEditViewModel
+
+<section class="admin-card">
+    <form method="post" asp-action="Edit" asp-route-id="@Model.Id">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <div class="row g-3">
+            <div class="col-md-6"><label asp-for="Name" class="form-label"></label><input asp-for="Name" class="form-control" /><span asp-validation-for="Name" class="text-danger"></span></div>
+            <div class="col-md-6"><label asp-for="Slug" class="form-label"></label><input asp-for="Slug" class="form-control" /><span asp-validation-for="Slug" class="text-danger"></span></div>
+            <div class="col-md-6"><label asp-for="RegistryCode" class="form-label"></label><input asp-for="RegistryCode" class="form-control" /><span asp-validation-for="RegistryCode" class="text-danger"></span></div>
+            <div class="col-md-6"><label asp-for="VatNumber" class="form-label"></label><input asp-for="VatNumber" class="form-control" /><span asp-validation-for="VatNumber" class="text-danger"></span></div>
+            <div class="col-md-6"><label asp-for="Email" class="form-label"></label><input asp-for="Email" class="form-control" /><span asp-validation-for="Email" class="text-danger"></span></div>
+            <div class="col-md-6"><label asp-for="Phone" class="form-label"></label><input asp-for="Phone" class="form-control" /><span asp-validation-for="Phone" class="text-danger"></span></div>
+            <div class="col-12"><label asp-for="Address" class="form-label"></label><textarea asp-for="Address" class="form-control" rows="3"></textarea><span asp-validation-for="Address" class="text-danger"></span></div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+            <button type="submit" class="btn btn-primary">@App.Resources.Views.AdminText.SaveChanges</button>
+            <a class="btn btn-outline-secondary" asp-action="Details" asp-route-id="@Model.Id">@App.Resources.Views.AdminText.Cancel</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

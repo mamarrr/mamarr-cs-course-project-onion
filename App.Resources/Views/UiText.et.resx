@@ -19,7 +19,6 @@
   <data name="GoToContextChooser" xml:space="preserve"><value>Vali kontekst</value></data>
   <data name="GoToHome" xml:space="preserve"><value>Mine avalehele</value></data>
   <data name="AccessDeniedDescription" xml:space="preserve"><value>Teil puudub õigus sellele lehele ligi pääseda praeguses ettevõtte kontekstis.</value></data>
-  <data name="HomePlaceholder" xml:space="preserve"><value>Avalehe kohatäitja</value></data>
   <data name="PrivacyPolicy" xml:space="preserve"><value>Privaatsuspoliitika</value></data>
   <data name="Onboarding" xml:space="preserve"><value>Sissejuhatus</value></data>
   <data name="ChooseHowToContinue" xml:space="preserve"><value>Vali, kuidas soovid jätkata</value></data>

@@ -1,4 +1,5 @@
 using App.BLL.Contracts;
+using App.BLL.Contracts.Admin;
 using App.BLL.Contracts.Contacts;
 using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Customers;
@@ -10,6 +11,7 @@ using App.BLL.Contracts.Residents;
 using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
 using App.BLL.Contracts.Vendors;
+using App.BLL.Services.Admin;
 using App.BLL.Services.Contacts;
 using App.BLL.Services.Common.Deletion;
 using App.BLL.Services.Customers;
@@ -28,6 +30,11 @@ namespace App.BLL;
 
 public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 {
+    private IAdminDashboardService? _adminDashboard;
+    private IAdminUserService? _adminUsers;
+    private IAdminCompanyService? _adminCompanies;
+    private IAdminLookupService? _adminLookups;
+    private IAdminTicketMonitorService? _adminTicketMonitor;
     private ICustomerService? _customers;
     private IWorkspaceService? _workspaces;
     private IManagementCompanyService? _managementCompanies;
@@ -45,6 +52,21 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 
     private IAppDeleteGuard DeleteGuard =>
         _deleteGuard ??= new AppDeleteGuard(UOW);
+
+    public IAdminDashboardService AdminDashboard =>
+        _adminDashboard ??= new AdminDashboardService(UOW);
+
+    public IAdminUserService AdminUsers =>
+        _adminUsers ??= new AdminUserService(UOW);
+
+    public IAdminCompanyService AdminCompanies =>
+        _adminCompanies ??= new AdminCompanyService(UOW);
+
+    public IAdminLookupService AdminLookups =>
+        _adminLookups ??= new AdminLookupService(UOW);
+
+    public IAdminTicketMonitorService AdminTicketMonitor =>
+        _adminTicketMonitor ??= new AdminTicketMonitorService(UOW);
 
     public IWorkspaceService Workspaces =>
         _workspaces ??= new WorkspaceService(UOW);

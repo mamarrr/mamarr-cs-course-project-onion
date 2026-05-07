@@ -17,6 +17,11 @@ public interface IIdentityAccountService
         Guid appUserId,
         CancellationToken cancellationToken = default);
 
+    Task<bool> IsInRoleAsync(
+        Guid appUserId,
+        string role,
+        CancellationToken cancellationToken = default);
+
     Task<Result> CreateUserAsync(
         string email,
         string password,

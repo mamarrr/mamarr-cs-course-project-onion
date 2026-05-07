@@ -1,0 +1,90 @@
+@model WebApp.ViewModels.Admin.Tickets.AdminTicketDetailsViewModel
+
+<div class="admin-toolbar">
+    <a class="btn btn-outline-secondary" asp-action="Index">@App.Resources.Views.AdminText.BackToTickets</a>
+</div>
+
+<div class="admin-grid mb-3">
+    <section class="admin-card">
+        <h2 class="h5">@Model.TicketNumber</h2>
+        <p class="mb-1">@Model.Title</p>
+        <p class="admin-muted">@Model.Description</p>
+    </section>
+    <section class="admin-card">
+        <h2 class="h5">@App.Resources.Views.AdminText.Lifecycle</h2>
+        <dl>
+            <dt>@App.Resources.Views.AdminText.Status</dt><dd>@Model.StatusLabel</dd>
+            <dt>@App.Resources.Views.AdminText.Priority</dt><dd>@Model.PriorityLabel</dd>
+            <dt>@App.Resources.Views.AdminText.Category</dt><dd>@Model.CategoryLabel</dd>
+            <dt>@App.Resources.Views.AdminText.Created</dt><dd>@Model.CreatedAt.ToLocalTime().ToString("g")</dd>
+            <dt>@App.Resources.Views.AdminText.Due</dt><dd>@(Model.DueAt?.ToLocalTime().ToString("g") ?? "-")</dd>
+            <dt>@App.Resources.Views.AdminText.Closed</dt><dd>@(Model.ClosedAt?.ToLocalTime().ToString("g") ?? "-")</dd>
+        </dl>
+    </section>
+    <section class="admin-card">
+        <h2 class="h5">@App.Resources.Views.AdminText.Context</h2>
+        <dl>
+            <dt>@App.Resources.Views.AdminText.Company</dt><dd>@Model.CompanyName</dd>
+            <dt>@App.Resources.Views.AdminText.Customer</dt><dd>@(Model.CustomerName ?? "-")</dd>
+            <dt>@App.Resources.Views.AdminText.Property</dt><dd>@(Model.PropertyLabel ?? "-")</dd>
+            <dt>@App.Resources.Views.AdminText.Unit</dt><dd>@(Model.UnitNumber ?? "-")</dd>
+            <dt>@App.Resources.Views.AdminText.Resident</dt><dd>@(Model.ResidentName ?? "-")</dd>
+            <dt>@App.Resources.Views.AdminText.Vendor</dt><dd>@(Model.VendorName ?? "-")</dd>
+        </dl>
+    </section>
+</div>
+
+<div class="admin-grid">
+    <section class="admin-card">
+        <h2 class="h5">@App.Resources.Views.AdminText.ScheduledWork</h2>
+        @if (Model.ScheduledWorks.Count == 0)
+        {
+            <partial name="_AdminEmptyState" model="@App.Resources.Views.AdminText.NoScheduledWork" />
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>@App.Resources.Views.AdminText.Vendor</th><th>@App.Resources.Views.AdminText.Status</th><th>@App.Resources.Views.AdminText.Scheduled</th><th>@App.Resources.Views.AdminText.Actual</th></tr></thead>
+                    <tbody>
+                    @foreach (var work in Model.ScheduledWorks)
+                    {
+                        <tr>
+                            <td>@work.VendorName</td>
+                            <td>@work.WorkStatusLabel</td>
+                            <td>@work.ScheduledStart.ToLocalTime().ToString("g") - @(work.ScheduledEnd?.ToLocalTime().ToString("g") ?? "-")</td>
+                            <td>@(work.RealStart?.ToLocalTime().ToString("g") ?? "-") - @(work.RealEnd?.ToLocalTime().ToString("g") ?? "-")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+    <section class="admin-card">
+        <h2 class="h5">@App.Resources.Views.AdminText.WorkLogs</h2>
+        @if (Model.WorkLogs.Count == 0)
+        {
+            <partial name="_AdminEmptyState" model="@App.Resources.Views.AdminText.NoWorkLogs" />
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>@App.Resources.Views.AdminText.LoggedBy</th><th>@App.Resources.Views.AdminText.Created</th><th>@App.Resources.Views.AdminText.Hours</th><th>@App.Resources.Views.AdminText.Cost</th></tr></thead>
+                    <tbody>
+                    @foreach (var log in Model.WorkLogs)
+                    {
+                        <tr>
+                            <td>@log.LoggedBy</td>
+                            <td>@log.CreatedAt.ToLocalTime().ToString("g")</td>
+                            <td>@(log.Hours?.ToString("0.##") ?? "-")</td>
+                            <td>@((log.MaterialCost.GetValueOrDefault() + log.LaborCost.GetValueOrDefault()).ToString("0.##"))</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>

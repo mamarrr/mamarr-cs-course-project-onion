@@ -1,0 +1,23 @@
+@model WebApp.ViewModels.Admin.IAdminPageViewModel
+@{
+    string Active(string section) => string.Equals(Model.ActiveSection, section, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+}
+<aside class="admin-sidebar">
+    <div class="admin-brand">
+        <span class="admin-brand-mark">M</span>
+        <div>
+            <strong>@App.Resources.Views.AdminText.PlatformAdmin</strong>
+            <small>SystemAdmin</small>
+        </div>
+    </div>
+    <nav class="admin-nav">
+        <a class="@Active("Dashboard")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">@App.Resources.Views.AdminText.Dashboard</a>
+        <a class="@Active("Users")" asp-area="Admin" asp-controller="Users" asp-action="Index">@App.Resources.Views.AdminText.Users</a>
+        <a class="@Active("Companies")" asp-area="Admin" asp-controller="Companies" asp-action="Index">@App.Resources.Views.AdminText.Companies</a>
+        <a class="@Active("Lookups")" asp-area="Admin" asp-controller="Lookups" asp-action="Index">@App.Resources.Views.AdminText.Lookups</a>
+        <a class="@Active("Tickets")" asp-area="Admin" asp-controller="Tickets" asp-action="Index">@App.Resources.Views.AdminText.Tickets</a>
+    </nav>
+    <footer class="admin-sidebar-footer">
+        <partial name="_AdminLanguageSelector" />
+    </footer>
+</aside>

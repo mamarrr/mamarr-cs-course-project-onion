@@ -1,0 +1,28 @@
+@using System.Globalization
+@using Microsoft.AspNetCore.Builder
+@using Microsoft.Extensions.Options
+@inject IOptions<RequestLocalizationOptions> LocalizationOptions
+@{
+    var currentCulture = CultureInfo.CurrentUICulture.Name;
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+    var cultureItems = (LocalizationOptions.Value.SupportedUICultures ?? [])
+        .Select(culture => new { Value = culture.Name, Text = culture.NativeName })
+        .ToList();
+}
+
+<div class="admin-language" aria-label="@App.Resources.Views.AdminText.Language">
+    <div class="admin-language-label">@App.Resources.Views.AdminText.Language</div>
+    <div class="admin-language-options">
+        @foreach (var item in cultureItems)
+        {
+            <a class="admin-language-link @(string.Equals(currentCulture, item.Value, StringComparison.OrdinalIgnoreCase) ? "active" : "")"
+               asp-area="Public"
+               asp-controller="Home"
+               asp-action="SetLanguage"
+               asp-route-culture="@item.Value"
+               asp-route-returnUrl="@returnUrl">
+                @item.Text
+            </a>
+        }
+    </div>
+</div>

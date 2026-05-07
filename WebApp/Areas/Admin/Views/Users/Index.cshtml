@@ -1,0 +1,59 @@
+@model WebApp.ViewModels.Admin.Users.AdminUserListViewModel
+
+<section class="admin-card mb-3">
+    <form method="get" class="admin-search">
+        <div>
+            <label asp-for="Search.SearchText" class="form-label"></label>
+            <input asp-for="Search.SearchText" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Search.Email" class="form-label"></label>
+            <input asp-for="Search.Email" class="form-control" />
+        </div>
+        <div>
+            <label asp-for="Search.Name" class="form-label"></label>
+            <input asp-for="Search.Name" class="form-control" />
+        </div>
+        <label class="form-check align-self-center">
+            <input asp-for="Search.LockedOnly" class="form-check-input" /> @Html.DisplayNameFor(model => model.Search.LockedOnly)
+        </label>
+        <label class="form-check align-self-center">
+            <input asp-for="Search.HasSystemAdminRole" class="form-check-input" /> @Html.DisplayNameFor(model => model.Search.HasSystemAdminRole)
+        </label>
+        <button type="submit" class="btn btn-primary">@App.Resources.Views.AdminText.Search</button>
+    </form>
+</section>
+
+@if (Model.Users.Count == 0)
+{
+    <partial name="_AdminEmptyState" model="@App.Resources.Views.AdminText.NoUsersFound" />
+}
+else
+{
+    <div class="admin-table table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>@App.Resources.Views.AdminText.Name</th><th>@App.Resources.Views.AdminText.Email</th><th>@App.Resources.Views.AdminText.Status</th><th>@App.Resources.Views.AdminText.Created</th><th>@App.Resources.Views.AdminText.Actions</th></tr></thead>
+            <tbody>
+            @foreach (var user in Model.Users)
+            {
+                <tr>
+                    <td>@user.FullName</td>
+                    <td>@user.Email</td>
+                    <td>
+                        @if (user.IsLocked)
+                        {
+                            <span class="badge text-bg-danger">@App.Resources.Views.AdminText.Locked</span>
+                        }
+                        @if (user.HasSystemAdminRole)
+                        {
+                            <span class="badge text-bg-info">SystemAdmin</span>
+                        }
+                    </td>
+                    <td>@user.CreatedAt.ToLocalTime().ToString("g")</td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@user.Id">@App.Resources.Views.AdminText.Details</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

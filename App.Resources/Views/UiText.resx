@@ -21,7 +21,6 @@
   <data name="AccessDeniedDescription" xml:space="preserve"><value>You do not have permission to access this page in the current company context.</value></data>
   <data name="GoToContextChooser" xml:space="preserve"><value>Go to context chooser</value></data>
   <data name="GoToHome" xml:space="preserve"><value>Go to home</value></data>
-  <data name="HomePlaceholder" xml:space="preserve"><value>Home placeholder</value></data>
   <data name="PrivacyPolicy" xml:space="preserve"><value>Privacy Policy</value></data>
 
   <data name="Onboarding" xml:space="preserve"><value>Onboarding</value></data>

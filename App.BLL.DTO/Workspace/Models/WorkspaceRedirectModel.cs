@@ -2,7 +2,6 @@ namespace App.BLL.DTO.Workspace.Models;
 
 public enum WorkspaceRedirectDestination
 {
-    Home,
     ManagementDashboard,
     CustomerDashboard,
     ResidentDashboard

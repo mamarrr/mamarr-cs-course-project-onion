@@ -106,10 +106,8 @@ public class OnboardingContextGuardMiddleware
         if (path.StartsWithSegments("/set-language", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/set-context", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/privacy", StringComparison.OrdinalIgnoreCase)) return true;
-        if (path.StartsWithSegments("/home", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/access-denied", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/error", StringComparison.OrdinalIgnoreCase)) return true;
-        if (path.StartsWithSegments("/Home/SetLanguage", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/Admin", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/Identity", StringComparison.OrdinalIgnoreCase)) return true;
         if (path.StartsWithSegments("/swagger", StringComparison.OrdinalIgnoreCase)) return true;

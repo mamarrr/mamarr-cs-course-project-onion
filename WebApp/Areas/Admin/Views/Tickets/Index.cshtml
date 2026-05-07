@@ -1,0 +1,49 @@
+@model WebApp.ViewModels.Admin.Tickets.AdminTicketListViewModel
+
+<section class="admin-card mb-3">
+    <form method="get" class="admin-search">
+        <div><label asp-for="Search.Company" class="form-label"></label><input asp-for="Search.Company" class="form-control" /></div>
+        <div><label asp-for="Search.Customer" class="form-label"></label><input asp-for="Search.Customer" class="form-control" /></div>
+        <div><label asp-for="Search.TicketNumber" class="form-label"></label><input asp-for="Search.TicketNumber" class="form-control" /></div>
+        <div><label asp-for="Search.Status" class="form-label"></label><input asp-for="Search.Status" class="form-control" /></div>
+        <div><label asp-for="Search.Priority" class="form-label"></label><input asp-for="Search.Priority" class="form-control" /></div>
+        <div><label asp-for="Search.Category" class="form-label"></label><input asp-for="Search.Category" class="form-control" /></div>
+        <div><label asp-for="Search.Vendor" class="form-label"></label><input asp-for="Search.Vendor" class="form-control" /></div>
+        <label class="form-check align-self-center"><input asp-for="Search.OpenOnly" class="form-check-input" /> @Html.DisplayNameFor(model => model.Search.OpenOnly)</label>
+        <label class="form-check align-self-center"><input asp-for="Search.OverdueOnly" class="form-check-input" /> @Html.DisplayNameFor(model => model.Search.OverdueOnly)</label>
+        <button type="submit" class="btn btn-primary">@App.Resources.Views.AdminText.Search</button>
+    </form>
+</section>
+
+@if (Model.Tickets.Count == 0)
+{
+    <partial name="_AdminEmptyState" model="@App.Resources.Views.AdminText.NoTicketsMatchFilters" />
+}
+else
+{
+    <div class="admin-table table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>@App.Resources.Views.AdminText.Ticket</th><th>@App.Resources.Views.AdminText.Company</th><th>@App.Resources.Views.AdminText.Status</th><th>@App.Resources.Views.AdminText.Priority</th><th>@App.Resources.Views.AdminText.Vendor</th><th>@App.Resources.Views.AdminText.Due</th><th>@App.Resources.Views.AdminText.Actions</th></tr></thead>
+            <tbody>
+            @foreach (var ticket in Model.Tickets)
+            {
+                <tr>
+                    <td><strong>@ticket.TicketNumber</strong><span class="d-block admin-muted">@ticket.Title</span></td>
+                    <td>@ticket.CompanyName</td>
+                    <td>@ticket.StatusLabel</td>
+                    <td>@ticket.PriorityLabel</td>
+                    <td>@(ticket.VendorName ?? "-")</td>
+                    <td>
+                        @(ticket.DueAt?.ToLocalTime().ToString("g") ?? "-")
+                        @if (ticket.IsOverdue)
+                        {
+                            <span class="badge text-bg-danger">@App.Resources.Views.AdminText.Overdue</span>
+                        }
+                    </td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@ticket.Id">@App.Resources.Views.AdminText.Details</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

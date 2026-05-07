@@ -1,0 +1,26 @@
+@model WebApp.ViewModels.Admin.IAdminPageViewModel
+<!DOCTYPE html>
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Model.PageTitle - @App.Resources.Views.AdminText.PlatformAdmin</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+    <partial name="_AdminSidebar" model="Model" />
+    <main class="admin-main">
+        <partial name="_AdminHeader" model="Model" />
+        <section class="admin-content">
+            <partial name="_AdminFlashMessages" model="Model" />
+            @RenderBody()
+        </section>
+    </main>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

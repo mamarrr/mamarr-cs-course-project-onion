@@ -1,0 +1,74 @@
+@model WebApp.ViewModels.Admin.Users.AdminUserDetailsViewModel
+
+<div class="admin-toolbar">
+    <a class="btn btn-outline-secondary" asp-action="Index">@App.Resources.Views.AdminText.BackToUsers</a>
+    @if (Model.IsLocked)
+    {
+        <form method="post" asp-action="Unlock" asp-route-id="@Model.Id">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-success">@App.Resources.Views.AdminText.UnlockUser</button>
+        </form>
+    }
+    else
+    {
+        <form method="post" asp-action="Lock" asp-route-id="@Model.Id">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger">@App.Resources.Views.AdminText.LockUser</button>
+        </form>
+    }
+</div>
+
+<div class="admin-grid mb-3">
+    <section class="admin-card">
+        <h2 class="h5">@App.Resources.Views.AdminText.Profile</h2>
+        <dl>
+            <dt>@App.Resources.Views.AdminText.Name</dt><dd>@Model.FullName</dd>
+            <dt>@App.Resources.Views.AdminText.Email</dt><dd>@Model.Email</dd>
+            <dt>@App.Resources.Views.AdminText.Phone</dt><dd>@(Model.PhoneNumber ?? "-")</dd>
+            <dt>@App.Resources.Views.AdminText.Created</dt><dd>@Model.CreatedAt.ToLocalTime().ToString("g")</dd>
+            <dt>@App.Resources.Views.AdminText.LastLogin</dt><dd>@(Model.LastLoginAt?.ToLocalTime().ToString("g") ?? "-")</dd>
+            <dt>@App.Resources.Views.AdminText.RefreshTokens</dt><dd>@Model.RefreshTokenCount</dd>
+        </dl>
+    </section>
+    <section class="admin-card">
+        <h2 class="h5">@App.Resources.Views.AdminText.Roles</h2>
+        @if (Model.Roles.Count == 0)
+        {
+            <partial name="_AdminEmptyState" model="@App.Resources.Views.AdminText.NoRolesAssigned" />
+        }
+        else
+        {
+            @foreach (var role in Model.Roles)
+            {
+                <span class="badge text-bg-secondary me-1">@role</span>
+            }
+        }
+    </section>
+</div>
+
+<section class="admin-card">
+    <h2 class="h5">@App.Resources.Views.AdminText.CompanyMemberships</h2>
+    @if (Model.CompanyMemberships.Count == 0)
+    {
+        <partial name="_AdminEmptyState" model="@App.Resources.Views.AdminText.NoCompanyMemberships" />
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead><tr><th>@App.Resources.Views.AdminText.Company</th><th>@App.Resources.Views.AdminText.Role</th><th>@App.Resources.Views.AdminText.ValidFrom</th><th>@App.Resources.Views.AdminText.ValidTo</th></tr></thead>
+                <tbody>
+                @foreach (var membership in Model.CompanyMemberships)
+                {
+                    <tr>
+                        <td>@membership.CompanyName</td>
+                        <td>@membership.RoleLabel <span class="admin-muted">(@membership.RoleCode)</span></td>
+                        <td>@membership.ValidFrom</td>
+                        <td>@(membership.ValidTo?.ToString() ?? "-")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

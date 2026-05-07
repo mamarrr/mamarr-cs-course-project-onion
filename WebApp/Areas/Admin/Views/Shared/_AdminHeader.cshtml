@@ -1,0 +1,11 @@
+@model WebApp.ViewModels.Admin.IAdminPageViewModel
+<header class="admin-header">
+    <div>
+        <p class="admin-eyebrow">@App.Resources.Views.AdminText.Administration</p>
+        <h1>@Model.PageTitle</h1>
+    </div>
+    <form asp-area="Public" asp-controller="Onboarding" asp-action="Logout" method="post">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-secondary btn-sm">@App.Resources.Views.AdminText.Logout</button>
+    </form>
+</header>

@@ -1,0 +1,31 @@
+@model WebApp.ViewModels.Admin.Companies.AdminCompanyDetailsViewModel
+
+<div class="admin-toolbar">
+    <a class="btn btn-outline-secondary" asp-action="Index">@App.Resources.Views.AdminText.BackToCompanies</a>
+    <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">@App.Resources.Views.AdminText.EditCompany</a>
+</div>
+
+<div class="admin-grid mb-3">
+    <section class="admin-card"><div class="admin-stat">@Model.UsersCount</div><div>@App.Resources.Views.AdminText.Users</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.CustomersCount</div><div>@App.Resources.Views.AdminText.Customers</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.PropertiesCount</div><div>@App.Resources.Views.AdminText.Properties</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.UnitsCount</div><div>@App.Resources.Views.AdminText.Units</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.ResidentsCount</div><div>@App.Resources.Views.AdminText.Residents</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.TicketsCount</div><div>@App.Resources.Views.AdminText.Tickets</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.OpenTicketsCount</div><div>@App.Resources.Views.AdminText.OpenTickets</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.VendorsCount</div><div>@App.Resources.Views.AdminText.Vendors</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.PendingJoinRequestsCount</div><div>@App.Resources.Views.AdminText.PendingRequests</div></section>
+</div>
+
+<section class="admin-card">
+    <h2 class="h5">@App.Resources.Views.AdminText.CompanyProfile</h2>
+    <dl class="row">
+        <dt class="col-sm-3">@App.Resources.Views.AdminText.Name</dt><dd class="col-sm-9">@Model.Name</dd>
+        <dt class="col-sm-3">@App.Resources.Views.AdminText.RegistryCode</dt><dd class="col-sm-9">@Model.RegistryCode</dd>
+        <dt class="col-sm-3">@App.Resources.Views.AdminText.VatNumber</dt><dd class="col-sm-9">@Model.VatNumber</dd>
+        <dt class="col-sm-3">@App.Resources.Views.AdminText.Email</dt><dd class="col-sm-9">@Model.Email</dd>
+        <dt class="col-sm-3">@App.Resources.Views.AdminText.Phone</dt><dd class="col-sm-9">@Model.Phone</dd>
+        <dt class="col-sm-3">@App.Resources.Views.AdminText.Address</dt><dd class="col-sm-9">@Model.Address</dd>
+        <dt class="col-sm-3">@App.Resources.Views.AdminText.Slug</dt><dd class="col-sm-9">@Model.Slug</dd>
+    </dl>
+</section>

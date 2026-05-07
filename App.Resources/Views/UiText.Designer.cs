@@ -1428,15 +1428,6 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Home placeholder.
-        /// </summary>
-        public static string HomePlaceholder {
-            get {
-                return ResourceManager.GetString("HomePlaceholder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to ID code.
         /// </summary>
         public static string IdCode {

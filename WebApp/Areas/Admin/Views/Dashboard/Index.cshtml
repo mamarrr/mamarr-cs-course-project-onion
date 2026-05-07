@@ -1,0 +1,52 @@
+@model WebApp.ViewModels.Admin.Dashboard.AdminDashboardViewModel
+
+<div class="admin-grid mb-4">
+    <section class="admin-card"><div class="admin-stat">@Model.Stats.TotalUsers</div><div>@App.Resources.Views.AdminText.Users</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.Stats.LockedUsers</div><div>@App.Resources.Views.AdminText.LockedUsers</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.Stats.TotalManagementCompanies</div><div>@App.Resources.Views.AdminText.Companies</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.Stats.PendingJoinRequests</div><div>@App.Resources.Views.AdminText.PendingRequests</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.Stats.OpenTickets</div><div>@App.Resources.Views.AdminText.OpenTickets</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.Stats.OverdueTickets</div><div>@App.Resources.Views.AdminText.OverdueTickets</div></section>
+    <section class="admin-card"><div class="admin-stat">@Model.Stats.ScheduledWorkToday</div><div>@App.Resources.Views.AdminText.WorkToday</div></section>
+</div>
+
+<div class="admin-grid">
+    <section class="admin-card">
+        <h2 class="h5">@App.Resources.Views.AdminText.RecentUsers</h2>
+        @if (Model.RecentUsers.Count == 0)
+        {
+            <partial name="_AdminEmptyState" model="@App.Resources.Views.AdminText.NoUsersFound" />
+        }
+        else
+        {
+            <div class="list-group list-group-flush">
+                @foreach (var user in Model.RecentUsers)
+                {
+                    <a class="list-group-item list-group-item-action" asp-controller="Users" asp-action="Details" asp-route-id="@user.Id">
+                        <strong>@user.FullName</strong>
+                        <span class="admin-muted d-block">@user.Email</span>
+                    </a>
+                }
+            </div>
+        }
+    </section>
+    <section class="admin-card">
+        <h2 class="h5">@App.Resources.Views.AdminText.RecentCompanies</h2>
+        @if (Model.RecentCompanies.Count == 0)
+        {
+            <partial name="_AdminEmptyState" model="@App.Resources.Views.AdminText.NoCompaniesFound" />
+        }
+        else
+        {
+            <div class="list-group list-group-flush">
+                @foreach (var company in Model.RecentCompanies)
+                {
+                    <a class="list-group-item list-group-item-action" asp-controller="Companies" asp-action="Details" asp-route-id="@company.Id">
+                        <strong>@company.Name</strong>
+                        <span class="admin-muted d-block">@company.RegistryCode</span>
+                    </a>
+                }
+            </div>
+        }
+    </section>
+</div>

@@ -41,6 +41,15 @@ public class IdentityAccountService : IIdentityAccountService
         return await _userManager.FindByIdAsync(appUserId.ToString()) != null;
     }
 
+    public async Task<bool> IsInRoleAsync(
+        Guid appUserId,
+        string role,
+        CancellationToken cancellationToken = default)
+    {
+        var appUser = await _userManager.FindByIdAsync(appUserId.ToString());
+        return appUser != null && await _userManager.IsInRoleAsync(appUser, role);
+    }
+
     public async Task<Result> CreateUserAsync(
         string email,
         string password,

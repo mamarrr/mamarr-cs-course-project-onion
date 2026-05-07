@@ -278,12 +278,6 @@ app.MapControllerRoute(
     .WithStaticAssets();
 
 app.MapControllerRoute(
-        name: "public_home",
-        pattern: "home",
-        defaults: new { area = "Public", controller = "Home", action = "Index" })
-    .WithStaticAssets();
-
-app.MapControllerRoute(
         name: "public_privacy",
         pattern: "privacy",
         defaults: new { area = "Public", controller = "Home", action = "Privacy" })
@@ -305,12 +299,6 @@ app.MapControllerRoute(
         name: "public_legacy_onboarding",
         pattern: "Onboarding/{action=Index}/{id?}",
         defaults: new { area = "Public", controller = "Onboarding" })
-    .WithStaticAssets();
-
-app.MapControllerRoute(
-        name: "public_legacy_home",
-        pattern: "Home/{action=Index}/{id?}",
-        defaults: new { area = "Public", controller = "Home" })
     .WithStaticAssets();
 
 app.MapControllerRoute(

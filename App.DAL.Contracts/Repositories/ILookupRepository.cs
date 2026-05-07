@@ -105,4 +105,42 @@ public interface ILookupRepository
     Task<bool> WorkStatusExistsAsync(
         Guid statusId,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<LookupItemDalDto>> GetLookupItemsAsync(
+        LookupTable table,
+        CancellationToken cancellationToken = default);
+
+    Task<LookupItemDalDto?> FindLookupItemAsync(
+        LookupTable table,
+        Guid id,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> CodeExistsAsync(
+        LookupTable table,
+        string code,
+        Guid? exceptId = null,
+        CancellationToken cancellationToken = default);
+
+    Task<LookupItemDalDto> CreateLookupItemAsync(
+        LookupTable table,
+        string code,
+        string label,
+        CancellationToken cancellationToken = default);
+
+    Task<LookupItemDalDto?> UpdateLookupItemAsync(
+        LookupTable table,
+        Guid id,
+        string code,
+        string label,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> IsLookupInUseAsync(
+        LookupTable table,
+        Guid id,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> DeleteLookupItemAsync(
+        LookupTable table,
+        Guid id,
+        CancellationToken cancellationToken = default);
 }

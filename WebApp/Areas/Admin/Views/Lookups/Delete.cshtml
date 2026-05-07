@@ -1,0 +1,20 @@
+@model WebApp.ViewModels.Admin.Lookups.AdminLookupDeleteViewModel
+
+<section class="admin-card">
+    <h2 class="h5">@App.Resources.Views.AdminText.DeleteLookupItem</h2>
+    <p><strong>@Model.Label</strong> <code>@Model.Code</code></p>
+    @if (!string.IsNullOrWhiteSpace(Model.BlockReason))
+    {
+        <div class="alert alert-warning">@Model.BlockReason</div>
+        <a class="btn btn-outline-secondary" asp-action="List" asp-route-lookupType="@Model.Type">@App.Resources.Views.AdminText.Back</a>
+    }
+    else
+    {
+        <form method="post" asp-action="DeleteConfirmed" asp-route-lookupType="@Model.Type" asp-route-id="@Model.Id">
+            @Html.AntiForgeryToken()
+            <p class="text-danger">@App.Resources.Views.AdminText.ThisLookupItemWillBeDeleted</p>
+            <button type="submit" class="btn btn-danger">@App.Resources.Views.AdminText.Delete</button>
+            <a class="btn btn-outline-secondary" asp-action="List" asp-route-lookupType="@Model.Type">@App.Resources.Views.AdminText.Cancel</a>
+        </form>
+    }
+</section>

@@ -1,5 +1,7 @@
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
+using App.DAL.Contracts.Repositories.Admin;
+using App.DAL.EF.Mappers.Admin;
 using App.DAL.EF.Mappers.Contacts;
 using App.DAL.EF.Mappers.Customers;
 using App.DAL.EF.Mappers.Leases;
@@ -12,6 +14,7 @@ using App.DAL.EF.Mappers.Units;
 using App.DAL.EF.Mappers.Vendors;
 using App.DAL.EF.Mappers.WorkLogs;
 using App.DAL.EF.Repositories;
+using App.DAL.EF.Repositories.Admin;
 using Base.DAL.EF;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -20,6 +23,9 @@ namespace App.DAL.EF;
 public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
 {
     private IDbContextTransaction? _transaction;
+    private readonly AdminUserDalMapper _adminUserMapper = new();
+    private readonly AdminCompanyDalMapper _adminCompanyMapper = new();
+    private readonly AdminTicketMonitorDalMapper _adminTicketMonitorMapper = new();
     private readonly CustomerDalMapper _customerMapper = new();
     private readonly ContactDalMapper _contactMapper = new();
     private readonly ManagementCompanyDalMapper _managementCompanyMapper = new();
@@ -35,6 +41,10 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private readonly VendorTicketCategoryDalMapper _vendorTicketCategoryMapper = new();
     private readonly ScheduledWorkDalMapper _scheduledWorkMapper = new();
     private readonly WorkLogDalMapper _workLogMapper = new();
+    private IAdminDashboardRepository? _adminDashboard;
+    private IAdminUserRepository? _adminUsers;
+    private IAdminCompanyRepository? _adminCompanies;
+    private IAdminTicketMonitorRepository? _adminTicketMonitor;
     private IContactRepository? _contacts;
     private ICustomerRepository? _customers;
     private IManagementCompanyRepository? _managementCompanies;
@@ -55,6 +65,18 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     public AppUOW(AppDbContext dbContext) : base(dbContext)
     {
     }
+
+    public IAdminDashboardRepository AdminDashboard =>
+        _adminDashboard ??= new AdminDashboardRepository(UowDbContext);
+
+    public IAdminUserRepository AdminUsers =>
+        _adminUsers ??= new AdminUserRepository(UowDbContext, _adminUserMapper);
+
+    public IAdminCompanyRepository AdminCompanies =>
+        _adminCompanies ??= new AdminCompanyRepository(UowDbContext, _adminCompanyMapper);
+
+    public IAdminTicketMonitorRepository AdminTicketMonitor =>
+        _adminTicketMonitor ??= new AdminTicketMonitorRepository(UowDbContext, _adminTicketMonitorMapper);
 
     public ICustomerRepository Customers => _customers ??= new CustomerRepository(UowDbContext, _customerMapper);
 

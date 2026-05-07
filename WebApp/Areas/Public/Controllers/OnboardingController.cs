@@ -41,7 +41,7 @@ public class OnboardingController : Controller
 
         if (User.IsInRole("SystemAdmin"))
         {
-            return RedirectToAction("Index", "Home");
+            return RedirectToAdminDashboard();
         }
 
         var appUserId = await _identityAccountService.GetAuthenticatedUserIdAsync(User, HttpContext.RequestAborted);
@@ -71,7 +71,9 @@ public class OnboardingController : Controller
 
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction("Index", "Home");
+            return User.IsInRole("SystemAdmin")
+                ? RedirectToAdminDashboard()
+                : RedirectToAction(nameof(Index));
         }
 
         return View(new RegisterViewModel());
@@ -84,7 +86,9 @@ public class OnboardingController : Controller
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction("Index", "Home");
+            return User.IsInRole("SystemAdmin")
+                ? RedirectToAdminDashboard()
+                : RedirectToAction(nameof(Index));
         }
 
         if (!ModelState.IsValid)
@@ -117,7 +121,9 @@ public class OnboardingController : Controller
 
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction("Index", "Home");
+            return User.IsInRole("SystemAdmin")
+                ? RedirectToAdminDashboard()
+                : RedirectToAction(nameof(Index));
         }
 
         return View(new LoginViewModel { ReturnUrl = returnUrl });
@@ -130,7 +136,9 @@ public class OnboardingController : Controller
     {
         if (User.Identity?.IsAuthenticated == true)
         {
-            return RedirectToAction("Index", "Home");
+            return User.IsInRole("SystemAdmin")
+                ? RedirectToAdminDashboard()
+                : RedirectToAction(nameof(Index));
         }
 
         if (!ModelState.IsValid)
@@ -148,6 +156,11 @@ public class OnboardingController : Controller
         {
             ModelState.AddModelError(string.Empty, App.Resources.Views.UiText.InvalidEmailOrPassword);
             return View(vm);
+        }
+
+        if (await _identityAccountService.IsInRoleAsync(result.Value, "SystemAdmin", HttpContext.RequestAborted))
+        {
+            return RedirectToAdminDashboard();
         }
 
         if (!string.IsNullOrWhiteSpace(vm.ReturnUrl) && Url.IsLocalUrl(vm.ReturnUrl))
@@ -239,7 +252,7 @@ public class OnboardingController : Controller
 
         if (User.IsInRole("SystemAdmin"))
         {
-            return RedirectToAction("Index", "Home");
+            return RedirectToAdminDashboard();
         }
 
         return View(new CreateManagementCompanyViewModel());
@@ -359,7 +372,7 @@ public class OnboardingController : Controller
 
         if (User.IsInRole("SystemAdmin"))
         {
-            return RedirectToAction("Index", "Home");
+            return RedirectToAdminDashboard();
         }
 
         var redirectTarget = await _bll.Workspaces.ResolveContextRedirectAsync(
@@ -382,13 +395,17 @@ public class OnboardingController : Controller
 
         return redirectTarget.Value.Destination switch
         {
-            WorkspaceRedirectDestination.Home => RedirectToAction("Index", "Home"),
             WorkspaceRedirectDestination.ManagementDashboard when !string.IsNullOrWhiteSpace(redirectTarget.Value.CompanySlug)
                 => RedirectToManagementDashboard(redirectTarget.Value.CompanySlug!),
             WorkspaceRedirectDestination.CustomerDashboard => RedirectToAction(nameof(Index), new { showChooser = true }),
             WorkspaceRedirectDestination.ResidentDashboard => RedirectToAction(nameof(Index), new { showChooser = true }),
             _ => null
         };
+    }
+
+    private RedirectToActionResult RedirectToAdminDashboard()
+    {
+        return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
     }
 
     private RedirectToRouteResult RedirectToManagementDashboard(string companySlug)

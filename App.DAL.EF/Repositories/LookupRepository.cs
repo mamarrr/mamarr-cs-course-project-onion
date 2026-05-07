@@ -310,6 +310,135 @@ public class LookupRepository : ILookupRepository
             .AnyAsync(status => status.Id == statusId, cancellationToken);
     }
 
+    public Task<IReadOnlyList<LookupItemDalDto>> GetLookupItemsAsync(
+        LookupTable table,
+        CancellationToken cancellationToken = default)
+    {
+        return table switch
+        {
+            LookupTable.PropertyType => GetItemsAsync<PropertyType>(cancellationToken),
+            LookupTable.TicketCategory => GetItemsAsync<TicketCategory>(cancellationToken),
+            LookupTable.TicketPriority => GetItemsAsync<TicketPriority>(cancellationToken),
+            LookupTable.TicketStatus => GetItemsAsync<TicketStatus>(cancellationToken),
+            LookupTable.WorkStatus => GetItemsAsync<WorkStatus>(cancellationToken),
+            LookupTable.ContactType => GetItemsAsync<ContactType>(cancellationToken),
+            LookupTable.ManagementCompanyRole => GetItemsAsync<ManagementCompanyRole>(cancellationToken),
+            _ => Task.FromResult<IReadOnlyList<LookupItemDalDto>>([])
+        };
+    }
+
+    public Task<LookupItemDalDto?> FindLookupItemAsync(
+        LookupTable table,
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        return table switch
+        {
+            LookupTable.PropertyType => FindItemAsync<PropertyType>(id, cancellationToken),
+            LookupTable.TicketCategory => FindItemAsync<TicketCategory>(id, cancellationToken),
+            LookupTable.TicketPriority => FindItemAsync<TicketPriority>(id, cancellationToken),
+            LookupTable.TicketStatus => FindItemAsync<TicketStatus>(id, cancellationToken),
+            LookupTable.WorkStatus => FindItemAsync<WorkStatus>(id, cancellationToken),
+            LookupTable.ContactType => FindItemAsync<ContactType>(id, cancellationToken),
+            LookupTable.ManagementCompanyRole => FindItemAsync<ManagementCompanyRole>(id, cancellationToken),
+            _ => Task.FromResult<LookupItemDalDto?>(null)
+        };
+    }
+
+    public Task<bool> CodeExistsAsync(
+        LookupTable table,
+        string code,
+        Guid? exceptId = null,
+        CancellationToken cancellationToken = default)
+    {
+        return table switch
+        {
+            LookupTable.PropertyType => CodeExistsAsync<PropertyType>(code, exceptId, cancellationToken),
+            LookupTable.TicketCategory => CodeExistsAsync<TicketCategory>(code, exceptId, cancellationToken),
+            LookupTable.TicketPriority => CodeExistsAsync<TicketPriority>(code, exceptId, cancellationToken),
+            LookupTable.TicketStatus => CodeExistsAsync<TicketStatus>(code, exceptId, cancellationToken),
+            LookupTable.WorkStatus => CodeExistsAsync<WorkStatus>(code, exceptId, cancellationToken),
+            LookupTable.ContactType => CodeExistsAsync<ContactType>(code, exceptId, cancellationToken),
+            LookupTable.ManagementCompanyRole => CodeExistsAsync<ManagementCompanyRole>(code, exceptId, cancellationToken),
+            _ => Task.FromResult(false)
+        };
+    }
+
+    public async Task<LookupItemDalDto> CreateLookupItemAsync(
+        LookupTable table,
+        string code,
+        string label,
+        CancellationToken cancellationToken = default)
+    {
+        return table switch
+        {
+            LookupTable.PropertyType => await CreateItemAsync<PropertyType>(code, label, cancellationToken),
+            LookupTable.TicketCategory => await CreateItemAsync<TicketCategory>(code, label, cancellationToken),
+            LookupTable.TicketPriority => await CreateItemAsync<TicketPriority>(code, label, cancellationToken),
+            LookupTable.TicketStatus => await CreateItemAsync<TicketStatus>(code, label, cancellationToken),
+            LookupTable.WorkStatus => await CreateItemAsync<WorkStatus>(code, label, cancellationToken),
+            LookupTable.ContactType => await CreateItemAsync<ContactType>(code, label, cancellationToken),
+            LookupTable.ManagementCompanyRole => await CreateItemAsync<ManagementCompanyRole>(code, label, cancellationToken),
+            _ => throw new ArgumentOutOfRangeException(nameof(table), table, null)
+        };
+    }
+
+    public async Task<LookupItemDalDto?> UpdateLookupItemAsync(
+        LookupTable table,
+        Guid id,
+        string code,
+        string label,
+        CancellationToken cancellationToken = default)
+    {
+        return table switch
+        {
+            LookupTable.PropertyType => await UpdateItemAsync<PropertyType>(id, code, label, cancellationToken),
+            LookupTable.TicketCategory => await UpdateItemAsync<TicketCategory>(id, code, label, cancellationToken),
+            LookupTable.TicketPriority => await UpdateItemAsync<TicketPriority>(id, code, label, cancellationToken),
+            LookupTable.TicketStatus => await UpdateItemAsync<TicketStatus>(id, code, label, cancellationToken),
+            LookupTable.WorkStatus => await UpdateItemAsync<WorkStatus>(id, code, label, cancellationToken),
+            LookupTable.ContactType => await UpdateItemAsync<ContactType>(id, code, label, cancellationToken),
+            LookupTable.ManagementCompanyRole => await UpdateItemAsync<ManagementCompanyRole>(id, code, label, cancellationToken),
+            _ => null
+        };
+    }
+
+    public Task<bool> IsLookupInUseAsync(
+        LookupTable table,
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        return table switch
+        {
+            LookupTable.PropertyType => _dbContext.Properties.AsNoTracking().AnyAsync(entity => entity.PropertyTypeId == id, cancellationToken),
+            LookupTable.TicketCategory => _dbContext.Tickets.AsNoTracking().AnyAsync(entity => entity.TicketCategoryId == id, cancellationToken),
+            LookupTable.TicketPriority => _dbContext.Tickets.AsNoTracking().AnyAsync(entity => entity.TicketPriorityId == id, cancellationToken),
+            LookupTable.TicketStatus => _dbContext.Tickets.AsNoTracking().AnyAsync(entity => entity.TicketStatusId == id, cancellationToken),
+            LookupTable.WorkStatus => _dbContext.ScheduledWorks.AsNoTracking().AnyAsync(entity => entity.WorkStatusId == id, cancellationToken),
+            LookupTable.ContactType => _dbContext.Contacts.AsNoTracking().AnyAsync(entity => entity.ContactTypeId == id, cancellationToken),
+            LookupTable.ManagementCompanyRole => _dbContext.ManagementCompanyUsers.AsNoTracking().AnyAsync(entity => entity.ManagementCompanyRoleId == id, cancellationToken),
+            _ => Task.FromResult(true)
+        };
+    }
+
+    public async Task<bool> DeleteLookupItemAsync(
+        LookupTable table,
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        return table switch
+        {
+            LookupTable.PropertyType => await DeleteItemAsync<PropertyType>(id, cancellationToken),
+            LookupTable.TicketCategory => await DeleteItemAsync<TicketCategory>(id, cancellationToken),
+            LookupTable.TicketPriority => await DeleteItemAsync<TicketPriority>(id, cancellationToken),
+            LookupTable.TicketStatus => await DeleteItemAsync<TicketStatus>(id, cancellationToken),
+            LookupTable.WorkStatus => await DeleteItemAsync<WorkStatus>(id, cancellationToken),
+            LookupTable.ContactType => await DeleteItemAsync<ContactType>(id, cancellationToken),
+            LookupTable.ManagementCompanyRole => await DeleteItemAsync<ManagementCompanyRole>(id, cancellationToken),
+            _ => false
+        };
+    }
+
     private async Task<LookupDalDto?> FindByCodeAsync<TLookup>(
         string code,
         CancellationToken cancellationToken)
@@ -331,6 +460,95 @@ public class LookupRepository : ILookupRepository
                 Label = entity.Label.ToString()
             })
             .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<LookupItemDalDto>> GetItemsAsync<TLookup>(CancellationToken cancellationToken)
+        where TLookup : BaseEntity, ILookUpEntity
+    {
+        return await _dbContext.Set<TLookup>()
+            .AsNoTracking()
+            .OrderBy(entity => entity.Code)
+            .Select(entity => new LookupItemDalDto
+            {
+                Id = entity.Id,
+                Code = entity.Code,
+                Label = entity.Label.ToString()
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    private Task<LookupItemDalDto?> FindItemAsync<TLookup>(Guid id, CancellationToken cancellationToken)
+        where TLookup : BaseEntity, ILookUpEntity
+    {
+        return _dbContext.Set<TLookup>()
+            .AsNoTracking()
+            .Where(entity => entity.Id == id)
+            .Select(entity => new LookupItemDalDto
+            {
+                Id = entity.Id,
+                Code = entity.Code,
+                Label = entity.Label.ToString()
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    private Task<bool> CodeExistsAsync<TLookup>(string code, Guid? exceptId, CancellationToken cancellationToken)
+        where TLookup : BaseEntity, ILookUpEntity
+    {
+        var normalized = code.Trim();
+        return _dbContext.Set<TLookup>()
+            .AsNoTracking()
+            .AnyAsync(entity => entity.Code == normalized && (!exceptId.HasValue || entity.Id != exceptId.Value), cancellationToken);
+    }
+
+    private async Task<LookupItemDalDto> CreateItemAsync<TLookup>(string code, string label, CancellationToken cancellationToken)
+        where TLookup : BaseEntity, ILookUpEntity, new()
+    {
+        var entity = new TLookup
+        {
+            Code = code.Trim(),
+            Label = new LangStr(label.Trim())
+        };
+
+        await _dbContext.Set<TLookup>().AddAsync(entity, cancellationToken);
+        return new LookupItemDalDto
+        {
+            Id = entity.Id,
+            Code = entity.Code,
+            Label = entity.Label.ToString()
+        };
+    }
+
+    private async Task<LookupItemDalDto?> UpdateItemAsync<TLookup>(Guid id, string code, string label, CancellationToken cancellationToken)
+        where TLookup : BaseEntity, ILookUpEntity
+    {
+        var entity = await _dbContext.Set<TLookup>().FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+        if (entity is null)
+        {
+            return null;
+        }
+
+        entity.Code = code.Trim();
+        entity.Label.SetTranslation(label.Trim());
+        return new LookupItemDalDto
+        {
+            Id = entity.Id,
+            Code = entity.Code,
+            Label = entity.Label.ToString()
+        };
+    }
+
+    private async Task<bool> DeleteItemAsync<TLookup>(Guid id, CancellationToken cancellationToken)
+        where TLookup : BaseEntity, ILookUpEntity
+    {
+        var entity = await _dbContext.Set<TLookup>().FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+        if (entity is null)
+        {
+            return false;
+        }
+
+        _dbContext.Set<TLookup>().Remove(entity);
+        return true;
     }
 
     private static IQueryable<TicketOptionDalDto> TicketLookupOptions<TLookup>(IQueryable<TLookup> query)

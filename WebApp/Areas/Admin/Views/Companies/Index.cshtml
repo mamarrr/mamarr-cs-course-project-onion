@@ -1,0 +1,37 @@
+@model WebApp.ViewModels.Admin.Companies.AdminCompanyListViewModel
+
+<section class="admin-card mb-3">
+    <form method="get" class="admin-search">
+        <div><label asp-for="Search.SearchText" class="form-label"></label><input asp-for="Search.SearchText" class="form-control" /></div>
+        <div><label asp-for="Search.Name" class="form-label"></label><input asp-for="Search.Name" class="form-control" /></div>
+        <div><label asp-for="Search.RegistryCode" class="form-label"></label><input asp-for="Search.RegistryCode" class="form-control" /></div>
+        <div><label asp-for="Search.Slug" class="form-label"></label><input asp-for="Search.Slug" class="form-control" /></div>
+        <button type="submit" class="btn btn-primary">@App.Resources.Views.AdminText.Search</button>
+    </form>
+</section>
+
+@if (Model.Companies.Count == 0)
+{
+    <partial name="_AdminEmptyState" model="@App.Resources.Views.AdminText.NoCompaniesFound" />
+}
+else
+{
+    <div class="admin-table table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>@App.Resources.Views.AdminText.Name</th><th>@App.Resources.Views.AdminText.Registry</th><th>@App.Resources.Views.AdminText.Slug</th><th>@App.Resources.Views.AdminText.Users</th><th>@App.Resources.Views.AdminText.OpenTickets</th><th>@App.Resources.Views.AdminText.Actions</th></tr></thead>
+            <tbody>
+            @foreach (var company in Model.Companies)
+            {
+                <tr>
+                    <td>@company.Name</td>
+                    <td>@company.RegistryCode</td>
+                    <td>@company.Slug</td>
+                    <td>@company.UsersCount</td>
+                    <td>@company.OpenTicketsCount</td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@company.Id">@App.Resources.Views.AdminText.Details</a></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

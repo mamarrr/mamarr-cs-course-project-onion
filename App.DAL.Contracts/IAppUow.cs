@@ -1,4 +1,5 @@
 using App.DAL.Contracts.Repositories;
+using App.DAL.Contracts.Repositories.Admin;
 using Base.DAL.Contracts;
 
 
@@ -6,6 +7,14 @@ namespace App.DAL.Contracts;
 
 public interface IAppUOW : IBaseUOW
 {
+    IAdminDashboardRepository AdminDashboard { get; }
+
+    IAdminUserRepository AdminUsers { get; }
+
+    IAdminCompanyRepository AdminCompanies { get; }
+
+    IAdminTicketMonitorRepository AdminTicketMonitor { get; }
+
     ICustomerRepository Customers { get; }
 
     IManagementCompanyRepository ManagementCompanies { get; }
