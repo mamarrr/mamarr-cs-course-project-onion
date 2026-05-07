@@ -545,58 +545,52 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
 
     private static void ConfigureIndexesAndUniqueConstraints(ModelBuilder builder)
     {
-        // Schema-defined unique constraints
+        // Schema-defined uniqueness rules. Use unique indexes unless an FK targets
+        // the natural key via HasPrincipalKey.
         builder.Entity<ManagementCompanyRole>()
-            .HasAlternateKey(e => e.Code)
-            .HasName("uq_MCOMPANY_ROLE_CODE");
-
-        builder.Entity<ManagementCompanyRole>()
-            .HasAlternateKey(e => e.Label)
-            .HasName("uq_MCOMPANY_ROLE_LABEL");
+            .HasIndex(e => e.Code)
+            .IsUnique()
+            .HasDatabaseName("ux_mcompany_role_code");
 
         builder.Entity<ManagementCompanyJoinRequestStatus>()
-            .HasAlternateKey(e => e.Code)
-            .HasName("uq_MCOMPANY_JOIN_REQUEST_STATUS_CODE");
+            .HasIndex(e => e.Code)
+            .IsUnique()
+            .HasDatabaseName("ux_mcompany_join_request_status_code");
 
         builder.Entity<ContactType>()
-            .HasAlternateKey(e => e.Code)
-            .HasName("uq_CONTACT_TYPE_CODE");
+            .HasIndex(e => e.Code)
+            .IsUnique()
+            .HasDatabaseName("ux_contact_type_code");
 
         builder.Entity<CustomerRepresentativeRole>()
-            .HasAlternateKey(e => e.Code)
-            .HasName("uq_CUSTOMER_REPRESENTATIVE_ROLE_CODE");
+            .HasIndex(e => e.Code)
+            .IsUnique()
+            .HasDatabaseName("ux_customer_representative_role_code");
 
         builder.Entity<PropertyType>()
-            .HasAlternateKey(e => e.Code)
-            .HasName("uq_PROPERTY_TYPE_CODE");
+            .HasIndex(e => e.Code)
+            .IsUnique()
+            .HasDatabaseName("ux_property_type_code");
 
         builder.Entity<TicketCategory>()
-            .HasAlternateKey(e => e.Code)
-            .HasName("uq_TICKET_CATEGORY_CODE");
+            .HasIndex(e => e.Code)
+            .IsUnique()
+            .HasDatabaseName("ux_ticket_category_code");
 
         builder.Entity<WorkStatus>()
-            .HasAlternateKey(e => e.Code)
-            .HasName("uq_WORK_STATUS_CODE");
-
-        builder.Entity<ManagementCompany>()
-            .HasAlternateKey(e => e.Slug)
-            .HasName("uq_management_company_slug");
-
-        builder.Entity<Customer>()
-            .HasAlternateKey(e => new { e.ManagementCompanyId, e.Slug })
-            .HasName("uq_customer_mcompany_slug");
-
-        builder.Entity<Property>()
-            .HasAlternateKey(e => new { e.CustomerId, e.Slug })
-            .HasName("uq_property_customer_slug");
+            .HasIndex(e => e.Code)
+            .IsUnique()
+            .HasDatabaseName("ux_work_status_code");
 
         builder.Entity<Vendor>()
-            .HasAlternateKey(e => new { e.ManagementCompanyId, e.RegistryCode })
-            .HasName("uq_vendor_mcompany_registry");
+            .HasIndex(e => new { e.ManagementCompanyId, e.RegistryCode })
+            .IsUnique()
+            .HasDatabaseName("ux_vendor_company_registry_code");
 
         builder.Entity<ManagementCompanyUser>()
-            .HasAlternateKey(e => new { e.ManagementCompanyId, e.AppUserId })
-            .HasName("uq_mcompany_user_pair");
+            .HasIndex(e => new { e.ManagementCompanyId, e.AppUserId })
+            .IsUnique()
+            .HasDatabaseName("ux_mcompany_user_pair");
 
         builder.Entity<ManagementCompanyJoinRequest>()
             .HasIndex(e => new { e.AppUserId, e.ManagementCompanyId })
@@ -604,26 +598,20 @@ public class AppDbContext : IdentityDbContext<AppUser, AppRole, Guid>, IDataProt
             .HasDatabaseName("ux_mcompany_join_request_pending_user_company")
             .HasFilter("\"ManagementCompanyJoinRequestStatusId\" = '11111111-1111-1111-1111-111111111111'");
 
-        builder.Entity<Resident>()
-            .HasAlternateKey(e => new { e.ManagementCompanyId, e.IdCode })
-            .HasName("uq_resident_mcompany_idcode");
-
         builder.Entity<ResidentUser>()
-            .HasAlternateKey(e => new { e.ResidentId, e.AppUserId })
-            .HasName("uq_resident_user_pair");
+            .HasIndex(e => new { e.ResidentId, e.AppUserId })
+            .IsUnique()
+            .HasDatabaseName("ux_resident_user_pair");
 
         builder.Entity<VendorTicketCategory>()
-            .HasAlternateKey(e => new { e.VendorId, e.TicketCategoryId })
-            .HasName("uq_vtc_pair");
-
-
-        builder.Entity<Ticket>()
-            .HasAlternateKey(e => new { e.ManagementCompanyId, e.TicketNr })
-            .HasName("uq_ticket_mcompany_ticketnr");
+            .HasIndex(e => new { e.VendorId, e.TicketCategoryId })
+            .IsUnique()
+            .HasDatabaseName("ux_vtc_pair");
 
         builder.Entity<Contact>()
-            .HasAlternateKey(e => new { e.ManagementCompanyId, e.ContactTypeId, e.ContactValue })
-            .HasName("uq_contact_mcompany_type_value");
+            .HasIndex(e => new { e.ManagementCompanyId, e.ContactTypeId, e.ContactValue })
+            .IsUnique()
+            .HasDatabaseName("ux_contact_company_type_value");
 
         // FK indexes from schema.sql
         builder.Entity<ManagementCompanyUser>()
