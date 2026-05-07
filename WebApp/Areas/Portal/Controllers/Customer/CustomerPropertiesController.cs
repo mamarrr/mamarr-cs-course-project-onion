@@ -49,7 +49,7 @@ public class CustomerPropertiesController : Controller
             return Challenge();
         }
 
-        var customer = await ResolveCustomerAsync(companySlug, customerSlug, appUserId.Value, cancellationToken);
+        var customer = await ResolveCustomerWorkspaceAsync(companySlug, customerSlug, appUserId.Value, cancellationToken);
         if (customer.response is not null)
         {
             return customer.response;
@@ -73,7 +73,7 @@ public class CustomerPropertiesController : Controller
             return Challenge();
         }
 
-        var customer = await ResolveCustomerAsync(companySlug, customerSlug, appUserId.Value, cancellationToken);
+        var customer = await ResolveCustomerWorkspaceAsync(companySlug, customerSlug, appUserId.Value, cancellationToken);
         if (customer.response is not null)
         {
             return customer.response;
@@ -108,13 +108,13 @@ public class CustomerPropertiesController : Controller
         return RedirectToAction(nameof(Index), new { companySlug, customerSlug });
     }
 
-    private async Task<(IActionResult? response, CustomerWorkspaceModel? context)> ResolveCustomerAsync(
+    private async Task<(IActionResult? response, CustomerWorkspaceModel? context)> ResolveCustomerWorkspaceAsync(
         string companySlug,
         string customerSlug,
         Guid appUserId,
         CancellationToken cancellationToken)
     {
-        var result = await _bll.Customers.GetWorkspaceAsync(
+        var result = await _bll.Customers.ResolveWorkspaceAsync(
             ToCustomerRoute(companySlug, customerSlug, appUserId),
             cancellationToken);
 

@@ -1,5 +1,6 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
+using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.ManagementCompanies.Models;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
@@ -55,7 +56,14 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(
+            new ManagementCompanyRoute()
+            {
+                AppUserId = appUserId.Value,
+                CompanySlug = companySlug
+            }, cancellationToken);
+        
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -96,7 +104,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(new ManagementCompanyRoute()
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug
+        }, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -124,7 +136,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(new ManagementCompanyRoute()
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug
+        }, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -189,7 +205,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(new ManagementCompanyRoute()
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug
+        }, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -210,7 +230,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(new ManagementCompanyRoute()
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug
+        }, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -237,7 +261,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(new ManagementCompanyRoute()
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug
+        }, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -277,7 +305,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(new ManagementCompanyRoute()
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug
+        }, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -299,7 +331,11 @@ public class UsersController : Controller
         var appUserId = GetAppUserId();
         if (appUserId == null) return Challenge();
 
-        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(new ManagementCompanyRoute()
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug
+        }, cancellationToken);
         var authResponse = ToAuthorizationActionResult(auth);
         if (authResponse is not null) return authResponse;
 
@@ -322,7 +358,11 @@ public class UsersController : Controller
             return Challenge();
         }
 
-        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId.Value, companySlug, cancellationToken);
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(new ManagementCompanyRoute()
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug
+        }, cancellationToken);
         return ToAuthorizationActionResult(auth);
     }
 
@@ -351,8 +391,12 @@ public class UsersController : Controller
         CancellationToken cancellationToken,
         AddManagementUserViewModel? addUserOverride = null)
     {
-        var appUserId = GetAppUserId()!.Value;
-        var auth = await _bll.CompanyMemberships.AuthorizeAsync(appUserId, companySlug, cancellationToken);
+        var appUserId = GetAppUserId()!;
+        var auth = await _bll.CompanyMemberships.AuthorizeAsync(new ManagementCompanyRoute()
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug
+        }, cancellationToken);
         var context = auth.Value;
 
         var members = await _bll.CompanyMemberships.ListCompanyMembersAsync(context, cancellationToken);

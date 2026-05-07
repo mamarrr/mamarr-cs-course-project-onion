@@ -13,11 +13,6 @@ public interface IManagementCompanyService : IBaseService<ManagementCompanyBllDt
         ManagementCompanyBllDto dto,
         CancellationToken cancellationToken = default);
 
-    Task<Result<CompanyProfileModel>> CreateAndGetProfileAsync(
-        Guid appUserId,
-        ManagementCompanyBllDto dto,
-        CancellationToken cancellationToken = default);
-
     Task<Result<CompanyMembershipContext>> AuthorizeManagementAreaAccessAsync(
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default);

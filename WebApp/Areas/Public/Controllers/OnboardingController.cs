@@ -268,7 +268,7 @@ public class OnboardingController : Controller
             return RedirectToAction(nameof(Login));
         }
 
-        var result = await _bll.Onboarding.CreateManagementCompanyAsync(
+        var result = await _bll.ManagementCompanies.CreateAsync(
             appUserId.Value,
             new ManagementCompanyBllDto
             {
@@ -289,10 +289,10 @@ public class OnboardingController : Controller
         }
 
         Response.Cookies.Append("ctx.type", "management", CreateContextCookieOptions());
-        Response.Cookies.Append("ctx.management.company", result.Value.ManagementCompanyId.ToString(), CreateContextCookieOptions());
-        Response.Cookies.Append("ctx.management.slug", result.Value.ManagementCompanySlug, CreateContextCookieOptions());
+        Response.Cookies.Append("ctx.management.company", result.Value.Id.ToString(), CreateContextCookieOptions());
+        Response.Cookies.Append("ctx.management.slug", result.Value.Slug, CreateContextCookieOptions());
 
-        return RedirectToManagementDashboard(result.Value.ManagementCompanySlug);
+        return RedirectToManagementDashboard(result.Value.Slug);
     }
 
     [Authorize]
@@ -329,7 +329,7 @@ public class OnboardingController : Controller
             return View(vm);
         }
 
-        var result = await _bll.Onboarding.CreateJoinRequestAsync(
+        var result = await _bll.CompanyMemberships.CreateJoinRequestAsync(
             new CreateCompanyJoinRequestCommand
             {
                 AppUserId = appUserId.Value,

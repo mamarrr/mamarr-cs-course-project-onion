@@ -40,11 +40,11 @@ public class PropertyService :
         _deleteGuard = deleteGuard;
     }
 
-    public async Task<Result<PropertyWorkspaceModel>> GetWorkspaceAsync(
+    public async Task<Result<PropertyWorkspaceModel>> ResolveWorkspaceAsync(
         PropertyRoute route,
         CancellationToken cancellationToken = default)
     {
-        var customer = await ResolveCustomerAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, cancellationToken);
+        var customer = await ResolveCustomerWorkspaceAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, cancellationToken);
         if (customer.IsFailed)
         {
             return Result.Fail(customer.Errors);
@@ -76,7 +76,7 @@ public class PropertyService :
         PropertyRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await GetWorkspaceAsync(route, cancellationToken);
+        var workspace = await ResolveWorkspaceAsync(route, cancellationToken);
         return workspace.IsFailed
             ? Result.Fail<PropertyDashboardModel>(workspace.Errors)
             : Result.Ok(new PropertyDashboardModel { Workspace = workspace.Value });
@@ -86,7 +86,7 @@ public class PropertyService :
         CustomerRoute route,
         CancellationToken cancellationToken = default)
     {
-        var customer = await ResolveCustomerAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, cancellationToken);
+        var customer = await ResolveCustomerWorkspaceAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, cancellationToken);
         if (customer.IsFailed)
         {
             return Result.Fail(customer.Errors);
@@ -118,7 +118,7 @@ public class PropertyService :
         PropertyRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await GetWorkspaceAsync(route, cancellationToken);
+        var workspace = await ResolveWorkspaceAsync(route, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -147,7 +147,7 @@ public class PropertyService :
         PropertyBllDto dto,
         CancellationToken cancellationToken = default)
     {
-        var customer = await ResolveCustomerAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, cancellationToken);
+        var customer = await ResolveCustomerWorkspaceAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, cancellationToken);
         if (customer.IsFailed)
         {
             return Result.Fail(customer.Errors);
@@ -219,7 +219,7 @@ public class PropertyService :
         PropertyBllDto dto,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await GetWorkspaceAsync(route, cancellationToken);
+        var workspace = await ResolveWorkspaceAsync(route, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -277,7 +277,7 @@ public class PropertyService :
         string confirmationName,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await GetWorkspaceAsync(route, cancellationToken);
+        var workspace = await ResolveWorkspaceAsync(route, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -334,7 +334,7 @@ public class PropertyService :
         return Result.Ok();
     }
 
-    private async Task<Result<CustomerWorkspaceModel>> ResolveCustomerAsync(
+    private async Task<Result<CustomerWorkspaceModel>> ResolveCustomerWorkspaceAsync(
         Guid userId,
         string companySlug,
         string customerSlug,
@@ -345,7 +345,7 @@ public class PropertyService :
             return Result.Fail(new UnauthorizedError("Authentication is required."));
         }
 
-        return await _customerService.GetWorkspaceAsync(
+        return await _customerService.ResolveWorkspaceAsync(
             new CustomerRoute
             {
                 AppUserId = userId,

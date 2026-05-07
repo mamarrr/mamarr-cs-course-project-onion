@@ -6,6 +6,7 @@ using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.ManagementCompanies;
 using App.BLL.DTO.ManagementCompanies.Models;
+using App.BLL.DTO.Onboarding.Commands;
 using App.DAL.Contracts;
 using App.DAL.DTO.Lookups;
 using App.DAL.DTO.ManagementCompanies;
@@ -40,26 +41,13 @@ public class CompanyMembershipService : ICompanyMembershipService
         _uow = uow;
     }
 
-    public Task<Result<CompanyMembershipContext>> AuthorizeManagementAreaAccessAsync(
-        ManagementCompanyRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return AuthorizeManagementAreaAccessAsync(route.AppUserId, route.CompanySlug, cancellationToken);
-    }
-
-    public Task<Result<CompanyAdminAuthorizedContext>> AuthorizeAdminAsync(
-        ManagementCompanyRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return AuthorizeAsync(route.AppUserId, route.CompanySlug, cancellationToken);
-    }
+    
 
     public async Task<Result<CompanyMembershipContext>> AuthorizeManagementAreaAccessAsync(
-        Guid appUserId,
-        string companySlug,
+        ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)
     {
-        var resolution = await ResolveMembershipContextAsync(appUserId, companySlug, cancellationToken);
+        var resolution = await ResolveMembershipContextAsync(route, cancellationToken);
         if (resolution.IsFailed)
         {
             return Result.Fail(resolution.Errors);
@@ -76,11 +64,10 @@ public class CompanyMembershipService : ICompanyMembershipService
     }
 
     public async Task<Result<CompanyAdminAuthorizedContext>> AuthorizeAsync(
-        Guid appUserId,
-        string companySlug,
+        ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)
     {
-        var resolution = await ResolveMembershipContextAsync(appUserId, companySlug, cancellationToken);
+        var resolution = await ResolveMembershipContextAsync(route, cancellationToken);
         if (resolution.IsFailed)
         {
             return Result.Fail(resolution.Errors);
@@ -544,6 +531,97 @@ public class CompanyMembershipService : ICompanyMembershipService
         return Result.Ok((IReadOnlyList<CompanyMembershipRoleOption>)roles.Select(MapRoleOption).ToList());
     }
 
+    public async Task<Result> CreateJoinRequestAsync(
+        CreateCompanyJoinRequestCommand command,
+        CancellationToken cancellationToken = default)
+    {
+        var registryCode = command.RegistryCode.Trim();
+        if (registryCode.Length == 0)
+        {
+            return Result.Fail(new ValidationAppError(
+                "Validation failed.",
+                [
+                    new ValidationFailureModel
+                    {
+                        PropertyName = nameof(command.RegistryCode),
+                        ErrorMessage = L("ManagementCompanyWasNotFound", "Management company was not found.")
+                    }
+                ]));
+        }
+
+        var company = await _uow.ManagementCompanies.FirstActiveByRegistryCodeAsync(
+            registryCode,
+            cancellationToken);
+        if (company is null)
+        {
+            return Result.Fail(new NotFoundError(L("ManagementCompanyWasNotFound", "Management company was not found.")));
+        }
+
+        var role = await _uow.Lookups.FindManagementCompanyRoleByIdAsync(
+            command.RequestedRoleId,
+            cancellationToken);
+        if (role is null)
+        {
+            return Result.Fail(new ValidationAppError(
+                "Validation failed.",
+                [
+                    new ValidationFailureModel
+                    {
+                        PropertyName = nameof(command.RequestedRoleId),
+                        ErrorMessage = L("SelectedRoleIsInvalid", "Selected role is invalid.")
+                    }
+                ]));
+        }
+
+        var membershipExists = await _uow.ManagementCompanies.MembershipExistsAsync(
+            command.AppUserId,
+            company.Id,
+            cancellationToken);
+        if (membershipExists)
+        {
+            return Result.Fail(new ConflictError(L("AlreadyMemberOfThisManagementCompany", "You are already a member of this management company.")));
+        }
+
+        var pendingStatus = await _uow.Lookups.FindManagementCompanyJoinRequestStatusByCodeAsync(
+            ManagementCompanyJoinRequestStatusCodes.Pending,
+            cancellationToken);
+        if (pendingStatus is null)
+        {
+            throw new InvalidOperationException(
+                $"Management company join request status '{ManagementCompanyJoinRequestStatusCodes.Pending}' is not seeded.");
+        }
+
+        var duplicatePending = await _uow.ManagementCompanyJoinRequests.HasPendingRequestAsync(
+            command.AppUserId,
+            company.Id,
+            pendingStatus.Id,
+            cancellationToken);
+        if (duplicatePending)
+        {
+            return Result.Fail(new ConflictError(L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists.")));
+        }
+
+        _uow.ManagementCompanyJoinRequests.Add(new ManagementCompanyJoinRequestDalDto
+        {
+            AppUserId = command.AppUserId,
+            ManagementCompanyId = company.Id,
+            RequestedRoleId = command.RequestedRoleId,
+            StatusId = pendingStatus.Id,
+            Message = string.IsNullOrWhiteSpace(command.Message) ? null : command.Message.Trim(),
+        });
+
+        try
+        {
+            await _uow.SaveChangesAsync(cancellationToken);
+        }
+        catch
+        {
+            return Result.Fail(new ConflictError(L("PendingRequestForThisCompanyAlreadyExists", "A pending request for this company already exists.")));
+        }
+
+        return Result.Ok();
+    }
+
     public async Task<Result<PendingAccessRequestListResult>> GetPendingAccessRequestsAsync(
         CompanyAdminAuthorizedContext context,
         CancellationToken cancellationToken = default)
@@ -677,11 +755,10 @@ public class CompanyMembershipService : ICompanyMembershipService
     }
 
     private async Task<Result<CompanyMembershipContext>> ResolveMembershipContextAsync(
-        Guid appUserId,
-        string companySlug,
+        ManagementCompanyRoute route,
         CancellationToken cancellationToken)
     {
-        var normalizedSlug = companySlug.Trim();
+        var normalizedSlug = route.CompanySlug.Trim();
         if (string.IsNullOrWhiteSpace(normalizedSlug))
         {
             return Result.Fail<CompanyMembershipContext>(WithAuthorizationReason(
@@ -698,7 +775,7 @@ public class CompanyMembershipService : ICompanyMembershipService
         }
 
         var actorMembership = await _uow.ManagementCompanies.FirstMembershipByUserAndCompanyAsync(
-            appUserId,
+            route.AppUserId,
             company.Id,
             cancellationToken);
 
@@ -719,7 +796,7 @@ public class CompanyMembershipService : ICompanyMembershipService
 
         return Result.Ok(new CompanyMembershipContext
         {
-            AppUserId = appUserId,
+            AppUserId = route.AppUserId,
             ManagementCompanyId = company.Id,
             CompanySlug = company.Slug,
             CompanyName = company.Name,

@@ -110,7 +110,7 @@ public class UnitService :
         PropertyRoute route,
         CancellationToken cancellationToken = default)
     {
-        var property = await ResolvePropertyAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, route.PropertySlug, cancellationToken);
+        var property = await ResolvePropertyWorkspaceAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, route.PropertySlug, cancellationToken);
         if (property.IsFailed)
         {
             return Result.Fail(property.Errors);
@@ -172,7 +172,7 @@ public class UnitService :
         UnitBllDto dto,
         CancellationToken cancellationToken = default)
     {
-        var property = await ResolvePropertyAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, route.PropertySlug, cancellationToken);
+        var property = await ResolvePropertyWorkspaceAsync(route.AppUserId, route.CompanySlug, route.CustomerSlug, route.PropertySlug, cancellationToken);
         if (property.IsFailed)
         {
             return Result.Fail(property.Errors);
@@ -338,14 +338,14 @@ public class UnitService :
         return Result.Ok();
     }
 
-    private async Task<Result<PropertyWorkspaceModel>> ResolvePropertyAsync(
+    private async Task<Result<PropertyWorkspaceModel>> ResolvePropertyWorkspaceAsync(
         Guid userId,
         string companySlug,
         string customerSlug,
         string propertySlug,
         CancellationToken cancellationToken)
     {
-        return await _propertyService.GetWorkspaceAsync(
+        return await _propertyService.ResolveWorkspaceAsync(
             new PropertyRoute
             {
                 AppUserId = userId,

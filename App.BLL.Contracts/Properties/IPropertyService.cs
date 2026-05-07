@@ -8,7 +8,7 @@ namespace App.BLL.Contracts.Properties;
 
 public interface IPropertyService : IBaseService<PropertyBllDto>
 {
-    Task<Result<PropertyWorkspaceModel>> GetWorkspaceAsync(
+    Task<Result<PropertyWorkspaceModel>> ResolveWorkspaceAsync(
         PropertyRoute route,
         CancellationToken cancellationToken = default);
 

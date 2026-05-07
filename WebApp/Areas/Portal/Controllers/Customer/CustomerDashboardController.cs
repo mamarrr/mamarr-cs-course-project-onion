@@ -73,7 +73,7 @@ public class CustomerDashboardController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Customers.GetWorkspaceAsync(
+        var result = await _bll.Customers.ResolveWorkspaceAsync(
             new CustomerRoute
             {
                 AppUserId = appUserId.Value,

@@ -77,7 +77,7 @@ public class DashboardController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Properties.GetWorkspaceAsync(
+        var result = await _bll.Properties.ResolveWorkspaceAsync(
             new PropertyRoute
             {
                 AppUserId = appUserId.Value,

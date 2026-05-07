@@ -110,7 +110,7 @@ public class CustomerService :
             .ToList());
     }
 
-    public async Task<Result<CustomerWorkspaceModel>> GetWorkspaceAsync(
+    public async Task<Result<CustomerWorkspaceModel>> ResolveWorkspaceAsync(
         CustomerRoute route,
         CancellationToken cancellationToken = default)
     {
@@ -418,7 +418,7 @@ public class CustomerService :
             return Result.Fail(new UnauthorizedError("Authentication is required."));
         }
 
-        var access = await GetWorkspaceAsync(
+        var access = await ResolveWorkspaceAsync(
             route,
             cancellationToken);
 

@@ -32,21 +32,13 @@ public interface ITicketService : IBaseService<TicketBllDto>
         ManagementCompanyRoute route,
         TicketBllDto dto,
         CancellationToken cancellationToken = default);
-
-    Task<Result<ManagementTicketDetailsModel>> CreateAndGetDetailsAsync(
-        ManagementCompanyRoute route,
-        TicketBllDto dto,
-        CancellationToken cancellationToken = default);
+    
 
     Task<Result<TicketBllDto>> UpdateAsync(
         TicketRoute route,
         TicketBllDto dto,
         CancellationToken cancellationToken = default);
-
-    Task<Result<ManagementTicketDetailsModel>> UpdateAndGetDetailsAsync(
-        TicketRoute route,
-        TicketBllDto dto,
-        CancellationToken cancellationToken = default);
+    
 
     Task<Result> DeleteAsync(
         TicketRoute route,

@@ -110,21 +110,6 @@ public class ManagementCompanyService :
         return await FindAsync(dto.Id, default, cancellationToken);
     }
 
-    public async Task<Result<CompanyProfileModel>> CreateAndGetProfileAsync(
-        Guid appUserId,
-        ManagementCompanyBllDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        var created = await CreateAsync(appUserId, dto, cancellationToken);
-        return created.IsFailed
-            ? Result.Fail<CompanyProfileModel>(created.Errors)
-            : await GetProfileAsync(new ManagementCompanyRoute
-            {
-                AppUserId = appUserId,
-                CompanySlug = created.Value.Slug
-            }, cancellationToken);
-    }
-
     public Task<Result<CompanyMembershipContext>> AuthorizeManagementAreaAccessAsync(
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)

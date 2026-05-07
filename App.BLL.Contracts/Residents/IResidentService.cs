@@ -8,7 +8,7 @@ namespace App.BLL.Contracts.Residents;
 
 public interface IResidentService : IBaseService<ResidentBllDto>
 {
-    Task<Result<CompanyResidentsModel>> ResolveCompanyResidentsAsync(
+    Task<Result<CompanyResidentsModel>> ResolveCompanyResidentsContextAsync(
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default);
 

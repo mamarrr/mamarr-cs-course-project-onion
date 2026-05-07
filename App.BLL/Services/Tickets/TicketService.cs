@@ -42,7 +42,7 @@ public class TicketService :
         ManagementTicketSearchRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -86,7 +86,7 @@ public class TicketService :
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -141,7 +141,7 @@ public class TicketService :
         TicketSelectorOptionsRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -179,7 +179,7 @@ public class TicketService :
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -226,7 +226,7 @@ public class TicketService :
         TicketSelectorOptionsRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -252,7 +252,7 @@ public class TicketService :
             return Result.Fail<TicketBllDto>(validation.Errors);
         }
 
-        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail<TicketBllDto>(workspace.Errors);
@@ -306,17 +306,6 @@ public class TicketService :
         return await AddAndFindCoreAsync(dto, workspace.Value.ManagementCompanyId, cancellationToken);
     }
 
-    public async Task<Result<ManagementTicketDetailsModel>> CreateAndGetDetailsAsync(
-        ManagementCompanyRoute route,
-        TicketBllDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        var created = await CreateAsync(route, dto, cancellationToken);
-        return created.IsFailed
-            ? Result.Fail<ManagementTicketDetailsModel>(created.Errors)
-            : await GetDetailsAsync(ToTicketRoute(route, created.Value.Id), cancellationToken);
-    }
-
     public async Task<Result<TicketBllDto>> UpdateAsync(
         TicketRoute route,
         TicketBllDto dto,
@@ -328,7 +317,7 @@ public class TicketService :
             return Result.Fail<TicketBllDto>(validation.Errors);
         }
 
-        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail<TicketBllDto>(workspace.Errors);
@@ -413,22 +402,11 @@ public class TicketService :
         return updated;
     }
 
-    public async Task<Result<ManagementTicketDetailsModel>> UpdateAndGetDetailsAsync(
-        TicketRoute route,
-        TicketBllDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        var updated = await UpdateAsync(route, dto, cancellationToken);
-        return updated.IsFailed
-            ? Result.Fail<ManagementTicketDetailsModel>(updated.Errors)
-            : await GetDetailsAsync(route, cancellationToken);
-    }
-
     public async Task<Result> DeleteAsync(
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail(workspace.Errors);
@@ -466,7 +444,7 @@ public class TicketService :
         TicketRoute route,
         CancellationToken cancellationToken = default)
     {
-        var workspace = await ResolveCompanyAsync(route.AppUserId, route.CompanySlug, cancellationToken);
+        var workspace = await ResolveCompanyWorkspaceAsync(route.AppUserId, route.CompanySlug, cancellationToken);
         if (workspace.IsFailed)
         {
             return Result.Fail<TicketBllDto>(workspace.Errors);
@@ -536,7 +514,7 @@ public class TicketService :
         return Result.Ok();
     }
 
-    private async Task<Result<CompanyWorkspaceModel>> ResolveCompanyAsync(
+    private async Task<Result<CompanyWorkspaceModel>> ResolveCompanyWorkspaceAsync(
         Guid userId,
         string companySlug,
         CancellationToken cancellationToken)

@@ -16,7 +16,7 @@ public interface ICustomerService : IBaseService<CustomerBllDto>
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default);
 
-    Task<Result<CustomerWorkspaceModel>> GetWorkspaceAsync(
+    Task<Result<CustomerWorkspaceModel>> ResolveWorkspaceAsync(
         CustomerRoute route,
         CancellationToken cancellationToken = default);
 

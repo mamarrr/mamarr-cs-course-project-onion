@@ -1,5 +1,6 @@
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.ManagementCompanies.Models;
+using App.BLL.DTO.Onboarding.Commands;
 using FluentResults;
 
 namespace App.BLL.Contracts.ManagementCompanies;
@@ -10,13 +11,8 @@ public interface ICompanyMembershipService
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default);
 
-    Task<Result<CompanyAdminAuthorizedContext>> AuthorizeAdminAsync(
-        ManagementCompanyRoute route,
-        CancellationToken cancellationToken = default);
-
     Task<Result<CompanyAdminAuthorizedContext>> AuthorizeAsync(
-        Guid appUserId,
-        string companySlug,
+        ManagementCompanyRoute route,
         CancellationToken cancellationToken = default);
 
     Task<Result<CompanyMembershipListResult>> ListCompanyMembersAsync(
@@ -38,6 +34,10 @@ public interface ICompanyMembershipService
         CancellationToken cancellationToken = default);
 
     Task<Result<IReadOnlyList<CompanyMembershipRoleOption>>> GetAvailableRolesAsync(
+        CancellationToken cancellationToken = default);
+
+    Task<Result> CreateJoinRequestAsync(
+        CreateCompanyJoinRequestCommand command,
         CancellationToken cancellationToken = default);
 
     Task<Result<Guid>> AddUserByEmailAsync(

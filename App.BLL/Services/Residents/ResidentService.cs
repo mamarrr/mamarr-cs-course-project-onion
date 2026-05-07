@@ -43,7 +43,7 @@ public class ResidentService :
         _deleteGuard = deleteGuard;
     }
 
-    public async Task<Result<CompanyResidentsModel>> ResolveCompanyResidentsAsync(
+    public async Task<Result<CompanyResidentsModel>> ResolveCompanyResidentsContextAsync(
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)
     {
@@ -168,7 +168,7 @@ public class ResidentService :
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)
     {
-        var company = await ResolveCompanyResidentsAsync(route, cancellationToken);
+        var company = await ResolveCompanyResidentsContextAsync(route, cancellationToken);
         if (company.IsFailed)
         {
             return Result.Fail(company.Errors);
@@ -224,7 +224,7 @@ public class ResidentService :
         ResidentBllDto dto,
         CancellationToken cancellationToken = default)
     {
-        var company = await ResolveCompanyResidentsAsync(route, cancellationToken);
+        var company = await ResolveCompanyResidentsContextAsync(route, cancellationToken);
         if (company.IsFailed)
         {
             return Result.Fail(company.Errors);
