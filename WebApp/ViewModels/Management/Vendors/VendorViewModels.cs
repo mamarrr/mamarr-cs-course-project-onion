@@ -59,7 +59,6 @@ public class VendorListItemViewModel
     public Guid VendorId { get; set; }
     public string Name { get; set; } = default!;
     public string RegistryCode { get; set; } = default!;
-    public string Notes { get; set; } = default!;
     public int ActiveCategoryCount { get; set; }
     public int AssignedTicketCount { get; set; }
     public int ContactCount { get; set; }

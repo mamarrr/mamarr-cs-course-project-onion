@@ -337,7 +337,6 @@ public class VendorsController : Controller
             VendorId = vendor.VendorId,
             Name = vendor.Name,
             RegistryCode = vendor.RegistryCode,
-            Notes = vendor.Notes,
             CreatedAt = vendor.CreatedAt,
             ActiveCategoryCount = vendor.ActiveCategoryCount,
             AssignedTicketCount = vendor.AssignedTicketCount,

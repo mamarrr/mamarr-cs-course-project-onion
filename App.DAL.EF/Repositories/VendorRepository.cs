@@ -68,7 +68,6 @@ public class VendorRepository :
                 ManagementCompanyId = vendor.ManagementCompanyId,
                 Name = vendor.Name,
                 RegistryCode = vendor.RegistryCode,
-                Notes = vendor.Notes.ToString(),
                 CreatedAt = vendor.CreatedAt,
                 ActiveCategoryCount = vendor.VendorTicketCategories!.Count,
                 AssignedTicketCount = vendor.Tickets!.Count(ticket => ticket.ManagementCompanyId == managementCompanyId),

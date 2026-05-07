@@ -73,7 +73,6 @@ public class VendorService :
                 CompanyName = access.Value.CompanyName,
                 Name = vendor.Name,
                 RegistryCode = vendor.RegistryCode,
-                Notes = vendor.Notes,
                 CreatedAt = vendor.CreatedAt,
                 ActiveCategoryCount = vendor.ActiveCategoryCount,
                 AssignedTicketCount = vendor.AssignedTicketCount,
@@ -131,13 +130,17 @@ public class VendorService :
                 "Vendor with this registry code already exists in this company.")));
         }
 
-        dto.Id = Guid.Empty;
-        dto.ManagementCompanyId = access.Value.ManagementCompanyId;
-        dto.Name = normalized.Name;
-        dto.RegistryCode = normalized.RegistryCode;
-        dto.Notes = normalized.Notes;
+        var res = new VendorBllDto()
+        {
+            Id = Guid.Empty,
+            ManagementCompanyId = access.Value.ManagementCompanyId,
+            Name = normalized.Name,
+            RegistryCode = normalized.RegistryCode,
+            Notes = normalized.Notes,
+        };
+        
 
-        return await AddAndFindCoreAsync(dto, access.Value.ManagementCompanyId, cancellationToken);
+        return await AddAndFindCoreAsync(res, access.Value.ManagementCompanyId, cancellationToken);
     }
 
     public async Task<Result<VendorProfileModel>> CreateAndGetProfileAsync(
