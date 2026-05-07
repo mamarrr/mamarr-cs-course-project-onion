@@ -64,11 +64,16 @@
             </div>
         </div>
         <div class="mt-3 d-flex flex-wrap gap-2">
+            <a asp-controller="VendorCategories"
+               asp-action="Index"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-vendorId="@Model.VendorId"
+               class="management-btn">@T("ManageCategories", "Manage categories")</a>
             <a asp-route="portal.management.tickets"
                asp-route-companySlug="@Model.CompanySlug"
                asp-route-vendorId="@Model.VendorId"
                class="btn btn-outline-secondary">@T("ViewVendorTickets", "View tickets")</a>
-            <span class="management-muted">@T("VendorNestedWorkflowsComingLater", "Contacts and category assignments are handled in upcoming workflow pages.")</span>
+            <span class="management-muted">@T("VendorContactsComingLater", "Contacts are handled in an upcoming workflow page.")</span>
         </div>
     </section>
 </div>

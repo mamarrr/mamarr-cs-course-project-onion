@@ -605,6 +605,13 @@ public class TicketService :
         var vendorBelongsToCompany = !vendorId.HasValue ||
                                      await _uow.Vendors.ExistsInCompanyAsync(vendorId.Value, managementCompanyId, cancellationToken);
 
+        var vendorSupportsCategory = !vendorId.HasValue ||
+                                     await _uow.VendorTicketCategories.ExistsInCompanyAsync(
+                                         vendorId.Value,
+                                         categoryId,
+                                         managementCompanyId,
+                                         cancellationToken);
+
         var failures = new List<ValidationFailureModel>();
 
         if (!categoryExists)
@@ -655,6 +662,12 @@ public class TicketService :
         if (!vendorBelongsToCompany)
         {
             failures.Add(Failure("VendorId", T("InvalidTicketVendor", "Selected vendor is invalid.")));
+        }
+        else if (!vendorSupportsCategory)
+        {
+            failures.Add(Failure("VendorId", T(
+                "TicketVendorDoesNotSupportCategory",
+                "Selected vendor is not assigned to this ticket category.")));
         }
 
         return failures.Count == 0

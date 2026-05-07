@@ -28,6 +28,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private readonly LeaseDalMapper _leaseMapper = new();
     private readonly TicketDalMapper _ticketMapper = new();
     private readonly VendorDalMapper _vendorMapper = new();
+    private readonly VendorTicketCategoryDalMapper _vendorTicketCategoryMapper = new();
     private IContactRepository? _contacts;
     private ICustomerRepository? _customers;
     private IManagementCompanyRepository? _managementCompanies;
@@ -39,6 +40,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private ILeaseRepository? _leases;
     private ITicketRepository? _tickets;
     private IVendorRepository? _vendors;
+    private IVendorTicketCategoryRepository? _vendorTicketCategories;
 
     public AppUOW(AppDbContext dbContext) : base(dbContext)
     {
@@ -66,6 +68,9 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     public ITicketRepository Tickets => _tickets ??= new TicketRepository(UowDbContext, _ticketMapper);
 
     public IVendorRepository Vendors => _vendors ??= new VendorRepository(UowDbContext, _vendorMapper);
+
+    public IVendorTicketCategoryRepository VendorTicketCategories =>
+        _vendorTicketCategories ??= new VendorTicketCategoryRepository(UowDbContext, _vendorTicketCategoryMapper);
 
     public async Task BeginTransactionAsync(CancellationToken cancellationToken = default)
     {

@@ -7,6 +7,7 @@ using App.BLL.DTO.Vendors.Models;
 using App.BLL.Mappers.Vendors;
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
+using App.DAL.DTO.Tickets;
 using App.DAL.DTO.Vendors;
 using Base.BLL;
 using FluentResults;
@@ -37,6 +38,8 @@ public class VendorService :
         "OWNER",
         "MANAGER"
     };
+
+    private const int CategoryNotesMaxLength = 4000;
 
     public VendorService(IAppUOW uow)
         : base(uow.Vendors, uow, new VendorBllDtoMapper())
@@ -281,6 +284,136 @@ public class VendorService :
         return Result.Ok();
     }
 
+    public async Task<Result<VendorCategoryAssignmentListModel>> ListCategoryAssignmentsAsync(
+        VendorRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveVendorAccessAsync(route, ReadAllowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<VendorCategoryAssignmentListModel>(access.Errors);
+        }
+
+        return await BuildCategoryAssignmentListAsync(route, access.Value, cancellationToken);
+    }
+
+    public async Task<Result<VendorCategoryAssignmentListModel>> AssignCategoryAsync(
+        VendorRoute route,
+        VendorTicketCategoryBllDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveVendorAccessAsync(route, WriteAllowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<VendorCategoryAssignmentListModel>(access.Errors);
+        }
+
+        var validation = await ValidateCategoryAssignmentAsync(dto, cancellationToken);
+        if (validation.IsFailed)
+        {
+            return Result.Fail<VendorCategoryAssignmentListModel>(validation.Errors);
+        }
+
+        var duplicate = await ServiceUOW.VendorTicketCategories.ExistsInCompanyAsync(
+            access.Value.VendorId,
+            dto.TicketCategoryId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (duplicate)
+        {
+            return Result.Fail<VendorCategoryAssignmentListModel>(new ConflictError(T(
+                "VendorCategoryAlreadyAssigned",
+                "This category is already assigned to the vendor.")));
+        }
+
+        ServiceUOW.VendorTicketCategories.Add(new VendorTicketCategoryDalDto
+        {
+            VendorId = access.Value.VendorId,
+            TicketCategoryId = dto.TicketCategoryId,
+            Notes = NormalizeOptional(dto.Notes)
+        });
+
+        await ServiceUOW.SaveChangesAsync(cancellationToken);
+        return await BuildCategoryAssignmentListAsync(route, access.Value, cancellationToken);
+    }
+
+    public async Task<Result<VendorCategoryAssignmentListModel>> UpdateCategoryAssignmentAsync(
+        VendorCategoryRoute route,
+        VendorTicketCategoryBllDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveVendorAccessAsync(route, WriteAllowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail<VendorCategoryAssignmentListModel>(access.Errors);
+        }
+
+        if (route.TicketCategoryId == Guid.Empty)
+        {
+            return Result.Fail<VendorCategoryAssignmentListModel>(new NotFoundError(T(
+                "VendorCategoryAssignmentWasNotFound",
+                "Vendor category assignment was not found.")));
+        }
+
+        var validation = ValidateCategoryNotes(dto);
+        if (validation.IsFailed)
+        {
+            return Result.Fail<VendorCategoryAssignmentListModel>(validation.Errors);
+        }
+
+        var existing = await ServiceUOW.VendorTicketCategories.FindByVendorCategoryInCompanyAsync(
+            access.Value.VendorId,
+            route.TicketCategoryId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (existing is null)
+        {
+            return Result.Fail<VendorCategoryAssignmentListModel>(new NotFoundError(T(
+                "VendorCategoryAssignmentWasNotFound",
+                "Vendor category assignment was not found.")));
+        }
+
+        await ServiceUOW.VendorTicketCategories.UpdateAsync(
+            new VendorTicketCategoryDalDto
+            {
+                Id = existing.Id,
+                VendorId = access.Value.VendorId,
+                TicketCategoryId = route.TicketCategoryId,
+                Notes = NormalizeOptional(dto.Notes)
+            },
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+
+        await ServiceUOW.SaveChangesAsync(cancellationToken);
+        return await BuildCategoryAssignmentListAsync(route, access.Value, cancellationToken);
+    }
+
+    public async Task<Result> RemoveCategoryAsync(
+        VendorCategoryRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var access = await ResolveVendorAccessAsync(route, WriteAllowedRoleCodes, cancellationToken);
+        if (access.IsFailed)
+        {
+            return Result.Fail(access.Errors);
+        }
+
+        var deleted = await ServiceUOW.VendorTicketCategories.DeleteAssignmentAsync(
+            access.Value.VendorId,
+            route.TicketCategoryId,
+            access.Value.ManagementCompanyId,
+            cancellationToken);
+        if (!deleted)
+        {
+            return Result.Fail(new NotFoundError(T(
+                "VendorCategoryAssignmentWasNotFound",
+                "Vendor category assignment was not found.")));
+        }
+
+        await ServiceUOW.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
+    }
+
     private async Task<Result<VendorAccessContext>> ResolveVendorAccessAsync(
         VendorRoute route,
         HashSet<string> allowedRoleCodes,
@@ -308,7 +441,9 @@ public class VendorService :
 
         return Result.Ok(new VendorAccessContext(
             company.Value.ManagementCompanyId,
-            route.VendorId));
+            route.VendorId,
+            company.Value.CompanySlug,
+            company.Value.CompanyName));
     }
 
     private async Task<Result<VendorWorkspaceModel>> ResolveCompanyAccessAsync(
@@ -404,12 +539,137 @@ public class VendorService :
         };
     }
 
+    private async Task<Result<VendorCategoryAssignmentListModel>> BuildCategoryAssignmentListAsync(
+        VendorRoute route,
+        VendorAccessContext access,
+        CancellationToken cancellationToken)
+    {
+        var profile = await ServiceUOW.Vendors.FindProfileAsync(
+            access.VendorId,
+            access.ManagementCompanyId,
+            cancellationToken);
+        if (profile is null)
+        {
+            return Result.Fail<VendorCategoryAssignmentListModel>(new NotFoundError(T("VendorWasNotFound", "Vendor was not found.")));
+        }
+
+        var assignments = await ServiceUOW.VendorTicketCategories.AllByVendorAsync(
+            access.VendorId,
+            access.ManagementCompanyId,
+            cancellationToken);
+        var assignedCategoryIds = assignments
+            .Select(assignment => assignment.TicketCategoryId)
+            .ToHashSet();
+
+        var categories = await ServiceUOW.Lookups.AllTicketCategoriesAsync(cancellationToken);
+
+        return Result.Ok(new VendorCategoryAssignmentListModel
+        {
+            CompanySlug = access.CompanySlug,
+            CompanyName = access.CompanyName,
+            VendorId = access.VendorId,
+            VendorName = profile.Name,
+            Assignments = assignments.Select(ToCategoryAssignmentModel).ToList(),
+            AvailableCategories = categories
+                .Where(category => !assignedCategoryIds.Contains(category.Id))
+                .Select(ToTicketOptionModel)
+                .ToList()
+        });
+    }
+
+    private async Task<Result> ValidateCategoryAssignmentAsync(
+        VendorTicketCategoryBllDto dto,
+        CancellationToken cancellationToken)
+    {
+        var failures = new List<ValidationFailureModel>();
+        if (dto.TicketCategoryId == Guid.Empty)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.TicketCategoryId),
+                ErrorMessage = T("TicketCategoryRequired", "Ticket category is required.")
+            });
+        }
+        else if (!await ServiceUOW.Lookups.TicketCategoryExistsAsync(dto.TicketCategoryId, cancellationToken))
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(dto.TicketCategoryId),
+                ErrorMessage = T("InvalidTicketCategory", "Selected ticket category is invalid.")
+            });
+        }
+
+        AddCategoryNotesFailures(failures, dto.Notes);
+
+        return failures.Count == 0
+            ? Result.Ok()
+            : Result.Fail(new ValidationAppError("Validation failed.", failures));
+    }
+
+    private static Result ValidateCategoryNotes(VendorTicketCategoryBllDto dto)
+    {
+        var failures = new List<ValidationFailureModel>();
+        AddCategoryNotesFailures(failures, dto.Notes);
+
+        return failures.Count == 0
+            ? Result.Ok()
+            : Result.Fail(new ValidationAppError("Validation failed.", failures));
+    }
+
+    private static void AddCategoryNotesFailures(
+        ICollection<ValidationFailureModel> failures,
+        string? notes)
+    {
+        if (!string.IsNullOrWhiteSpace(notes) && notes.Trim().Length > CategoryNotesMaxLength)
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(VendorTicketCategoryBllDto.Notes),
+                ErrorMessage = T("ContactNotesMaxLength", "Notes must be 4000 characters or fewer.")
+            });
+        }
+    }
+
+    private static VendorCategoryAssignmentModel ToCategoryAssignmentModel(
+        VendorCategoryAssignmentDalDto assignment)
+    {
+        return new VendorCategoryAssignmentModel
+        {
+            AssignmentId = assignment.Id,
+            VendorId = assignment.VendorId,
+            TicketCategoryId = assignment.TicketCategoryId,
+            CategoryCode = assignment.CategoryCode,
+            CategoryLabel = assignment.CategoryLabel,
+            Notes = assignment.Notes,
+            CreatedAt = assignment.CreatedAt
+        };
+    }
+
+    private static App.BLL.DTO.Tickets.Models.TicketOptionModel ToTicketOptionModel(TicketOptionDalDto option)
+    {
+        return new App.BLL.DTO.Tickets.Models.TicketOptionModel
+        {
+            Id = option.Id,
+            Code = option.Code,
+            Label = option.Label
+        };
+    }
+
+    private static string? NormalizeOptional(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
     private static string T(string key, string fallback)
     {
         return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
     }
 
-    private sealed record VendorAccessContext(Guid ManagementCompanyId, Guid VendorId);
+    private sealed record VendorAccessContext(
+        Guid ManagementCompanyId,
+        Guid VendorId,
+        string CompanySlug,
+        string CompanyName);
 
     private sealed record NormalizedVendor(string Name, string RegistryCode, string Notes);
 }

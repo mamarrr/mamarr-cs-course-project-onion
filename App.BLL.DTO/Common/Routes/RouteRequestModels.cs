@@ -41,6 +41,11 @@ public class VendorRoute : ManagementCompanyRoute
     public Guid VendorId { get; init; }
 }
 
+public class VendorCategoryRoute : VendorRoute
+{
+    public Guid TicketCategoryId { get; init; }
+}
+
 public class ResidentLeaseRoute : ResidentRoute
 {
     public Guid LeaseId { get; init; }

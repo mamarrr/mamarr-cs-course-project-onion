@@ -44,4 +44,22 @@ public interface IVendorService : IBaseService<VendorBllDto>
         VendorRoute route,
         string confirmationRegistryCode,
         CancellationToken cancellationToken = default);
+
+    Task<Result<VendorCategoryAssignmentListModel>> ListCategoryAssignmentsAsync(
+        VendorRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<VendorCategoryAssignmentListModel>> AssignCategoryAsync(
+        VendorRoute route,
+        VendorTicketCategoryBllDto dto,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<VendorCategoryAssignmentListModel>> UpdateCategoryAssignmentAsync(
+        VendorCategoryRoute route,
+        VendorTicketCategoryBllDto dto,
+        CancellationToken cancellationToken = default);
+
+    Task<Result> RemoveCategoryAsync(
+        VendorCategoryRoute route,
+        CancellationToken cancellationToken = default);
 }

@@ -397,4 +397,20 @@
   <data name="VendorDeleteConfirmationMismatch" xml:space="preserve"><value>Kustutamise kinnitus ei vasta teenusepakkuja praegusele registrikoodile.</value></data>
   <data name="VendorDeleteBlockedByDependencies" xml:space="preserve"><value>Teenusepakkujat ei saa kustutada, sest olemas on piletid, planeeritud tood, kontaktid voi kategooriaseosed.</value></data>
   <data name="Categories" xml:space="preserve"><value>Kategooriad</value></data>
+  <data name="ManageCategories" xml:space="preserve"><value>Halda kategooriaid</value></data>
+  <data name="VendorContactsComingLater" xml:space="preserve"><value>Kontaktid lisatakse jargmisel toovoo lehel.</value></data>
+  <data name="AssignCategory" xml:space="preserve"><value>Maara kategooria</value></data>
+  <data name="CurrentAssignments" xml:space="preserve"><value>Praegused seosed</value></data>
+  <data name="NoCategoryAssignments" xml:space="preserve"><value>Kategooriaid pole veel maaratud.</value></data>
+  <data name="BackToVendor" xml:space="preserve"><value>Tagasi teenusepakkuja juurde</value></data>
+  <data name="BackToCategoryAssignments" xml:space="preserve"><value>Tagasi seoste juurde</value></data>
+  <data name="EditCategoryAssignment" xml:space="preserve"><value>Muuda kategooriaseost</value></data>
+  <data name="VendorCategoryAssignedSuccessfully" xml:space="preserve"><value>Kategooria maarati edukalt.</value></data>
+  <data name="VendorCategoryUpdatedSuccessfully" xml:space="preserve"><value>Kategooriaseos uuendati edukalt.</value></data>
+  <data name="VendorCategoryRemovedSuccessfully" xml:space="preserve"><value>Kategooriaseos eemaldati edukalt.</value></data>
+  <data name="UnableToRemoveVendorCategory" xml:space="preserve"><value>Kategooriaseost ei saanud eemaldada.</value></data>
+  <data name="RemoveVendorCategoryConfirmation" xml:space="preserve"><value>Kas eemaldada see kategooriaseos?</value></data>
+  <data name="VendorCategoryAlreadyAssigned" xml:space="preserve"><value>See kategooria on teenusepakkujale juba maaratud.</value></data>
+  <data name="VendorCategoryAssignmentWasNotFound" xml:space="preserve"><value>Teenusepakkuja kategooriaseost ei leitud.</value></data>
+  <data name="TicketVendorDoesNotSupportCategory" xml:space="preserve"><value>Valitud teenusepakkuja ei ole selle pileti kategooriaga seotud.</value></data>
 </root>

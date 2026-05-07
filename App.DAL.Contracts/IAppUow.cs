@@ -28,6 +28,8 @@ public interface IAppUOW : IBaseUOW
 
     IVendorRepository Vendors { get; }
 
+    IVendorTicketCategoryRepository VendorTicketCategories { get; }
+
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);

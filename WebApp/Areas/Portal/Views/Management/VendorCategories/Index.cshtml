@@ -1,0 +1,121 @@
+@model WebApp.ViewModels.Management.VendorCategories.VendorCategoryIndexViewModel
+@using App.Resources.Views
+
+@functions {
+    private static string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        @if (TempData["ManagementVendorsSuccess"] is string successMessage)
+        {
+            <div class="alert alert-success" role="alert">@successMessage</div>
+        }
+        @if (TempData["ManagementVendorsError"] is string errorMessage)
+        {
+            <div class="alert alert-danger" role="alert">@errorMessage</div>
+        }
+
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@UiText.Vendors</p>
+                <h2 class="mb-2">@T("CategoryAssignments", "Category assignments")</h2>
+                <p class="management-muted mb-0">@Model.VendorName</p>
+            </div>
+            <a asp-controller="Vendors"
+               asp-action="Details"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-vendorId="@Model.VendorId"
+               class="btn btn-outline-secondary">@T("BackToVendor", "Back to vendor")</a>
+        </div>
+    </section>
+
+    <section class="management-card">
+        <h2>@T("AssignCategory", "Assign category")</h2>
+        <form method="post"
+              asp-action="Assign"
+              asp-route-companySlug="@Model.CompanySlug"
+              asp-route-vendorId="@Model.VendorId"
+              class="row g-3">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="col-12">
+                <label asp-for="Form.TicketCategoryId" class="form-label"></label>
+                <select asp-for="Form.TicketCategoryId" asp-items="Model.AvailableCategories" class="form-select">
+                    <option value="">@UiText.SelectTicketCategory</option>
+                </select>
+                <span asp-validation-for="Form.TicketCategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <label asp-for="Form.Notes" class="form-label"></label>
+                <textarea asp-for="Form.Notes" class="form-control" rows="4"></textarea>
+                <span asp-validation-for="Form.Notes" class="text-danger"></span>
+            </div>
+
+            <div class="col-12">
+                <button type="submit" class="management-btn">@T("AssignCategory", "Assign category")</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="management-card">
+        <h2>@T("CurrentAssignments", "Current assignments")</h2>
+        @if (Model.Assignments.Count == 0)
+        {
+            <p class="management-muted mb-0">@T("NoCategoryAssignments", "No categories are assigned yet.")</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>@UiText.TicketCategory</th>
+                        <th>@UiText.Notes</th>
+                        <th class="text-end">@UiText.Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var assignment in Model.Assignments)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@assignment.CategoryLabel</strong>
+                                <div class="management-muted">@assignment.CategoryCode</div>
+                            </td>
+                            <td>@(assignment.Notes ?? "")</td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-2">
+                                    <a asp-action="Edit"
+                                       asp-route-companySlug="@Model.CompanySlug"
+                                       asp-route-vendorId="@Model.VendorId"
+                                       asp-route-ticketCategoryId="@assignment.TicketCategoryId"
+                                       class="btn btn-outline-secondary btn-sm">@UiText.Edit</a>
+                                    <form method="post"
+                                          asp-action="Remove"
+                                          asp-route-companySlug="@Model.CompanySlug"
+                                          asp-route-vendorId="@Model.VendorId"
+                                          asp-route-ticketCategoryId="@assignment.TicketCategoryId">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn btn-outline-danger btn-sm"
+                                                onclick="return confirm('@T("RemoveVendorCategoryConfirmation", "Remove this category assignment?")')">
+                                            @UiText.Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,49 @@
+@model WebApp.ViewModels.Management.VendorCategories.VendorCategoryEditViewModel
+@using App.Resources.Views
+
+@functions {
+    private static string T(string key, string fallback) => UiText.ResourceManager.GetString(key) ?? fallback;
+}
+
+<section class="management-card">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center mb-4">
+        <div>
+            <p class="management-eyebrow mb-2">@Model.VendorName</p>
+            <h2 class="mb-2">@T("EditCategoryAssignment", "Edit category assignment")</h2>
+            <p class="management-muted mb-0">@Model.CategoryLabel</p>
+        </div>
+        <a asp-action="Index"
+           asp-route-companySlug="@Model.CompanySlug"
+           asp-route-vendorId="@Model.VendorId"
+           class="btn btn-outline-secondary">@T("BackToCategoryAssignments", "Back to assignments")</a>
+    </div>
+
+    <form method="post"
+          asp-action="Edit"
+          asp-route-companySlug="@Model.CompanySlug"
+          asp-route-vendorId="@Model.VendorId"
+          asp-route-ticketCategoryId="@Model.TicketCategoryId"
+          class="row g-3">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <div class="col-12">
+            <label asp-for="Form.Notes" class="form-label"></label>
+            <textarea asp-for="Form.Notes" class="form-control" rows="5"></textarea>
+            <span asp-validation-for="Form.Notes" class="text-danger"></span>
+        </div>
+
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="management-btn">@UiText.SaveChanges</button>
+            <a asp-action="Index"
+               asp-route-companySlug="@Model.CompanySlug"
+               asp-route-vendorId="@Model.VendorId"
+               class="btn btn-outline-secondary">@UiText.Cancel</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
