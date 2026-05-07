@@ -111,7 +111,7 @@ Service implementation requirements:
 - Place implementation under `App.BLL/Services`.
 - Inherit from `BaseService<TBllDto, TDalDto, TRepository, IAppUOW>` where there is a persisted entity.
 - Resolve current company/parent context from route.
-- Check active user role or resident/customer context.
+- Check active management-company role only. Do not allow customer or resident context access for ticket lifecycle transitions.
 - Validate IDs through tenant-safe repository methods.
 - Normalize strings before persistence.
 - Return existing BLL error types: `UnauthorizedError`, `ForbiddenError`, `NotFoundError`, `ValidationAppError`, `ConflictError`, `BusinessRuleError`.
@@ -124,22 +124,27 @@ Service implementation requirements:
 - SCHEDULED -> IN_PROGRESS requires started scheduled work.
 - IN_PROGRESS -> COMPLETED requires completed scheduled work and work logs.
 - COMPLETED -> CLOSED allowed for management roles until verification workflow is added.
+- Read/list/details allowed for OWNER, MANAGER, FINANCE, SUPPORT.
+- Advancing lifecycle state allowed for OWNER, MANAGER, SUPPORT unless a stricter transition rule is added.
+- Customer context and resident context are not allowed to advance ticket lifecycle states.
 - Blocking reasons returned through BusinessRuleError or availability model.
 
 ## AppBLL wiring
 
+No new `IAppBLL` property is required.
+
 Update:
 
 ```text
-App.BLL.Contracts/IAppBLL.cs
-App.BLL/AppBLL.cs
+App.BLL.Contracts/Tickets/ITicketService.cs
+App.BLL/Services/Tickets/TicketService.cs
 ```
 
 Steps:
 
-1. Add service property to `IAppBLL`.
-2. Add private lazy service field to `AppBLL`.
-3. Instantiate service with UOW and dependent services.
+1. Extend existing `ITicketService` methods for transition availability and stronger `AdvanceStatusAsync` prerequisites.
+2. Implement lifecycle checks in `TicketService`, using `IScheduledWorkRepository` and `IWorkLogRepository` through `IAppUOW`.
+3. Do not add a new `IAppBLL` property or separate lifecycle facade.
 4. Avoid circular dependencies.
 
 ## WebApp MVC plan
@@ -147,7 +152,7 @@ Steps:
 - Update Ticket Details ViewModel/page to show transition availability and blocking reasons.
 - Update AdvanceStatus POST to show blocking reasons.
 - Add links from ticket details to schedule work and work logs.
-- ScheduledWorkService start/complete can update ticket status when prerequisites are met.
+- Scheduled-work start/complete methods on `ITicketService` can update ticket status when prerequisites are met.
 
 Controller rules:
 

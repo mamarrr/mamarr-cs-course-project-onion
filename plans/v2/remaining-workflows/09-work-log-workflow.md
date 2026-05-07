@@ -102,7 +102,7 @@ Steps:
 Service contract:
 
 ```text
-IWorkLogService : IBaseService<WorkLogBllDto>
+Extend ITicketService. Do not create a public IWorkLogService and do not add IAppBLL.WorkLogs.
 ```
 
 ITicketService methods:
@@ -120,7 +120,7 @@ Service implementation requirements:
 - If an internal helper is used, it may inherit `BaseService<WorkLogBllDto, WorkLogDalDto, IWorkLogRepository, IAppUOW>`.
 - Do not expose the helper through `IAppBLL`.
 - Resolve current company/parent context from route.
-- Check active user role or resident/customer context.
+- Check active management-company role only. Do not allow customer or resident context access for work logs.
 - Validate IDs through tenant-safe repository methods.
 - Normalize strings before persistence.
 - Return existing BLL error types: `UnauthorizedError`, `ForbiddenError`, `NotFoundError`, `ValidationAppError`, `ConflictError`, `BusinessRuleError`.
@@ -129,8 +129,11 @@ Service implementation requirements:
 ## Business rules
 
 - Scheduled work must belong to company.
+- Read/list/details allowed for OWNER, MANAGER, FINANCE, SUPPORT.
 - Add/update roles: OWNER, MANAGER, SUPPORT.
+- Delete allowed for OWNER, MANAGER.
 - Cost visibility: OWNER, MANAGER, FINANCE.
+- Customer context and resident context are not allowed for work logs.
 - Do not trust dto.AppUserId; set from current actor.
 - Hours/costs non-negative.
 - WorkEnd cannot be before WorkStart.
@@ -139,19 +142,24 @@ Service implementation requirements:
 
 ## AppBLL wiring
 
+No new `IAppBLL` property is required.
+
 Update:
 
 ```text
-App.BLL.Contracts/IAppBLL.cs
-App.BLL/AppBLL.cs
+App.BLL.Contracts/Tickets/ITicketService.cs
+App.BLL/Services/Tickets/TicketService.cs
+App.DAL.Contracts/IAppUOW.cs
+App.DAL.EF/AppUOW.cs
 ```
 
 Steps:
 
-1. Add service property to `IAppBLL`.
-2. Add private lazy service field to `AppBLL`.
-3. Instantiate service with UOW and dependent services.
-4. Avoid circular dependencies.
+1. Add work-log methods to `ITicketService`.
+2. Implement the methods in `TicketService` or in an internal helper composed by `TicketService`.
+3. Add `IWorkLogRepository` to `IAppUOW` and `AppUOW`.
+4. Do not add `IAppBLL.WorkLogs`, a public `IWorkLogService`, or a separate first-class work-log facade.
+5. Avoid circular dependencies.
 
 ## WebApp MVC plan
 

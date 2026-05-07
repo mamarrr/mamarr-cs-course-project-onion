@@ -26,12 +26,10 @@ Resident contacts:
   IResidentContactRepository remains separate
 
 Customer representatives:
-  public methods on ICustomerService / IAppBLL.Customers
-  optional internal helper only if CustomerService becomes too large
+  skipped in the current roadmap. Do not implement plan 06 unless it is explicitly reintroduced later.
 
 Resident user links:
-  public methods on IResidentService / IAppBLL.Residents
-  includes management-side link/revoke and public onboarding self-link by ID code
+  skipped in the current roadmap. Do not implement plan 07 unless it is explicitly reintroduced later.
 
 Scheduled work:
   public methods on ITicketService / IAppBLL.Tickets
@@ -64,14 +62,16 @@ Workflow plans included:
 3. Vendor category assignment workflow
 4. Vendor contact workflow
 5. Resident contact workflow
-6. Customer representative workflow
-7. Resident user link workflow
+6. Customer representative workflow — skipped/deferred
+7. Resident user link workflow — skipped/deferred
 8. Scheduled work workflow
 9. Work log workflow
 10. Ticket lifecycle integration workflow
 
 Excluded for now:
 
+- Plan 06 Customer representative workflow
+- Plan 07 Resident user link workflow
 - API controllers
 - public API DTOs
 - tests while the current project override says not to write tests
@@ -159,15 +159,22 @@ VendorBllDto
 VendorTicketCategoryBllDto
 VendorContactBllDto
 ResidentContactBllDto
-CustomerRepresentativeBllDto
-ResidentUserBllDto
 ScheduledWorkBllDto
 WorkLogBllDto
+```
+
+Skipped/deferred DTOs for the current roadmap:
+
+```text
+CustomerRepresentativeBllDto
+ResidentUserBllDto
 ```
 
 Do not create `Create*Dto`, `Update*Dto`, `Delete*Dto`, or API DTOs by default. Use canonical DTOs, route models, and WebApp ViewModels.
 
 ## Resident ID code uniqueness rule
+
+This section is retained only for domain/persistence consistency and for a possible future resident-user-link workflow. Because plan 07 is skipped in the current roadmap, do not implement public self-link or resident-user-link behavior now.
 
 Resident ID code is unique inside one management company, not globally.
 
@@ -233,8 +240,6 @@ public sealed class VendorRoute : ManagementCompanyRoute { public Guid VendorId 
 public sealed class VendorCategoryRoute : VendorRoute { public Guid TicketCategoryId { get; set; } }
 public sealed class VendorContactRoute : VendorRoute { public Guid VendorContactId { get; set; } }
 public sealed class ResidentContactRoute : ResidentRoute { public Guid ResidentContactId { get; set; } }
-public sealed class CustomerRepresentativeRoute : CustomerRoute { public Guid CustomerRepresentativeId { get; set; } }
-public sealed class ResidentUserRoute : ResidentRoute { public Guid ResidentUserId { get; set; } }
 public sealed class ScheduledWorkRoute : TicketRoute { public Guid ScheduledWorkId { get; set; } }
 public sealed class WorkLogRoute : ScheduledWorkRoute { public Guid WorkLogId { get; set; } }
 ```
@@ -293,21 +298,10 @@ Customer/resident/ticket subworkflow method placement:
 
 ```text
 ICustomerService
-  ListRepresentativesAsync
-  GetRepresentativeFormAsync
-  AddRepresentativeAsync
-  UpdateRepresentativeAsync
-  EndRepresentativeAssignmentAsync
-  DeleteErroneousRepresentativeAssignmentAsync
+  No customer representative methods in the current roadmap. Plan 06 is skipped/deferred.
 
 IResidentService
-  ListUserLinksAsync
-  LinkUserAsync
-  LinkUserByEmailAsync
-  UpdateUserLinkAsync
-  RevokeUserAccessAsync
-  DeleteErroneousUserLinkAsync
-  SelfLinkByIdCodeAsync
+  No resident user link methods in the current roadmap. Plan 07 is skipped/deferred.
 
 ITicketService
   ListScheduledWorkForTicketAsync
@@ -336,12 +330,20 @@ For each repository:
 3. Add private repository field to `AppUOW`.
 4. Add lazy property implementation.
 
-For each service:
+For each first-class domain service:
 
 1. Add property to `IAppBLL`.
 2. Add private service field to `AppBLL`.
 3. Add lazy property implementation.
 4. Avoid circular service dependencies.
+
+For subworkflows exposed through an existing parent facade, do **not** add a new `IAppBLL` property. Add methods to the parent service contract instead. For the remaining roadmap this means:
+
+```text
+Scheduled work -> ITicketService / IAppBLL.Tickets
+Work logs -> ITicketService / IAppBLL.Tickets
+Ticket lifecycle integration -> ITicketService / IAppBLL.Tickets
+```
 
 Exception: reusable helper services such as `ContactService` may have public contracts and implementations without becoming first-class `IAppBLL` properties. Compose them inside the parent domain service that owns the user-facing workflow.
 
@@ -358,9 +360,10 @@ Tenant boundary is management company.
 
 Resident self-service exceptions:
 
-- resident users may manage their own contact details,
+- resident users may manage their own contact details only if plan 05 explicitly keeps resident-context support,
 - resident users may view own resident-linked records only when explicitly supported,
-- resident users must never gain management-company-wide access.
+- resident users must never gain management-company-wide access,
+- plans 08, 09, and 10 are management-company operational workflows only and must not allow customer/resident context access.
 
 Every service should validate `AppUserId`, resolve company by slug, verify active role/context, and query child entities by parent plus company.
 
@@ -396,8 +399,6 @@ WebApp/Areas/Management/Controllers/
   VendorCategoriesController.cs
   VendorContactsController.cs
   ResidentContactsController.cs
-  CustomerRepresentativesController.cs
-  ResidentUsersController.cs
   ScheduledWorksController.cs
   WorkLogsController.cs
 ```
@@ -428,9 +429,19 @@ Nested workflows can use fewer pages and be embedded into parent profile/details
 
 - Company/dashboard: Vendors
 - Vendor details: Contacts and category assignments
-- Resident details: Contacts and linked users
-- Customer details: Representatives
+- Resident details: Contacts
 - Ticket details: Scheduled work and work logs
+
+## Current implementation order
+
+```text
+1. Plans 01–05: implemented or being fixed.
+2. Plan 06: skipped/deferred.
+3. Plan 07: skipped/deferred.
+4. Plan 08: implement next as a management-company ticket-operation workflow.
+5. Plan 09: implement after scheduled work.
+6. Plan 10: implement after scheduled work and work logs.
+```
 
 ## Definition of done per workflow
 

@@ -107,7 +107,7 @@ Steps:
 Service contract:
 
 ```text
-IScheduledWorkService : IBaseService<ScheduledWorkBllDto>
+Extend ITicketService. Do not create a public IScheduledWorkService and do not add IAppBLL.ScheduledWorks.
 ```
 
 ITicketService methods:
@@ -131,7 +131,7 @@ Service implementation requirements:
 - If an internal helper is used, it may inherit `BaseService<ScheduledWorkBllDto, ScheduledWorkDalDto, IScheduledWorkRepository, IAppUOW>`.
 - Do not expose the helper through `IAppBLL`.
 - Resolve current company/parent context from route.
-- Check active user role or resident/customer context.
+- Check active management-company role only. Do not allow customer or resident context access for scheduled work.
 - Validate IDs through tenant-safe repository methods.
 - Normalize strings before persistence.
 - Return existing BLL error types: `UnauthorizedError`, `ForbiddenError`, `NotFoundError`, `ValidationAppError`, `ConflictError`, `BusinessRuleError`.
@@ -143,26 +143,34 @@ Service implementation requirements:
 - Vendor must belong to company.
 - Vendor should support ticket category if ticket has category.
 - Work status must exist.
-- Scheduling allowed for OWNER, MANAGER, SUPPORT.
+- Read/list/details allowed for OWNER, MANAGER, FINANCE, SUPPORT.
+- Scheduling, updating, starting, completing, and cancelling allowed for OWNER, MANAGER, SUPPORT.
+- Delete allowed for OWNER, MANAGER.
+- Customer context and resident context are not allowed for scheduled work.
 - ScheduledEnd cannot be before ScheduledStart.
 - RealEnd cannot be before RealStart.
 - Delete blocked if work logs exist.
 
 ## AppBLL wiring
 
+No new `IAppBLL` property is required.
+
 Update:
 
 ```text
-App.BLL.Contracts/IAppBLL.cs
-App.BLL/AppBLL.cs
+App.BLL.Contracts/Tickets/ITicketService.cs
+App.BLL/Services/Tickets/TicketService.cs
+App.DAL.Contracts/IAppUow.cs
+App.DAL.EF/AppUOW.cs
 ```
 
 Steps:
 
-1. Add service property to `IAppBLL`.
-2. Add private lazy service field to `AppBLL`.
-3. Instantiate service with UOW and dependent services.
-4. Avoid circular dependencies.
+1. Add scheduled-work methods to `ITicketService`.
+2. Implement the methods in `TicketService` or in an internal helper composed by `TicketService`.
+3. Add `IScheduledWorkRepository` to `IAppUOW` and `AppUOW`.
+4. Do not add `IAppBLL.ScheduledWorks`, a public `IScheduledWorkService`, or a separate first-class scheduled-work facade.
+5. Avoid circular dependencies.
 
 ## WebApp MVC plan
 
