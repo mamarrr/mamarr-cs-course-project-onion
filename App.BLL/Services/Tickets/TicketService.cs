@@ -643,14 +643,33 @@ public class TicketService :
             return Result.Fail<ScheduledWorkBllDto>("Scheduled work mapping failed.");
         }
 
-        var id = _uow.ScheduledWorks.Add(dalDto);
-        await _uow.SaveChangesAsync(cancellationToken);
+        Guid id;
+        await _uow.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            id = _uow.ScheduledWorks.Add(dalDto);
 
-        await UpdateTicketStatusIfEarlierAsync(
-            context.Value.Ticket,
-            TicketWorkflowConstants.Scheduled,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
+            var ticketStatusUpdate = await StageTicketStatusIfImmediateNextAsync(
+                context.Value.Ticket,
+                TicketWorkflowConstants.Scheduled,
+                context.Value.Workspace.ManagementCompanyId,
+                cancellationToken);
+            if (ticketStatusUpdate.IsFailed)
+            {
+                await _uow.RollbackTransactionAsync(cancellationToken);
+                return Result.Fail<ScheduledWorkBllDto>(ticketStatusUpdate.Errors);
+            }
+
+            await _uow.SaveChangesAsync(cancellationToken);
+            await _uow.CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(cancellationToken);
+            return Result.Fail<ScheduledWorkBllDto>(new ConflictError(T(
+                "ScheduledWorkCreateFailed",
+                "Failed to schedule work due to a data conflict.")));
+        }
 
         var created = await _uow.ScheduledWorks.FindInCompanyAsync(
             id,
@@ -741,17 +760,35 @@ public class TicketService :
         dto.RealEnd = null;
         dto.WorkStatusId = inProgressStatus.Id;
 
-        await _uow.ScheduledWorks.UpdateAsync(
-            dto,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        await _uow.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            await _uow.ScheduledWorks.UpdateAsync(
+                dto,
+                context.Value.Workspace.ManagementCompanyId,
+                cancellationToken);
 
-        await UpdateTicketStatusIfEarlierAsync(
-            context.Value.Ticket,
-            TicketWorkflowConstants.InProgress,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
+            var ticketStatusUpdate = await StageTicketStatusIfImmediateNextAsync(
+                context.Value.Ticket,
+                TicketWorkflowConstants.InProgress,
+                context.Value.Workspace.ManagementCompanyId,
+                cancellationToken);
+            if (ticketStatusUpdate.IsFailed)
+            {
+                await _uow.RollbackTransactionAsync(cancellationToken);
+                return Result.Fail(ticketStatusUpdate.Errors);
+            }
+
+            await _uow.SaveChangesAsync(cancellationToken);
+            await _uow.CommitTransactionAsync(cancellationToken);
+        }
+        catch
+        {
+            await _uow.RollbackTransactionAsync(cancellationToken);
+            return Result.Fail(new ConflictError(T(
+                "ScheduledWorkStartFailed",
+                "Failed to start scheduled work due to a data conflict.")));
+        }
 
         return Result.Ok();
     }
@@ -811,12 +848,6 @@ public class TicketService :
             context.Value.Workspace.ManagementCompanyId,
             cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
-
-        await UpdateTicketStatusIfEarlierAsync(
-            context.Value.Ticket,
-            TicketWorkflowConstants.Completed,
-            context.Value.Workspace.ManagementCompanyId,
-            cancellationToken);
 
         return Result.Ok();
     }
@@ -1174,7 +1205,7 @@ public class TicketService :
         return Result.Ok();
     }
 
-    private async Task UpdateTicketStatusIfEarlierAsync(
+    private async Task<Result> StageTicketStatusIfImmediateNextAsync(
         TicketDetailsDalDto ticket,
         string targetStatusCode,
         Guid managementCompanyId,
@@ -1184,16 +1215,18 @@ public class TicketService :
         var targetIndex = StatusIndex(targetStatusCode);
         if (currentIndex < 0 || targetIndex < 0 || currentIndex >= targetIndex || targetIndex != currentIndex + 1)
         {
-            return;
+            return Result.Ok();
         }
 
         var targetStatus = await _uow.Lookups.FindTicketStatusByCodeAsync(targetStatusCode, cancellationToken);
         if (targetStatus is null)
         {
-            return;
+            return Result.Fail(new BusinessRuleError(T(
+                "TicketTargetStatusMissing",
+                "Target ticket status is not configured.")));
         }
 
-        await _uow.Tickets.UpdateStatusAsync(
+        var updated = await _uow.Tickets.UpdateStatusAsync(
             new TicketStatusUpdateDalDto
             {
                 Id = ticket.Id,
@@ -1202,7 +1235,10 @@ public class TicketService :
                 ClosedAt = targetStatusCode == TicketWorkflowConstants.Closed ? DateTime.UtcNow : null
             },
             cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+
+        return updated
+            ? Result.Ok()
+            : Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
     }
 
     private static Result ValidateTicketStatusForWorkAction(
