@@ -47,7 +47,7 @@ public class WorkLogsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.ListWorkLogsForScheduledWorkAsync(route, cancellationToken);
+        var result = await _bll.WorkLogs.ListForScheduledWorkAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             return ToMvcErrorResult(result.Errors);
@@ -94,7 +94,7 @@ public class WorkLogsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.AddWorkLogAsync(route, ToBllDto(vm.Form), cancellationToken);
+        var result = await _bll.WorkLogs.AddAsync(route, ToBllDto(vm.Form), cancellationToken);
         if (result.IsFailed)
         {
             if (HasAccessError(result.Errors))
@@ -145,7 +145,7 @@ public class WorkLogsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.UpdateWorkLogAsync(route, ToBllDto(vm.Form), cancellationToken);
+        var result = await _bll.WorkLogs.UpdateAsync(route, ToBllDto(vm.Form), cancellationToken);
         if (result.IsFailed)
         {
             if (HasAccessError(result.Errors))
@@ -176,7 +176,7 @@ public class WorkLogsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.GetWorkLogDeleteModelAsync(route, cancellationToken);
+        var result = await _bll.WorkLogs.GetDeleteModelAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             return ToMvcErrorResult(result.Errors);
@@ -206,7 +206,7 @@ public class WorkLogsController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.DeleteWorkLogAsync(route, cancellationToken);
+        var result = await _bll.WorkLogs.DeleteAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             if (HasAccessError(result.Errors))
@@ -236,7 +236,7 @@ public class WorkLogsController : Controller
             return (Challenge(), null);
         }
 
-        var result = await _bll.Tickets.GetWorkLogCreateFormAsync(route, cancellationToken);
+        var result = await _bll.WorkLogs.GetCreateFormAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             return (ToMvcErrorResult(result.Errors), null);
@@ -265,7 +265,7 @@ public class WorkLogsController : Controller
             return (Challenge(), null);
         }
 
-        var result = await _bll.Tickets.GetWorkLogEditFormAsync(route, cancellationToken);
+        var result = await _bll.WorkLogs.GetEditFormAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             return (ToMvcErrorResult(result.Errors), null);

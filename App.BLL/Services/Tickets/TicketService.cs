@@ -5,12 +5,9 @@ using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Customers.Models;
-using App.BLL.DTO.ScheduledWorks;
 using App.BLL.DTO.ScheduledWorks.Models;
 using App.BLL.DTO.Tickets;
 using App.BLL.DTO.Tickets.Models;
-using App.BLL.DTO.WorkLogs;
-using App.BLL.DTO.WorkLogs.Models;
 using App.BLL.Mappers.Tickets;
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
@@ -57,20 +54,14 @@ public class TicketService :
 
     private readonly IAppUOW _uow;
     private readonly IAppDeleteGuard _deleteGuard;
-    private readonly IScheduledWorkService _scheduledWorkService;
-    private readonly IWorkLogService _workLogService;
 
     public TicketService(
         IAppUOW uow,
-        IAppDeleteGuard deleteGuard,
-        IScheduledWorkService scheduledWorkService,
-        IWorkLogService workLogService)
+        IAppDeleteGuard deleteGuard)
         : base(uow.Tickets, uow, new TicketBllDtoMapper())
     {
         _uow = uow;
         _deleteGuard = deleteGuard;
-        _scheduledWorkService = scheduledWorkService;
-        _workLogService = workLogService;
     }
 
     public async Task<Result<ManagementTicketsModel>> SearchAsync(
@@ -566,131 +557,6 @@ public class TicketService :
         }
 
         return await FindAsync(route.TicketId, workspace.Value.ManagementCompanyId, cancellationToken);
-    }
-
-    public async Task<Result<ScheduledWorkListModel>> ListScheduledWorkForTicketAsync(
-        TicketRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _scheduledWorkService.ListForTicketAsync(route, cancellationToken);
-    }
-
-    public async Task<Result<ScheduledWorkDetailsModel>> GetScheduledWorkDetailsAsync(
-        ScheduledWorkRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _scheduledWorkService.GetDetailsAsync(route, cancellationToken);
-    }
-
-    public async Task<Result<ScheduledWorkFormModel>> GetScheduleCreateFormAsync(
-        TicketRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _scheduledWorkService.GetCreateFormAsync(route, cancellationToken);
-    }
-
-    public async Task<Result<ScheduledWorkFormModel>> GetScheduleEditFormAsync(
-        ScheduledWorkRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _scheduledWorkService.GetEditFormAsync(route, cancellationToken);
-    }
-
-    public async Task<Result<ScheduledWorkBllDto>> ScheduleWorkAsync(
-        TicketRoute route,
-        ScheduledWorkBllDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        return await _scheduledWorkService.ScheduleAsync(route, dto, cancellationToken);
-    }
-
-    public async Task<Result<ScheduledWorkBllDto>> UpdateScheduleAsync(
-        ScheduledWorkRoute route,
-        ScheduledWorkBllDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        return await _scheduledWorkService.UpdateScheduleAsync(route, dto, cancellationToken);
-    }
-
-    public async Task<Result> StartWorkAsync(
-        ScheduledWorkRoute route,
-        DateTime realStart,
-        CancellationToken cancellationToken = default)
-    {
-        return await _scheduledWorkService.StartWorkAsync(route, realStart, cancellationToken);
-    }
-
-    public async Task<Result> CompleteWorkAsync(
-        ScheduledWorkRoute route,
-        DateTime realEnd,
-        CancellationToken cancellationToken = default)
-    {
-        return await _scheduledWorkService.CompleteWorkAsync(route, realEnd, cancellationToken);
-    }
-
-    public async Task<Result> CancelWorkAsync(
-        ScheduledWorkRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _scheduledWorkService.CancelWorkAsync(route, cancellationToken);
-    }
-
-    public async Task<Result> DeleteScheduledWorkAsync(
-        ScheduledWorkRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _scheduledWorkService.DeleteAsync(route, cancellationToken);
-    }
-
-    public async Task<Result<WorkLogListModel>> ListWorkLogsForScheduledWorkAsync(
-        ScheduledWorkRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _workLogService.ListForScheduledWorkAsync(route, cancellationToken);
-    }
-
-    public async Task<Result<WorkLogFormModel>> GetWorkLogCreateFormAsync(
-        ScheduledWorkRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _workLogService.GetCreateFormAsync(route, cancellationToken);
-    }
-
-    public async Task<Result<WorkLogFormModel>> GetWorkLogEditFormAsync(
-        WorkLogRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _workLogService.GetEditFormAsync(route, cancellationToken);
-    }
-
-    public async Task<Result<WorkLogDeleteModel>> GetWorkLogDeleteModelAsync(
-        WorkLogRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _workLogService.GetDeleteModelAsync(route, cancellationToken);
-    }
-
-    public async Task<Result<WorkLogBllDto>> AddWorkLogAsync(
-        ScheduledWorkRoute route,
-        WorkLogBllDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        return await _workLogService.AddAsync(route, dto, cancellationToken);
-    }
-
-    public async Task<Result<WorkLogBllDto>> UpdateWorkLogAsync(
-        WorkLogRoute route,
-        WorkLogBllDto dto,
-        CancellationToken cancellationToken = default)
-    {
-        return await _workLogService.UpdateAsync(route, dto, cancellationToken);
-    }
-
-    public async Task<Result> DeleteWorkLogAsync(
-        WorkLogRoute route,
-        CancellationToken cancellationToken = default)
-    {
-        return await _workLogService.DeleteAsync(route, cancellationToken);
     }
 
     private async Task<Result> AdvanceStatusCoreAsync(

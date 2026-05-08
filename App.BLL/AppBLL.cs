@@ -92,12 +92,12 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
         _leases ??= new LeaseService(UOW, Residents, Units);
 
     public ITicketService Tickets =>
-        _tickets ??= new TicketService(UOW, DeleteGuard, ScheduledWorks, WorkLogs);
+        _tickets ??= new TicketService(UOW, DeleteGuard);
 
-    private IScheduledWorkService ScheduledWorks =>
+    public IScheduledWorkService ScheduledWorks =>
         _scheduledWorks ??= new ScheduledWorkService(UOW);
 
-    private IWorkLogService WorkLogs =>
+    public IWorkLogService WorkLogs =>
         _workLogs ??= new WorkLogService(UOW);
 
     private IContactService Contacts =>

@@ -48,7 +48,7 @@ public class ScheduledWorksController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.ListScheduledWorkForTicketAsync(route, cancellationToken);
+        var result = await _bll.ScheduledWorks.ListForTicketAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             return ToMvcErrorResult(result.Errors);
@@ -93,7 +93,7 @@ public class ScheduledWorksController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.ScheduleWorkAsync(route, ToBllDto(vm.Form), cancellationToken);
+        var result = await _bll.ScheduledWorks.ScheduleAsync(route, ToBllDto(vm.Form), cancellationToken);
         if (result.IsFailed)
         {
             if (HasAccessError(result.Errors))
@@ -123,7 +123,7 @@ public class ScheduledWorksController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.GetScheduledWorkDetailsAsync(route, cancellationToken);
+        var result = await _bll.ScheduledWorks.GetDetailsAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             return ToMvcErrorResult(result.Errors);
@@ -170,7 +170,7 @@ public class ScheduledWorksController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.UpdateScheduleAsync(route, ToBllDto(vm.Form), cancellationToken);
+        var result = await _bll.ScheduledWorks.UpdateScheduleAsync(route, ToBllDto(vm.Form), cancellationToken);
         if (result.IsFailed)
         {
             if (HasAccessError(result.Errors))
@@ -200,7 +200,7 @@ public class ScheduledWorksController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.GetScheduledWorkDetailsAsync(route, cancellationToken);
+        var result = await _bll.ScheduledWorks.GetDetailsAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             return ToMvcErrorResult(result.Errors);
@@ -238,7 +238,7 @@ public class ScheduledWorksController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Tickets.DeleteScheduledWorkAsync(route, cancellationToken);
+        var result = await _bll.ScheduledWorks.DeleteAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             if (HasAccessError(result.Errors))
@@ -268,7 +268,7 @@ public class ScheduledWorksController : Controller
             companySlug,
             ticketId,
             scheduledWorkId,
-            route => _bll.Tickets.StartWorkAsync(route, vm.StartForm.ActionAt, cancellationToken),
+            route => _bll.ScheduledWorks.StartWorkAsync(route, vm.StartForm.ActionAt, cancellationToken),
             T("ScheduledWorkStartedSuccessfully", "Scheduled work started successfully."),
             T("UnableToStartScheduledWork", "Unable to start scheduled work."));
     }
@@ -286,7 +286,7 @@ public class ScheduledWorksController : Controller
             companySlug,
             ticketId,
             scheduledWorkId,
-            route => _bll.Tickets.CompleteWorkAsync(route, vm.CompleteForm.ActionAt, cancellationToken),
+            route => _bll.ScheduledWorks.CompleteWorkAsync(route, vm.CompleteForm.ActionAt, cancellationToken),
             T("ScheduledWorkCompletedSuccessfully", "Scheduled work completed successfully."),
             T("UnableToCompleteScheduledWork", "Unable to complete scheduled work."));
     }
@@ -303,7 +303,7 @@ public class ScheduledWorksController : Controller
             companySlug,
             ticketId,
             scheduledWorkId,
-            route => _bll.Tickets.CancelWorkAsync(route, cancellationToken),
+            route => _bll.ScheduledWorks.CancelWorkAsync(route, cancellationToken),
             T("ScheduledWorkCancelledSuccessfully", "Scheduled work cancelled successfully."),
             T("UnableToCancelScheduledWork", "Unable to cancel scheduled work."));
     }
@@ -350,7 +350,7 @@ public class ScheduledWorksController : Controller
             return (Challenge(), null);
         }
 
-        var result = await _bll.Tickets.GetScheduleCreateFormAsync(route, cancellationToken);
+        var result = await _bll.ScheduledWorks.GetCreateFormAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             return (ToMvcErrorResult(result.Errors), null);
@@ -378,7 +378,7 @@ public class ScheduledWorksController : Controller
             return (Challenge(), null);
         }
 
-        var result = await _bll.Tickets.GetScheduleEditFormAsync(route, cancellationToken);
+        var result = await _bll.ScheduledWorks.GetEditFormAsync(route, cancellationToken);
         if (result.IsFailed)
         {
             return (ToMvcErrorResult(result.Errors), null);

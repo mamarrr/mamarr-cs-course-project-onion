@@ -25,6 +25,8 @@ public interface IAppBLL : IBaseBLL
     IResidentService Residents { get; }
     ILeaseService Leases { get; }
     ITicketService Tickets { get; }
+    IScheduledWorkService ScheduledWorks { get; }
+    IWorkLogService WorkLogs { get; }
     IVendorService Vendors { get; }
     IManagementCompanyService ManagementCompanies { get; }
     ICompanyMembershipService CompanyMemberships { get; }
