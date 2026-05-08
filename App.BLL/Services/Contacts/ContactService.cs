@@ -1,5 +1,5 @@
 using App.BLL.Contracts.Contacts;
-using App.BLL.DTO.Common;
+using App.BLL.Contracts.Common.Portal;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Contacts;
@@ -37,9 +37,17 @@ public class ContactService :
         "MANAGER"
     };
 
-    public ContactService(IAppUOW uow)
+    private readonly IPortalContextProvider _portalContext;
+    private readonly ContactWriter _contactWriter;
+
+    public ContactService(
+        IAppUOW uow,
+        IPortalContextProvider portalContext,
+        ContactWriter contactWriter)
         : base(uow.Contacts, uow, new ContactBllDtoMapper())
     {
+        _portalContext = portalContext;
+        _contactWriter = contactWriter;
     }
 
     public async Task<Result<IReadOnlyList<ContactBllDto>>> ListForCompanyAsync(
@@ -72,17 +80,17 @@ public class ContactService :
             return Result.Fail<ContactBllDto>(access.Errors);
         }
 
-        var validation = await ValidateAsync(dto, access.Value.ManagementCompanyId, null, cancellationToken);
-        if (validation.IsFailed)
+        var created = await _contactWriter.StageCreateAsync(
+            access.Value.ManagementCompanyId,
+            dto,
+            cancellationToken);
+        if (created.IsFailed)
         {
-            return Result.Fail<ContactBllDto>(validation.Errors);
+            return Result.Fail<ContactBllDto>(created.Errors);
         }
 
-        var normalized = Normalize(dto);
-        normalized.Id = Guid.Empty;
-        normalized.ManagementCompanyId = access.Value.ManagementCompanyId;
-
-        return await AddAndFindCoreAsync(normalized, access.Value.ManagementCompanyId, cancellationToken);
+        await ServiceUOW.SaveChangesAsync(cancellationToken);
+        return await FindAsync(created.Value.Id, access.Value.ManagementCompanyId, cancellationToken);
     }
 
     public async Task<Result<ContactBllDto>> UpdateAsync(
@@ -105,15 +113,14 @@ public class ContactService :
             return Result.Fail<ContactBllDto>(new NotFoundError(T("ContactNotFound", "Contact was not found.")));
         }
 
-        var validation = await ValidateAsync(dto, access.Value.ManagementCompanyId, route.ContactId, cancellationToken);
+        var validation = await _contactWriter.ValidateAsync(dto, access.Value.ManagementCompanyId, route.ContactId, cancellationToken);
         if (validation.IsFailed)
         {
             return Result.Fail<ContactBllDto>(validation.Errors);
         }
 
-        var normalized = Normalize(dto);
+        var normalized = _contactWriter.NormalizeForCompany(dto, access.Value.ManagementCompanyId);
         normalized.Id = route.ContactId;
-        normalized.ManagementCompanyId = access.Value.ManagementCompanyId;
 
         var updated = await base.UpdateAsync(normalized, access.Value.ManagementCompanyId, cancellationToken);
         if (updated.IsFailed)
@@ -168,122 +175,16 @@ public class ContactService :
         IReadOnlySet<string> allowedRoleCodes,
         CancellationToken cancellationToken)
     {
-        if (route.AppUserId == Guid.Empty)
-        {
-            return Result.Fail<CompanyAccessContext>(new UnauthorizedError("Authentication is required."));
-        }
-
-        if (string.IsNullOrWhiteSpace(route.CompanySlug))
-        {
-            return Result.Fail<CompanyAccessContext>(new NotFoundError(App.Resources.Views.UiText.ManagementCompanyWasNotFound));
-        }
-
-        var company = await ServiceUOW.ManagementCompanies.FirstBySlugAsync(
-            route.CompanySlug,
+        var access = await _portalContext.ResolveCompanyWorkspaceAsync(
+            route,
+            allowedRoleCodes,
             cancellationToken);
-        if (company is null)
+        if (access.IsFailed)
         {
-            return Result.Fail<CompanyAccessContext>(new NotFoundError(App.Resources.Views.UiText.ManagementCompanyWasNotFound));
+            return Result.Fail<CompanyAccessContext>(access.Errors);
         }
 
-        var roleCode = await ServiceUOW.ManagementCompanies.FindActiveUserRoleCodeAsync(
-            route.AppUserId,
-            company.Id,
-            cancellationToken);
-
-        return roleCode is not null && allowedRoleCodes.Contains(roleCode)
-            ? Result.Ok(new CompanyAccessContext(company.Id))
-            : Result.Fail<CompanyAccessContext>(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
-    }
-
-    private async Task<Result> ValidateAsync(
-        ContactBllDto dto,
-        Guid managementCompanyId,
-        Guid? exceptContactId,
-        CancellationToken cancellationToken)
-    {
-        var failures = new List<ValidationFailureModel>();
-
-        if (dto.ContactTypeId == Guid.Empty)
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.ContactTypeId),
-                ErrorMessage = RequiredField(App.Resources.Views.UiText.Contacts)
-            });
-        }
-        else if (!await ServiceUOW.Lookups.ContactTypeExistsAsync(dto.ContactTypeId, cancellationToken))
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.ContactTypeId),
-                ErrorMessage = T("InvalidContactType", "Selected contact type is invalid.")
-            });
-        }
-
-        if (string.IsNullOrWhiteSpace(dto.ContactValue))
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.ContactValue),
-                ErrorMessage = RequiredField(App.Resources.Views.UiText.Contacts)
-            });
-        }
-        else if (dto.ContactValue.Trim().Length > 255)
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.ContactValue),
-                ErrorMessage = T("ContactValueMaxLength", "Contact value must be 255 characters or fewer.")
-            });
-        }
-
-        if (!string.IsNullOrWhiteSpace(dto.Notes) && dto.Notes.Trim().Length > 4000)
-        {
-            failures.Add(new ValidationFailureModel
-            {
-                PropertyName = nameof(dto.Notes),
-                ErrorMessage = T("ContactNotesMaxLength", "Notes must be 4000 characters or fewer.")
-            });
-        }
-
-        if (failures.Count > 0)
-        {
-            return Result.Fail(new ValidationAppError("Validation failed.", failures));
-        }
-
-        var normalized = Normalize(dto);
-        var duplicateExists = await ServiceUOW.Contacts.DuplicateValueExistsAsync(
-            managementCompanyId,
-            normalized.ContactTypeId,
-            normalized.ContactValue,
-            exceptContactId,
-            cancellationToken);
-        if (duplicateExists)
-        {
-            return Result.Fail(new ConflictError(T(
-                "ContactAlreadyExists",
-                "A contact with the same type and value already exists in this company.")));
-        }
-
-        return Result.Ok();
-    }
-
-    private static ContactBllDto Normalize(ContactBllDto dto)
-    {
-        return new ContactBllDto
-        {
-            Id = dto.Id,
-            ManagementCompanyId = dto.ManagementCompanyId,
-            ContactTypeId = dto.ContactTypeId,
-            ContactValue = dto.ContactValue.Trim(),
-            Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim()
-        };
-    }
-
-    private static string RequiredField(string fieldName)
-    {
-        return App.Resources.Views.UiText.RequiredField.Replace("{0}", fieldName);
+        return Result.Ok(new CompanyAccessContext(access.Value.ManagementCompanyId));
     }
 
     private static string DeleteBlockedMessage()

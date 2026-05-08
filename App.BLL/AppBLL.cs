@@ -1,7 +1,6 @@
 using App.BLL.Contracts;
 using App.BLL.Contracts.Admin;
-using App.BLL.Contracts.Contacts;
-using App.BLL.Contracts.Common.Deletion;
+using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
@@ -13,7 +12,7 @@ using App.BLL.Contracts.Units;
 using App.BLL.Contracts.Vendors;
 using App.BLL.Services.Admin;
 using App.BLL.Services.Contacts;
-using App.BLL.Services.Common.Deletion;
+using App.BLL.Services.Common.Portal;
 using App.BLL.Services.Customers;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
@@ -47,11 +46,14 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private IScheduledWorkService? _scheduledWorks;
     private IWorkLogService? _workLogs;
     private IVendorService? _vendors;
-    private IContactService? _contacts;
-    private IAppDeleteGuard? _deleteGuard;
+    private IPortalContextProvider? _portalContext;
+    private ContactWriter? _contactWriter;
 
-    private IAppDeleteGuard DeleteGuard =>
-        _deleteGuard ??= new AppDeleteGuard(UOW);
+    private IPortalContextProvider PortalContext =>
+        _portalContext ??= new PortalContextProvider(UOW);
+
+    private ContactWriter ContactWriter =>
+        _contactWriter ??= new ContactWriter(UOW);
 
     public IAdminDashboardService AdminDashboard =>
         _adminDashboard ??= new AdminDashboardService(UOW);
@@ -75,24 +77,24 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
         _companyMemberships ??= new CompanyMembershipService(UOW);
 
     public IManagementCompanyService ManagementCompanies =>
-        _managementCompanies ??= new ManagementCompanyService(UOW, CompanyMemberships);
+        _managementCompanies ??= new ManagementCompanyService(UOW, PortalContext);
 
     public ICustomerService Customers =>
         _customers ??= new CustomerService(
             UOW,
-            DeleteGuard);
+            PortalContext);
 
     public IPropertyService Properties =>
-        _properties ??= new PropertyService(UOW, Customers, DeleteGuard);
+        _properties ??= new PropertyService(UOW, PortalContext);
 
     public IResidentService Residents =>
-        _residents ??= new ResidentService(UOW, DeleteGuard, Contacts);
+        _residents ??= new ResidentService(UOW, PortalContext, ContactWriter);
 
     public ILeaseService Leases =>
-        _leases ??= new LeaseService(UOW, Residents, Units);
+        _leases ??= new LeaseService(UOW, PortalContext);
 
     public ITicketService Tickets =>
-        _tickets ??= new TicketService(UOW, DeleteGuard);
+        _tickets ??= new TicketService(UOW);
 
     public IScheduledWorkService ScheduledWorks =>
         _scheduledWorks ??= new ScheduledWorkService(UOW);
@@ -100,14 +102,11 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     public IWorkLogService WorkLogs =>
         _workLogs ??= new WorkLogService(UOW);
 
-    private IContactService Contacts =>
-        _contacts ??= new ContactService(UOW);
-
     public IVendorService Vendors =>
-        _vendors ??= new VendorService(UOW, Contacts);
+        _vendors ??= new VendorService(UOW, PortalContext, ContactWriter);
 
     public IUnitService Units =>
-        _units ??= new UnitService(UOW, Properties, DeleteGuard);
+        _units ??= new UnitService(UOW, PortalContext);
 
     public AppBLL(
         IAppUOW uow) : base(uow)

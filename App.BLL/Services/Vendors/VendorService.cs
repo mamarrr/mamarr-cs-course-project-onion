@@ -1,4 +1,4 @@
-using App.BLL.Contracts.Contacts;
+using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Vendors;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
@@ -6,7 +6,9 @@ using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Contacts;
 using App.BLL.DTO.Vendors;
 using App.BLL.DTO.Vendors.Models;
+using App.BLL.Mappers.Contacts;
 using App.BLL.Mappers.Vendors;
+using App.BLL.Services.Contacts;
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
 using App.DAL.DTO.Tickets;
@@ -43,12 +45,18 @@ public class VendorService :
 
     private const int CategoryNotesMaxLength = 4000;
     private const int VendorContactNameMaxLength = 200;
-    private readonly IContactService _contactService;
+    private readonly IPortalContextProvider _portalContext;
+    private readonly ContactWriter _contactWriter;
+    private readonly ContactBllDtoMapper _contactMapper = new();
 
-    public VendorService(IAppUOW uow, IContactService contactService)
+    public VendorService(
+        IAppUOW uow,
+        IPortalContextProvider portalContext,
+        ContactWriter contactWriter)
         : base(uow.Vendors, uow, new VendorBllDtoMapper())
     {
-        _contactService = contactService;
+        _portalContext = portalContext;
+        _contactWriter = contactWriter;
     }
 
     public async Task<Result<VendorWorkspaceModel>> ResolveCompanyWorkspaceAsync(
@@ -465,7 +473,10 @@ public class VendorService :
             var contactId = dto.ContactId;
             if (newContact is not null)
             {
-                var createdContact = await _contactService.CreateAsync(route, newContact, cancellationToken);
+                var createdContact = await _contactWriter.StageCreateAsync(
+                    access.Value.ManagementCompanyId,
+                    newContact,
+                    cancellationToken);
                 if (createdContact.IsFailed)
                 {
                     await ServiceUOW.RollbackTransactionAsync(cancellationToken);
@@ -759,11 +770,9 @@ public class VendorService :
             access.VendorId,
             access.ManagementCompanyId,
             cancellationToken);
-        var existingContacts = await _contactService.ListForCompanyAsync(route, cancellationToken);
-        if (existingContacts.IsFailed)
-        {
-            return Result.Fail<VendorContactListModel>(existingContacts.Errors);
-        }
+        var existingContacts = await ServiceUOW.Contacts.OptionsByCompanyAsync(
+            access.ManagementCompanyId,
+            cancellationToken);
 
         var contactTypes = await ServiceUOW.Lookups.AllContactTypesAsync(cancellationToken);
 
@@ -774,7 +783,9 @@ public class VendorService :
             VendorId = access.VendorId,
             VendorName = profile.Name,
             Contacts = contacts.Select(ToContactAssignmentModel).ToList(),
-            ExistingContacts = existingContacts.Value,
+            ExistingContacts = existingContacts
+                .Select(contact => _contactMapper.Map(contact)!)
+                .ToList(),
             ContactTypes = contactTypes
                 .Select(type => new App.BLL.DTO.Tickets.Models.TicketOptionModel
                 {
@@ -968,33 +979,21 @@ public class VendorService :
         HashSet<string> allowedRoleCodes,
         CancellationToken cancellationToken)
     {
-        if (route.AppUserId == Guid.Empty)
-        {
-            return Result.Fail<VendorWorkspaceModel>(new UnauthorizedError("Authentication is required."));
-        }
-
-        var company = await ServiceUOW.ManagementCompanies.FirstBySlugAsync(route.CompanySlug, cancellationToken);
-        if (company is null)
-        {
-            return Result.Fail<VendorWorkspaceModel>(new NotFoundError(App.Resources.Views.UiText.ManagementCompanyWasNotFound));
-        }
-
-        var roleCode = await ServiceUOW.ManagementCompanies.FindActiveUserRoleCodeAsync(
-            route.AppUserId,
-            company.Id,
+        var access = await _portalContext.ResolveCompanyWorkspaceAsync(
+            route,
+            allowedRoleCodes,
             cancellationToken);
-
-        if (roleCode is null || !allowedRoleCodes.Contains(roleCode))
+        if (access.IsFailed)
         {
-            return Result.Fail<VendorWorkspaceModel>(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
+            return Result.Fail<VendorWorkspaceModel>(access.Errors);
         }
 
         return Result.Ok(new VendorWorkspaceModel
         {
-            AppUserId = route.AppUserId,
-            ManagementCompanyId = company.Id,
-            CompanySlug = company.Slug,
-            CompanyName = company.Name
+            AppUserId = access.Value.AppUserId,
+            ManagementCompanyId = access.Value.ManagementCompanyId,
+            CompanySlug = access.Value.CompanySlug,
+            CompanyName = access.Value.CompanyName
         });
     }
 

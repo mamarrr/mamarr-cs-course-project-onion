@@ -1,5 +1,4 @@
 using App.BLL.Contracts.Common;
-using App.BLL.Contracts.Common.Deletion;
 using App.BLL.Contracts.Tickets;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Common;
@@ -53,15 +52,11 @@ public class TicketService :
     };
 
     private readonly IAppUOW _uow;
-    private readonly IAppDeleteGuard _deleteGuard;
 
-    public TicketService(
-        IAppUOW uow,
-        IAppDeleteGuard deleteGuard)
+    public TicketService(IAppUOW uow)
         : base(uow.Tickets, uow, new TicketBllDtoMapper())
     {
         _uow = uow;
-        _deleteGuard = deleteGuard;
     }
 
     public async Task<Result<ManagementTicketsModel>> SearchAsync(
@@ -485,11 +480,11 @@ public class TicketService :
             return Result.Fail(new NotFoundError(T("TicketNotFound", "Ticket was not found.")));
         }
 
-        var canDelete = await _deleteGuard.CanDeleteTicketAsync(
+        var hasDependencies = await _uow.Tickets.HasDeleteDependenciesAsync(
             route.TicketId,
             workspace.Value.ManagementCompanyId,
             cancellationToken);
-        if (!canDelete)
+        if (hasDependencies)
         {
             return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
         }

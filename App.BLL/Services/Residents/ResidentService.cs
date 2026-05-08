@@ -1,5 +1,4 @@
-using App.BLL.Contracts.Contacts;
-using App.BLL.Contracts.Common.Deletion;
+using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Residents;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
@@ -8,7 +7,9 @@ using App.BLL.DTO.Contacts;
 using App.BLL.DTO.Residents;
 using App.BLL.DTO.Residents.Errors;
 using App.BLL.DTO.Residents.Models;
+using App.BLL.Mappers.Contacts;
 using App.BLL.Mappers.Residents;
+using App.BLL.Services.Contacts;
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
 using App.DAL.DTO.Residents;
@@ -42,139 +43,40 @@ public class ResidentService :
         "SUPPORT"
     };
 
-    private readonly IAppDeleteGuard _deleteGuard;
-    private readonly IContactService _contactService;
+    private readonly IPortalContextProvider _portalContext;
+    private readonly ContactWriter _contactWriter;
+    private readonly ContactBllDtoMapper _contactMapper = new();
     private readonly ResidentContactBllDtoMapper _residentContactMapper = new();
 
     public ResidentService(
         IAppUOW uow,
-        IAppDeleteGuard deleteGuard,
-        IContactService contactService)
+        IPortalContextProvider portalContext,
+        ContactWriter contactWriter)
         : base(uow.Residents, uow, new ResidentBllDtoMapper())
     {
-        _deleteGuard = deleteGuard;
-        _contactService = contactService;
+        _portalContext = portalContext;
+        _contactWriter = contactWriter;
     }
 
     public async Task<Result<CompanyResidentsModel>> ResolveCompanyResidentsContextAsync(
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)
     {
-        if (route.AppUserId == Guid.Empty)
-        {
-            return Result.Fail(new UnauthorizedError("Authentication is required."));
-        }
-
-        if (string.IsNullOrWhiteSpace(route.CompanySlug))
-        {
-            return Result.Fail(new NotFoundError(App.Resources.Views.UiText.ManagementCompanyWasNotFound));
-        }
-
-        var company = await ServiceUOW.ManagementCompanies.FirstBySlugAsync(
-            route.CompanySlug,
+        return await _portalContext.ResolveCompanyResidentsContextAsync(
+            route,
+            AccessAllowedRoleCodes,
             cancellationToken);
-        if (company is null)
-        {
-            return Result.Fail(new NotFoundError(App.Resources.Views.UiText.ManagementCompanyWasNotFound));
-        }
-
-        var roleCode = await ServiceUOW.ManagementCompanies.FindActiveUserRoleCodeAsync(
-            route.AppUserId,
-            company.Id,
-            cancellationToken);
-
-        if (roleCode is null || !AccessAllowedRoleCodes.Contains(roleCode))
-        {
-            return Result.Fail(new ForbiddenError("Access denied."));
-        }
-
-        return Result.Ok(new CompanyResidentsModel
-        {
-            AppUserId = route.AppUserId,
-            ManagementCompanyId = company.Id,
-            CompanySlug = company.Slug,
-            CompanyName = company.Name
-        });
     }
 
     public async Task<Result<ResidentWorkspaceModel>> ResolveWorkspaceAsync(
         ResidentRoute route,
         CancellationToken cancellationToken = default)
     {
-        if (route.AppUserId == Guid.Empty)
-        {
-            return Result.Fail(new UnauthorizedError("Authentication is required."));
-        }
-
-        if (string.IsNullOrWhiteSpace(route.CompanySlug))
-        {
-            return Result.Fail(new NotFoundError("Resident context was not found."));
-        }
-
-        var company = await ServiceUOW.ManagementCompanies.FirstBySlugAsync(
-            route.CompanySlug,
+        return await _portalContext.ResolveResidentWorkspaceAsync(
+            route,
+            AccessAllowedRoleCodes,
+            allowResidentContext: true,
             cancellationToken);
-        if (company is null)
-        {
-            return Result.Fail(new NotFoundError("Resident context was not found."));
-        }
-
-        if (string.IsNullOrWhiteSpace(route.ResidentIdCode))
-        {
-            return Result.Fail(new NotFoundError("Resident context was not found."));
-        }
-
-        var resident = await ServiceUOW.Residents.FirstProfileAsync(
-            route.CompanySlug,
-            route.ResidentIdCode,
-            cancellationToken);
-
-        if (resident is null || resident.ManagementCompanyId != company.Id)
-        {
-            return Result.Fail(new NotFoundError("Resident context was not found."));
-        }
-
-        var roleCode = await ServiceUOW.ManagementCompanies.FindActiveUserRoleCodeAsync(
-            route.AppUserId,
-            company.Id,
-            cancellationToken);
-        if (roleCode is not null && AccessAllowedRoleCodes.Contains(roleCode))
-        {
-            return Result.Ok(new ResidentWorkspaceModel
-            {
-                AppUserId = route.AppUserId,
-                ManagementCompanyId = resident.ManagementCompanyId,
-                CompanySlug = resident.CompanySlug,
-                CompanyName = resident.CompanyName,
-                ResidentId = resident.Id,
-                ResidentIdCode = resident.IdCode,
-                FirstName = resident.FirstName,
-                LastName = resident.LastName,
-                FullName = BuildFullName(resident.FirstName, resident.LastName),
-                PreferredLanguage = resident.PreferredLanguage
-            });
-        }
-
-        var hasResidentContext = await ServiceUOW.Residents.HasActiveUserResidentContextAsync(
-            route.AppUserId,
-            resident.Id,
-            cancellationToken);
-
-        return hasResidentContext
-            ? Result.Ok(new ResidentWorkspaceModel
-            {
-                AppUserId = route.AppUserId,
-                ManagementCompanyId = resident.ManagementCompanyId,
-                CompanySlug = resident.CompanySlug,
-                CompanyName = resident.CompanyName,
-                ResidentId = resident.Id,
-                ResidentIdCode = resident.IdCode,
-                FirstName = resident.FirstName,
-                LastName = resident.LastName,
-                FullName = BuildFullName(resident.FirstName, resident.LastName),
-                PreferredLanguage = resident.PreferredLanguage
-            })
-            : Result.Fail(new ForbiddenError("Access denied."));
     }
 
     public async Task<Result<CompanyResidentsModel>> ListForCompanyAsync(
@@ -404,11 +306,11 @@ public class ResidentService :
             return Result.Fail(new ForbiddenError("Access denied."));
         }
 
-        var canDelete = await _deleteGuard.CanDeleteResidentAsync(
+        var hasDependencies = await ServiceUOW.Residents.HasDeleteDependenciesAsync(
             workspace.Value.ResidentId,
             workspace.Value.ManagementCompanyId,
             cancellationToken);
-        if (!canDelete)
+        if (hasDependencies)
         {
             return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
         }
@@ -477,7 +379,10 @@ public class ResidentService :
             var contactId = dto.ContactId;
             if (newContact is not null)
             {
-                var createdContact = await _contactService.CreateAsync(route, newContact, cancellationToken);
+                var createdContact = await _contactWriter.StageCreateAsync(
+                    access.Value.ManagementCompanyId,
+                    newContact,
+                    cancellationToken);
                 if (createdContact.IsFailed)
                 {
                     await ServiceUOW.RollbackTransactionAsync(cancellationToken);
@@ -828,11 +733,9 @@ public class ResidentService :
             access.ManagementCompanyId,
             cancellationToken);
 
-        var existingContacts = await _contactService.ListForCompanyAsync(route, cancellationToken);
-        if (existingContacts.IsFailed)
-        {
-            return Result.Fail<ResidentContactListModel>(existingContacts.Errors);
-        }
+        var existingContacts = await ServiceUOW.Contacts.OptionsByCompanyAsync(
+            access.ManagementCompanyId,
+            cancellationToken);
 
         var contactTypes = await ServiceUOW.Lookups.AllContactTypesAsync(cancellationToken);
 
@@ -844,7 +747,9 @@ public class ResidentService :
             ResidentIdCode = access.ResidentIdCode,
             ResidentName = access.ResidentName,
             Contacts = contacts.Select(ToContactAssignmentModel).ToList(),
-            ExistingContacts = existingContacts.Value,
+            ExistingContacts = existingContacts
+                .Select(contact => _contactMapper.Map(contact)!)
+                .ToList(),
             ContactTypes = contactTypes
                 .Select(type => new App.BLL.DTO.Tickets.Models.TicketOptionModel
                 {

@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
@@ -23,15 +24,15 @@ public class ManagementCompanyService :
     private const string InitialManagementRoleCode = "OWNER";
 
     private readonly IAppUOW _uow;
-    private readonly ICompanyMembershipService _membershipService;
+    private readonly IPortalContextProvider _portalContext;
 
     public ManagementCompanyService(
         IAppUOW uow,
-        ICompanyMembershipService membershipService)
+        IPortalContextProvider portalContext)
         : base(uow.ManagementCompanies, uow, new ManagementCompanyBllDtoMapper())
     {
         _uow = uow;
-        _membershipService = membershipService;
+        _portalContext = portalContext;
     }
 
     public async Task<Result<ManagementCompanyBllDto>> CreateAsync(
@@ -114,14 +115,14 @@ public class ManagementCompanyService :
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)
     {
-        return _membershipService.AuthorizeManagementAreaAccessAsync(route, cancellationToken);
+        return _portalContext.AuthorizeManagementAreaAccessAsync(route, cancellationToken);
     }
 
     public async Task<Result<CompanyProfileModel>> GetProfileAsync(
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)
     {
-        var auth = await _membershipService.AuthorizeManagementAreaAccessAsync(route, cancellationToken);
+        var auth = await _portalContext.AuthorizeManagementAreaAccessAsync(route, cancellationToken);
 
         if (auth.IsFailed)
         {
@@ -142,7 +143,7 @@ public class ManagementCompanyService :
         ManagementCompanyBllDto dto,
         CancellationToken cancellationToken = default)
     {
-        var auth = await _membershipService.AuthorizeManagementAreaAccessAsync(route, cancellationToken);
+        var auth = await _portalContext.AuthorizeManagementAreaAccessAsync(route, cancellationToken);
 
         if (auth.IsFailed)
         {
@@ -218,7 +219,7 @@ public class ManagementCompanyService :
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)
     {
-        var auth = await _membershipService.AuthorizeManagementAreaAccessAsync(
+        var auth = await _portalContext.AuthorizeManagementAreaAccessAsync(
             route,
             cancellationToken);
 

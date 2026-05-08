@@ -1,5 +1,4 @@
-using App.BLL.Contracts.Common.Deletion;
-using App.BLL.Contracts.Customers;
+using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Properties;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
@@ -27,17 +26,22 @@ public class PropertyService :
         "MANAGER"
     ];
 
-    private readonly ICustomerService _customerService;
-    private readonly IAppDeleteGuard _deleteGuard;
+    private static readonly HashSet<string> AccessAllowedRoleCodes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "OWNER",
+        "MANAGER",
+        "FINANCE",
+        "SUPPORT"
+    };
+
+    private readonly IPortalContextProvider _portalContext;
 
     public PropertyService(
         IAppUOW uow,
-        ICustomerService customerService,
-        IAppDeleteGuard deleteGuard)
+        IPortalContextProvider portalContext)
         : base(uow.Properties, uow, new PropertyBllDtoMapper())
     {
-        _customerService = customerService;
-        _deleteGuard = deleteGuard;
+        _portalContext = portalContext;
     }
 
     public async Task<Result<PropertyWorkspaceModel>> ResolveWorkspaceAsync(
@@ -314,12 +318,12 @@ public class PropertyService :
             return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
-        var canDelete = await _deleteGuard.CanDeletePropertyAsync(
+        var hasDependencies = await ServiceUOW.Properties.HasDeleteDependenciesAsync(
             workspace.Value.PropertyId,
             workspace.Value.CustomerId,
             workspace.Value.ManagementCompanyId,
             cancellationToken);
-        if (!canDelete)
+        if (hasDependencies)
         {
             return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
         }
@@ -340,18 +344,15 @@ public class PropertyService :
         string customerSlug,
         CancellationToken cancellationToken)
     {
-        if (userId == Guid.Empty)
-        {
-            return Result.Fail(new UnauthorizedError("Authentication is required."));
-        }
-
-        return await _customerService.ResolveWorkspaceAsync(
+        return await _portalContext.ResolveCustomerWorkspaceAsync(
             new CustomerRoute
             {
                 AppUserId = userId,
                 CompanySlug = companySlug,
                 CustomerSlug = customerSlug
             },
+            AccessAllowedRoleCodes,
+            allowCustomerContext: true,
             cancellationToken);
     }
 

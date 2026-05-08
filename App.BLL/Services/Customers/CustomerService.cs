@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using App.BLL.Contracts.Common.Deletion;
+using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Customers;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
@@ -35,48 +35,24 @@ public class CustomerService :
         "SUPPORT"
     };
 
-    private readonly IAppDeleteGuard _deleteGuard;
+    private readonly IPortalContextProvider _portalContext;
 
     public CustomerService(
         IAppUOW uow,
-        IAppDeleteGuard deleteGuard)
+        IPortalContextProvider portalContext)
         : base(uow.Customers, uow, new CustomerBllDtoMapper())
     {
-        _deleteGuard = deleteGuard;
+        _portalContext = portalContext;
     }
 
     public async Task<Result<CompanyWorkspaceModel>> ResolveCompanyWorkspaceAsync(
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default)
     {
-        if (route.AppUserId == Guid.Empty)
-        {
-            return Result.Fail(new UnauthorizedError("Authentication is required."));
-        }
-
-        var company = await ServiceUOW.ManagementCompanies.FirstBySlugAsync(route.CompanySlug, cancellationToken);
-        if (company is null)
-        {
-            return Result.Fail(new NotFoundError(App.Resources.Views.UiText.ManagementCompanyWasNotFound));
-        }
-
-        var roleCode = await ServiceUOW.ManagementCompanies.FindActiveUserRoleCodeAsync(
-            route.AppUserId,
-            company.Id,
+        return await _portalContext.ResolveCompanyWorkspaceAsync(
+            route,
+            AccessAllowedRoleCodes,
             cancellationToken);
-
-        if (roleCode is null || !AccessAllowedRoleCodes.Contains(roleCode))
-        {
-            return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
-        }
-
-        return Result.Ok(new CompanyWorkspaceModel
-        {
-            AppUserId = route.AppUserId,
-            ManagementCompanyId = company.Id,
-            CompanySlug = company.Slug,
-            CompanyName = company.Name
-        });
     }
 
     public async Task<Result<IReadOnlyList<CustomerListItemModel>>> ListForCompanyAsync(
@@ -114,67 +90,11 @@ public class CustomerService :
         CustomerRoute route,
         CancellationToken cancellationToken = default)
     {
-        if (route.AppUserId == Guid.Empty)
-        {
-            return Result.Fail(new UnauthorizedError("Authentication is required."));
-        }
-
-        var company = await ServiceUOW.ManagementCompanies.FirstBySlugAsync(route.CompanySlug, cancellationToken);
-        if (company is null)
-        {
-            return Result.Fail(new NotFoundError(App.Resources.Views.UiText.ManagementCompanyWasNotFound));
-        }
-
-        if (string.IsNullOrWhiteSpace(route.CustomerSlug))
-        {
-            return Result.Fail(new NotFoundError("Customer context was not found."));
-        }
-
-        var customer = await ServiceUOW.Customers.FirstWorkspaceByCompanyAndSlugAsync(
-            company.Id,
-            route.CustomerSlug,
+        return await _portalContext.ResolveCustomerWorkspaceAsync(
+            route,
+            AccessAllowedRoleCodes,
+            allowCustomerContext: true,
             cancellationToken);
-
-        if (customer is null)
-        {
-            return Result.Fail(new NotFoundError("Customer context was not found."));
-        }
-
-        var roleCode = await ServiceUOW.ManagementCompanies.FindActiveUserRoleCodeAsync(
-            route.AppUserId,
-            company.Id,
-            cancellationToken);
-        if (roleCode is not null && AccessAllowedRoleCodes.Contains(roleCode))
-        {
-            return Result.Ok(new CustomerWorkspaceModel
-            {
-                AppUserId = route.AppUserId,
-                ManagementCompanyId = customer.ManagementCompanyId,
-                CompanySlug = customer.CompanySlug,
-                CompanyName = customer.CompanyName,
-                CustomerId = customer.Id,
-                CustomerSlug = customer.Slug,
-                CustomerName = customer.Name
-            });
-        }
-
-        var hasCustomerContext = await ServiceUOW.Customers.ActiveUserCustomerContextExistsAsync(
-            route.AppUserId,
-            customer.Id,
-            cancellationToken);
-
-        return hasCustomerContext
-            ? Result.Ok(new CustomerWorkspaceModel
-            {
-                AppUserId = route.AppUserId,
-                ManagementCompanyId = customer.ManagementCompanyId,
-                CompanySlug = customer.CompanySlug,
-                CompanyName = customer.CompanyName,
-                CustomerId = customer.Id,
-                CustomerSlug = customer.Slug,
-                CustomerName = customer.Name
-            })
-            : Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
     }
 
     public async Task<Result<CustomerProfileModel>> GetProfileAsync(
@@ -390,11 +310,11 @@ public class CustomerService :
             return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
-        var canDelete = await _deleteGuard.CanDeleteCustomerAsync(
+        var hasDependencies = await ServiceUOW.Customers.HasDeleteDependenciesAsync(
             access.Value.CustomerId,
             access.Value.ManagementCompanyId,
             cancellationToken);
-        if (!canDelete)
+        if (hasDependencies)
         {
             return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
         }

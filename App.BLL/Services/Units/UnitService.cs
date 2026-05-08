@@ -1,5 +1,4 @@
-using App.BLL.Contracts.Common.Deletion;
-using App.BLL.Contracts.Properties;
+using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Units;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
@@ -32,78 +31,29 @@ public class UnitService :
         "MANAGER"
     ];
 
-    private readonly IPropertyService _propertyService;
-    private readonly IAppDeleteGuard _deleteGuard;
+    private static readonly HashSet<string> AccessAllowedRoleCodes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "OWNER",
+        "MANAGER",
+        "FINANCE",
+        "SUPPORT"
+    };
+
+    private readonly IPortalContextProvider _portalContext;
 
     public UnitService(
         IAppUOW uow,
-        IPropertyService propertyService,
-        IAppDeleteGuard deleteGuard)
+        IPortalContextProvider portalContext)
         : base(uow.Units, uow, new UnitBllDtoMapper())
     {
-        _propertyService = propertyService;
-        _deleteGuard = deleteGuard;
+        _portalContext = portalContext;
     }
 
     public async Task<Result<UnitWorkspaceModel>> ResolveWorkspaceAsync(
         UnitRoute route,
         CancellationToken cancellationToken = default)
     {
-        if (route.AppUserId == Guid.Empty)
-        {
-            return Result.Fail(new UnauthorizedError("Authentication is required."));
-        }
-
-        if (string.IsNullOrWhiteSpace(route.CompanySlug)
-            || string.IsNullOrWhiteSpace(route.CustomerSlug)
-            || string.IsNullOrWhiteSpace(route.PropertySlug)
-            || string.IsNullOrWhiteSpace(route.UnitSlug))
-        {
-            return Result.Fail(new NotFoundError("Unit context was not found."));
-        }
-
-        var company = await ServiceUOW.ManagementCompanies.FirstBySlugAsync(
-            route.CompanySlug,
-            cancellationToken);
-        if (company is null)
-        {
-            return Result.Fail(new NotFoundError("Unit context was not found."));
-        }
-
-        var roleCode = await ServiceUOW.Customers.FindActiveManagementCompanyRoleCodeAsync(
-            company.Id,
-            route.AppUserId,
-            cancellationToken);
-        if (roleCode is null)
-        {
-            return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
-        }
-
-        var unit = await ServiceUOW.Units.FirstDashboardAsync(
-            route.CompanySlug,
-            route.CustomerSlug,
-            route.PropertySlug,
-            route.UnitSlug,
-            cancellationToken);
-
-        return unit is null
-            ? Result.Fail(new NotFoundError("Unit context was not found."))
-            : Result.Ok(new UnitWorkspaceModel
-            {
-                AppUserId = route.AppUserId,
-                ManagementCompanyId = unit.ManagementCompanyId,
-                CompanySlug = unit.CompanySlug,
-                CompanyName = unit.CompanyName,
-                CustomerId = unit.CustomerId,
-                CustomerSlug = unit.CustomerSlug,
-                CustomerName = unit.CustomerName,
-                PropertyId = unit.PropertyId,
-                PropertySlug = unit.PropertySlug,
-                PropertyName = unit.PropertyName,
-                UnitId = unit.Id,
-                UnitSlug = unit.Slug,
-                UnitNr = unit.UnitNr
-            });
+        return await _portalContext.ResolveUnitWorkspaceAsync(route, cancellationToken);
     }
 
     public async Task<Result<PropertyUnitsModel>> ListForPropertyAsync(
@@ -318,12 +268,12 @@ public class UnitService :
             return Result.Fail(new ForbiddenError(App.Resources.Views.UiText.AccessDeniedDescription));
         }
 
-        var canDelete = await _deleteGuard.CanDeleteUnitAsync(
+        var hasDependencies = await ServiceUOW.Units.HasDeleteDependenciesAsync(
             workspace.Value.UnitId,
             workspace.Value.PropertyId,
             workspace.Value.ManagementCompanyId,
             cancellationToken);
-        if (!canDelete)
+        if (hasDependencies)
         {
             return Result.Fail(new BusinessRuleError(DeleteBlockedMessage()));
         }
@@ -345,7 +295,7 @@ public class UnitService :
         string propertySlug,
         CancellationToken cancellationToken)
     {
-        return await _propertyService.ResolveWorkspaceAsync(
+        return await _portalContext.ResolvePropertyWorkspaceAsync(
             new PropertyRoute
             {
                 AppUserId = userId,
@@ -353,6 +303,8 @@ public class UnitService :
                 CustomerSlug = customerSlug,
                 PropertySlug = propertySlug
             },
+            AccessAllowedRoleCodes,
+            allowCustomerContext: true,
             cancellationToken);
     }
 

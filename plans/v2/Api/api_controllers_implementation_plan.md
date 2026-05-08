@@ -11,12 +11,14 @@ WebApp/ApiControllers
 and public API DTOs under:
 
 ```text
-App.DTO
+App.DTO/v1
 ```
 
-Mappers should map between public API DTOs and BLL DTOs/models. Use `IBaseMapper<ApiDto, BllDto>` wherever the mapping is naturally two-way, especially for command/save DTOs such as `TicketBllDto`, `LeaseBllDto`, `CustomerBllDto`, `PropertyBllDto`, `UnitBllDto`, `ResidentBllDto`, `VendorBllDto`, `ScheduledWorkBllDto`, and `WorkLogBllDto`.
+API mapper implementations should live under `App.DTO/Mappers` and map between public `App.DTO.v1.*` API DTOs and BLL DTOs/models. Use `IBaseMapper<ApiDto, BllDto>` wherever the mapping is naturally two-way, especially for command/save DTOs such as `TicketBllDto`, `LeaseBllDto`, `CustomerBllDto`, `PropertyBllDto`, `UnitBllDto`, `ResidentBllDto`, `VendorBllDto`, `ScheduledWorkBllDto`, and `WorkLogBllDto`.
 
 Do not implement API endpoints for placeholder/shell-only MVC workflows such as Resident Access onboarding, customer tickets/residents shells, property tickets/residents shells, unit tickets shell, resident tickets/representations shell, and disabled management-level properties.
+
+API controllers must call only public services exposed by `IAppBLL`. They must never expose DAL DTOs, BLL DTOs/models, domain entities, MVC ViewModels, `ViewBag`, or `ViewData`.
 
 ---
 
@@ -59,20 +61,44 @@ public sealed class TicketApiMapper : IBaseMapper<TicketDto, TicketBllDto>
 }
 ```
 
-### App.DTO reference issue
+### App.DTO mapper reference
 
-`App.DTO` currently has no project references. Since mappers must map to BLL DTOs, there are two viable options:
+`App.DTO` currently has no project references. Because API mappers live in `App.DTO/Mappers` and must map to BLL DTOs/models, add a reference from `App.DTO` to `App.BLL.Contracts`.
 
-#### Recommended option
+```xml
+<ProjectReference Include="..\App.BLL.Contracts\App.BLL.Contracts.csproj" />
+```
 
-Put DTOs in `App.DTO`, but put API mapper implementations in `WebApp/Mappers/Api`.
+Required placement:
 
-Reason: `WebApp` already references both `App.DTO` and `App.BLL.Contracts`, so mappers can see both API DTOs and BLL DTOs without coupling the public DTO project back to the BLL layer.
+- public DTO contracts in `App.DTO/v1` using `App.DTO.v1.*` namespaces
+- API mapper implementations in `App.DTO/Mappers`
+- no API mapper implementations in `WebApp/Mappers/Api`
 
 Suggested folders:
 
 ```text
-App.DTO/
+App.DTO/v1/
+  Identity/
+  Onboarding/
+  Workspace/
+  Shared/
+  Portal/
+    Companies/
+    Customers/
+    Properties/
+    Units/
+    Residents/
+    Leases/
+    Tickets/
+    ScheduledWork/
+    WorkLogs/
+    Vendors/
+    Contacts/
+    Users/
+    Lookups/
+
+App.DTO/Mappers/
   Auth/
   Onboarding/
   Workspace/
@@ -90,24 +116,9 @@ App.DTO/
     Contacts/
     Users/
     Lookups/
-
-WebApp/
-  ApiControllers/
-  Mappers/
-    Api/
 ```
 
-#### Alternative option
-
-Put both DTOs and mappers in `App.DTO/Mappers`, but then add a project reference:
-
-```xml
-<ProjectReference Include="..\App.BLL.Contracts\App.BLL.Contracts.csproj" />
-```
-
-This is acceptable if the project convention is that `App.DTO` is an application-bound API contract project, but it creates a stronger dependency from the API DTO layer to BLL contracts.
-
-The rest of this plan assumes the recommended option: DTOs in `App.DTO`, mappers in `WebApp/Mappers/Api`.
+The rest of this plan assumes versioned public DTOs in `App.DTO/v1` and mappers in `App.DTO/Mappers`.
 
 ---
 
@@ -139,7 +150,7 @@ Responsibilities:
 - Provide helper methods:
   - `Guid? GetAppUserId()`
   - `ActionResult ToApiError(IReadOnlyList<IError> errors)`
-  - `ValidationProblemDetails ToValidationProblem(...)`
+  - `RestApiErrorResponse ToValidationError(...)`
   - `ActionResult<T> FromResult<T>(Result<T> result, Func<T, object> mapper)`
 - Map BLL errors consistently:
   - `UnauthorizedError` -> `401 Unauthorized`
@@ -169,34 +180,43 @@ For auth endpoints:
 
 Create these first.
 
-### `App.DTO/Common`
+### `App.DTO/v1/Shared` and root v1 errors
 
 ```text
-App.DTO/Common/ApiErrorDto.cs
-App.DTO/Common/ApiValidationErrorDto.cs
-App.DTO/Common/OptionDto.cs
-App.DTO/Common/PagedResultDto.cs
-App.DTO/Common/CommandResultDto.cs
+App.DTO/v1/RestApiErrorResponse.cs
+App.DTO/v1/Shared/ApiErrorCodes.cs
+App.DTO/v1/Shared/LookupOptionDto.cs
+App.DTO/v1/Common/PagedResultDto.cs
+App.DTO/v1/Common/CommandResultDto.cs
 ```
 
-Suggested shapes:
+Reuse existing DTOs where they already define the public shape:
 
 ```csharp
-public sealed record ApiErrorDto(string Code, string Message);
+// App.DTO.v1.RestApiErrorResponse
+public class RestApiErrorResponse
+{
+    public System.Net.HttpStatusCode Status { get; set; }
+    public string Error { get; set; } = string.Empty;
+    public string? ErrorCode { get; set; }
+    public Dictionary<string, string[]> Errors { get; set; } = new();
+    public string? TraceId { get; set; }
+}
 
-public sealed record ApiValidationErrorDto(
-    string? PropertyName,
-    string ErrorMessage);
-
-public sealed record OptionDto(
-    Guid Id,
-    string Label,
-    string? Code = null);
+// App.DTO.v1.Shared.LookupOptionDto
+public class LookupOptionDto
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+}
 
 public sealed record CommandResultDto(
     bool Success,
     string? Message = null);
 ```
+
+Use `RestApiErrorResponse` as the canonical structured error response and `ApiErrorCodes` for stable error codes. Keep `LookupOptionDto` unless a different public shape is required. Prefer class DTOs for consistency with current `App.DTO/v1`.
 
 ---
 
@@ -221,13 +241,15 @@ GET  /api/v1/auth/me
 ### DTOs
 
 ```text
-App.DTO/Auth/RegisterRequestDto.cs
-App.DTO/Auth/LoginRequestDto.cs
-App.DTO/Auth/RefreshTokenRequestDto.cs
-App.DTO/Auth/LogoutRequestDto.cs
-App.DTO/Auth/TokenResponseDto.cs
-App.DTO/Auth/UserDto.cs
+App.DTO/v1/Identity/RegisterInfo.cs
+App.DTO/v1/Identity/LoginInfo.cs
+App.DTO/v1/Identity/TokenRefreshInfo.cs
+App.DTO/v1/Identity/LogoutInfo.cs
+App.DTO/v1/Identity/JWTResponse.cs
+App.DTO/v1/Identity/UserDto.cs
 ```
+
+Reuse existing identity DTOs before adding new request/response shapes. Add only the missing `UserDto` or related response details needed by the SPA contract.
 
 ### Implementation tasks
 
@@ -299,17 +321,17 @@ POST /api/v1/onboarding/management-company-join-requests
 ### DTOs
 
 ```text
-App.DTO/Onboarding/OnboardingStatusDto.cs
-App.DTO/Onboarding/CreateManagementCompanyDto.cs
-App.DTO/Onboarding/CreatedManagementCompanyDto.cs
-App.DTO/Onboarding/JoinManagementCompanyRequestDto.cs
-App.DTO/Onboarding/JoinRequestResultDto.cs
+App.DTO/v1/Onboarding/OnboardingStatusDto.cs
+App.DTO/v1/Onboarding/CreateManagementCompanyDto.cs
+App.DTO/v1/Onboarding/CreatedManagementCompanyDto.cs
+App.DTO/v1/Onboarding/JoinManagementCompanyRequestDto.cs
+App.DTO/v1/Onboarding/JoinRequestResultDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Onboarding/ManagementCompanyApiMapper.cs
+App.DTO/Mappers/Onboarding/ManagementCompanyApiMapper.cs
 ```
 
 Use:
@@ -331,7 +353,7 @@ IBaseMapper<CreateManagementCompanyDto, ManagementCompanyBllDto>
    - Return created id, slug, name, and frontend path such as `/companies/{slug}`.
 3. `GET /management-company-roles`
    - Use `_bll.CompanyMemberships.GetAvailableRolesAsync(...)`.
-   - Return `OptionDto[]`.
+   - Return `LookupOptionDto[]` or a more specific role option DTO if extra metadata is needed.
 4. `POST /management-company-join-requests`
    - Use `CreateCompanyJoinRequestCommand`.
    - Return success message and request id if available.
@@ -357,17 +379,17 @@ POST /api/v1/workspaces/select
 ### DTOs
 
 ```text
-App.DTO/Workspace/WorkspaceCatalogDto.cs
-App.DTO/Workspace/WorkspaceOptionDto.cs
-App.DTO/Workspace/WorkspaceRedirectDto.cs
-App.DTO/Workspace/SelectWorkspaceDto.cs
+App.DTO/v1/Workspace/WorkspaceCatalogDto.cs
+App.DTO/v1/Workspace/WorkspaceOptionDto.cs
+App.DTO/v1/Workspace/WorkspaceRedirectDto.cs
+App.DTO/v1/Workspace/SelectWorkspaceDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Workspace/WorkspaceCatalogApiMapper.cs
-WebApp/Mappers/Api/Workspace/WorkspaceOptionApiMapper.cs
+App.DTO/Mappers/Workspace/WorkspaceCatalogApiMapper.cs
+App.DTO/Mappers/Workspace/WorkspaceOptionApiMapper.cs
 ```
 
 ### Implementation tasks
@@ -408,16 +430,16 @@ DELETE /api/v1/portal/companies/{companySlug}/profile
 ### DTOs
 
 ```text
-App.DTO/Portal/Companies/ManagementCompanySummaryDto.cs
-App.DTO/Portal/Companies/ManagementCompanyProfileDto.cs
-App.DTO/Portal/Companies/UpdateManagementCompanyProfileDto.cs
-App.DTO/Portal/Companies/DeleteManagementCompanyDto.cs
+App.DTO/v1/Portal/Companies/ManagementCompanySummaryDto.cs
+App.DTO/v1/Portal/Companies/ManagementCompanyProfileDto.cs
+App.DTO/v1/Portal/Companies/UpdateManagementCompanyProfileDto.cs
+App.DTO/v1/Portal/Companies/DeleteManagementCompanyDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/Companies/ManagementCompanyProfileApiMapper.cs
+App.DTO/Mappers/Portal/Companies/ManagementCompanyProfileApiMapper.cs
 ```
 
 Use:
@@ -467,19 +489,19 @@ POST   /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/propertie
 ### DTOs
 
 ```text
-App.DTO/Portal/Customers/CustomerListItemDto.cs
-App.DTO/Portal/Customers/CreateCustomerDto.cs
-App.DTO/Portal/Customers/CustomerProfileDto.cs
-App.DTO/Portal/Customers/UpdateCustomerProfileDto.cs
-App.DTO/Portal/Customers/DeleteCustomerDto.cs
+App.DTO/v1/Portal/Customers/CustomerListItemDto.cs
+App.DTO/v1/Portal/Customers/CreateCustomerDto.cs
+App.DTO/v1/Portal/Customers/CustomerProfileDto.cs
+App.DTO/v1/Portal/Customers/UpdateCustomerProfileDto.cs
+App.DTO/v1/Portal/Customers/DeleteCustomerDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/Customers/CustomerApiMapper.cs
-WebApp/Mappers/Api/Portal/Customers/CustomerListItemApiMapper.cs
-WebApp/Mappers/Api/Portal/Customers/CustomerProfileApiMapper.cs
+App.DTO/Mappers/Portal/Customers/CustomerApiMapper.cs
+App.DTO/Mappers/Portal/Customers/CustomerListItemApiMapper.cs
+App.DTO/Mappers/Portal/Customers/CustomerProfileApiMapper.cs
 ```
 
 Use:
@@ -530,19 +552,19 @@ POST   /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/propertie
 ### DTOs
 
 ```text
-App.DTO/Portal/Properties/PropertyListItemDto.cs
-App.DTO/Portal/Properties/CreatePropertyDto.cs
-App.DTO/Portal/Properties/PropertyProfileDto.cs
-App.DTO/Portal/Properties/UpdatePropertyProfileDto.cs
-App.DTO/Portal/Properties/DeletePropertyDto.cs
+App.DTO/v1/Portal/Properties/PropertyListItemDto.cs
+App.DTO/v1/Portal/Properties/CreatePropertyDto.cs
+App.DTO/v1/Portal/Properties/PropertyProfileDto.cs
+App.DTO/v1/Portal/Properties/UpdatePropertyProfileDto.cs
+App.DTO/v1/Portal/Properties/DeletePropertyDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/Properties/PropertyApiMapper.cs
-WebApp/Mappers/Api/Portal/Properties/PropertyListItemApiMapper.cs
-WebApp/Mappers/Api/Portal/Properties/PropertyProfileApiMapper.cs
+App.DTO/Mappers/Portal/Properties/PropertyApiMapper.cs
+App.DTO/Mappers/Portal/Properties/PropertyListItemApiMapper.cs
+App.DTO/Mappers/Portal/Properties/PropertyProfileApiMapper.cs
 ```
 
 Use:
@@ -584,19 +606,19 @@ DELETE /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/propertie
 ### DTOs
 
 ```text
-App.DTO/Portal/Units/UnitListItemDto.cs
-App.DTO/Portal/Units/CreateUnitDto.cs
-App.DTO/Portal/Units/UnitProfileDto.cs
-App.DTO/Portal/Units/UpdateUnitProfileDto.cs
-App.DTO/Portal/Units/DeleteUnitDto.cs
+App.DTO/v1/Portal/Units/UnitListItemDto.cs
+App.DTO/v1/Portal/Units/CreateUnitDto.cs
+App.DTO/v1/Portal/Units/UnitProfileDto.cs
+App.DTO/v1/Portal/Units/UpdateUnitProfileDto.cs
+App.DTO/v1/Portal/Units/DeleteUnitDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/Units/UnitApiMapper.cs
-WebApp/Mappers/Api/Portal/Units/UnitListItemApiMapper.cs
-WebApp/Mappers/Api/Portal/Units/UnitProfileApiMapper.cs
+App.DTO/Mappers/Portal/Units/UnitApiMapper.cs
+App.DTO/Mappers/Portal/Units/UnitListItemApiMapper.cs
+App.DTO/Mappers/Portal/Units/UnitProfileApiMapper.cs
 ```
 
 Use:
@@ -630,19 +652,19 @@ DELETE /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/profile
 ### DTOs
 
 ```text
-App.DTO/Portal/Residents/ResidentListItemDto.cs
-App.DTO/Portal/Residents/CreateResidentDto.cs
-App.DTO/Portal/Residents/ResidentProfileDto.cs
-App.DTO/Portal/Residents/UpdateResidentProfileDto.cs
-App.DTO/Portal/Residents/DeleteResidentDto.cs
+App.DTO/v1/Portal/Residents/ResidentListItemDto.cs
+App.DTO/v1/Portal/Residents/CreateResidentDto.cs
+App.DTO/v1/Portal/Residents/ResidentProfileDto.cs
+App.DTO/v1/Portal/Residents/UpdateResidentProfileDto.cs
+App.DTO/v1/Portal/Residents/DeleteResidentDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/Residents/ResidentApiMapper.cs
-WebApp/Mappers/Api/Portal/Residents/ResidentListItemApiMapper.cs
-WebApp/Mappers/Api/Portal/Residents/ResidentProfileApiMapper.cs
+App.DTO/Mappers/Portal/Residents/ResidentApiMapper.cs
+App.DTO/Mappers/Portal/Residents/ResidentListItemApiMapper.cs
+App.DTO/Mappers/Portal/Residents/ResidentProfileApiMapper.cs
 ```
 
 Use:
@@ -686,23 +708,23 @@ GET    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/propert
 ### DTOs
 
 ```text
-App.DTO/Portal/Leases/UnitLeaseListItemDto.cs
-App.DTO/Portal/Leases/ResidentLeaseListItemDto.cs
-App.DTO/Portal/Leases/CreateUnitLeaseDto.cs
-App.DTO/Portal/Leases/UpdateUnitLeaseDto.cs
-App.DTO/Portal/Leases/CreateResidentLeaseDto.cs
-App.DTO/Portal/Leases/UpdateResidentLeaseDto.cs
-App.DTO/Portal/Leases/LeaseResidentSearchResultDto.cs
-App.DTO/Portal/Leases/LeasePropertySearchResultDto.cs
-App.DTO/Portal/Leases/LeaseUnitOptionDto.cs
+App.DTO/v1/Portal/Leases/UnitLeaseListItemDto.cs
+App.DTO/v1/Portal/Leases/ResidentLeaseListItemDto.cs
+App.DTO/v1/Portal/Leases/CreateUnitLeaseDto.cs
+App.DTO/v1/Portal/Leases/UpdateUnitLeaseDto.cs
+App.DTO/v1/Portal/Leases/CreateResidentLeaseDto.cs
+App.DTO/v1/Portal/Leases/UpdateResidentLeaseDto.cs
+App.DTO/v1/Portal/Leases/LeaseResidentSearchResultDto.cs
+App.DTO/v1/Portal/Leases/LeasePropertySearchResultDto.cs
+App.DTO/v1/Portal/Leases/LeaseUnitOptionDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/Leases/LeaseApiMapper.cs
-WebApp/Mappers/Api/Portal/Leases/UnitLeaseListItemApiMapper.cs
-WebApp/Mappers/Api/Portal/Leases/ResidentLeaseListItemApiMapper.cs
+App.DTO/Mappers/Portal/Leases/LeaseApiMapper.cs
+App.DTO/Mappers/Portal/Leases/UnitLeaseListItemApiMapper.cs
+App.DTO/Mappers/Portal/Leases/ResidentLeaseListItemApiMapper.cs
 ```
 
 Use:
@@ -768,24 +790,24 @@ POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/contacts/{vendo
 ### DTOs
 
 ```text
-App.DTO/Portal/Contacts/ContactDto.cs
-App.DTO/Portal/Contacts/CreateContactDto.cs
-App.DTO/Portal/Contacts/ResidentContactAssignmentDto.cs
-App.DTO/Portal/Contacts/AttachResidentContactDto.cs
-App.DTO/Portal/Contacts/CreateResidentContactDto.cs
-App.DTO/Portal/Contacts/UpdateResidentContactDto.cs
-App.DTO/Portal/Contacts/VendorContactAssignmentDto.cs
-App.DTO/Portal/Contacts/AttachVendorContactDto.cs
-App.DTO/Portal/Contacts/CreateVendorContactDto.cs
-App.DTO/Portal/Contacts/UpdateVendorContactDto.cs
+App.DTO/v1/Portal/Contacts/ContactDto.cs
+App.DTO/v1/Portal/Contacts/CreateContactDto.cs
+App.DTO/v1/Portal/Contacts/ResidentContactAssignmentDto.cs
+App.DTO/v1/Portal/Contacts/AttachResidentContactDto.cs
+App.DTO/v1/Portal/Contacts/CreateResidentContactDto.cs
+App.DTO/v1/Portal/Contacts/UpdateResidentContactDto.cs
+App.DTO/v1/Portal/Contacts/VendorContactAssignmentDto.cs
+App.DTO/v1/Portal/Contacts/AttachVendorContactDto.cs
+App.DTO/v1/Portal/Contacts/CreateVendorContactDto.cs
+App.DTO/v1/Portal/Contacts/UpdateVendorContactDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/Contacts/ContactApiMapper.cs
-WebApp/Mappers/Api/Portal/Contacts/ResidentContactApiMapper.cs
-WebApp/Mappers/Api/Portal/Contacts/VendorContactApiMapper.cs
+App.DTO/Mappers/Portal/Contacts/ContactApiMapper.cs
+App.DTO/Mappers/Portal/Contacts/ResidentContactApiMapper.cs
+App.DTO/Mappers/Portal/Contacts/VendorContactApiMapper.cs
 ```
 
 Use where possible:
@@ -798,9 +820,37 @@ IBaseMapper<AttachVendorContactDto, VendorContactBllDto>
 IBaseMapper<UpdateVendorContactDto, VendorContactBllDto>
 ```
 
+### Implementation tasks
+
+Resident contacts must call `_bll.Residents` directly:
+
+1. List: `_bll.Residents.ListContactsAsync(...)`.
+2. Attach or create: `_bll.Residents.AddContactAsync(...)`.
+3. Update assignment: `_bll.Residents.UpdateContactAsync(...)`.
+4. Primary, confirmation, and removal actions:
+   - `_bll.Residents.SetPrimaryContactAsync(...)`
+   - `_bll.Residents.ConfirmContactAsync(...)`
+   - `_bll.Residents.UnconfirmContactAsync(...)`
+   - `_bll.Residents.RemoveContactAsync(...)`
+
+Vendor contacts must call `_bll.Vendors` directly:
+
+1. List: `_bll.Vendors.ListContactsAsync(...)`.
+2. Attach or create: `_bll.Vendors.AddContactAsync(...)`.
+3. Update assignment: `_bll.Vendors.UpdateContactAsync(...)`.
+4. Primary, confirmation, and removal actions:
+   - `_bll.Vendors.SetPrimaryContactAsync(...)`
+   - `_bll.Vendors.ConfirmContactAsync(...)`
+   - `_bll.Vendors.UnconfirmContactAsync(...)`
+   - `_bll.Vendors.RemoveContactAsync(...)`
+
+Do not plan `_bll.Contacts` usage unless `IAppBLL` is intentionally expanded later.
+
 ---
 
 ## Phase 11 — Tickets API
+
+Keep `TicketsController` limited to ticket workflows. Do not put scheduled-work or work-log mutations in this controller.
 
 ### Controller
 
@@ -828,23 +878,24 @@ GET    /api/v1/portal/companies/{companySlug}/tickets/options/vendors?categoryId
 ### DTOs
 
 ```text
-App.DTO/Portal/Tickets/TicketFilterDto.cs
-App.DTO/Portal/Tickets/TicketListItemDto.cs
-App.DTO/Portal/Tickets/TicketDetailsDto.cs
-App.DTO/Portal/Tickets/TicketDto.cs
-App.DTO/Portal/Tickets/CreateTicketDto.cs
-App.DTO/Portal/Tickets/UpdateTicketDto.cs
-App.DTO/Portal/Tickets/TicketOptionsDto.cs
-App.DTO/Portal/Tickets/TicketOptionDto.cs
+App.DTO/v1/Portal/Tickets/TicketFilterDto.cs
+App.DTO/v1/Portal/Tickets/TicketListItemDto.cs
+App.DTO/v1/Portal/Tickets/TicketDetailsDto.cs
+App.DTO/v1/Portal/Tickets/TicketScheduledWorkSummaryDto.cs
+App.DTO/v1/Portal/Tickets/TicketDto.cs
+App.DTO/v1/Portal/Tickets/CreateTicketDto.cs
+App.DTO/v1/Portal/Tickets/UpdateTicketDto.cs
+App.DTO/v1/Portal/Tickets/TicketOptionsDto.cs
+App.DTO/v1/Shared/LookupOptionDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/Tickets/TicketApiMapper.cs
-WebApp/Mappers/Api/Portal/Tickets/TicketListItemApiMapper.cs
-WebApp/Mappers/Api/Portal/Tickets/TicketDetailsApiMapper.cs
-WebApp/Mappers/Api/Portal/Tickets/TicketOptionsApiMapper.cs
+App.DTO/Mappers/Portal/Tickets/TicketApiMapper.cs
+App.DTO/Mappers/Portal/Tickets/TicketListItemApiMapper.cs
+App.DTO/Mappers/Portal/Tickets/TicketDetailsApiMapper.cs
+App.DTO/Mappers/Portal/Tickets/TicketOptionsApiMapper.cs
 ```
 
 Use:
@@ -861,23 +912,27 @@ IBaseMapper<UpdateTicketDto, TicketBllDto>
    - Call `_bll.Tickets.SearchAsync(...)`.
 2. Create:
    - Map `CreateTicketDto` -> `TicketBllDto`.
-   - Call `_bll.Tickets.CreateAsync(...)`.
+   - Call `_bll.Tickets.CreateAsync(ManagementCompanyRoute, dto, ...)`.
    - Return `201 Created`.
 3. Details:
-   - Call `_bll.Tickets.GetDetailsAsync(...)`.
+   - Call `_bll.Tickets.GetDetailsAsync(TicketRoute, ...)`.
+   - Map `ManagementTicketDetailsModel` -> `TicketDetailsDto`.
+   - Include scheduled work summary items from `ManagementTicketDetailsModel.ScheduledWork`.
 4. Update:
    - Map `UpdateTicketDto` -> `TicketBllDto`.
-   - Call `_bll.Tickets.UpdateAsync(...)`.
+   - Call `_bll.Tickets.UpdateAsync(TicketRoute, dto, ...)`.
 5. Delete:
-   - Call `_bll.Tickets.DeleteAsync(...)`.
+   - Call `_bll.Tickets.DeleteAsync(TicketRoute, ...)`.
 6. Advance status:
-   - Call `_bll.Tickets.AdvanceStatusAsync(...)`.
+   - Call `_bll.Tickets.AdvanceStatusAsync(TicketRoute, ...)`.
 7. Selector options:
-   - Reuse `GetSelectorOptionsAsync(...)`.
+   - Call `_bll.Tickets.GetSelectorOptionsAsync(...)`.
 
 ---
 
 ## Phase 12 — Scheduled Work API
+
+`ScheduledWorkController` must call `_bll.ScheduledWorks` directly.
 
 ### Controller
 
@@ -889,8 +944,10 @@ Routes:
 
 ```text
 GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/form
 POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work
 GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/form
 PUT    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}
 DELETE /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}
 POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/start
@@ -901,20 +958,21 @@ POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/
 ### DTOs
 
 ```text
-App.DTO/Portal/ScheduledWork/ScheduledWorkListItemDto.cs
-App.DTO/Portal/ScheduledWork/ScheduledWorkDetailsDto.cs
-App.DTO/Portal/ScheduledWork/ScheduledWorkDto.cs
-App.DTO/Portal/ScheduledWork/CreateScheduledWorkDto.cs
-App.DTO/Portal/ScheduledWork/UpdateScheduledWorkDto.cs
-App.DTO/Portal/ScheduledWork/ScheduledWorkActionDto.cs
+App.DTO/v1/Portal/ScheduledWork/ScheduledWorkListItemDto.cs
+App.DTO/v1/Portal/ScheduledWork/ScheduledWorkDetailsDto.cs
+App.DTO/v1/Portal/ScheduledWork/ScheduledWorkFormDto.cs
+App.DTO/v1/Portal/ScheduledWork/ScheduledWorkDto.cs
+App.DTO/v1/Portal/ScheduledWork/CreateScheduledWorkDto.cs
+App.DTO/v1/Portal/ScheduledWork/UpdateScheduledWorkDto.cs
+App.DTO/v1/Portal/ScheduledWork/ScheduledWorkActionDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/ScheduledWork/ScheduledWorkApiMapper.cs
-WebApp/Mappers/Api/Portal/ScheduledWork/ScheduledWorkListItemApiMapper.cs
-WebApp/Mappers/Api/Portal/ScheduledWork/ScheduledWorkDetailsApiMapper.cs
+App.DTO/Mappers/Portal/ScheduledWork/ScheduledWorkApiMapper.cs
+App.DTO/Mappers/Portal/ScheduledWork/ScheduledWorkListItemApiMapper.cs
+App.DTO/Mappers/Portal/ScheduledWork/ScheduledWorkDetailsApiMapper.cs
 ```
 
 Use:
@@ -924,9 +982,40 @@ IBaseMapper<CreateScheduledWorkDto, ScheduledWorkBllDto>
 IBaseMapper<UpdateScheduledWorkDto, ScheduledWorkBllDto>
 ```
 
+### Implementation tasks
+
+1. List:
+   - Call `_bll.ScheduledWorks.ListForTicketAsync(TicketRoute, ...)`.
+2. Create form:
+   - Call `_bll.ScheduledWorks.GetCreateFormAsync(TicketRoute, ...)`.
+   - Return create defaults plus vendor and work-status options.
+3. Schedule:
+   - Map `CreateScheduledWorkDto` -> `ScheduledWorkBllDto`.
+   - Call `_bll.ScheduledWorks.ScheduleAsync(TicketRoute, dto, ...)`.
+4. Details:
+   - Call `_bll.ScheduledWorks.GetDetailsAsync(ScheduledWorkRoute, ...)`.
+5. Edit form:
+   - Call `_bll.ScheduledWorks.GetEditFormAsync(ScheduledWorkRoute, ...)`.
+6. Update:
+   - Map `UpdateScheduledWorkDto` -> `ScheduledWorkBllDto`.
+   - Call `_bll.ScheduledWorks.UpdateScheduleAsync(ScheduledWorkRoute, dto, ...)`.
+7. Delete:
+   - Call `_bll.ScheduledWorks.DeleteAsync(ScheduledWorkRoute, ...)`.
+8. Start:
+   - Use `ScheduledWorkActionDto.ActionAt`.
+   - Call `_bll.ScheduledWorks.StartWorkAsync(ScheduledWorkRoute, realStart, ...)`.
+9. Complete:
+   - Use `ScheduledWorkActionDto.ActionAt`.
+   - Call `_bll.ScheduledWorks.CompleteWorkAsync(ScheduledWorkRoute, realEnd, ...)`.
+10. Cancel:
+   - No body required.
+   - Call `_bll.ScheduledWorks.CancelWorkAsync(ScheduledWorkRoute, ...)`.
+
 ---
 
 ## Phase 13 — Work Logs API
+
+`WorkLogsController` must call `_bll.WorkLogs` directly.
 
 ### Controller
 
@@ -938,7 +1027,10 @@ Routes:
 
 ```text
 GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs/form
 POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs/{workLogId}/form
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs/{workLogId}/delete-model
 PUT    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs/{workLogId}
 DELETE /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs/{workLogId}
 ```
@@ -946,18 +1038,21 @@ DELETE /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/
 ### DTOs
 
 ```text
-App.DTO/Portal/WorkLogs/WorkLogListItemDto.cs
-App.DTO/Portal/WorkLogs/WorkLogTotalsDto.cs
-App.DTO/Portal/WorkLogs/WorkLogDto.cs
-App.DTO/Portal/WorkLogs/CreateWorkLogDto.cs
-App.DTO/Portal/WorkLogs/UpdateWorkLogDto.cs
+App.DTO/v1/Portal/WorkLogs/WorkLogListItemDto.cs
+App.DTO/v1/Portal/WorkLogs/WorkLogTotalsDto.cs
+App.DTO/v1/Portal/WorkLogs/WorkLogListDto.cs
+App.DTO/v1/Portal/WorkLogs/WorkLogFormDto.cs
+App.DTO/v1/Portal/WorkLogs/WorkLogDeleteDto.cs
+App.DTO/v1/Portal/WorkLogs/WorkLogDto.cs
+App.DTO/v1/Portal/WorkLogs/CreateWorkLogDto.cs
+App.DTO/v1/Portal/WorkLogs/UpdateWorkLogDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/WorkLogs/WorkLogApiMapper.cs
-WebApp/Mappers/Api/Portal/WorkLogs/WorkLogListItemApiMapper.cs
+App.DTO/Mappers/Portal/WorkLogs/WorkLogApiMapper.cs
+App.DTO/Mappers/Portal/WorkLogs/WorkLogListItemApiMapper.cs
 ```
 
 Use:
@@ -966,6 +1061,26 @@ Use:
 IBaseMapper<CreateWorkLogDto, WorkLogBllDto>
 IBaseMapper<UpdateWorkLogDto, WorkLogBllDto>
 ```
+
+### Implementation tasks
+
+1. List:
+   - Call `_bll.WorkLogs.ListForScheduledWorkAsync(ScheduledWorkRoute, ...)`.
+   - Response includes `CanViewCosts`, totals, and list items.
+2. Create form:
+   - Call `_bll.WorkLogs.GetCreateFormAsync(ScheduledWorkRoute, ...)`.
+3. Add:
+   - Map `CreateWorkLogDto` -> `WorkLogBllDto`.
+   - Call `_bll.WorkLogs.AddAsync(ScheduledWorkRoute, dto, ...)`.
+4. Edit form:
+   - Call `_bll.WorkLogs.GetEditFormAsync(WorkLogRoute, ...)`.
+5. Delete model:
+   - Call `_bll.WorkLogs.GetDeleteModelAsync(WorkLogRoute, ...)`.
+6. Update:
+   - Map `UpdateWorkLogDto` -> `WorkLogBllDto`.
+   - Call `_bll.WorkLogs.UpdateAsync(WorkLogRoute, dto, ...)`.
+7. Delete:
+   - Call `_bll.WorkLogs.DeleteAsync(WorkLogRoute, ...)`.
 
 ---
 
@@ -995,24 +1110,24 @@ DELETE /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/categories/{tic
 ### DTOs
 
 ```text
-App.DTO/Portal/Vendors/VendorListItemDto.cs
-App.DTO/Portal/Vendors/VendorProfileDto.cs
-App.DTO/Portal/Vendors/VendorDto.cs
-App.DTO/Portal/Vendors/CreateVendorDto.cs
-App.DTO/Portal/Vendors/UpdateVendorDto.cs
-App.DTO/Portal/Vendors/DeleteVendorDto.cs
-App.DTO/Portal/Vendors/VendorCategoryAssignmentDto.cs
-App.DTO/Portal/Vendors/AssignVendorCategoryDto.cs
-App.DTO/Portal/Vendors/UpdateVendorCategoryDto.cs
+App.DTO/v1/Portal/Vendors/VendorListItemDto.cs
+App.DTO/v1/Portal/Vendors/VendorProfileDto.cs
+App.DTO/v1/Portal/Vendors/VendorDto.cs
+App.DTO/v1/Portal/Vendors/CreateVendorDto.cs
+App.DTO/v1/Portal/Vendors/UpdateVendorDto.cs
+App.DTO/v1/Portal/Vendors/DeleteVendorDto.cs
+App.DTO/v1/Portal/Vendors/VendorCategoryAssignmentDto.cs
+App.DTO/v1/Portal/Vendors/AssignVendorCategoryDto.cs
+App.DTO/v1/Portal/Vendors/UpdateVendorCategoryDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/Vendors/VendorApiMapper.cs
-WebApp/Mappers/Api/Portal/Vendors/VendorListItemApiMapper.cs
-WebApp/Mappers/Api/Portal/Vendors/VendorProfileApiMapper.cs
-WebApp/Mappers/Api/Portal/Vendors/VendorCategoryApiMapper.cs
+App.DTO/Mappers/Portal/Vendors/VendorApiMapper.cs
+App.DTO/Mappers/Portal/Vendors/VendorListItemApiMapper.cs
+App.DTO/Mappers/Portal/Vendors/VendorProfileApiMapper.cs
+App.DTO/Mappers/Portal/Vendors/VendorCategoryApiMapper.cs
 ```
 
 Use:
@@ -1054,22 +1169,22 @@ POST   /api/v1/portal/companies/{companySlug}/users/access-requests/{requestId}/
 ### DTOs
 
 ```text
-App.DTO/Portal/Users/CompanyUserListItemDto.cs
-App.DTO/Portal/Users/AddCompanyUserDto.cs
-App.DTO/Portal/Users/UpdateCompanyUserDto.cs
-App.DTO/Portal/Users/CompanyUserEditDto.cs
-App.DTO/Portal/Users/PendingAccessRequestDto.cs
-App.DTO/Portal/Users/TransferOwnershipDto.cs
-App.DTO/Portal/Users/OwnershipTransferCandidateDto.cs
-App.DTO/Portal/Users/CompanyUsersPageDto.cs
+App.DTO/v1/Portal/Users/CompanyUserListItemDto.cs
+App.DTO/v1/Portal/Users/AddCompanyUserDto.cs
+App.DTO/v1/Portal/Users/UpdateCompanyUserDto.cs
+App.DTO/v1/Portal/Users/CompanyUserEditDto.cs
+App.DTO/v1/Portal/Users/PendingAccessRequestDto.cs
+App.DTO/v1/Portal/Users/TransferOwnershipDto.cs
+App.DTO/v1/Portal/Users/OwnershipTransferCandidateDto.cs
+App.DTO/v1/Portal/Users/CompanyUsersPageDto.cs
 ```
 
 ### Mappers
 
 ```text
-WebApp/Mappers/Api/Portal/Users/CompanyUserApiMapper.cs
-WebApp/Mappers/Api/Portal/Users/PendingAccessRequestApiMapper.cs
-WebApp/Mappers/Api/Portal/Users/OwnershipTransferApiMapper.cs
+App.DTO/Mappers/Portal/Users/CompanyUserApiMapper.cs
+App.DTO/Mappers/Portal/Users/PendingAccessRequestApiMapper.cs
+App.DTO/Mappers/Portal/Users/OwnershipTransferApiMapper.cs
 ```
 
 ### Implementation tasks
@@ -1113,15 +1228,22 @@ GET /api/v1/portal/companies/{companySlug}/lookups/vendor-ticket-categories
 Use shared:
 
 ```text
-App.DTO/Common/OptionDto.cs
+App.DTO/v1/Shared/LookupOptionDto.cs
 ```
 
 ### Implementation tasks
 
-1. Expose property type options used by create property.
-2. Expose lease roles used by unit/resident lease workflows.
-3. Expose ticket statuses/priorities/categories/customers/properties/units/residents/vendors.
-4. Expose vendor ticket category options where needed.
+1. Expose property type options used by create property:
+   - Call `_bll.Properties.GetPropertyTypeOptionsAsync(...)`.
+2. Expose lease roles used by unit/resident lease workflows:
+   - Call `_bll.Leases.ListLeaseRolesAsync(...)`.
+3. Expose ticket statuses, priorities, categories, customers, properties, units, residents, and vendors:
+   - Call `_bll.Tickets.GetSelectorOptionsAsync(...)`.
+4. Expose scheduled-work form options through the scheduled-work API form endpoints:
+   - Call `_bll.ScheduledWorks.GetCreateFormAsync(...)`.
+   - Call `_bll.ScheduledWorks.GetEditFormAsync(...)`.
+5. Expose vendor ticket category options only through the existing vendor/category assignment BLL flow.
+   - Do not add direct DAL access from API controllers.
 
 ---
 
@@ -1231,7 +1353,8 @@ WebApp/ApiControllers/ApiErrorMappingExtensions.cs
 Responsibilities:
 
 - Convert `FluentResults.IError` to status codes.
-- Convert `ValidationAppError` failures to `ValidationProblemDetails`.
+- Convert `ValidationAppError` failures to `RestApiErrorResponse.Errors`.
+- Set `RestApiErrorResponse.ErrorCode` from `ApiErrorCodes`.
 - Preserve business error message.
 - Avoid leaking stack traces.
 
@@ -1241,12 +1364,13 @@ Validation error:
 
 ```json
 {
-  "type": "https://httpstatuses.com/400",
-  "title": "Validation failed",
   "status": 400,
+  "error": "Validation failed.",
+  "errorCode": "validation_failed",
   "errors": {
     "name": ["Name is required"]
-  }
+  },
+  "traceId": "00-..."
 }
 ```
 
@@ -1254,8 +1378,11 @@ Conflict:
 
 ```json
 {
-  "code": "conflict",
-  "message": "Ticket number already exists."
+  "status": 409,
+  "error": "Ticket number already exists.",
+  "errorCode": "conflict",
+  "errors": {},
+  "traceId": "00-..."
 }
 ```
 
@@ -1263,8 +1390,11 @@ Unauthorized:
 
 ```json
 {
-  "code": "unauthorized",
-  "message": "Authentication is required."
+  "status": 401,
+  "error": "Authentication is required.",
+  "errorCode": "unauthorized",
+  "errors": {},
+  "traceId": "00-..."
 }
 ```
 
@@ -1317,55 +1447,28 @@ For each controller:
 
 ---
 
-## Testing Plan
+## Verification Plan
 
-### Unit tests
+Project override: do not create tests until further notice.
 
-Create mapper tests:
+Run build and manual verification only:
 
-```text
-Tests/App.DTO.Tests or Tests/WebApp.Tests/Mappers
-```
-
-Test:
-
-- API DTO -> BLL DTO mapping.
-- BLL DTO/model -> API DTO mapping.
-- Null handling.
-- DateOnly/DateTime conversion for lease dates.
-- Guid handling.
-
-### Integration tests
-
-Create API integration tests for:
-
-1. Auth:
-   - Register.
-   - Login.
-   - Refresh.
-   - Logout.
-2. Onboarding:
-   - Create management company.
-   - Join request submission.
-3. Portal:
-   - Customer create/list.
-   - Property create/list.
-   - Unit create/list.
-   - Resident create/list.
-   - Ticket create/update/status advance.
-   - Scheduled work lifecycle.
-   - Work log lifecycle.
-   - Vendor create/category/contact flows.
-   - Company user approval flow.
-
-### Authorization tests
-
-For every scoped route:
-
-- No token -> `401`.
-- Token without company access -> `403` or `404`, depending on current BLL behavior.
-- Valid token with access -> success.
-- Cross-company slug access must fail.
+1. Build the solution and fix compile errors.
+2. Manually inspect Swagger/OpenAPI output for route, DTO, and response metadata.
+3. Manually exercise representative happy paths with an authenticated JWT:
+   - auth/login/refresh/logout
+   - onboarding and workspace selection
+   - customer/property/unit/resident create/list
+   - ticket create/update/status advance
+   - scheduled work lifecycle
+   - work log lifecycle
+   - vendor category/contact flows
+   - company user access-request flow
+4. Manually verify scoped route behavior:
+   - no token -> `401`
+   - token without company access -> `403` or `404`, depending on current BLL behavior
+   - valid token with access -> success
+   - cross-company slug access fails without leaking existence
 
 ---
 
@@ -1417,7 +1520,7 @@ For every scoped route:
 
 1. Lookups controller.
 2. Swagger response metadata.
-3. Integration tests.
+3. Manual API verification.
 4. Frontend path response consistency.
 5. CORS production tightening.
 
@@ -1444,8 +1547,27 @@ Resident representations
 ## Final Target Folder Layout
 
 ```text
-App.DTO/
+App.DTO/v1/
   Common/
+  Identity/
+  Onboarding/
+  Workspace/
+  Shared/
+  Portal/
+    Companies/
+    Customers/
+    Properties/
+    Units/
+    Residents/
+    Leases/
+    Contacts/
+    Tickets/
+    ScheduledWork/
+    WorkLogs/
+    Vendors/
+    Users/
+    Lookups/
+App.DTO/Mappers/
   Auth/
   Onboarding/
   Workspace/
@@ -1488,25 +1610,6 @@ WebApp/
       VendorsController.cs
       CompanyUsersController.cs
       LookupsController.cs
-  Mappers/
-    Api/
-      Auth/
-      Onboarding/
-      Workspace/
-      Portal/
-        Companies/
-        Customers/
-        Properties/
-        Units/
-        Residents/
-        Leases/
-        Contacts/
-        Tickets/
-        ScheduledWork/
-        WorkLogs/
-        Vendors/
-        Users/
-        Lookups/
   Services/
     Identity/
       IJwtTokenService.cs
@@ -1541,9 +1644,17 @@ The implementation is complete when:
   - vendors
   - vendor categories
   - company users/access requests
-- All public API contracts live in `App.DTO`.
+- All public API contracts live in `App.DTO/v1` and use `App.DTO.v1.*` namespaces.
+- API mapper implementations live in `App.DTO/Mappers`.
+- Error responses are compatible with `RestApiErrorResponse`.
 - Mapping logic is separated from controllers.
 - `IBaseMapper<ApiDto, BllDto>` is used where mapping is two-way and canonical BLL DTOs are available.
-- Controllers return DTOs, never MVC view models.
+- Controllers call only public `IAppBLL` services; they do not invent DAL access.
+- `TicketsController` only calls `_bll.Tickets`.
+- `ScheduledWorkController` calls `_bll.ScheduledWorks` directly.
+- `WorkLogsController` calls `_bll.WorkLogs` directly.
+- SPA create/edit flows have form/options endpoints where existing BLL form models provide required options.
+- Controllers return public API DTOs, never DAL DTOs, BLL DTOs/models, domain entities, MVC ViewModels, `ViewBag`, or `ViewData`.
 - Controllers return status codes and validation errors suitable for a SPA.
 - Placeholder/shell workflows are not exposed as real APIs.
+- No tests are added while the testing override remains active.

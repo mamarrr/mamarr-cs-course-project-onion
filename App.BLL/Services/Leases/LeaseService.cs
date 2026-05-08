@@ -1,7 +1,6 @@
 using System.Globalization;
 using App.BLL.Contracts.Common;
-using App.BLL.Contracts.Residents;
-using App.BLL.Contracts.Units;
+using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Leases;
 using App.BLL.DTO.Common;
 using App.BLL.DTO.Common.Errors;
@@ -23,17 +22,22 @@ public class LeaseService :
     BaseService<LeaseBllDto, LeaseDalDto, ILeaseRepository, IAppUOW>,
     ILeaseService
 {
-    private readonly IResidentService _residentService;
-    private readonly IUnitService _unitService;
+    private static readonly HashSet<string> ResidentAccessRoleCodes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "OWNER",
+        "MANAGER",
+        "FINANCE",
+        "SUPPORT"
+    };
+
+    private readonly IPortalContextProvider _portalContext;
 
     public LeaseService(
         IAppUOW uow,
-        IResidentService residentService,
-        IUnitService unitService)
+        IPortalContextProvider portalContext)
         : base(uow.Leases, uow, new LeaseBllDtoMapper())
     {
-        _residentService = residentService;
-        _unitService = unitService;
+        _portalContext = portalContext;
     }
 
     public async Task<Result<ResidentLeaseListModel>> ListForResidentAsync(
@@ -670,14 +674,18 @@ public class LeaseService :
         ResidentRoute route,
         CancellationToken cancellationToken)
     {
-        return _residentService.ResolveWorkspaceAsync(route, cancellationToken);
+        return _portalContext.ResolveResidentWorkspaceAsync(
+            route,
+            ResidentAccessRoleCodes,
+            allowResidentContext: true,
+            cancellationToken);
     }
 
     private Task<Result<UnitWorkspaceModel>> ResolveUnitAsync(
         UnitRoute route,
         CancellationToken cancellationToken)
     {
-        return _unitService.ResolveWorkspaceAsync(route, cancellationToken);
+        return _portalContext.ResolveUnitWorkspaceAsync(route, cancellationToken);
     }
 
     private static ResidentLeaseRoute ToResidentLeaseRoute(ResidentRoute route, Guid leaseId)
