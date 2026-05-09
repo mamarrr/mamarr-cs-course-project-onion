@@ -54,6 +54,7 @@ public interface IUnitRepository : IBaseRepository<UnitDalDto>
     Task<IReadOnlyList<TicketOptionDalDto>> OptionsForTicketAsync(
         Guid managementCompanyId,
         Guid? propertyId = null,
+        Guid? customerId = null,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<LeaseUnitOptionDalDto>> ListForLeaseAssignmentAsync(

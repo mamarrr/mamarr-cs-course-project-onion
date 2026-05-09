@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using WebApp.Mappers.Dashboards;
 using WebApp.UI.Chrome;
-using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
 using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
@@ -48,12 +47,6 @@ public class CustomerDashboardController : Controller
             customerSlug);
 
         return await RenderSectionAsync(companySlug, customerSlug, "Dashboard", cancellationToken);
-    }
-
-    [HttpGet("tickets", Name = PortalRouteNames.CustomerTickets)]
-    public async Task<IActionResult> Tickets(string companySlug, string customerSlug, CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, customerSlug, "Tickets", cancellationToken);
     }
 
     private async Task<IActionResult> RenderSectionAsync(

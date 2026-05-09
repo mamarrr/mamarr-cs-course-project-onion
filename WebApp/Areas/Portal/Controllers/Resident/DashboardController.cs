@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Mappers.Dashboards;
 using WebApp.UI.Chrome;
-using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
 using WebApp.UI.Routing;
 using WebApp.UI.Workspace;
@@ -39,12 +38,6 @@ public class DashboardController : Controller
     public async Task<IActionResult> Index(string companySlug, string residentIdCode, CancellationToken cancellationToken)
     {
         return await RenderSectionAsync(companySlug, residentIdCode, "Dashboard", cancellationToken);
-    }
-
-    [HttpGet("tickets", Name = PortalRouteNames.ResidentTickets)]
-    public async Task<IActionResult> Tickets(string companySlug, string residentIdCode, CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, residentIdCode, "Tickets", cancellationToken);
     }
 
     private async Task<IActionResult> RenderSectionAsync(

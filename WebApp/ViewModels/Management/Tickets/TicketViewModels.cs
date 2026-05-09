@@ -27,6 +27,22 @@ public class TicketsPageViewModel : IAppChromePage
     public TicketSelectOptionsViewModel Options { get; set; } = new();
 }
 
+public class ContextTicketsPageViewModel : TicketsPageViewModel
+{
+    [ValidateNever]
+    public string ContextName { get; set; } = string.Empty;
+
+    [ValidateNever]
+    public string ClearRouteName { get; set; } = string.Empty;
+
+    [ValidateNever]
+    public IDictionary<string, string> ClearRouteValues { get; set; } = new Dictionary<string, string>();
+
+    public bool ShowCustomerFilter { get; set; } = true;
+    public bool ShowPropertyFilter { get; set; } = true;
+    public bool ShowUnitFilter { get; set; } = true;
+}
+
 public class TicketListItemViewModel
 {
     public Guid TicketId { get; set; }

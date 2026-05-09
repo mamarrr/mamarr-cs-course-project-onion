@@ -72,6 +72,11 @@ public class TicketRepository :
             query = query.Where(ticket => ticket.UnitId == filter.UnitId.Value);
         }
 
+        if (filter.ResidentId.HasValue)
+        {
+            query = query.Where(ticket => ticket.ResidentId == filter.ResidentId.Value);
+        }
+
         if (filter.VendorId.HasValue)
         {
             query = query.Where(ticket => ticket.VendorId == filter.VendorId.Value);

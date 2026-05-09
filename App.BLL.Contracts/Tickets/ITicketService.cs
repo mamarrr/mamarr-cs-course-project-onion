@@ -12,6 +12,22 @@ public interface ITicketService : IBaseService<TicketBllDto>
         ManagementTicketSearchRoute route,
         CancellationToken cancellationToken = default);
 
+    Task<Result<ContextTicketsModel>> SearchCustomerTicketsAsync(
+        ContextTicketSearchRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<ContextTicketsModel>> SearchPropertyTicketsAsync(
+        ContextTicketSearchRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<ContextTicketsModel>> SearchUnitTicketsAsync(
+        ContextTicketSearchRoute route,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<ContextTicketsModel>> SearchResidentTicketsAsync(
+        ContextTicketSearchRoute route,
+        CancellationToken cancellationToken = default);
+
     Task<Result<ManagementTicketDetailsModel>> GetDetailsAsync(
         TicketRoute route,
         CancellationToken cancellationToken = default);

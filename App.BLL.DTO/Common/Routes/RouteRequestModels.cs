@@ -85,9 +85,18 @@ public class ManagementTicketSearchRoute : ManagementCompanyRoute
     public Guid? CustomerId { get; init; }
     public Guid? PropertyId { get; init; }
     public Guid? UnitId { get; init; }
+    public Guid? ResidentId { get; init; }
     public Guid? VendorId { get; init; }
     public DateTime? DueFrom { get; init; }
     public DateTime? DueTo { get; init; }
+}
+
+public class ContextTicketSearchRoute : ManagementTicketSearchRoute
+{
+    public string? CustomerSlug { get; init; }
+    public string? PropertySlug { get; init; }
+    public string? UnitSlug { get; init; }
+    public string? ResidentIdCode { get; init; }
 }
 
 public class TicketSelectorOptionsRoute : ManagementCompanyRoute

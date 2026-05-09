@@ -29,6 +29,7 @@ public class TicketListFilterDalDto
     public Guid? CustomerId { get; init; }
     public Guid? PropertyId { get; init; }
     public Guid? UnitId { get; init; }
+    public Guid? ResidentId { get; init; }
     public Guid? VendorId { get; init; }
     public DateTime? DueFrom { get; init; }
     public DateTime? DueTo { get; init; }

@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Common;
+using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Tickets;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Common;
@@ -52,11 +53,13 @@ public class TicketService :
     };
 
     private readonly IAppUOW _uow;
+    private readonly IPortalContextProvider _portalContext;
 
-    public TicketService(IAppUOW uow)
+    public TicketService(IAppUOW uow, IPortalContextProvider portalContext)
         : base(uow.Tickets, uow, new TicketBllDtoMapper())
     {
         _uow = uow;
+        _portalContext = portalContext;
     }
 
     public async Task<Result<ManagementTicketsModel>> SearchAsync(
@@ -84,19 +87,7 @@ public class TicketService :
             CompanySlug = workspace.Value.CompanySlug,
             CompanyName = workspace.Value.CompanyName,
             Tickets = tickets.Select(MapListItem).ToList(),
-            Filter = new TicketFilterModel
-            {
-                Search = route.Search,
-                StatusId = route.StatusId,
-                PriorityId = route.PriorityId,
-                CategoryId = route.CategoryId,
-                CustomerId = route.CustomerId,
-                PropertyId = route.PropertyId,
-                UnitId = route.UnitId,
-                VendorId = route.VendorId,
-                DueFrom = route.DueFrom,
-                DueTo = route.DueTo
-            },
+            Filter = ToFilterModel(route),
             Options = await BuildOptionsAsync(
                 workspace.Value.ManagementCompanyId,
                 route.CustomerId,
@@ -105,6 +96,180 @@ public class TicketService :
                 route.CategoryId,
                 cancellationToken)
         });
+    }
+
+    public async Task<Result<ContextTicketsModel>> SearchCustomerTicketsAsync(
+        ContextTicketSearchRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var context = await _portalContext.ResolveCustomerWorkspaceAsync(
+            new CustomerRoute
+            {
+                AppUserId = route.AppUserId,
+                CompanySlug = route.CompanySlug,
+                CustomerSlug = route.CustomerSlug ?? string.Empty
+            },
+            ReadAllowedRoleCodes,
+            allowCustomerContext: true,
+            cancellationToken);
+        if (context.IsFailed)
+        {
+            return Result.Fail<ContextTicketsModel>(context.Errors);
+        }
+
+        var effectiveRoute = ToEffectiveSearchRoute(
+            route,
+            context.Value.CustomerId,
+            route.PropertyId,
+            route.UnitId,
+            null);
+
+        return Result.Ok(await BuildContextTicketsModelAsync(
+            effectiveRoute,
+            context.Value.ManagementCompanyId,
+            context.Value.CompanySlug,
+            context.Value.CompanyName,
+            context.Value.CustomerName,
+            customerSlug: context.Value.CustomerSlug,
+            customerName: context.Value.CustomerName,
+            propertySlug: null,
+            propertyName: null,
+            unitSlug: null,
+            unitName: null,
+            residentIdCode: null,
+            residentName: null,
+            cancellationToken));
+    }
+
+    public async Task<Result<ContextTicketsModel>> SearchPropertyTicketsAsync(
+        ContextTicketSearchRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var context = await _portalContext.ResolvePropertyWorkspaceAsync(
+            new PropertyRoute
+            {
+                AppUserId = route.AppUserId,
+                CompanySlug = route.CompanySlug,
+                CustomerSlug = route.CustomerSlug ?? string.Empty,
+                PropertySlug = route.PropertySlug ?? string.Empty
+            },
+            ReadAllowedRoleCodes,
+            allowCustomerContext: true,
+            cancellationToken);
+        if (context.IsFailed)
+        {
+            return Result.Fail<ContextTicketsModel>(context.Errors);
+        }
+
+        var effectiveRoute = ToEffectiveSearchRoute(
+            route,
+            context.Value.CustomerId,
+            context.Value.PropertyId,
+            route.UnitId,
+            null);
+
+        return Result.Ok(await BuildContextTicketsModelAsync(
+            effectiveRoute,
+            context.Value.ManagementCompanyId,
+            context.Value.CompanySlug,
+            context.Value.CompanyName,
+            context.Value.PropertyName,
+            context.Value.CustomerSlug,
+            context.Value.CustomerName,
+            context.Value.PropertySlug,
+            context.Value.PropertyName,
+            unitSlug: null,
+            unitName: null,
+            residentIdCode: null,
+            residentName: null,
+            cancellationToken));
+    }
+
+    public async Task<Result<ContextTicketsModel>> SearchUnitTicketsAsync(
+        ContextTicketSearchRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var context = await _portalContext.ResolveUnitWorkspaceAsync(
+            new UnitRoute
+            {
+                AppUserId = route.AppUserId,
+                CompanySlug = route.CompanySlug,
+                CustomerSlug = route.CustomerSlug ?? string.Empty,
+                PropertySlug = route.PropertySlug ?? string.Empty,
+                UnitSlug = route.UnitSlug ?? string.Empty
+            },
+            cancellationToken);
+        if (context.IsFailed)
+        {
+            return Result.Fail<ContextTicketsModel>(context.Errors);
+        }
+
+        var effectiveRoute = ToEffectiveSearchRoute(
+            route,
+            context.Value.CustomerId,
+            context.Value.PropertyId,
+            context.Value.UnitId,
+            null);
+
+        return Result.Ok(await BuildContextTicketsModelAsync(
+            effectiveRoute,
+            context.Value.ManagementCompanyId,
+            context.Value.CompanySlug,
+            context.Value.CompanyName,
+            context.Value.UnitNr,
+            context.Value.CustomerSlug,
+            context.Value.CustomerName,
+            context.Value.PropertySlug,
+            context.Value.PropertyName,
+            context.Value.UnitSlug,
+            context.Value.UnitNr,
+            residentIdCode: null,
+            residentName: null,
+            cancellationToken));
+    }
+
+    public async Task<Result<ContextTicketsModel>> SearchResidentTicketsAsync(
+        ContextTicketSearchRoute route,
+        CancellationToken cancellationToken = default)
+    {
+        var context = await _portalContext.ResolveResidentWorkspaceAsync(
+            new ResidentRoute
+            {
+                AppUserId = route.AppUserId,
+                CompanySlug = route.CompanySlug,
+                ResidentIdCode = route.ResidentIdCode ?? string.Empty
+            },
+            ReadAllowedRoleCodes,
+            allowResidentContext: true,
+            cancellationToken);
+        if (context.IsFailed)
+        {
+            return Result.Fail<ContextTicketsModel>(context.Errors);
+        }
+
+        var residentName = BuildFullName(context.Value.FirstName, context.Value.LastName);
+        var effectiveRoute = ToEffectiveSearchRoute(
+            route,
+            customerId: null,
+            propertyId: null,
+            unitId: null,
+            context.Value.ResidentId);
+
+        return Result.Ok(await BuildContextTicketsModelAsync(
+            effectiveRoute,
+            context.Value.ManagementCompanyId,
+            context.Value.CompanySlug,
+            context.Value.CompanyName,
+            string.IsNullOrWhiteSpace(residentName) ? context.Value.ResidentIdCode : residentName,
+            customerSlug: null,
+            customerName: null,
+            propertySlug: null,
+            propertyName: null,
+            unitSlug: null,
+            unitName: null,
+            context.Value.ResidentIdCode,
+            string.IsNullOrWhiteSpace(residentName) ? context.Value.ResidentIdCode : residentName,
+            cancellationToken));
     }
 
     public async Task<Result<ManagementTicketDetailsModel>> GetDetailsAsync(
@@ -757,7 +922,7 @@ public class TicketService :
             Categories = (await _uow.Lookups.AllTicketCategoriesAsync(cancellationToken)).Select(MapOption).ToList(),
             Customers = (await _uow.Customers.OptionsForTicketAsync(managementCompanyId, cancellationToken)).Select(MapOption).ToList(),
             Properties = (await _uow.Properties.OptionsForTicketAsync(managementCompanyId, customerId, cancellationToken)).Select(MapOption).ToList(),
-            Units = (await _uow.Units.OptionsForTicketAsync(managementCompanyId, propertyId, cancellationToken)).Select(MapOption).ToList(),
+            Units = (await _uow.Units.OptionsForTicketAsync(managementCompanyId, propertyId, customerId, cancellationToken)).Select(MapOption).ToList(),
             Residents = (await _uow.Residents.OptionsForTicketAsync(managementCompanyId, unitId, cancellationToken)).Select(MapOption).ToList(),
             Vendors = (await _uow.Vendors.OptionsForTicketAsync(managementCompanyId, categoryId, cancellationToken)).Select(MapOption).ToList()
         };
@@ -974,6 +1139,96 @@ public class TicketService :
             CustomerId = route.CustomerId,
             PropertyId = route.PropertyId,
             UnitId = route.UnitId,
+            ResidentId = route.ResidentId,
+            VendorId = route.VendorId,
+            DueFrom = route.DueFrom,
+            DueTo = route.DueTo
+        };
+    }
+
+    private async Task<ContextTicketsModel> BuildContextTicketsModelAsync(
+        ManagementTicketSearchRoute route,
+        Guid managementCompanyId,
+        string companySlug,
+        string companyName,
+        string contextName,
+        string? customerSlug,
+        string? customerName,
+        string? propertySlug,
+        string? propertyName,
+        string? unitSlug,
+        string? unitName,
+        string? residentIdCode,
+        string? residentName,
+        CancellationToken cancellationToken)
+    {
+        var tickets = await _uow.Tickets.AllByCompanyAsync(
+            managementCompanyId,
+            ToFilterDto(route),
+            cancellationToken);
+
+        return new ContextTicketsModel
+        {
+            CompanySlug = companySlug,
+            CompanyName = companyName,
+            ContextName = contextName,
+            CustomerSlug = customerSlug,
+            CustomerName = customerName,
+            PropertySlug = propertySlug,
+            PropertyName = propertyName,
+            UnitSlug = unitSlug,
+            UnitName = unitName,
+            ResidentIdCode = residentIdCode,
+            ResidentName = residentName,
+            Tickets = tickets.Select(MapListItem).ToList(),
+            Filter = ToFilterModel(route),
+            Options = await BuildOptionsAsync(
+                managementCompanyId,
+                route.CustomerId,
+                route.PropertyId,
+                route.UnitId,
+                route.CategoryId,
+                cancellationToken)
+        };
+    }
+
+    private static ManagementTicketSearchRoute ToEffectiveSearchRoute(
+        ManagementTicketSearchRoute route,
+        Guid? customerId,
+        Guid? propertyId,
+        Guid? unitId,
+        Guid? residentId)
+    {
+        return new ManagementTicketSearchRoute
+        {
+            AppUserId = route.AppUserId,
+            CompanySlug = route.CompanySlug,
+            Search = route.Search,
+            StatusId = route.StatusId,
+            PriorityId = route.PriorityId,
+            CategoryId = route.CategoryId,
+            CustomerId = customerId,
+            PropertyId = propertyId,
+            UnitId = unitId,
+            ResidentId = residentId,
+            VendorId = route.VendorId,
+            DueFrom = route.DueFrom,
+            DueTo = route.DueTo
+        };
+    }
+
+    private static TicketFilterModel ToFilterModel(ManagementTicketSearchRoute route)
+    {
+        return new TicketFilterModel
+        {
+            Search = route.Search,
+            StatusId = route.StatusId,
+            PriorityId = route.PriorityId,
+            CategoryId = route.CategoryId,
+            CustomerId = route.CustomerId,
+            PropertyId = route.PropertyId,
+            UnitId = route.UnitId,
+            ResidentId = route.ResidentId,
             VendorId = route.VendorId,
             DueFrom = route.DueFrom,
             DueTo = route.DueTo
@@ -1116,6 +1371,13 @@ public class TicketService :
     private static string T(string key, string fallback)
     {
         return App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
+    }
+
+    private static string BuildFullName(string firstName, string lastName)
+    {
+        return string.Join(
+            " ",
+            new[] { firstName, lastName }.Where(value => !string.IsNullOrWhiteSpace(value)));
     }
 
     private static string DeleteBlockedMessage()

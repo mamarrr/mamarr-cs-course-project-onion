@@ -224,6 +224,7 @@ public class UnitRepository :
     public async Task<IReadOnlyList<TicketOptionDalDto>> OptionsForTicketAsync(
         Guid managementCompanyId,
         Guid? propertyId = null,
+        Guid? customerId = null,
         CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Units
@@ -233,6 +234,11 @@ public class UnitRepository :
         if (propertyId.HasValue)
         {
             query = query.Where(unit => unit.PropertyId == propertyId.Value);
+        }
+
+        if (customerId.HasValue)
+        {
+            query = query.Where(unit => unit.Property!.CustomerId == customerId.Value);
         }
 
         return await query

@@ -100,7 +100,7 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
         _leases ??= new LeaseService(UOW, PortalContext);
 
     public ITicketService Tickets =>
-        _tickets ??= new TicketService(UOW);
+        _tickets ??= new TicketService(UOW, PortalContext);
 
     public IScheduledWorkService ScheduledWorks =>
         _scheduledWorks ??= new ScheduledWorkService(UOW);

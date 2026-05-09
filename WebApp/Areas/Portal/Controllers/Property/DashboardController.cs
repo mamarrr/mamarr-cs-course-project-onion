@@ -45,16 +45,6 @@ public class DashboardController : Controller
         return await RenderSectionAsync(companySlug, customerSlug, propertySlug, "Dashboard", cancellationToken);
     }
 
-    [HttpGet("tickets", Name = PortalRouteNames.PropertyTickets)]
-    public async Task<IActionResult> Tickets(
-        string companySlug,
-        string customerSlug,
-        string propertySlug,
-        CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, customerSlug, propertySlug, "Tickets", cancellationToken);
-    }
-
     private async Task<IActionResult> RenderSectionAsync(
         string companySlug,
         string customerSlug,
