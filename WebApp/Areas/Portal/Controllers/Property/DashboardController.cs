@@ -1,11 +1,12 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
-using App.BLL.DTO.Properties.Models;
+using App.BLL.DTO.Dashboards.Models;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Dashboards;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -77,7 +78,7 @@ public class DashboardController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Properties.ResolveWorkspaceAsync(
+        var result = await _bll.PortalDashboards.GetPropertyDashboardAsync(
             new PropertyRoute
             {
                 AppUserId = appUserId.Value,
@@ -91,6 +92,7 @@ public class DashboardController : Controller
             return ToMvcErrorResult(result.Errors);
         }
 
+        var context = result.Value.Context;
         var currentSectionLabel = currentSection switch
         {
             "Profile" => UiText.Profile,
@@ -105,22 +107,23 @@ public class DashboardController : Controller
 
         var vm = new DashboardPageViewModel
         {
-            AppChrome = await BuildAppChromeAsync(result.Value, title, currentSection, cancellationToken),
-            CompanySlug = result.Value.CompanySlug,
-            CompanyName = result.Value.CompanyName,
-            CustomerSlug = result.Value.CustomerSlug,
-            CustomerName = result.Value.CustomerName,
-            PropertySlug = result.Value.PropertySlug,
-            PropertyName = result.Value.PropertyName,
+            AppChrome = await BuildAppChromeAsync(context, title, currentSection, cancellationToken),
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
+            PropertySlug = context.PropertySlug,
+            PropertyName = context.PropertyName,
             CurrentSection = currentSection,
-            CurrentSectionLabel = currentSectionLabel
+            CurrentSectionLabel = currentSectionLabel,
+            Dashboard = PortalDashboardViewModelMapper.Map(result.Value)
         };
 
         return View("Index", vm);
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        PropertyWorkspaceModel context,
+        PropertyDashboardContextModel context,
         string title,
         string activeSection,
         CancellationToken cancellationToken)

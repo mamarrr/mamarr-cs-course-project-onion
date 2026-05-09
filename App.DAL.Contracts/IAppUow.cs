@@ -1,5 +1,6 @@
 using App.DAL.Contracts.Repositories;
 using App.DAL.Contracts.Repositories.Admin;
+using App.DAL.Contracts.Repositories.Dashboards;
 using Base.DAL.Contracts;
 
 
@@ -14,6 +15,8 @@ public interface IAppUOW : IBaseUOW
     IAdminCompanyRepository AdminCompanies { get; }
 
     IAdminTicketMonitorRepository AdminTicketMonitor { get; }
+
+    IPortalDashboardRepository PortalDashboards { get; }
 
     ICustomerRepository Customers { get; }
 

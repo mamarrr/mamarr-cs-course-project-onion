@@ -11,7 +11,7 @@ Default definitions:
 - High-priority tickets: priority `HIGH` or `URGENT`
 - Delayed work: scheduled work past planned start or end and work status is not `DONE` or `CANCELLED`
 - Recent activity: last 30 days, top 5 newest items
-- Near-term work: today and current week
+- Near-term work: today and the next 7 days
 - Resident portal access and linked accounts: excluded
 
 ## Dashboard Content
@@ -20,8 +20,8 @@ Default definitions:
 
 - Compact company context: company name and current role, with links to profile and users.
 - Summary cards: customers, properties, units, residents, vendors, open tickets.
-- Ticket command area: overdue tickets, high/urgent tickets, due this week, tickets by status, top 5 recently created tickets.
-- Work command area: scheduled today, scheduled this week, delayed work, recently completed work.
+- Ticket command area: overdue tickets, high/urgent tickets, due in the next 7 days, tickets by status, top 5 recently created tickets.
+- Work command area: scheduled today, scheduled in the next 7 days, delayed work, recently completed work.
 - Join requests: pending count and top 5 pending requests; approved/rejected are shown only as recent activity counts for last 30 days.
 - Team overview: active users count and role distribution. Exclude expiring access unless `ValidTo` exists and is within 30 days.
 - Recent activity: top 5 new customers, properties, units, residents, and tickets.

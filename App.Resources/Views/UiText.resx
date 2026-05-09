@@ -559,4 +559,38 @@
   <data name="WorkLogLaborCostNonNegative" xml:space="preserve"><value>Labor cost must be zero or greater.</value></data>
   <data name="WorkLogDescriptionMaxLength" xml:space="preserve"><value>Description must be 4000 characters or fewer.</value></data>
   <data name="WorkLogNotFound" xml:space="preserve"><value>Work log was not found.</value></data>
+  <data name="ManagementCompanyDashboard" xml:space="preserve"><value>Management company dashboard</value></data>
+  <data name="CurrentRole" xml:space="preserve"><value>Current role</value></data>
+  <data name="TicketCommandArea" xml:space="preserve"><value>Ticket command area</value></data>
+  <data name="WorkCommandArea" xml:space="preserve"><value>Work command area</value></data>
+  <data name="TicketsByStatus" xml:space="preserve"><value>Tickets by status</value></data>
+  <data name="RecentTickets" xml:space="preserve"><value>Recent tickets</value></data>
+  <data name="RecentlyCompletedWork" xml:space="preserve"><value>Recently completed work</value></data>
+  <data name="JoinRequests" xml:space="preserve"><value>Join requests</value></data>
+  <data name="NoPendingJoinRequests" xml:space="preserve"><value>No pending join requests.</value></data>
+  <data name="TeamOverview" xml:space="preserve"><value>Team overview</value></data>
+  <data name="RoleDistribution" xml:space="preserve"><value>Role distribution</value></data>
+  <data name="RecentActivity" xml:space="preserve"><value>Recent activity</value></data>
+  <data name="NoRecentActivity" xml:space="preserve"><value>No recent activity.</value></data>
+  <data name="HighPriorityTickets" xml:space="preserve"><value>High/urgent tickets</value></data>
+  <data name="DueNext7Days" xml:space="preserve"><value>Due next 7 days</value></data>
+  <data name="ScheduledToday" xml:space="preserve"><value>Scheduled today</value></data>
+  <data name="ScheduledNext7Days" xml:space="preserve"><value>Scheduled next 7 days</value></data>
+  <data name="DelayedWork" xml:space="preserve"><value>Delayed work</value></data>
+  <data name="PendingJoinRequests" xml:space="preserve"><value>Pending join requests</value></data>
+  <data name="ApprovedLast30Days" xml:space="preserve"><value>Approved last 30 days</value></data>
+  <data name="RejectedLast30Days" xml:space="preserve"><value>Rejected last 30 days</value></data>
+  <data name="ActiveUsers" xml:space="preserve"><value>Active users</value></data>
+  <data name="ExpiringAccess" xml:space="preserve"><value>Expiring access</value></data>
+  <data name="ActiveLeases" xml:space="preserve"><value>Active leases</value></data>
+  <data name="ConnectedResidents" xml:space="preserve"><value>Connected residents</value></data>
+  <data name="TotalUnits" xml:space="preserve"><value>Total units</value></data>
+  <data name="OccupiedUnits" xml:space="preserve"><value>Occupied units</value></data>
+  <data name="VacantUnits" xml:space="preserve"><value>Vacant units</value></data>
+  <data name="KnownSquareMeters" xml:space="preserve"><value>Known m2</value></data>
+  <data name="CurrentResidents" xml:space="preserve"><value>Current residents</value></data>
+  <data name="RecentlyClosedTickets" xml:space="preserve"><value>Recently closed</value></data>
+  <data name="NoTicketsToShow" xml:space="preserve"><value>No tickets to show.</value></data>
+  <data name="NoWorkToShow" xml:space="preserve"><value>No work to show.</value></data>
+  <data name="NoItemsToShow" xml:space="preserve"><value>No items to show.</value></data>
 </root>

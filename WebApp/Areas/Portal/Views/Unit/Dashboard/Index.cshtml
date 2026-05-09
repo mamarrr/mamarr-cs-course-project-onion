@@ -1,13 +1,125 @@
 @model WebApp.ViewModels.Unit.DashboardPageViewModel
+@using WebApp.UI.Routing
 
 <section class="management-card mb-4">
     <p class="management-eyebrow mb-2">@App.Resources.Views.UiText.UnitDashboard</p>
-    <h2 class="mb-1">@Model.UnitName</h2>
-    <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.UnitDashboardIntro, Model.UnitName, Model.PropertyName, Model.CustomerName, Model.CompanyName)</p>
+    <h2 class="mb-1">@Model.Dashboard.UnitNr</h2>
+    <p class="management-muted mb-0">@Model.Dashboard.PropertyName</p>
+    <p class="management-muted mb-0">@T("Floor", "Floor"): @(Model.Dashboard.FloorNr?.ToString() ?? "") | @T("Size", "Size"): @(Model.Dashboard.SizeM2?.ToString("0.##") ?? "")</p>
+    <div class="mt-3">
+        <a class="management-btn secondary" asp-route="@PortalRouteNames.UnitProfile" asp-route-companySlug="@Model.CompanySlug" asp-route-customerSlug="@Model.CustomerSlug" asp-route-propertySlug="@Model.PropertySlug" asp-route-unitSlug="@Model.UnitSlug">@T("Details", "Details")</a>
+    </div>
 </section>
 
-<section class="management-card">
-    <h3>@Model.CurrentSectionLabel</h3>
-    <p class="management-muted mb-0">@string.Format(App.Resources.Views.UiText.UnitSectionPlaceholder, Model.CurrentSectionLabel)</p>
-</section>
+<div class="management-grid management-grid-2">
+    <section class="management-card">
+        <h3>@T("Occupancy", "Occupancy")</h3>
+        @if (Model.Dashboard.CurrentLease is null)
+        {
+            <p class="management-muted mb-0">@T("Vacant", "Vacant")</p>
+        }
+        else
+        {
+            <strong>@Model.Dashboard.CurrentLease.ResidentName</strong>
+            <p class="management-muted mb-0">@Model.Dashboard.CurrentLease.RoleLabel</p>
+            <p class="management-muted mb-0">@Model.Dashboard.CurrentLease.StartDate.ToString("d") - @(Model.Dashboard.CurrentLease.EndDate?.ToString("d") ?? "")</p>
+        }
+    </section>
 
+    <section class="management-card">
+        <h3>@App.Resources.Views.UiText.Tickets</h3>
+        <div class="management-grid management-grid-3 mb-3">
+            @foreach (var metric in Model.Dashboard.TicketMetrics)
+            {
+                <div class="management-kpi">
+                    <span>@metric.Label</span>
+                    <strong>@metric.Value</strong>
+                </div>
+            }
+        </div>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            @foreach (var item in Model.Dashboard.TicketsByStatus)
+            {
+                <span class="management-badge">@item.Label: @item.Count</span>
+            }
+        </div>
+        @if (Model.Dashboard.RecentTickets.Count == 0)
+        {
+            <p class="management-muted">@T("NoTicketsToShow", "No tickets to show.")</p>
+        }
+        else
+        {
+            <div class="management-table-responsive">
+                <table class="management-table"><tbody>
+                @foreach (var ticket in Model.Dashboard.RecentTickets)
+                {
+                    <tr>
+                        <td><a asp-route="@PortalRouteNames.ManagementTicketDetails" asp-route-companySlug="@Model.CompanySlug" asp-route-ticketId="@ticket.TicketId">@ticket.TicketNr</a></td>
+                        <td>@ticket.Title</td>
+                        <td><span class="management-badge">@ticket.StatusLabel</span></td>
+                    </tr>
+                }
+                </tbody></table>
+            </div>
+        }
+    </section>
+
+    <section class="management-card">
+        <h3>@T("WorkArea", "Work area")</h3>
+        <h4>@T("UpcomingWork", "Upcoming work")</h4>
+        @foreach (var work in Model.Dashboard.UpcomingWork)
+        {
+            <p class="mb-2"><a asp-route="@PortalRouteNames.ManagementTicketDetails" asp-route-companySlug="@Model.CompanySlug" asp-route-ticketId="@work.TicketId">@work.TicketNr</a> @work.VendorName <span class="management-badge">@work.WorkStatusLabel</span></p>
+        }
+        @if (Model.Dashboard.UpcomingWork.Count == 0)
+        {
+            <p class="management-muted">@T("NoWorkToShow", "No work to show.")</p>
+        }
+        <h4 class="mt-3">@T("DelayedWork", "Delayed work")</h4>
+        @foreach (var work in Model.Dashboard.DelayedWork)
+        {
+            <p class="mb-2"><a asp-route="@PortalRouteNames.ManagementTicketDetails" asp-route-companySlug="@Model.CompanySlug" asp-route-ticketId="@work.TicketId">@work.TicketNr</a> @work.VendorName <span class="management-badge">@work.WorkStatusLabel</span></p>
+        }
+        @if (Model.Dashboard.DelayedWork.Count == 0)
+        {
+            <p class="management-muted">@T("NoWorkToShow", "No work to show.")</p>
+        }
+        <h4 class="mt-3">@T("RecentlyCompletedWork", "Recently completed work")</h4>
+        @foreach (var work in Model.Dashboard.RecentlyCompletedWork)
+        {
+            <p class="mb-2"><a asp-route="@PortalRouteNames.ManagementTicketDetails" asp-route-companySlug="@Model.CompanySlug" asp-route-ticketId="@work.TicketId">@work.TicketNr</a> @work.VendorName <span class="management-badge">@work.WorkStatusLabel</span></p>
+        }
+        @if (Model.Dashboard.RecentlyCompletedWork.Count == 0)
+        {
+            <p class="management-muted">@T("NoWorkToShow", "No work to show.")</p>
+        }
+    </section>
+
+    <section class="management-card">
+        <h3>@T("Timeline", "Timeline")</h3>
+        @if (Model.Dashboard.Timeline.Count == 0)
+        {
+            <p class="management-muted">@T("NoRecentActivity", "No recent activity.")</p>
+        }
+        else
+        {
+            <div class="management-table-responsive">
+                <table class="management-table"><tbody>
+                @foreach (var item in Model.Dashboard.Timeline)
+                {
+                    <tr>
+                        <td><span class="management-badge">@item.TypeLabel</span></td>
+                        <td>@item.Label</td>
+                        <td>@item.EventAt.ToLocalTime().ToString("g")</td>
+                    </tr>
+                }
+                </tbody></table>
+            </div>
+        }
+    </section>
+</div>
+
+@functions {
+    private static string T(string key, string fallback) =>
+        App.Resources.Views.UiText.ResourceManager.GetString(key) ?? fallback;
+}

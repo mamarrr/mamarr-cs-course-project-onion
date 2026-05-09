@@ -1,4 +1,5 @@
 using WebApp.UI.Chrome;
+using WebApp.ViewModels.Dashboards;
 
 namespace WebApp.ViewModels.Property;
 
@@ -13,4 +14,5 @@ public class DashboardPageViewModel : IAppChromePage
     public string PropertyName { get; init; } = string.Empty;
     public string CurrentSection { get; init; } = string.Empty;
     public string CurrentSectionLabel { get; init; } = string.Empty;
+    public PropertyDashboardViewModel Dashboard { get; init; } = new();
 }

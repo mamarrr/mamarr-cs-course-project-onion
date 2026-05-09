@@ -549,4 +549,38 @@
   <data name="WorkLogLaborCostNonNegative" xml:space="preserve"><value>Tookulu peab olema null voi rohkem.</value></data>
   <data name="WorkLogDescriptionMaxLength" xml:space="preserve"><value>Kirjeldus peab olema kuni 4000 margi pikkune.</value></data>
   <data name="WorkLogNotFound" xml:space="preserve"><value>Toopaevikut ei leitud.</value></data>
+  <data name="ManagementCompanyDashboard" xml:space="preserve"><value>Haldusettevotte toopaneel</value></data>
+  <data name="CurrentRole" xml:space="preserve"><value>Praegune roll</value></data>
+  <data name="TicketCommandArea" xml:space="preserve"><value>Piletite juhtimine</value></data>
+  <data name="WorkCommandArea" xml:space="preserve"><value>Toode juhtimine</value></data>
+  <data name="TicketsByStatus" xml:space="preserve"><value>Piletid staatuse jargi</value></data>
+  <data name="RecentTickets" xml:space="preserve"><value>Hiljutised piletid</value></data>
+  <data name="RecentlyCompletedWork" xml:space="preserve"><value>Hiljuti lopetatud tood</value></data>
+  <data name="JoinRequests" xml:space="preserve"><value>Liitumistaotlused</value></data>
+  <data name="NoPendingJoinRequests" xml:space="preserve"><value>Ootel liitumistaotlusi ei ole.</value></data>
+  <data name="TeamOverview" xml:space="preserve"><value>Meeskonna ulevaade</value></data>
+  <data name="RoleDistribution" xml:space="preserve"><value>Rollide jaotus</value></data>
+  <data name="RecentActivity" xml:space="preserve"><value>Hiljutine tegevus</value></data>
+  <data name="NoRecentActivity" xml:space="preserve"><value>Hiljutist tegevust ei ole.</value></data>
+  <data name="HighPriorityTickets" xml:space="preserve"><value>Korge/kiireloomuline</value></data>
+  <data name="DueNext7Days" xml:space="preserve"><value>Tahtaeg 7 paeva jooksul</value></data>
+  <data name="ScheduledToday" xml:space="preserve"><value>Tana planeeritud</value></data>
+  <data name="ScheduledNext7Days" xml:space="preserve"><value>Jargmise 7 paeva tood</value></data>
+  <data name="DelayedWork" xml:space="preserve"><value>Hilinenud tood</value></data>
+  <data name="PendingJoinRequests" xml:space="preserve"><value>Ootel liitumistaotlused</value></data>
+  <data name="ApprovedLast30Days" xml:space="preserve"><value>Kinnitatud viimase 30 paeva jooksul</value></data>
+  <data name="RejectedLast30Days" xml:space="preserve"><value>Tagasi lukatud viimase 30 paeva jooksul</value></data>
+  <data name="ActiveUsers" xml:space="preserve"><value>Aktiivsed kasutajad</value></data>
+  <data name="ExpiringAccess" xml:space="preserve"><value>Aeguv ligipaas</value></data>
+  <data name="ActiveLeases" xml:space="preserve"><value>Aktiivsed uuri-/kasutuslepingud</value></data>
+  <data name="ConnectedResidents" xml:space="preserve"><value>Seotud elanikud</value></data>
+  <data name="TotalUnits" xml:space="preserve"><value>Uksusi kokku</value></data>
+  <data name="OccupiedUnits" xml:space="preserve"><value>Hõivatud uksused</value></data>
+  <data name="VacantUnits" xml:space="preserve"><value>Vabad uksused</value></data>
+  <data name="KnownSquareMeters" xml:space="preserve"><value>Teadaolev m2</value></data>
+  <data name="CurrentResidents" xml:space="preserve"><value>Praegused elanikud</value></data>
+  <data name="RecentlyClosedTickets" xml:space="preserve"><value>Hiljuti suletud</value></data>
+  <data name="NoTicketsToShow" xml:space="preserve"><value>Pileteid ei ole kuvada.</value></data>
+  <data name="NoWorkToShow" xml:space="preserve"><value>Toid ei ole kuvada.</value></data>
+  <data name="NoItemsToShow" xml:space="preserve"><value>Kirjeid ei ole kuvada.</value></data>
 </root>

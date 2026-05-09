@@ -1,11 +1,12 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
-using App.BLL.DTO.Residents.Models;
+using App.BLL.DTO.Dashboards.Models;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Dashboards;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -64,7 +65,7 @@ public class DashboardController : Controller
             return Challenge();
         }
 
-        var workspace = await _bll.Residents.ResolveWorkspaceAsync(
+        var dashboard = await _bll.PortalDashboards.GetResidentDashboardAsync(
             new ResidentRoute
             {
                 AppUserId = appUserId.Value,
@@ -72,12 +73,12 @@ public class DashboardController : Controller
                 ResidentIdCode = residentIdCode
             },
             cancellationToken);
-        if (workspace.IsFailed)
+        if (dashboard.IsFailed)
         {
-            return ToFailureResult(workspace.Errors);
+            return ToFailureResult(dashboard.Errors);
         }
 
-        var context = workspace.Value;
+        var context = dashboard.Value.Context;
         var currentSectionLabel = currentSection switch
         {
             "Units" => T("Units", "Units"),
@@ -107,14 +108,15 @@ public class DashboardController : Controller
             ResidentDisplayName = residentDisplayName,
             ResidentSupportingText = residentSupportingText,
             CurrentSection = currentSection,
-            CurrentSectionLabel = currentSectionLabel
+            CurrentSectionLabel = currentSectionLabel,
+            Dashboard = PortalDashboardViewModelMapper.Map(dashboard.Value)
         };
 
         return View("Index", vm);
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        ResidentWorkspaceModel context,
+        ResidentDashboardContextModel context,
         string title,
         string activeSection,
         CancellationToken cancellationToken)

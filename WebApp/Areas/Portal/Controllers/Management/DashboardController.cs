@@ -4,6 +4,7 @@ using App.BLL.DTO.Common.Routes;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Dashboards;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -42,18 +43,19 @@ public class DashboardController : Controller
         }
 
         var resolvedCompanySlug = portalContext.CompanySlug ?? companySlug;
-        var auth = await _bll.CompanyMemberships.AuthorizeManagementAreaAccessAsync(
+        var dashboard = await _bll.PortalDashboards.GetManagementDashboardAsync(
             new ManagementCompanyRoute
             {
                 AppUserId = portalContext.AppUserId!.Value,
                 CompanySlug = resolvedCompanySlug
             },
             cancellationToken);
-        if (auth.IsFailed)
+        if (dashboard.IsFailed)
         {
-            return ToAuthorizationActionResult(auth.Errors);
+            return ToAuthorizationActionResult(dashboard.Errors);
         }
 
+        var context = dashboard.Value.Context;
         var title = App.Resources.Views.UiText.Dashboard;
         var vm = new DashboardPageViewModel
         {
@@ -64,13 +66,14 @@ public class DashboardController : Controller
                     HttpContext = HttpContext,
                     PageTitle = title,
                     ActiveSection = Sections.Dashboard,
-                    ManagementCompanySlug = auth.Value.CompanySlug,
-                    ManagementCompanyName = auth.Value.CompanyName,
+                    ManagementCompanySlug = context.CompanySlug,
+                    ManagementCompanyName = context.CompanyName,
                     CurrentLevel = WorkspaceLevel.ManagementCompany
                 },
                 cancellationToken),
-            CompanySlug = auth.Value.CompanySlug,
-            CompanyName = auth.Value.CompanyName
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            Dashboard = PortalDashboardViewModelMapper.Map(dashboard.Value)
         };
         return View(vm);
     }

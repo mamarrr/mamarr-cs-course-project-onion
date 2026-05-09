@@ -1,10 +1,11 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
-using App.BLL.DTO.Customers.Models;
+using App.BLL.DTO.Dashboards.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using WebApp.Mappers.Dashboards;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -73,7 +74,7 @@ public class CustomerDashboardController : Controller
             return Challenge();
         }
 
-        var result = await _bll.Customers.ResolveWorkspaceAsync(
+        var result = await _bll.PortalDashboards.GetCustomerDashboardAsync(
             new CustomerRoute
             {
                 AppUserId = appUserId.Value,
@@ -86,6 +87,7 @@ public class CustomerDashboardController : Controller
             return ToMvcErrorResult(result.Errors);
         }
 
+        var context = result.Value.Context;
         var sectionTitle = currentSection switch
         {
             "Profile" => T("Profile", "Profile"),
@@ -100,13 +102,14 @@ public class CustomerDashboardController : Controller
 
         var vm = new DashboardPageViewModel
         {
-            AppChrome = await BuildAppChromeAsync(result.Value, title, currentSection, cancellationToken),
-            CompanySlug = result.Value.CompanySlug,
-            CompanyName = result.Value.CompanyName,
-            CustomerSlug = result.Value.CustomerSlug,
-            CustomerName = result.Value.CustomerName,
+            AppChrome = await BuildAppChromeAsync(context, title, currentSection, cancellationToken),
+            CompanySlug = context.CompanySlug,
+            CompanyName = context.CompanyName,
+            CustomerSlug = context.CustomerSlug,
+            CustomerName = context.CustomerName,
             CurrentSection = currentSection,
-            CurrentSectionLabel = sectionTitle
+            CurrentSectionLabel = sectionTitle,
+            Dashboard = PortalDashboardViewModelMapper.Map(result.Value)
         };
 
         _logger.LogInformation(
@@ -120,7 +123,7 @@ public class CustomerDashboardController : Controller
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        CustomerWorkspaceModel context,
+        CustomerDashboardContextModel context,
         string title,
         string activeSection,
         CancellationToken cancellationToken)

@@ -1,5 +1,6 @@
 using App.BLL.Contracts.Admin;
 using App.BLL.Contracts.Customers;
+using App.BLL.Contracts.Dashboards;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.Workspace;
@@ -19,6 +20,7 @@ public interface IAppBLL : IBaseBLL
     IAdminCompanyService AdminCompanies { get; }
     IAdminLookupService AdminLookups { get; }
     IAdminTicketMonitorService AdminTicketMonitor { get; }
+    IPortalDashboardService PortalDashboards { get; }
     ICustomerService Customers { get; }
     IPropertyService Properties { get; }
     IUnitService Units { get; }

@@ -1,11 +1,12 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
-using App.BLL.DTO.Units.Models;
+using App.BLL.DTO.Dashboards.Models;
 using App.Resources.Views;
 using FluentResults;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebApp.Mappers.Dashboards;
 using WebApp.UI.Chrome;
 using WebApp.UI.Navigation;
 using WebApp.UI.PortalContext;
@@ -75,13 +76,28 @@ public class DashboardController : Controller
         string currentSection,
         CancellationToken cancellationToken)
     {
-        var access = await ResolveUnitContextAsync(companySlug, customerSlug, propertySlug, unitSlug, cancellationToken);
-        if (access.response is not null)
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
         {
-            return access.response;
+            return Challenge();
         }
 
-        var context = access.context!;
+        var result = await _bll.PortalDashboards.GetUnitDashboardAsync(
+            new UnitRoute
+            {
+                AppUserId = appUserId.Value,
+                CompanySlug = companySlug,
+                CustomerSlug = customerSlug,
+                PropertySlug = propertySlug,
+                UnitSlug = unitSlug
+            },
+            cancellationToken);
+        if (result.IsFailed)
+        {
+            return ToMvcErrorResult(result.Errors);
+        }
+
+        var context = result.Value.Context;
         var currentSectionLabel = currentSection switch
         {
             "Details" => T("Details", "Details"),
@@ -107,14 +123,15 @@ public class DashboardController : Controller
             UnitSlug = context.UnitSlug,
             UnitName = context.UnitNr,
             CurrentSection = currentSection,
-            CurrentSectionLabel = currentSectionLabel
+            CurrentSectionLabel = currentSectionLabel,
+            Dashboard = PortalDashboardViewModelMapper.Map(result.Value)
         };
 
         return View("Index", vm);
     }
 
     private Task<AppChromeViewModel> BuildAppChromeAsync(
-        UnitWorkspaceModel context,
+        UnitDashboardContextModel context,
         string title,
         string activeSection,
         CancellationToken cancellationToken)
@@ -137,37 +154,6 @@ public class DashboardController : Controller
                 CurrentLevel = WorkspaceLevel.Unit
             },
             cancellationToken);
-    }
-
-    private async Task<(IActionResult? response, UnitWorkspaceModel? context)> ResolveUnitContextAsync(
-        string companySlug,
-        string customerSlug,
-        string propertySlug,
-        string unitSlug,
-        CancellationToken cancellationToken)
-    {
-        var appUserId = GetAppUserId();
-        if (appUserId is null)
-        {
-            return (Challenge(), null);
-        }
-
-        var unitAccess = await _bll.Units.ResolveWorkspaceAsync(
-            new UnitRoute
-            {
-                AppUserId = appUserId.Value,
-                CompanySlug = companySlug,
-                CustomerSlug = customerSlug,
-                PropertySlug = propertySlug,
-                UnitSlug = unitSlug
-            },
-            cancellationToken);
-        if (unitAccess.IsFailed)
-        {
-            return (ToMvcErrorResult(unitAccess.Errors), null);
-        }
-
-        return (null, unitAccess.Value);
     }
 
     private static string T(string key, string fallback)

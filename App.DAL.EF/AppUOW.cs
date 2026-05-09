@@ -1,6 +1,7 @@
 using App.DAL.Contracts;
 using App.DAL.Contracts.Repositories;
 using App.DAL.Contracts.Repositories.Admin;
+using App.DAL.Contracts.Repositories.Dashboards;
 using App.DAL.EF.Mappers.Admin;
 using App.DAL.EF.Mappers.Contacts;
 using App.DAL.EF.Mappers.Customers;
@@ -15,6 +16,7 @@ using App.DAL.EF.Mappers.Vendors;
 using App.DAL.EF.Mappers.WorkLogs;
 using App.DAL.EF.Repositories;
 using App.DAL.EF.Repositories.Admin;
+using App.DAL.EF.Repositories.Dashboards;
 using Base.DAL.EF;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -45,6 +47,7 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
     private IAdminUserRepository? _adminUsers;
     private IAdminCompanyRepository? _adminCompanies;
     private IAdminTicketMonitorRepository? _adminTicketMonitor;
+    private IPortalDashboardRepository? _portalDashboards;
     private IContactRepository? _contacts;
     private ICustomerRepository? _customers;
     private IManagementCompanyRepository? _managementCompanies;
@@ -77,6 +80,9 @@ public class AppUOW : BaseUOW<AppDbContext>, IAppUOW
 
     public IAdminTicketMonitorRepository AdminTicketMonitor =>
         _adminTicketMonitor ??= new AdminTicketMonitorRepository(UowDbContext, _adminTicketMonitorMapper);
+
+    public IPortalDashboardRepository PortalDashboards =>
+        _portalDashboards ??= new PortalDashboardRepository(UowDbContext);
 
     public ICustomerRepository Customers => _customers ??= new CustomerRepository(UowDbContext, _customerMapper);
 

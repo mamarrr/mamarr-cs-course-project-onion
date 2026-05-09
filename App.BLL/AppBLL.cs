@@ -2,6 +2,7 @@ using App.BLL.Contracts;
 using App.BLL.Contracts.Admin;
 using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Customers;
+using App.BLL.Contracts.Dashboards;
 using App.BLL.Contracts.Leases;
 using App.BLL.Contracts.ManagementCompanies;
 using App.BLL.Contracts.Workspace;
@@ -14,6 +15,7 @@ using App.BLL.Services.Admin;
 using App.BLL.Services.Contacts;
 using App.BLL.Services.Common.Portal;
 using App.BLL.Services.Customers;
+using App.BLL.Services.Dashboards;
 using App.BLL.Services.Leases;
 using App.BLL.Services.ManagementCompanies;
 using App.BLL.Services.Workspace;
@@ -34,6 +36,7 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private IAdminCompanyService? _adminCompanies;
     private IAdminLookupService? _adminLookups;
     private IAdminTicketMonitorService? _adminTicketMonitor;
+    private IPortalDashboardService? _portalDashboards;
     private ICustomerService? _customers;
     private IWorkspaceService? _workspaces;
     private IManagementCompanyService? _managementCompanies;
@@ -69,6 +72,9 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 
     public IAdminTicketMonitorService AdminTicketMonitor =>
         _adminTicketMonitor ??= new AdminTicketMonitorService(UOW);
+
+    public IPortalDashboardService PortalDashboards =>
+        _portalDashboards ??= new PortalDashboardService(UOW, PortalContext);
 
     public IWorkspaceService Workspaces =>
         _workspaces ??= new WorkspaceService(UOW);
