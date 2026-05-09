@@ -252,6 +252,7 @@ App.DTO/v1/Identity/UserDto.cs
 ```
 
 Reuse existing identity DTOs before adding new request/response shapes. Add only the missing `UserDto` or related response details needed by the SPA contract.
+If an existing `JWTResponse` property is named `Jwt`, rename it or annotate it so the public JSON property is `accessToken`.
 
 ### Implementation tasks
 
@@ -264,15 +265,9 @@ WebApp/Services/Identity/IJwtTokenService.cs
 WebApp/Services/Identity/JwtTokenService.cs
 ```
 
-4. Add refresh token service:
-
-```text
-WebApp/Services/Identity/IRefreshTokenService.cs
-WebApp/Services/Identity/RefreshTokenService.cs
-```
-
-5. Use existing `AppRefreshToken` domain entity for refresh-token persistence and rotation.
-6. Login response should return:
+4. Use existing `_bll.AuthSessions` for refresh-token persistence, rotation, reuse handling, and revocation. Do not add a parallel WebApp refresh-token service.
+5. Use existing `AppRefreshToken` domain entity through the BLL auth-session flow.
+6. Login and refresh responses should return:
 
 ```json
 {
@@ -293,7 +288,7 @@ WebApp/Services/Identity/RefreshTokenService.cs
 
 - Access token lifetime should be short, for example 15 minutes.
 - Refresh token lifetime should match the domain default or config, currently conceptually 7 days.
-- Store refresh tokens hashed if possible; if keeping current plain-token model for course scope, isolate the token-generation logic so it can be upgraded later.
+- Store refresh tokens hashed through the existing auth-session implementation.
 - `logout` should revoke/delete the current refresh token.
 - `refresh` should rotate the refresh token and preserve the previous-token window only if the existing domain design requires it.
 
@@ -345,14 +340,14 @@ IBaseMapper<CreateManagementCompanyDto, ManagementCompanyBllDto>
 ### Implementation tasks
 
 1. `GET /status`
-   - Use workspace redirect service to determine whether the user can go directly to a workspace.
+   - Use the workspace entry-point service to determine whether the user can go directly to a workspace.
    - Return available onboarding actions:
      - `createManagementCompany`
      - `joinManagementCompany`
 2. `POST /management-companies`
    - Map `CreateManagementCompanyDto` -> `ManagementCompanyBllDto`.
    - Call `_bll.ManagementCompanies.CreateAsync(...)`.
-   - Return created id, slug, name, and frontend path such as `/companies/{slug}`.
+   - Return created id, slug, name, and `path` such as `/companies/{slug}`.
 3. `GET /management-company-roles`
    - Use `_bll.CompanyMemberships.GetAvailableRolesAsync(...)`.
    - Return `LookupOptionDto[]` or a more specific role option DTO if extra metadata is needed.
@@ -387,6 +382,61 @@ App.DTO/v1/Workspace/WorkspaceRedirectDto.cs
 App.DTO/v1/Workspace/SelectWorkspaceDto.cs
 ```
 
+`WorkspaceOptionDto` must include enough data for direct SPA navigation:
+
+```csharp
+public class WorkspaceOptionDto
+{
+    public Guid Id { get; set; }
+    public string ContextType { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string? Slug { get; set; }
+    public string? ManagementCompanySlug { get; set; }
+    public string Path { get; set; } = string.Empty;
+    public bool IsDefault { get; set; }
+}
+```
+
+`WorkspaceRedirectDto` must return a path-only SPA route:
+
+```csharp
+public class WorkspaceRedirectDto
+{
+    public string Destination { get; set; } = string.Empty;
+    public string? CompanySlug { get; set; }
+    public string? CustomerSlug { get; set; }
+    public string? ResidentIdCode { get; set; }
+    public string Path { get; set; } = string.Empty;
+}
+```
+
+`Path` is always a route path starting with `/`, never an absolute URL.
+
+### BLL workspace entry-point cleanup
+
+The BLL should resolve authorized workspace targets, not Web/MVC/Vue redirects. Rename the current BLL redirect concepts before implementing the API:
+
+```text
+ResolveContextRedirectAsync        -> ResolveWorkspaceEntryPointAsync
+ResolveWorkspaceRedirectQuery      -> ResolveWorkspaceEntryPointQuery
+WorkspaceRedirectModel             -> WorkspaceEntryPointModel
+WorkspaceRedirectDestination       -> WorkspaceEntryPointKind
+```
+
+`WorkspaceEntryPointModel` must contain only business/application context facts:
+
+```csharp
+public class WorkspaceEntryPointModel
+{
+    public required WorkspaceEntryPointKind Kind { get; init; }
+    public string? CompanySlug { get; init; }
+    public string? CustomerSlug { get; init; }
+    public string? ResidentIdCode { get; init; }
+}
+```
+
+Do not add `Path` or Vue route strings to BLL DTOs/models. Build `WorkspaceOptionDto.Path` and `WorkspaceRedirectDto.Path` in the WebApp API mapper/controller layer from BLL context facts.
+
 ### Mappers
 
 ```text
@@ -398,13 +448,15 @@ App.DTO/Mappers/Workspace/WorkspaceOptionApiMapper.cs
 
 1. `GET /workspaces`
    - Use `_bll.Workspaces.GetCatalogAsync(...)`.
-   - Return management companies, customer contexts, resident context, default context, and permission flags.
+   - Return management companies, customer contexts, resident context, default context, and permission flags from BLL.
+   - Add path-only SPA routes while mapping to public API DTOs in WebApp.
 2. `GET /default-redirect`
-   - Use `_bll.Workspaces.ResolveContextRedirectAsync(...)`.
-   - Return a frontend route path, not an MVC redirect.
+   - Use `_bll.Workspaces.ResolveWorkspaceEntryPointAsync(...)`.
+   - Return a direct `path`, not an MVC redirect.
+   - Extend the BLL entry-point model/service if needed so customer and resident entry points include the `customerSlug` or `residentIdCode` required by WebApp to build the path.
 3. `POST /select`
    - Use `_bll.Workspaces.AuthorizeContextSelectionAsync(...)`.
-   - Return selected context metadata and frontend route target.
+   - Return selected context metadata from BLL and build `path` in WebApp.
 
 ### Important
 
@@ -710,6 +762,24 @@ IBaseMapper<CreateUnitDto, UnitBllDto>
 IBaseMapper<UpdateUnitProfileDto, UnitBllDto>
 ```
 
+### Implementation tasks
+
+1. List units:
+   - Call `_bll.Units.ListForPropertyAsync(...)`.
+2. Create unit:
+   - Map `CreateUnitDto` -> `UnitBllDto`.
+   - Call `_bll.Units.CreateAndGetProfileAsync(...)`.
+   - Return `201 Created` with profile data and `path`.
+3. Get unit profile:
+   - Call `_bll.Units.GetProfileAsync(...)`.
+4. Update unit profile:
+   - Map `UpdateUnitProfileDto` -> `UnitBllDto`.
+   - Call `_bll.Units.UpdateAndGetProfileAsync(...)`.
+   - Return updated profile data and `path` because the unit slug can change.
+5. Delete unit:
+   - Use `DeleteUnitDto.DeleteConfirmation`.
+   - Call `_bll.Units.DeleteAsync(...)`.
+
 ---
 
 ## Phase 9 — Residents API
@@ -755,6 +825,24 @@ Use:
 IBaseMapper<CreateResidentDto, ResidentBllDto>
 IBaseMapper<UpdateResidentProfileDto, ResidentBllDto>
 ```
+
+### Implementation tasks
+
+1. List residents:
+   - Call `_bll.Residents.ListForCompanyAsync(...)`.
+2. Create resident:
+   - Map `CreateResidentDto` -> `ResidentBllDto`.
+   - Call `_bll.Residents.CreateAndGetProfileAsync(...)`.
+   - Return `201 Created` with profile data and `path`.
+3. Get resident profile:
+   - Call `_bll.Residents.GetProfileAsync(...)`.
+4. Update resident profile:
+   - Map `UpdateResidentProfileDto` -> `ResidentBllDto`.
+   - Call `_bll.Residents.UpdateAndGetProfileAsync(...)`.
+   - Return updated profile data and `path` because the resident id code can change.
+5. Delete resident:
+   - Use `DeleteResidentDto.DeleteConfirmation`.
+   - Call `_bll.Residents.DeleteAsync(...)`.
 
 ---
 
@@ -874,15 +962,24 @@ POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/contacts/{vendo
 ```text
 App.DTO/v1/Portal/Contacts/ContactDto.cs
 App.DTO/v1/Portal/Contacts/CreateContactDto.cs
+App.DTO/v1/Portal/Contacts/ResidentContactListDto.cs
 App.DTO/v1/Portal/Contacts/ResidentContactAssignmentDto.cs
 App.DTO/v1/Portal/Contacts/AttachResidentContactDto.cs
 App.DTO/v1/Portal/Contacts/CreateResidentContactDto.cs
 App.DTO/v1/Portal/Contacts/UpdateResidentContactDto.cs
+App.DTO/v1/Portal/Contacts/VendorContactListDto.cs
 App.DTO/v1/Portal/Contacts/VendorContactAssignmentDto.cs
 App.DTO/v1/Portal/Contacts/AttachVendorContactDto.cs
 App.DTO/v1/Portal/Contacts/CreateVendorContactDto.cs
 App.DTO/v1/Portal/Contacts/UpdateVendorContactDto.cs
 ```
+
+`ResidentContactListDto` and `VendorContactListDto` must include:
+
+- context metadata for the resident or vendor
+- current assigned contacts
+- existing contact options available for attachment
+- contact type options needed by create/edit forms
 
 ### Mappers
 
@@ -1215,10 +1312,13 @@ App.DTO/v1/Portal/Vendors/VendorDto.cs
 App.DTO/v1/Portal/Vendors/CreateVendorDto.cs
 App.DTO/v1/Portal/Vendors/UpdateVendorDto.cs
 App.DTO/v1/Portal/Vendors/DeleteVendorDto.cs
+App.DTO/v1/Portal/Vendors/VendorCategoryAssignmentListDto.cs
 App.DTO/v1/Portal/Vendors/VendorCategoryAssignmentDto.cs
 App.DTO/v1/Portal/Vendors/AssignVendorCategoryDto.cs
 App.DTO/v1/Portal/Vendors/UpdateVendorCategoryDto.cs
 ```
+
+`VendorCategoryAssignmentListDto` must include vendor context metadata, assigned category rows, and available category options for assignment.
 
 ### Mappers
 
@@ -1237,6 +1337,36 @@ IBaseMapper<UpdateVendorDto, VendorBllDto>
 IBaseMapper<AssignVendorCategoryDto, VendorTicketCategoryBllDto>
 IBaseMapper<UpdateVendorCategoryDto, VendorTicketCategoryBllDto>
 ```
+
+### Implementation tasks
+
+1. List vendors:
+   - Call `_bll.Vendors.ListForCompanyAsync(...)`.
+2. Create vendor:
+   - Map `CreateVendorDto` -> `VendorBllDto`.
+   - Call `_bll.Vendors.CreateAndGetProfileAsync(...)`.
+   - Return `201 Created` with profile data and `path`.
+3. Details/profile:
+   - Call `_bll.Vendors.GetProfileAsync(...)`.
+4. Update vendor:
+   - Map `UpdateVendorDto` -> `VendorBllDto`.
+   - Call `_bll.Vendors.UpdateAndGetProfileAsync(...)`.
+5. Delete vendor:
+   - Use `DeleteVendorDto.ConfirmationRegistryCode`.
+   - Call `_bll.Vendors.DeleteAsync(...)`.
+6. List category assignments:
+   - Call `_bll.Vendors.ListCategoryAssignmentsAsync(...)`.
+   - Return assigned categories and available category options in one response.
+7. Assign category:
+   - Map `AssignVendorCategoryDto` -> `VendorTicketCategoryBllDto`.
+   - Call `_bll.Vendors.AssignCategoryAsync(...)`.
+   - Return the refreshed category assignment list.
+8. Update category assignment:
+   - Map `UpdateVendorCategoryDto` -> `VendorTicketCategoryBllDto`.
+   - Call `_bll.Vendors.UpdateCategoryAssignmentAsync(...)`.
+   - Return the refreshed category assignment list.
+9. Remove category:
+   - Call `_bll.Vendors.RemoveCategoryAsync(...)`.
 
 ---
 
@@ -1319,7 +1449,6 @@ Routes:
 GET /api/v1/portal/lookups/property-types
 GET /api/v1/portal/lookups/lease-roles
 GET /api/v1/portal/companies/{companySlug}/lookups/ticket-options
-GET /api/v1/portal/companies/{companySlug}/lookups/vendor-ticket-categories
 ```
 
 ### DTOs
@@ -1341,7 +1470,8 @@ App.DTO/v1/Shared/LookupOptionDto.cs
 4. Expose scheduled-work form options through the scheduled-work API form endpoints:
    - Call `_bll.ScheduledWorks.GetCreateFormAsync(...)`.
    - Call `_bll.ScheduledWorks.GetEditFormAsync(...)`.
-5. Expose vendor ticket category options only through the existing vendor/category assignment BLL flow.
+5. Expose vendor ticket category options only through the vendor category assignment endpoints.
+   - Use the response from `_bll.Vendors.ListCategoryAssignmentsAsync(...)`, which includes available category options.
    - Do not add direct DAL access from API controllers.
 
 ---
@@ -1499,9 +1629,9 @@ Unauthorized:
 
 ---
 
-## Frontend Route Mapping
+## SPA Route Mapping
 
-The API should return resource identifiers and slugs, not MVC redirect results.
+The API should return resource identifiers and slugs, not MVC redirect results. Use `path` as the canonical SPA route field everywhere a response tells Vue where to navigate. `path` is path-only and must never include scheme or host.
 
 Example after creating management company:
 
@@ -1510,7 +1640,7 @@ Example after creating management company:
   "id": "guid",
   "slug": "acme-management",
   "name": "ACME Management",
-  "frontendPath": "/companies/acme-management"
+  "path": "/companies/acme-management"
 }
 ```
 
@@ -1521,7 +1651,7 @@ Example after creating customer:
   "customerId": "guid",
   "customerSlug": "big-customer",
   "name": "Big Customer",
-  "frontendPath": "/companies/acme-management/customers/big-customer"
+  "path": "/companies/acme-management/customers/big-customer"
 }
 ```
 
@@ -1715,8 +1845,6 @@ WebApp/
     Identity/
       IJwtTokenService.cs
       JwtTokenService.cs
-      IRefreshTokenService.cs
-      RefreshTokenService.cs
   Extensions/
     ApiMapperServiceCollectionExtensions.cs
 ```
