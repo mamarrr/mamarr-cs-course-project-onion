@@ -16,10 +16,6 @@ public static class PortalDashboardViewModelMapper
         RecentTickets = MapTickets(model.RecentTickets),
         WorkMetrics = MapMetrics(model.WorkMetrics),
         RecentCompletedWork = MapWorks(model.RecentCompletedWork),
-        JoinRequestMetrics = MapMetrics(model.JoinRequestMetrics),
-        PendingJoinRequests = model.PendingJoinRequests.Select(Map).ToList(),
-        TeamMetrics = MapMetrics(model.TeamMetrics),
-        TeamRoleDistribution = MapBreakdowns(model.TeamRoleDistribution),
         RecentActivity = model.RecentActivity.Select(Map).ToList()
     };
 
@@ -33,8 +29,6 @@ public static class PortalDashboardViewModelMapper
         TicketMetrics = MapMetrics(model.TicketMetrics),
         TicketsByProperty = MapBreakdowns(model.TicketsByProperty),
         RecentTickets = MapTickets(model.RecentTickets),
-        ActiveRepresentativeCount = model.ActiveRepresentativeCount,
-        ActiveRepresentatives = model.ActiveRepresentatives.Select(Map).ToList(),
         RecentActivity = model.RecentActivity.Select(Map).ToList()
     };
 
@@ -151,14 +145,6 @@ public static class PortalDashboardViewModelMapper
         TicketId = activity.TicketId
     };
 
-    private static DashboardJoinRequestPreviewViewModel Map(DashboardJoinRequestPreviewModel request) => new()
-    {
-        RequesterName = request.RequesterName,
-        RequesterEmail = request.RequesterEmail,
-        RequestedRoleLabel = request.RequestedRoleLabel,
-        CreatedAt = request.CreatedAt
-    };
-
     private static DashboardRepresentativeViewModel Map(DashboardRepresentativePreviewModel representative) => new()
     {
         ResidentIdCode = representative.ResidentIdCode,
@@ -235,11 +221,6 @@ public static class PortalDashboardViewModelMapper
         "scheduledToday" => T("ScheduledToday", "Scheduled today"),
         "scheduledNext7Days" => T("ScheduledNext7Days", "Scheduled next 7 days"),
         "delayedWork" => T("DelayedWork", "Delayed work"),
-        "pendingJoinRequests" => T("PendingJoinRequests", "Pending join requests"),
-        "approvedJoinRequests30d" => T("ApprovedLast30Days", "Approved last 30 days"),
-        "rejectedJoinRequests30d" => T("RejectedLast30Days", "Rejected last 30 days"),
-        "activeUsers" => T("ActiveUsers", "Active users"),
-        "expiringAccess" => T("ExpiringAccess", "Expiring access"),
         "activeLeases" => T("ActiveLeases", "Active leases"),
         "connectedResidents" => T("ConnectedResidents", "Connected residents"),
         "totalUnits" => T("TotalUnits", "Total units"),

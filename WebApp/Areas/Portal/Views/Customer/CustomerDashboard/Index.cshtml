@@ -4,17 +4,19 @@
     Layout = "~/Views/Shared/_AppChromeLayout.cshtml";
 }
 
-<section class="management-card mb-4">
-    <p class="management-eyebrow mb-2">@App.Resources.Views.UiText.CustomerDashboard</p>
-    <h2 class="mb-1">@Model.Dashboard.CustomerName</h2>
-    <p class="management-muted mb-0">@Model.Dashboard.RegistryCode</p>
-    <p class="management-muted mb-0">@Model.Dashboard.BillingEmail @Model.Dashboard.Phone</p>
-    <div class="mt-3">
+<section class="management-card management-dashboard-hero mb-3">
+    <div>
+        <p class="management-eyebrow mb-1">@App.Resources.Views.UiText.CustomerDashboard</p>
+        <h2>@Model.Dashboard.CustomerName</h2>
+        <p class="management-muted mb-0">@Model.Dashboard.RegistryCode</p>
+        <p class="management-muted mb-0">@Model.Dashboard.BillingEmail @Model.Dashboard.Phone</p>
+    </div>
+    <div class="management-hero-actions">
         <a class="management-btn secondary" asp-route="@PortalRouteNames.CustomerProfile" asp-route-companySlug="@Model.CompanySlug" asp-route-customerSlug="@Model.CustomerSlug">@App.Resources.Views.UiText.Profile</a>
     </div>
 </section>
 
-<div class="management-grid management-grid-3 mb-4">
+<div class="management-grid management-grid-3 management-kpi-strip mb-3">
     @foreach (var metric in Model.Dashboard.PortfolioMetrics)
     {
         <section class="management-kpi">
@@ -27,15 +29,16 @@
 <div class="management-grid management-grid-2">
     <section class="management-card">
         <h3>@T("Tickets", "Tickets")</h3>
-        <div class="management-grid management-grid-2 mb-3">
+        <div class="management-grid management-grid-2 management-card-metrics mb-3">
             @foreach (var metric in Model.Dashboard.TicketMetrics)
             {
-                <div class="management-kpi">
+                <div class="management-kpi compact">
                     <span>@metric.Label</span>
                     <strong>@metric.Value</strong>
                 </div>
             }
         </div>
+
         <h4>@T("TicketsByProperty", "Tickets by property")</h4>
         @if (Model.Dashboard.TicketsByProperty.Count == 0)
         {
@@ -43,22 +46,30 @@
         }
         else
         {
-            <div class="d-flex flex-wrap gap-2">
+            <div class="management-chip-list">
                 @foreach (var item in Model.Dashboard.TicketsByProperty)
                 {
                     <span class="management-badge">@item.Label: @item.Count</span>
                 }
             </div>
         }
+
         <h4 class="mt-3">@T("RecentTickets", "Recent tickets")</h4>
         @if (Model.Dashboard.RecentTickets.Count == 0)
         {
-            <p class="management-muted">@T("NoTicketsToShow", "No tickets to show.")</p>
+            <p class="management-muted mb-0">@T("NoTicketsToShow", "No tickets to show.")</p>
         }
         else
         {
             <div class="management-table-responsive">
                 <table class="management-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">@T("Ticket", "Ticket")</th>
+                        <th scope="col">@T("Title", "Title")</th>
+                        <th scope="col">@T("Status", "Status")</th>
+                    </tr>
+                    </thead>
                     <tbody>
                     @foreach (var ticket in Model.Dashboard.RecentTickets)
                     {
@@ -75,35 +86,6 @@
     </section>
 
     <section class="management-card">
-        <h3>@T("Representatives", "Representatives")</h3>
-        <div class="management-kpi mb-3">
-            <span>@T("ActiveRepresentatives", "Active representatives")</span>
-            <strong>@Model.Dashboard.ActiveRepresentativeCount</strong>
-        </div>
-        @if (Model.Dashboard.ActiveRepresentatives.Count == 0)
-        {
-            <p class="management-muted">@T("NoRepresentativesToShow", "No representatives to show.")</p>
-        }
-        else
-        {
-            <div class="management-table-responsive">
-                <table class="management-table">
-                    <tbody>
-                    @foreach (var representative in Model.Dashboard.ActiveRepresentatives)
-                    {
-                        <tr>
-                            <td>@representative.ResidentName</td>
-                            <td>@representative.RoleLabel</td>
-                            <td>@representative.ValidFrom.ToString("d") - @(representative.ValidTo?.ToString("d") ?? "")</td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-        }
-    </section>
-
-    <section class="management-card" style="grid-column: 1 / -1;">
         <h3>@T("RecentActivity", "Recent activity")</h3>
         @if (Model.Dashboard.RecentActivity.Count == 0)
         {
@@ -113,12 +95,25 @@
         {
             <div class="management-table-responsive">
                 <table class="management-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">@T("Type", "Type")</th>
+                        <th scope="col">@T("Item", "Item")</th>
+                        <th scope="col">@T("Date", "Date")</th>
+                    </tr>
+                    </thead>
                     <tbody>
                     @foreach (var item in Model.Dashboard.RecentActivity)
                     {
                         <tr>
                             <td><span class="management-badge">@item.TypeLabel</span></td>
-                            <td>@item.Label</td>
+                            <td>
+                                <strong>@item.Label</strong>
+                                @if (!string.IsNullOrWhiteSpace(item.SupportingText))
+                                {
+                                    <div class="management-muted">@item.SupportingText</div>
+                                }
+                            </td>
                             <td>@item.EventAt.ToLocalTime().ToString("g")</td>
                         </tr>
                     }

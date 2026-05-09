@@ -14,10 +14,6 @@ public static class PortalDashboardMapper
         RecentTickets = MapTickets(dto.RecentTickets),
         WorkMetrics = MapMetrics(dto.WorkMetrics),
         RecentCompletedWork = MapWorks(dto.RecentCompletedWork),
-        JoinRequestMetrics = MapMetrics(dto.JoinRequestMetrics),
-        PendingJoinRequests = dto.PendingJoinRequests.Select(Map).ToList(),
-        TeamMetrics = MapMetrics(dto.TeamMetrics),
-        TeamRoleDistribution = MapBreakdowns(dto.TeamRoleDistribution),
         RecentActivity = dto.RecentActivity.Select(Map).ToList()
     };
 
@@ -28,8 +24,6 @@ public static class PortalDashboardMapper
         TicketMetrics = MapMetrics(dto.TicketMetrics),
         TicketsByProperty = MapBreakdowns(dto.TicketsByProperty),
         RecentTickets = MapTickets(dto.RecentTickets),
-        ActiveRepresentativeCount = dto.ActiveRepresentativeCount,
-        ActiveRepresentatives = dto.ActiveRepresentatives.Select(Map).ToList(),
         RecentActivity = dto.RecentActivity.Select(Map).ToList()
     };
 
@@ -216,16 +210,6 @@ public static class PortalDashboardMapper
         UnitSlug = dto.UnitSlug,
         ResidentIdCode = dto.ResidentIdCode,
         TicketId = dto.TicketId
-    };
-
-    private static DashboardJoinRequestPreviewModel Map(DashboardJoinRequestPreviewDalDto dto) => new()
-    {
-        JoinRequestId = dto.JoinRequestId,
-        RequesterName = dto.RequesterName,
-        RequesterEmail = dto.RequesterEmail,
-        RequestedRoleCode = dto.RequestedRoleCode,
-        RequestedRoleLabel = dto.RequestedRoleLabel,
-        CreatedAt = dto.CreatedAt
     };
 
     private static DashboardRepresentativePreviewModel Map(DashboardRepresentativePreviewDalDto dto) => new()

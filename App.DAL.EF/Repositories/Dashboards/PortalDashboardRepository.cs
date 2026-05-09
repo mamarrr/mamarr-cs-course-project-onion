@@ -24,7 +24,6 @@ public class PortalDashboardRepository : IPortalDashboardRepository
         var tickets = CompanyTickets(managementCompanyId);
         var openTickets = OpenTickets(tickets, options);
         var work = CompanyWork(managementCompanyId);
-        var activeMemberships = ActiveMemberships(managementCompanyId, options);
 
         var summaryMetrics = new List<DashboardMetricDalDto>
         {
@@ -35,11 +34,6 @@ public class PortalDashboardRepository : IPortalDashboardRepository
             Metric("vendors", await _dbContext.Vendors.CountAsync(vendor => vendor.ManagementCompanyId == managementCompanyId, cancellationToken)),
             Metric("openTickets", await openTickets.CountAsync(cancellationToken))
         };
-
-        var pendingRequests = _dbContext.ManagementCompanyJoinRequests
-            .AsNoTracking()
-            .Where(request => request.ManagementCompanyId == managementCompanyId
-                              && request.ManagementCompanyJoinRequestStatus!.Code == "PENDING");
 
         return new ManagementDashboardDalDto
         {
@@ -65,32 +59,6 @@ public class PortalDashboardRepository : IPortalDashboardRepository
                 .OrderByDescending(item => item.RealEnd)
                 .Take(options.PreviewLimit)
                 .ToListAsync(cancellationToken),
-            JoinRequestMetrics = new List<DashboardMetricDalDto>
-            {
-                Metric("pendingJoinRequests", await pendingRequests.CountAsync(cancellationToken)),
-                Metric("approvedJoinRequests30d", await CountJoinRequestsAsync(managementCompanyId, "APPROVED", options.RecentSinceUtc, cancellationToken)),
-                Metric("rejectedJoinRequests30d", await CountJoinRequestsAsync(managementCompanyId, "REJECTED", options.RecentSinceUtc, cancellationToken))
-            },
-            PendingJoinRequests = await pendingRequests
-                .OrderByDescending(request => request.CreatedAt)
-                .Take(options.PreviewLimit)
-                .Select(request => new DashboardJoinRequestPreviewDalDto
-                {
-                    JoinRequestId = request.Id,
-                    RequesterName = (request.AppUser!.FirstName + " " + request.AppUser.LastName).Trim(),
-                    RequesterEmail = request.AppUser.Email ?? string.Empty,
-                    RequestedRoleCode = request.RequestedManagementCompanyRole!.Code,
-                    RequestedRoleLabel = request.RequestedManagementCompanyRole.Label.ToString(),
-                    CreatedAt = request.CreatedAt
-                })
-                .ToListAsync(cancellationToken),
-            TeamMetrics = new List<DashboardMetricDalDto>
-            {
-                Metric("activeUsers", await activeMemberships.CountAsync(cancellationToken)),
-                Metric("expiringAccess", await activeMemberships.CountAsync(membership =>
-                    membership.ValidTo != null && membership.ValidTo <= options.TodayDate.AddDays(30), cancellationToken))
-            },
-            TeamRoleDistribution = await BuildManagementRoleBreakdownAsync(activeMemberships, cancellationToken),
             RecentActivity = await BuildManagementRecentActivityAsync(managementCompanyId, options, cancellationToken)
         };
     }
@@ -108,9 +76,6 @@ public class PortalDashboardRepository : IPortalDashboardRepository
         var activeLeases = ActiveLeases(options)
             .Where(lease => lease.Unit!.Property!.CustomerId == customerId
                             && lease.Unit.Property.Customer!.ManagementCompanyId == managementCompanyId);
-        var activeRepresentatives = ActiveRepresentatives(options)
-            .Where(representative => representative.CustomerId == customerId
-                                     && representative.Customer!.ManagementCompanyId == managementCompanyId);
 
         return new CustomerDashboardDalDto
         {
@@ -126,11 +91,6 @@ public class PortalDashboardRepository : IPortalDashboardRepository
             TicketsByProperty = await BuildPropertyTicketBreakdownAsync(tickets, cancellationToken),
             RecentTickets = await ProjectTickets(tickets)
                 .OrderByDescending(ticket => ticket.CreatedAt)
-                .Take(options.PreviewLimit)
-                .ToListAsync(cancellationToken),
-            ActiveRepresentativeCount = await activeRepresentatives.CountAsync(cancellationToken),
-            ActiveRepresentatives = await ProjectRepresentatives(activeRepresentatives)
-                .OrderBy(representative => representative.ResidentName)
                 .Take(options.PreviewLimit)
                 .ToListAsync(cancellationToken),
             RecentActivity = await BuildCustomerRecentActivityAsync(managementCompanyId, customerId, options, cancellationToken)
@@ -352,14 +312,6 @@ public class PortalDashboardRepository : IPortalDashboardRepository
             .Where(representative => representative.ValidFrom <= options.TodayDate
                                      && (representative.ValidTo == null || representative.ValidTo >= options.TodayDate));
 
-    private IQueryable<App.Domain.ManagementCompanyUser> ActiveMemberships(
-        Guid managementCompanyId,
-        PortalDashboardQueryOptionsDalDto options) =>
-        _dbContext.ManagementCompanyUsers.AsNoTracking()
-            .Where(membership => membership.ManagementCompanyId == managementCompanyId
-                                 && membership.ValidFrom <= options.TodayDate
-                                 && (membership.ValidTo == null || membership.ValidTo >= options.TodayDate));
-
     private static IQueryable<App.Domain.Ticket> OpenTickets(
         IQueryable<App.Domain.Ticket> tickets,
         PortalDashboardQueryOptionsDalDto options)
@@ -445,26 +397,6 @@ public class PortalDashboardRepository : IPortalDashboardRepository
             .AsNoTracking()
             .Where(category => codes.Contains(category.Code))
             .Select(category => new { category.Code, Label = category.Label.ToString() })
-            .ToDictionaryAsync(item => item.Code, item => item.Label, cancellationToken);
-
-        return counts
-            .Select(item => Breakdown(item.Code, labels.GetValueOrDefault(item.Code), item.Count))
-            .ToList();
-    }
-
-    private async Task<IReadOnlyList<DashboardBreakdownItemDalDto>> BuildManagementRoleBreakdownAsync(
-        IQueryable<App.Domain.ManagementCompanyUser> memberships,
-        CancellationToken cancellationToken)
-    {
-        var counts = await memberships
-            .GroupBy(membership => membership.ManagementCompanyRole!.Code)
-            .Select(group => new { Code = group.Key, Count = group.Count() })
-            .ToListAsync(cancellationToken);
-        var codes = counts.Select(item => item.Code).ToList();
-        var labels = await _dbContext.ManagementCompanyRoles
-            .AsNoTracking()
-            .Where(role => codes.Contains(role.Code))
-            .Select(role => new { role.Code, Label = role.Label.ToString() })
             .ToDictionaryAsync(item => item.Code, item => item.Label, cancellationToken);
 
         return counts
@@ -756,18 +688,6 @@ public class PortalDashboardRepository : IPortalDashboardRepository
                 FullName = (resident.FirstName + " " + resident.LastName).Trim(),
                 PreferredLanguage = resident.PreferredLanguage
             });
-
-    private async Task<int> CountJoinRequestsAsync(
-        Guid managementCompanyId,
-        string statusCode,
-        DateTime recentSince,
-        CancellationToken cancellationToken) =>
-        await _dbContext.ManagementCompanyJoinRequests.CountAsync(request =>
-            request.ManagementCompanyId == managementCompanyId
-            && request.ManagementCompanyJoinRequestStatus!.Code == statusCode
-            && request.ResolvedAt != null
-            && request.ResolvedAt >= recentSince,
-            cancellationToken);
 
     private async Task<IReadOnlyList<DashboardRecentActivityDalDto>> BuildManagementRecentActivityAsync(
         Guid managementCompanyId,

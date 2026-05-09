@@ -10,10 +10,6 @@ public class ManagementDashboardViewModel
     public IReadOnlyList<DashboardTicketPreviewViewModel> RecentTickets { get; init; } = [];
     public IReadOnlyList<DashboardMetricViewModel> WorkMetrics { get; init; } = [];
     public IReadOnlyList<DashboardWorkPreviewViewModel> RecentCompletedWork { get; init; } = [];
-    public IReadOnlyList<DashboardMetricViewModel> JoinRequestMetrics { get; init; } = [];
-    public IReadOnlyList<DashboardJoinRequestPreviewViewModel> PendingJoinRequests { get; init; } = [];
-    public IReadOnlyList<DashboardMetricViewModel> TeamMetrics { get; init; } = [];
-    public IReadOnlyList<DashboardBreakdownViewModel> TeamRoleDistribution { get; init; } = [];
     public IReadOnlyList<DashboardActivityViewModel> RecentActivity { get; init; } = [];
 }
 
@@ -27,8 +23,6 @@ public class CustomerDashboardViewModel
     public IReadOnlyList<DashboardMetricViewModel> TicketMetrics { get; init; } = [];
     public IReadOnlyList<DashboardBreakdownViewModel> TicketsByProperty { get; init; } = [];
     public IReadOnlyList<DashboardTicketPreviewViewModel> RecentTickets { get; init; } = [];
-    public int ActiveRepresentativeCount { get; init; }
-    public IReadOnlyList<DashboardRepresentativeViewModel> ActiveRepresentatives { get; init; } = [];
     public IReadOnlyList<DashboardActivityViewModel> RecentActivity { get; init; } = [];
 }
 
@@ -139,14 +133,6 @@ public class DashboardActivityViewModel
     public string? UnitSlug { get; init; }
     public string? ResidentIdCode { get; init; }
     public Guid? TicketId { get; init; }
-}
-
-public class DashboardJoinRequestPreviewViewModel
-{
-    public string RequesterName { get; init; } = string.Empty;
-    public string RequesterEmail { get; init; } = string.Empty;
-    public string RequestedRoleLabel { get; init; } = string.Empty;
-    public DateTime CreatedAt { get; init; }
 }
 
 public class DashboardRepresentativeViewModel

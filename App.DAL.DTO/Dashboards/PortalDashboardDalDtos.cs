@@ -23,10 +23,6 @@ public class ManagementDashboardDalDto
     public IReadOnlyList<DashboardTicketPreviewDalDto> RecentTickets { get; set; } = [];
     public IReadOnlyList<DashboardMetricDalDto> WorkMetrics { get; set; } = [];
     public IReadOnlyList<DashboardWorkPreviewDalDto> RecentCompletedWork { get; set; } = [];
-    public IReadOnlyList<DashboardMetricDalDto> JoinRequestMetrics { get; set; } = [];
-    public IReadOnlyList<DashboardJoinRequestPreviewDalDto> PendingJoinRequests { get; set; } = [];
-    public IReadOnlyList<DashboardMetricDalDto> TeamMetrics { get; set; } = [];
-    public IReadOnlyList<DashboardBreakdownItemDalDto> TeamRoleDistribution { get; set; } = [];
     public IReadOnlyList<DashboardRecentActivityDalDto> RecentActivity { get; set; } = [];
 }
 
@@ -37,8 +33,6 @@ public class CustomerDashboardDalDto
     public IReadOnlyList<DashboardMetricDalDto> TicketMetrics { get; set; } = [];
     public IReadOnlyList<DashboardBreakdownItemDalDto> TicketsByProperty { get; set; } = [];
     public IReadOnlyList<DashboardTicketPreviewDalDto> RecentTickets { get; set; } = [];
-    public int ActiveRepresentativeCount { get; set; }
-    public IReadOnlyList<DashboardRepresentativePreviewDalDto> ActiveRepresentatives { get; set; } = [];
     public IReadOnlyList<DashboardRecentActivityDalDto> RecentActivity { get; set; } = [];
 }
 
@@ -193,16 +187,6 @@ public class DashboardRecentActivityDalDto
     public string? UnitSlug { get; set; }
     public string? ResidentIdCode { get; set; }
     public Guid? TicketId { get; set; }
-}
-
-public class DashboardJoinRequestPreviewDalDto
-{
-    public Guid JoinRequestId { get; set; }
-    public string RequesterName { get; set; } = string.Empty;
-    public string RequesterEmail { get; set; } = string.Empty;
-    public string RequestedRoleCode { get; set; } = string.Empty;
-    public string RequestedRoleLabel { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
 }
 
 public class DashboardRepresentativePreviewDalDto

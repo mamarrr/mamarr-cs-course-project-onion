@@ -1,17 +1,19 @@
 @model WebApp.ViewModels.Management.Dashboard.DashboardPageViewModel
 @using WebApp.UI.Routing
 
-<section class="management-card mb-4">
-    <p class="management-eyebrow mb-2">@T("ManagementCompanyDashboard", "Management company dashboard")</p>
-    <h2 class="mb-1">@Model.Dashboard.CompanyName</h2>
-    <p class="management-muted mb-3">@T("CurrentRole", "Current role"): @Model.Dashboard.RoleCode</p>
-    <div class="d-flex flex-wrap gap-2">
+<section class="management-card management-dashboard-hero mb-3">
+    <div>
+        <p class="management-eyebrow mb-1">@T("ManagementCompanyDashboard", "Management company dashboard")</p>
+        <h2>@Model.Dashboard.CompanyName</h2>
+        <p class="management-muted mb-0">@T("CurrentRole", "Current role"): @Model.Dashboard.RoleCode</p>
+    </div>
+    <div class="management-hero-actions">
         <a class="management-btn secondary" asp-route="@PortalRouteNames.ManagementProfile" asp-route-companySlug="@Model.CompanySlug">@App.Resources.Views.UiText.Profile</a>
         <a class="management-btn secondary" asp-route="@PortalRouteNames.ManagementUsers" asp-route-companySlug="@Model.CompanySlug">@T("Users", "Users")</a>
     </div>
 </section>
 
-<div class="management-grid management-grid-3 mb-4">
+<div class="management-grid management-grid-3 management-kpi-strip mb-3">
     @foreach (var metric in Model.Dashboard.SummaryMetrics)
     {
         <section class="management-kpi">
@@ -23,39 +25,49 @@
 
 <div class="management-grid management-grid-2">
     <section class="management-card">
-        <h3>@T("TicketCommandArea", "Ticket command area")</h3>
-        <div class="management-grid management-grid-3 mb-3">
+        <h3>@T("Tickets", "Tickets")</h3>
+        <div class="management-grid management-grid-3 management-card-metrics mb-3">
             @foreach (var metric in Model.Dashboard.TicketMetrics)
             {
-                <div class="management-kpi">
+                <div class="management-kpi compact">
                     <span>@metric.Label</span>
                     <strong>@metric.Value</strong>
                 </div>
             }
         </div>
-        <h4 class="mt-3">@T("TicketsByStatus", "Tickets by status")</h4>
+
+        <h4>@T("TicketsByStatus", "Tickets by status")</h4>
         @if (Model.Dashboard.TicketsByStatus.Count == 0)
         {
             <p class="management-muted">@T("NoItemsToShow", "No items to show.")</p>
         }
         else
         {
-            <div class="d-flex flex-wrap gap-2">
+            <div class="management-chip-list">
                 @foreach (var item in Model.Dashboard.TicketsByStatus)
                 {
                     <span class="management-badge">@item.Label: @item.Count</span>
                 }
             </div>
         }
+
         <h4 class="mt-3">@T("RecentTickets", "Recent tickets")</h4>
         @if (Model.Dashboard.RecentTickets.Count == 0)
         {
-            <p class="management-muted">@T("NoTicketsToShow", "No tickets to show.")</p>
+            <p class="management-muted mb-0">@T("NoTicketsToShow", "No tickets to show.")</p>
         }
         else
         {
             <div class="management-table-responsive">
                 <table class="management-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">@T("Ticket", "Ticket")</th>
+                        <th scope="col">@T("Title", "Title")</th>
+                        <th scope="col">@T("Status", "Status")</th>
+                        <th scope="col">@T("Created", "Created")</th>
+                    </tr>
+                    </thead>
                     <tbody>
                     @foreach (var ticket in Model.Dashboard.RecentTickets)
                     {
@@ -73,106 +85,6 @@
     </section>
 
     <section class="management-card">
-        <h3>@T("WorkCommandArea", "Work command area")</h3>
-        <div class="management-grid management-grid-3 mb-3">
-            @foreach (var metric in Model.Dashboard.WorkMetrics)
-            {
-                <div class="management-kpi">
-                    <span>@metric.Label</span>
-                    <strong>@metric.Value</strong>
-                </div>
-            }
-        </div>
-        <h4 class="mt-3">@T("RecentlyCompletedWork", "Recently completed work")</h4>
-        @if (Model.Dashboard.RecentCompletedWork.Count == 0)
-        {
-            <p class="management-muted">@T("NoWorkToShow", "No work to show.")</p>
-        }
-        else
-        {
-            <div class="management-table-responsive">
-                <table class="management-table">
-                    <tbody>
-                    @foreach (var work in Model.Dashboard.RecentCompletedWork)
-                    {
-                        <tr>
-                            <td><a asp-route="@PortalRouteNames.ManagementTicketDetails" asp-route-companySlug="@Model.CompanySlug" asp-route-ticketId="@work.TicketId">@work.TicketNr</a></td>
-                            <td>@work.VendorName</td>
-                            <td><span class="management-badge">@work.WorkStatusLabel</span></td>
-                            <td>@work.ScheduledStart.ToLocalTime().ToString("g")</td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-        }
-    </section>
-
-    <section class="management-card">
-        <h3>@T("JoinRequests", "Join requests")</h3>
-        <div class="management-grid management-grid-3 mb-3">
-            @foreach (var metric in Model.Dashboard.JoinRequestMetrics)
-            {
-                <div class="management-kpi">
-                    <span>@metric.Label</span>
-                    <strong>@metric.Value</strong>
-                </div>
-            }
-        </div>
-        @if (Model.Dashboard.PendingJoinRequests.Count == 0)
-        {
-            <p class="management-muted mb-0">@T("NoPendingJoinRequests", "No pending join requests.")</p>
-        }
-        else
-        {
-            <div class="management-table-responsive">
-                <table class="management-table">
-                    <tbody>
-                    @foreach (var request in Model.Dashboard.PendingJoinRequests)
-                    {
-                        <tr>
-                            <td>
-                                <strong>@request.RequesterName</strong>
-                                <div class="management-muted">@request.RequesterEmail</div>
-                            </td>
-                            <td>@request.RequestedRoleLabel</td>
-                            <td>@request.CreatedAt.ToLocalTime().ToString("g")</td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-        }
-    </section>
-
-    <section class="management-card">
-        <h3>@T("TeamOverview", "Team overview")</h3>
-        <div class="management-grid management-grid-2 mb-3">
-            @foreach (var metric in Model.Dashboard.TeamMetrics)
-            {
-                <div class="management-kpi">
-                    <span>@metric.Label</span>
-                    <strong>@metric.Value</strong>
-                </div>
-            }
-        </div>
-        <h4 class="mt-3">@T("RoleDistribution", "Role distribution")</h4>
-        @if (Model.Dashboard.TeamRoleDistribution.Count == 0)
-        {
-            <p class="management-muted">@T("NoItemsToShow", "No items to show.")</p>
-        }
-        else
-        {
-            <div class="d-flex flex-wrap gap-2">
-                @foreach (var item in Model.Dashboard.TeamRoleDistribution)
-                {
-                    <span class="management-badge">@item.Label: @item.Count</span>
-                }
-            </div>
-        }
-    </section>
-
-    <section class="management-card" style="grid-column: 1 / -1;">
         <h3>@T("RecentActivity", "Recent activity")</h3>
         @if (Model.Dashboard.RecentActivity.Count == 0)
         {
@@ -182,6 +94,13 @@
         {
             <div class="management-table-responsive">
                 <table class="management-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">@T("Type", "Type")</th>
+                        <th scope="col">@T("Item", "Item")</th>
+                        <th scope="col">@T("Date", "Date")</th>
+                    </tr>
+                    </thead>
                     <tbody>
                     @foreach (var item in Model.Dashboard.RecentActivity)
                     {
@@ -195,6 +114,51 @@
                                 }
                             </td>
                             <td>@item.EventAt.ToLocalTime().ToString("g")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="management-card management-card-wide">
+        <h3>@T("Work", "Work")</h3>
+        <div class="management-grid management-grid-3 management-card-metrics mb-3">
+            @foreach (var metric in Model.Dashboard.WorkMetrics)
+            {
+                <div class="management-kpi compact">
+                    <span>@metric.Label</span>
+                    <strong>@metric.Value</strong>
+                </div>
+            }
+        </div>
+
+        <h4>@T("RecentlyCompletedWork", "Recently completed work")</h4>
+        @if (Model.Dashboard.RecentCompletedWork.Count == 0)
+        {
+            <p class="management-muted mb-0">@T("NoWorkToShow", "No work to show.")</p>
+        }
+        else
+        {
+            <div class="management-table-responsive">
+                <table class="management-table">
+                    <thead>
+                    <tr>
+                        <th scope="col">@T("Ticket", "Ticket")</th>
+                        <th scope="col">@T("Vendor", "Vendor")</th>
+                        <th scope="col">@T("Status", "Status")</th>
+                        <th scope="col">@T("Scheduled", "Scheduled")</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var work in Model.Dashboard.RecentCompletedWork)
+                    {
+                        <tr>
+                            <td><a asp-route="@PortalRouteNames.ManagementTicketDetails" asp-route-companySlug="@Model.CompanySlug" asp-route-ticketId="@work.TicketId">@work.TicketNr</a></td>
+                            <td>@work.VendorName</td>
+                            <td><span class="management-badge">@work.WorkStatusLabel</span></td>
+                            <td>@work.ScheduledStart.ToLocalTime().ToString("g")</td>
                         </tr>
                     }
                     </tbody>
