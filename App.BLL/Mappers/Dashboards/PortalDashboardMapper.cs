@@ -3,9 +3,9 @@ using App.DAL.DTO.Dashboards;
 
 namespace App.BLL.Mappers.Dashboards;
 
-public static class PortalDashboardMapper
+public class PortalDashboardMapper
 {
-    public static ManagementDashboardModel Map(ManagementDashboardDalDto dto) => new()
+    public ManagementDashboardModel Map(ManagementDashboardDalDto dto) => new()
     {
         Context = Map(dto.Context),
         SummaryMetrics = MapMetrics(dto.SummaryMetrics),
@@ -17,7 +17,7 @@ public static class PortalDashboardMapper
         RecentActivity = dto.RecentActivity.Select(Map).ToList()
     };
 
-    public static CustomerDashboardModel Map(CustomerDashboardDalDto dto) => new()
+    public CustomerDashboardModel Map(CustomerDashboardDalDto dto) => new()
     {
         Context = Map(dto.Context),
         PortfolioMetrics = MapMetrics(dto.PortfolioMetrics),
@@ -27,7 +27,7 @@ public static class PortalDashboardMapper
         RecentActivity = dto.RecentActivity.Select(Map).ToList()
     };
 
-    public static ResidentDashboardModel Map(ResidentDashboardDalDto dto) => new()
+    public ResidentDashboardModel Map(ResidentDashboardDalDto dto) => new()
     {
         Context = Map(dto.Context),
         ActiveLeases = dto.ActiveLeases.Select(Map).ToList(),
@@ -37,7 +37,7 @@ public static class PortalDashboardMapper
         Representations = dto.Representations.Select(Map).ToList()
     };
 
-    public static PropertyDashboardModel Map(PropertyDashboardDalDto dto) => new()
+    public PropertyDashboardModel Map(PropertyDashboardDalDto dto) => new()
     {
         Context = Map(dto.Context),
         UnitMetrics = MapMetrics(dto.UnitMetrics),
@@ -55,7 +55,7 @@ public static class PortalDashboardMapper
         UnitPreview = dto.UnitPreview.Select(Map).ToList()
     };
 
-    public static UnitDashboardModel Map(UnitDashboardDalDto dto) => new()
+    public UnitDashboardModel Map(UnitDashboardDalDto dto) => new()
     {
         Context = Map(dto.Context),
         CurrentLease = dto.CurrentLease is null ? null : Map(dto.CurrentLease),
@@ -69,7 +69,7 @@ public static class PortalDashboardMapper
         Timeline = dto.Timeline.Select(Map).ToList()
     };
 
-    private static ManagementDashboardContextModel Map(ManagementDashboardContextDalDto dto) => new()
+    private ManagementDashboardContextModel Map(ManagementDashboardContextDalDto dto) => new()
     {
         ManagementCompanyId = dto.ManagementCompanyId,
         CompanySlug = dto.CompanySlug,
@@ -77,7 +77,7 @@ public static class PortalDashboardMapper
         RoleCode = dto.RoleCode
     };
 
-    private static CustomerDashboardContextModel Map(CustomerDashboardContextDalDto dto) => new()
+    private CustomerDashboardContextModel Map(CustomerDashboardContextDalDto dto) => new()
     {
         ManagementCompanyId = dto.ManagementCompanyId,
         CompanySlug = dto.CompanySlug,
@@ -91,7 +91,7 @@ public static class PortalDashboardMapper
         Phone = dto.Phone
     };
 
-    private static ResidentDashboardContextModel Map(ResidentDashboardContextDalDto dto) => new()
+    private ResidentDashboardContextModel Map(ResidentDashboardContextDalDto dto) => new()
     {
         ManagementCompanyId = dto.ManagementCompanyId,
         CompanySlug = dto.CompanySlug,
@@ -105,7 +105,7 @@ public static class PortalDashboardMapper
         PreferredLanguage = dto.PreferredLanguage
     };
 
-    private static PropertyDashboardContextModel Map(PropertyDashboardContextDalDto dto) => new()
+    private PropertyDashboardContextModel Map(PropertyDashboardContextDalDto dto) => new()
     {
         ManagementCompanyId = dto.ManagementCompanyId,
         CompanySlug = dto.CompanySlug,
@@ -126,7 +126,7 @@ public static class PortalDashboardMapper
         PostalCode = dto.PostalCode
     };
 
-    private static UnitDashboardContextModel Map(UnitDashboardContextDalDto dto) => new()
+    private UnitDashboardContextModel Map(UnitDashboardContextDalDto dto) => new()
     {
         ManagementCompanyId = dto.ManagementCompanyId,
         CompanySlug = dto.CompanySlug,
@@ -152,16 +152,16 @@ public static class PortalDashboardMapper
         SizeM2 = dto.SizeM2
     };
 
-    private static IReadOnlyList<DashboardMetricModel> MapMetrics(IReadOnlyList<DashboardMetricDalDto> metrics) =>
+    private IReadOnlyList<DashboardMetricModel> MapMetrics(IReadOnlyList<DashboardMetricDalDto> metrics) =>
         metrics.Select(metric => new DashboardMetricModel { Key = metric.Key, Value = metric.Value }).ToList();
 
-    private static IReadOnlyList<DashboardBreakdownItemModel> MapBreakdowns(IReadOnlyList<DashboardBreakdownItemDalDto> items) =>
+    private IReadOnlyList<DashboardBreakdownItemModel> MapBreakdowns(IReadOnlyList<DashboardBreakdownItemDalDto> items) =>
         items.Select(item => new DashboardBreakdownItemModel { Code = item.Code, Label = item.Label, Count = item.Count }).ToList();
 
-    private static IReadOnlyList<DashboardTicketPreviewModel> MapTickets(IReadOnlyList<DashboardTicketPreviewDalDto> tickets) =>
+    private IReadOnlyList<DashboardTicketPreviewModel> MapTickets(IReadOnlyList<DashboardTicketPreviewDalDto> tickets) =>
         tickets.Select(Map).ToList();
 
-    private static DashboardTicketPreviewModel Map(DashboardTicketPreviewDalDto dto) => new()
+    private DashboardTicketPreviewModel Map(DashboardTicketPreviewDalDto dto) => new()
     {
         TicketId = dto.TicketId,
         TicketNr = dto.TicketNr,
@@ -183,7 +183,7 @@ public static class PortalDashboardMapper
         ResidentName = dto.ResidentName
     };
 
-    private static IReadOnlyList<DashboardWorkPreviewModel> MapWorks(IReadOnlyList<DashboardWorkPreviewDalDto> works) =>
+    private IReadOnlyList<DashboardWorkPreviewModel> MapWorks(IReadOnlyList<DashboardWorkPreviewDalDto> works) =>
         works.Select(work => new DashboardWorkPreviewModel
         {
             ScheduledWorkId = work.ScheduledWorkId,
@@ -199,7 +199,7 @@ public static class PortalDashboardMapper
             RealEnd = work.RealEnd
         }).ToList();
 
-    private static DashboardRecentActivityModel Map(DashboardRecentActivityDalDto dto) => new()
+    private DashboardRecentActivityModel Map(DashboardRecentActivityDalDto dto) => new()
     {
         ItemType = dto.ItemType,
         Label = dto.Label,
@@ -212,7 +212,7 @@ public static class PortalDashboardMapper
         TicketId = dto.TicketId
     };
 
-    private static DashboardRepresentativePreviewModel Map(DashboardRepresentativePreviewDalDto dto) => new()
+    private DashboardRepresentativePreviewModel Map(DashboardRepresentativePreviewDalDto dto) => new()
     {
         RepresentativeId = dto.RepresentativeId,
         ResidentIdCode = dto.ResidentIdCode,
@@ -225,7 +225,7 @@ public static class PortalDashboardMapper
         CustomerName = dto.CustomerName
     };
 
-    private static DashboardLeasePreviewModel Map(DashboardLeasePreviewDalDto dto) => new()
+    private DashboardLeasePreviewModel Map(DashboardLeasePreviewDalDto dto) => new()
     {
         LeaseId = dto.LeaseId,
         CustomerSlug = dto.CustomerSlug,
@@ -243,7 +243,7 @@ public static class PortalDashboardMapper
         CreatedAt = dto.CreatedAt
     };
 
-    private static DashboardContactSummaryModel Map(DashboardContactSummaryDalDto dto) => new()
+    private DashboardContactSummaryModel Map(DashboardContactSummaryDalDto dto) => new()
     {
         PrimaryContact = dto.PrimaryContact is null
             ? null
@@ -257,7 +257,7 @@ public static class PortalDashboardMapper
         ContactMethodCounts = MapBreakdowns(dto.ContactMethodCounts)
     };
 
-    private static DashboardUnitPreviewModel Map(DashboardUnitPreviewDalDto dto) => new()
+    private DashboardUnitPreviewModel Map(DashboardUnitPreviewDalDto dto) => new()
     {
         UnitId = dto.UnitId,
         UnitSlug = dto.UnitSlug,
@@ -269,7 +269,7 @@ public static class PortalDashboardMapper
         OpenTicketCount = dto.OpenTicketCount
     };
 
-    private static DashboardTimelineItemModel Map(DashboardTimelineItemDalDto dto) => new()
+    private DashboardTimelineItemModel Map(DashboardTimelineItemDalDto dto) => new()
     {
         ItemType = dto.ItemType,
         Label = dto.Label,

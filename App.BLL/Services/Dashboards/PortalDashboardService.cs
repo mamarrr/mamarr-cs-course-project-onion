@@ -23,11 +23,13 @@ public class PortalDashboardService : IPortalDashboardService
 
     private readonly IAppUOW _uow;
     private readonly IPortalContextProvider _portalContext;
+    private readonly PortalDashboardMapper _mapper;
 
     public PortalDashboardService(IAppUOW uow, IPortalContextProvider portalContext)
     {
         _uow = uow;
         _portalContext = portalContext;
+        _mapper = new PortalDashboardMapper();
     }
 
     public async Task<Result<ManagementDashboardModel>> GetManagementDashboardAsync(
@@ -51,7 +53,7 @@ public class PortalDashboardService : IPortalDashboardService
             BuildOptions(),
             cancellationToken);
 
-        return Result.Ok(PortalDashboardMapper.Map(dashboard));
+        return Result.Ok(_mapper.Map(dashboard));
     }
 
     public async Task<Result<CustomerDashboardModel>> GetCustomerDashboardAsync(
@@ -74,7 +76,7 @@ public class PortalDashboardService : IPortalDashboardService
             BuildOptions(),
             cancellationToken);
 
-        return Result.Ok(PortalDashboardMapper.Map(dashboard));
+        return Result.Ok(_mapper.Map(dashboard));
     }
 
     public async Task<Result<PropertyDashboardModel>> GetPropertyDashboardAsync(
@@ -98,7 +100,7 @@ public class PortalDashboardService : IPortalDashboardService
             BuildOptions(),
             cancellationToken);
 
-        return Result.Ok(PortalDashboardMapper.Map(dashboard));
+        return Result.Ok(_mapper.Map(dashboard));
     }
 
     public async Task<Result<UnitDashboardModel>> GetUnitDashboardAsync(
@@ -118,7 +120,7 @@ public class PortalDashboardService : IPortalDashboardService
             BuildOptions(),
             cancellationToken);
 
-        return Result.Ok(PortalDashboardMapper.Map(dashboard));
+        return Result.Ok(_mapper.Map(dashboard));
     }
 
     public async Task<Result<ResidentDashboardModel>> GetResidentDashboardAsync(
@@ -141,7 +143,7 @@ public class PortalDashboardService : IPortalDashboardService
             BuildOptions(),
             cancellationToken);
 
-        return Result.Ok(PortalDashboardMapper.Map(dashboard));
+        return Result.Ok(_mapper.Map(dashboard));
     }
 
     private static PortalDashboardQueryOptionsDalDto BuildOptions()
