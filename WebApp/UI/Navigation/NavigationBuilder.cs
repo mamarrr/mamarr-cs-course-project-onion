@@ -41,7 +41,6 @@ public class NavigationBuilder : INavigationBuilder
             Link(UiText.Dashboard, Route(PortalRouteNames.ManagementDashboard, new { companySlug }), Sections.Dashboard, activeSection),
             Link(UiText.Profile, Route(PortalRouteNames.ManagementProfile, new { companySlug }), Sections.Profile, activeSection),
             Link(UiText.Tickets, Route(PortalRouteNames.ManagementTickets, new { companySlug }), Sections.Tickets, activeSection),
-            Disabled(UiText.Properties, Sections.Properties, activeSection),
             Link(UiText.Customers, Route(PortalRouteNames.ManagementCustomers, new { companySlug }), Sections.Customers, activeSection),
             Link(UiText.Residents, Route(PortalRouteNames.ManagementResidents, new { companySlug }), Sections.Residents, activeSection),
             new()
@@ -68,8 +67,7 @@ public class NavigationBuilder : INavigationBuilder
             Link(UiText.Dashboard, Route(PortalRouteNames.CustomerDashboard, new { companySlug, customerSlug }), Sections.Dashboard, activeSection),
             Link(UiText.Profile, Route(PortalRouteNames.CustomerProfile, new { companySlug, customerSlug }), Sections.Profile, activeSection),
             Link(UiText.Tickets, Route(PortalRouteNames.CustomerTickets, new { companySlug, customerSlug }), Sections.Tickets, activeSection),
-            Link(UiText.Properties, Route(PortalRouteNames.CustomerProperties, new { companySlug, customerSlug }), Sections.Properties, activeSection),
-            Link(T("Residents", "Residents"), Route(PortalRouteNames.CustomerResidents, new { companySlug, customerSlug }), Sections.Residents, activeSection)
+            Link(UiText.Properties, Route(PortalRouteNames.CustomerProperties, new { companySlug, customerSlug }), Sections.Properties, activeSection)
         };
     }
 
@@ -86,7 +84,6 @@ public class NavigationBuilder : INavigationBuilder
             Link(UiText.Dashboard, Route(PortalRouteNames.PropertyDashboard, new { companySlug, customerSlug, propertySlug }), Sections.Dashboard, activeSection),
             Link(UiText.Profile, Route(PortalRouteNames.PropertyProfile, new { companySlug, customerSlug, propertySlug }), Sections.Profile, activeSection),
             Link(T("Units", "Units"), Route(PortalRouteNames.PropertyUnits, new { companySlug, customerSlug, propertySlug }), Sections.Units, activeSection),
-            Link(UiText.Residents, Route(PortalRouteNames.PropertyResidents, new { companySlug, customerSlug, propertySlug }), Sections.Residents, activeSection),
             Link(UiText.Tickets, Route(PortalRouteNames.PropertyTickets, new { companySlug, customerSlug, propertySlug }), Sections.Tickets, activeSection)
         };
     }
@@ -122,7 +119,6 @@ public class NavigationBuilder : INavigationBuilder
             Link(UiText.Profile, Route(PortalRouteNames.ResidentProfile, new { companySlug, residentIdCode }), Sections.Profile, activeSection),
             Link(T("Units", "Units"), Route(PortalRouteNames.ResidentUnits, new { companySlug, residentIdCode }), Sections.Units, activeSection),
             Link(UiText.Tickets, Route(PortalRouteNames.ResidentTickets, new { companySlug, residentIdCode }), Sections.Tickets, activeSection),
-            Link(T("Representations", "Representations"), Route(PortalRouteNames.ResidentRepresentations, new { companySlug, residentIdCode }), Sections.Representations, activeSection),
             Link(T("Contacts", "Contacts"), Route(PortalRouteNames.ResidentContacts, new { companySlug, residentIdCode }), Sections.Contacts, activeSection)
         };
     }

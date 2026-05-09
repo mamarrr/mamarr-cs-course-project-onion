@@ -47,12 +47,6 @@ public class DashboardController : Controller
         return await RenderSectionAsync(companySlug, residentIdCode, "Tickets", cancellationToken);
     }
 
-    [HttpGet("representations", Name = PortalRouteNames.ResidentRepresentations)]
-    public async Task<IActionResult> Representations(string companySlug, string residentIdCode, CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, residentIdCode, "Representations", cancellationToken);
-    }
-
     private async Task<IActionResult> RenderSectionAsync(
         string companySlug,
         string residentIdCode,
@@ -83,7 +77,6 @@ public class DashboardController : Controller
         {
             "Units" => T("Units", "Units"),
             "Tickets" => UiText.Tickets,
-            "Representations" => T("Representations", "Representations"),
             "Contacts" => T("Contacts", "Contacts"),
             _ => UiText.Dashboard
         };

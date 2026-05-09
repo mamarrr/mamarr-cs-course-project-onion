@@ -45,16 +45,6 @@ public class DashboardController : Controller
         return await RenderSectionAsync(companySlug, customerSlug, propertySlug, "Dashboard", cancellationToken);
     }
 
-    [HttpGet("residents", Name = PortalRouteNames.PropertyResidents)]
-    public async Task<IActionResult> Residents(
-        string companySlug,
-        string customerSlug,
-        string propertySlug,
-        CancellationToken cancellationToken)
-    {
-        return await RenderSectionAsync(companySlug, customerSlug, propertySlug, "Residents", cancellationToken);
-    }
-
     [HttpGet("tickets", Name = PortalRouteNames.PropertyTickets)]
     public async Task<IActionResult> Tickets(
         string companySlug,
@@ -96,7 +86,6 @@ public class DashboardController : Controller
         var currentSectionLabel = currentSection switch
         {
             "Profile" => UiText.Profile,
-            "Residents" => UiText.Residents,
             "Tickets" => UiText.Tickets,
             _ => UiText.Dashboard
         };
