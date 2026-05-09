@@ -1,5 +1,6 @@
 using App.BLL.Contracts;
 using App.BLL.Contracts.Admin;
+using App.BLL.Contracts.Auth;
 using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Dashboards;
@@ -12,6 +13,7 @@ using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
 using App.BLL.Contracts.Vendors;
 using App.BLL.Services.Admin;
+using App.BLL.Services;
 using App.BLL.Services.Contacts;
 using App.BLL.Services.Common.Portal;
 using App.BLL.Services.Customers;
@@ -49,6 +51,7 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
     private IScheduledWorkService? _scheduledWorks;
     private IWorkLogService? _workLogs;
     private IVendorService? _vendors;
+    private IAuthSessionService? _authSessions;
     private IPortalContextProvider? _portalContext;
     private ContactWriter? _contactWriter;
 
@@ -113,6 +116,9 @@ public class AppBLL : BaseBLL<IAppUOW>, IAppBLL
 
     public IUnitService Units =>
         _units ??= new UnitService(UOW, PortalContext);
+
+    public IAuthSessionService AuthSessions =>
+        _authSessions ??= new AuthSessionService(UOW);
 
     public AppBLL(
         IAppUOW uow) : base(uow)

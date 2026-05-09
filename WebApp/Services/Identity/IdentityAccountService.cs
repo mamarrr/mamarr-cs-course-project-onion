@@ -75,6 +75,45 @@ public class IdentityAccountService : IIdentityAccountService
         return Result.Ok();
     }
 
+    public async Task<Result<Guid>> ValidateCredentialsAsync(
+        string email,
+        string password,
+        CancellationToken cancellationToken = default)
+    {
+        var appUser = await _userManager.FindByEmailAsync(email);
+        if (appUser == null)
+        {
+            return Result.Fail<Guid>(App.Resources.Views.UiText.InvalidEmailOrPassword);
+        }
+
+        var isValidPassword = await _userManager.CheckPasswordAsync(appUser, password);
+        return isValidPassword
+            ? Result.Ok(appUser.Id)
+            : Result.Fail<Guid>(App.Resources.Views.UiText.InvalidEmailOrPassword);
+    }
+
+    public async Task<Result<IdentityUserInfo>> GetUserInfoAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var appUser = await _userManager.FindByIdAsync(appUserId.ToString());
+        if (appUser == null)
+        {
+            return Result.Fail<IdentityUserInfo>("User was not found.");
+        }
+
+        var roles = await _userManager.GetRolesAsync(appUser);
+
+        return Result.Ok(new IdentityUserInfo
+        {
+            Id = appUser.Id,
+            Email = appUser.Email ?? string.Empty,
+            FirstName = appUser.FirstName,
+            LastName = appUser.LastName,
+            Roles = roles.ToList()
+        });
+    }
+
     public async Task<Result<Guid>> PasswordSignInAsync(
         string email,
         string password,

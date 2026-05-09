@@ -1,6 +1,7 @@
 using App.DAL.Contracts.Repositories;
 using App.DAL.Contracts.Repositories.Admin;
 using App.DAL.Contracts.Repositories.Dashboards;
+using App.DAL.Contracts.Repositories.Identity;
 using Base.DAL.Contracts;
 
 
@@ -49,6 +50,8 @@ public interface IAppUOW : IBaseUOW
     IScheduledWorkRepository ScheduledWorks { get; }
 
     IWorkLogRepository WorkLogs { get; }
+
+    IAppRefreshTokenRepository RefreshTokens { get; }
 
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
 

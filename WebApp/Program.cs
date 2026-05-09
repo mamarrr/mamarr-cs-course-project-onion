@@ -57,6 +57,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddAppBll();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IIdentityAccountService, IdentityAccountService>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAppChromeBuilder, AppChromeBuilder>();
 builder.Services.AddScoped<IWorkspaceResolver, WorkspaceResolver>();
 builder.Services.AddScoped<IBreadcrumbBuilder, BreadcrumbBuilder>();
@@ -204,6 +205,8 @@ app.UseSwaggerUI(options =>
 
 
 app.MapStaticAssets();
+
+app.MapControllers();
 
 app.MapControllerRoute(
         name: "management_dashboard",

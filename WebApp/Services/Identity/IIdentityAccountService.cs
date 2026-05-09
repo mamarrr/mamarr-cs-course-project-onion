@@ -29,6 +29,15 @@ public interface IIdentityAccountService
         string lastName,
         CancellationToken cancellationToken = default);
 
+    Task<Result<Guid>> ValidateCredentialsAsync(
+        string email,
+        string password,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<IdentityUserInfo>> GetUserInfoAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default);
+
     Task<Result<Guid>> PasswordSignInAsync(
         string email,
         string password,

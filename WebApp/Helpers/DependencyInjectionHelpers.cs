@@ -1,5 +1,6 @@
 using App.BLL;
 using App.BLL.Contracts;
+using App.BLL.Contracts.Auth;
 using App.BLL.Contracts.Common.Portal;
 using App.BLL.Contracts.Contacts;
 using App.BLL.Contracts.Customers;
@@ -12,6 +13,7 @@ using App.BLL.Contracts.Tickets;
 using App.BLL.Contracts.Units;
 using App.BLL.Contracts.Vendors;
 using App.BLL.Services.Common.Portal;
+using App.BLL.Services;
 using App.BLL.Services.Contacts;
 using App.BLL.Services.Customers;
 using App.BLL.Services.Leases;
@@ -74,6 +76,7 @@ public static class DependencyInjectionHelpers
         services.AddScoped<ITicketService, TicketService>();
         services.AddScoped<IContactService, ContactService>();
         services.AddScoped<IVendorService, VendorService>();
+        services.AddScoped<IAuthSessionService, AuthSessionService>();
 
         return services;
     }

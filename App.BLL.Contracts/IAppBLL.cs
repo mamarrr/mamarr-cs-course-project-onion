@@ -1,4 +1,5 @@
 using App.BLL.Contracts.Admin;
+using App.BLL.Contracts.Auth;
 using App.BLL.Contracts.Customers;
 using App.BLL.Contracts.Dashboards;
 using App.BLL.Contracts.Leases;
@@ -33,4 +34,5 @@ public interface IAppBLL : IBaseBLL
     IManagementCompanyService ManagementCompanies { get; }
     ICompanyMembershipService CompanyMemberships { get; }
     IWorkspaceService Workspaces { get; }
+    IAuthSessionService AuthSessions { get; }
 }
