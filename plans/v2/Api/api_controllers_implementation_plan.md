@@ -16,7 +16,7 @@ App.DTO/v1
 
 API mapper implementations should live under `App.DTO/Mappers` and map between public `App.DTO.v1.*` API DTOs and BLL DTOs/models. Use `IBaseMapper<ApiDto, BllDto>` wherever the mapping is naturally two-way, especially for command/save DTOs such as `TicketBllDto`, `LeaseBllDto`, `CustomerBllDto`, `PropertyBllDto`, `UnitBllDto`, `ResidentBllDto`, `VendorBllDto`, `ScheduledWorkBllDto`, and `WorkLogBllDto`.
 
-Do not implement API endpoints for placeholder/shell-only MVC workflows such as Resident Access onboarding, customer tickets/residents shells, property tickets/residents shells, unit tickets shell, resident tickets/representations shell, and disabled management-level properties.
+Do not implement API endpoints for placeholder/shell-only MVC workflows such as Resident Access onboarding, customer-scoped residents, property-scoped residents, resident representations, and disabled management-level properties. Customer, property, unit, and resident ticket list workflows are implemented and must be exposed as scoped ticket APIs.
 
 API controllers must call only public services exposed by `IAppBLL`. They must never expose DAL DTOs, BLL DTOs/models, domain entities, MVC ViewModels, `ViewBag`, or `ViewData`.
 
@@ -85,6 +85,7 @@ App.DTO/v1/
   Shared/
   Portal/
     Companies/
+    Dashboards/
     Customers/
     Properties/
     Units/
@@ -104,6 +105,7 @@ App.DTO/Mappers/
   Workspace/
   Portal/
     Companies/
+    Dashboards/
     Customers/
     Properties/
     Units/
@@ -410,7 +412,87 @@ Do not depend on MVC `ctx.*` cookies for Vue. The SPA should store selected work
 
 ---
 
-## Phase 4 — Management Company API
+## Phase 4 — Portal Dashboards API
+
+Expose the implemented Portal dashboard workflows for every supported workspace level. These endpoints are read-only and must call `_bll.PortalDashboards`; do not reuse MVC dashboard ViewModels or `WebApp.Mappers.Dashboards`.
+
+### Controller
+
+```text
+WebApp/ApiControllers/Portal/DashboardsController.cs
+```
+
+Routes:
+
+```text
+GET /api/v1/portal/companies/{companySlug}/dashboard
+GET /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/dashboard
+GET /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/dashboard
+GET /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/dashboard
+GET /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/dashboard
+```
+
+### DTOs
+
+```text
+App.DTO/v1/Portal/Dashboards/ManagementDashboardDto.cs
+App.DTO/v1/Portal/Dashboards/CustomerDashboardDto.cs
+App.DTO/v1/Portal/Dashboards/PropertyDashboardDto.cs
+App.DTO/v1/Portal/Dashboards/UnitDashboardDto.cs
+App.DTO/v1/Portal/Dashboards/ResidentDashboardDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardContextDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardMetricDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardBreakdownItemDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardTicketPreviewDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardWorkPreviewDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardRecentActivityDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardLeasePreviewDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardContactSummaryDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardRepresentativePreviewDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardUnitPreviewDto.cs
+App.DTO/v1/Portal/Dashboards/DashboardTimelineItemDto.cs
+```
+
+Use context-specific dashboard DTOs instead of one over-wide response object. Shared nested DTOs are fine for metrics, breakdowns, previews, activity, leases, contacts, and timeline rows.
+
+### Mappers
+
+```text
+App.DTO/Mappers/Portal/Dashboards/PortalDashboardApiMapper.cs
+```
+
+Map from:
+
+```text
+App.BLL.DTO.Dashboards.Models.ManagementDashboardModel
+App.BLL.DTO.Dashboards.Models.CustomerDashboardModel
+App.BLL.DTO.Dashboards.Models.PropertyDashboardModel
+App.BLL.DTO.Dashboards.Models.UnitDashboardModel
+App.BLL.DTO.Dashboards.Models.ResidentDashboardModel
+```
+
+### Implementation tasks
+
+1. Management dashboard:
+   - Build `ManagementCompanyRoute`.
+   - Call `_bll.PortalDashboards.GetManagementDashboardAsync(...)`.
+2. Customer dashboard:
+   - Build `CustomerRoute`.
+   - Call `_bll.PortalDashboards.GetCustomerDashboardAsync(...)`.
+3. Property dashboard:
+   - Build `PropertyRoute`.
+   - Call `_bll.PortalDashboards.GetPropertyDashboardAsync(...)`.
+4. Unit dashboard:
+   - Build `UnitRoute`.
+   - Call `_bll.PortalDashboards.GetUnitDashboardAsync(...)`.
+5. Resident dashboard:
+   - Build `ResidentRoute`.
+   - Call `_bll.PortalDashboards.GetResidentDashboardAsync(...)`.
+6. Map BLL dashboard models into public DTOs only. Do not include MVC chrome, navigation state, current section labels, or `AppChromeViewModel`.
+
+---
+
+## Phase 5 — Management Company API
 
 ### Controller
 
@@ -464,7 +546,7 @@ IBaseMapper<UpdateManagementCompanyProfileDto, ManagementCompanyBllDto>
 
 ---
 
-## Phase 5 — Customers API
+## Phase 6 — Customers API
 
 ### Controller
 
@@ -527,7 +609,7 @@ IBaseMapper<UpdateCustomerProfileDto, CustomerBllDto>
 
 ---
 
-## Phase 6 — Properties API
+## Phase 7 — Properties API
 
 ### Controller
 
@@ -584,7 +666,7 @@ IBaseMapper<UpdatePropertyProfileDto, PropertyBllDto>
 
 ---
 
-## Phase 7 — Units API
+## Phase 8 — Units API
 
 ### Controller
 
@@ -630,7 +712,7 @@ IBaseMapper<UpdateUnitProfileDto, UnitBllDto>
 
 ---
 
-## Phase 8 — Residents API
+## Phase 9 — Residents API
 
 ### Controller
 
@@ -676,7 +758,7 @@ IBaseMapper<UpdateResidentProfileDto, ResidentBllDto>
 
 ---
 
-## Phase 9 — Leases API
+## Phase 10 — Leases API
 
 Leases should be one API area even though MVC exposes them through unit tenants and resident units.
 
@@ -755,7 +837,7 @@ IBaseMapper<UpdateResidentLeaseDto, LeaseBllDto>
 
 ---
 
-## Phase 10 — Contacts API
+## Phase 11 — Contacts API
 
 Implement resident and vendor contact assignment workflows. Prefer one controller with two resource groups.
 
@@ -848,7 +930,7 @@ Do not plan `_bll.Contacts` usage unless `IAppBLL` is intentionally expanded lat
 
 ---
 
-## Phase 11 — Tickets API
+## Phase 12 — Tickets API
 
 Keep `TicketsController` limited to ticket workflows. Do not put scheduled-work or work-log mutations in this controller.
 
@@ -868,6 +950,11 @@ PUT    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}
 DELETE /api/v1/portal/companies/{companySlug}/tickets/{ticketId}
 POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/advance-status
 
+GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/tickets
+GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/tickets
+GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/tickets
+GET    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/tickets
+
 GET    /api/v1/portal/companies/{companySlug}/tickets/options
 GET    /api/v1/portal/companies/{companySlug}/tickets/options/properties?customerId=
 GET    /api/v1/portal/companies/{companySlug}/tickets/options/units?propertyId=
@@ -879,6 +966,8 @@ GET    /api/v1/portal/companies/{companySlug}/tickets/options/vendors?categoryId
 
 ```text
 App.DTO/v1/Portal/Tickets/TicketFilterDto.cs
+App.DTO/v1/Portal/Tickets/TicketListDto.cs
+App.DTO/v1/Portal/Tickets/ContextTicketListDto.cs
 App.DTO/v1/Portal/Tickets/TicketListItemDto.cs
 App.DTO/v1/Portal/Tickets/TicketDetailsDto.cs
 App.DTO/v1/Portal/Tickets/TicketScheduledWorkSummaryDto.cs
@@ -893,6 +982,8 @@ App.DTO/v1/Shared/LookupOptionDto.cs
 
 ```text
 App.DTO/Mappers/Portal/Tickets/TicketApiMapper.cs
+App.DTO/Mappers/Portal/Tickets/TicketListApiMapper.cs
+App.DTO/Mappers/Portal/Tickets/ContextTicketListApiMapper.cs
 App.DTO/Mappers/Portal/Tickets/TicketListItemApiMapper.cs
 App.DTO/Mappers/Portal/Tickets/TicketDetailsApiMapper.cs
 App.DTO/Mappers/Portal/Tickets/TicketOptionsApiMapper.cs
@@ -910,27 +1001,35 @@ IBaseMapper<UpdateTicketDto, TicketBllDto>
 1. Search/list:
    - Map query parameters into `ManagementTicketSearchRoute`.
    - Call `_bll.Tickets.SearchAsync(...)`.
-2. Create:
+2. Context search/list:
+   - Map query parameters into `ContextTicketSearchRoute`.
+   - For customer route, set `CustomerSlug` and call `_bll.Tickets.SearchCustomerTicketsAsync(...)`.
+   - For property route, set `CustomerSlug` and `PropertySlug` and call `_bll.Tickets.SearchPropertyTicketsAsync(...)`.
+   - For unit route, set `CustomerSlug`, `PropertySlug`, and `UnitSlug` and call `_bll.Tickets.SearchUnitTicketsAsync(...)`.
+   - For resident route, set `ResidentIdCode` and call `_bll.Tickets.SearchResidentTicketsAsync(...)`.
+   - Return a context list response with context metadata, filter state, selector options, and ticket rows.
+   - Preserve the MVC filter behavior: customer lists hide the customer filter, property lists hide customer and property filters, unit and resident lists hide customer/property/unit filters.
+3. Create:
    - Map `CreateTicketDto` -> `TicketBllDto`.
    - Call `_bll.Tickets.CreateAsync(ManagementCompanyRoute, dto, ...)`.
    - Return `201 Created`.
-3. Details:
+4. Details:
    - Call `_bll.Tickets.GetDetailsAsync(TicketRoute, ...)`.
    - Map `ManagementTicketDetailsModel` -> `TicketDetailsDto`.
    - Include scheduled work summary items from `ManagementTicketDetailsModel.ScheduledWork`.
-4. Update:
+5. Update:
    - Map `UpdateTicketDto` -> `TicketBllDto`.
    - Call `_bll.Tickets.UpdateAsync(TicketRoute, dto, ...)`.
-5. Delete:
+6. Delete:
    - Call `_bll.Tickets.DeleteAsync(TicketRoute, ...)`.
-6. Advance status:
+7. Advance status:
    - Call `_bll.Tickets.AdvanceStatusAsync(TicketRoute, ...)`.
-7. Selector options:
+8. Selector options:
    - Call `_bll.Tickets.GetSelectorOptionsAsync(...)`.
 
 ---
 
-## Phase 12 — Scheduled Work API
+## Phase 13 — Scheduled Work API
 
 `ScheduledWorkController` must call `_bll.ScheduledWorks` directly.
 
@@ -1013,7 +1112,7 @@ IBaseMapper<UpdateScheduledWorkDto, ScheduledWorkBllDto>
 
 ---
 
-## Phase 13 — Work Logs API
+## Phase 14 — Work Logs API
 
 `WorkLogsController` must call `_bll.WorkLogs` directly.
 
@@ -1084,7 +1183,7 @@ IBaseMapper<UpdateWorkLogDto, WorkLogBllDto>
 
 ---
 
-## Phase 14 — Vendors API
+## Phase 15 — Vendors API
 
 ### Controller
 
@@ -1141,7 +1240,7 @@ IBaseMapper<UpdateVendorCategoryDto, VendorTicketCategoryBllDto>
 
 ---
 
-## Phase 15 — Company Users API
+## Phase 16 — Company Users API
 
 ### Controller
 
@@ -1206,7 +1305,7 @@ App.DTO/Mappers/Portal/Users/OwnershipTransferApiMapper.cs
 
 ---
 
-## Phase 16 — Lookups API
+## Phase 17 — Lookups API
 
 ### Controller
 
@@ -1458,7 +1557,9 @@ Run build and manual verification only:
 3. Manually exercise representative happy paths with an authenticated JWT:
    - auth/login/refresh/logout
    - onboarding and workspace selection
+   - dashboard data for management, customer, property, unit, and resident workspaces
    - customer/property/unit/resident create/list
+   - management, customer, property, unit, and resident ticket list/search
    - ticket create/update/status advance
    - scheduled work lifecycle
    - work log lifecycle
@@ -1492,11 +1593,12 @@ Run build and manual verification only:
 
 ### Milestone 3 — Core property-management resources
 
-1. Companies/profile.
-2. Customers.
-3. Properties.
-4. Units.
-5. Residents.
+1. Portal dashboards.
+2. Companies/profile.
+3. Customers.
+4. Properties.
+5. Units.
+6. Residents.
 
 ### Milestone 4 — Leases and contacts
 
@@ -1506,7 +1608,7 @@ Run build and manual verification only:
 
 ### Milestone 5 — Tickets and maintenance
 
-1. Tickets API.
+1. Tickets API, including management, customer, property, unit, and resident ticket lists.
 2. Scheduled work API.
 3. Work logs API.
 
@@ -1533,12 +1635,8 @@ Do not build API controllers for these until the underlying BLL/MVC workflow is 
 ```text
 Resident access onboarding
 Management-level properties
-Customer-scoped tickets
 Customer-scoped residents
 Property-scoped residents
-Property-scoped tickets
-Unit-scoped tickets
-Resident-scoped tickets
 Resident representations
 ```
 
@@ -1555,6 +1653,7 @@ App.DTO/v1/
   Shared/
   Portal/
     Companies/
+    Dashboards/
     Customers/
     Properties/
     Units/
@@ -1573,6 +1672,7 @@ App.DTO/Mappers/
   Workspace/
   Portal/
     Companies/
+    Dashboards/
     Customers/
     Properties/
     Units/
@@ -1598,6 +1698,7 @@ WebApp/
       WorkspacesController.cs
     Portal/
       ManagementCompaniesController.cs
+      DashboardsController.cs
       CustomersController.cs
       PropertiesController.cs
       UnitsController.cs
@@ -1630,6 +1731,7 @@ The implementation is complete when:
 - Vue can create a management company and enter its Portal workspace.
 - Vue can submit a join request for a management company.
 - Vue can list/select available workspaces.
+- Vue can load dashboard data for management, customer, property, unit, and resident workspaces.
 - Vue can perform all implemented Portal workflows through JSON APIs:
   - company profile
   - customers
@@ -1638,7 +1740,7 @@ The implementation is complete when:
   - residents
   - leases
   - contacts
-  - tickets
+  - tickets, including management, customer, property, unit, and resident ticket lists
   - scheduled work
   - work logs
   - vendors
@@ -1650,6 +1752,7 @@ The implementation is complete when:
 - Mapping logic is separated from controllers.
 - `IBaseMapper<ApiDto, BllDto>` is used where mapping is two-way and canonical BLL DTOs are available.
 - Controllers call only public `IAppBLL` services; they do not invent DAL access.
+- `DashboardsController` only calls `_bll.PortalDashboards`.
 - `TicketsController` only calls `_bll.Tickets`.
 - `ScheduledWorkController` calls `_bll.ScheduledWorks` directly.
 - `WorkLogsController` calls `_bll.WorkLogs` directly.
