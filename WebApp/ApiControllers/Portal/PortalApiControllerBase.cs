@@ -96,4 +96,104 @@ public abstract class PortalApiControllerBase : ApiControllerBase
             ResidentIdCode = residentIdCode
         };
     }
+
+    protected ActionResult<ResidentContactRoute> ResidentContactRoute(
+        string companySlug,
+        string residentIdCode,
+        Guid residentContactId)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return UnauthorizedRequest("Authentication is required.");
+        }
+
+        return new ResidentContactRoute
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug,
+            ResidentIdCode = residentIdCode,
+            ResidentContactId = residentContactId
+        };
+    }
+
+    protected ActionResult<ResidentLeaseRoute> ResidentLeaseRoute(
+        string companySlug,
+        string residentIdCode,
+        Guid leaseId)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return UnauthorizedRequest("Authentication is required.");
+        }
+
+        return new ResidentLeaseRoute
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug,
+            ResidentIdCode = residentIdCode,
+            LeaseId = leaseId
+        };
+    }
+
+    protected ActionResult<UnitLeaseRoute> UnitLeaseRoute(
+        string companySlug,
+        string customerSlug,
+        string propertySlug,
+        string unitSlug,
+        Guid leaseId)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return UnauthorizedRequest("Authentication is required.");
+        }
+
+        return new UnitLeaseRoute
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug,
+            CustomerSlug = customerSlug,
+            PropertySlug = propertySlug,
+            UnitSlug = unitSlug,
+            LeaseId = leaseId
+        };
+    }
+
+    protected ActionResult<VendorRoute> VendorRoute(string companySlug, Guid vendorId)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return UnauthorizedRequest("Authentication is required.");
+        }
+
+        return new VendorRoute
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug,
+            VendorId = vendorId
+        };
+    }
+
+    protected ActionResult<VendorContactRoute> VendorContactRoute(
+        string companySlug,
+        Guid vendorId,
+        Guid vendorContactId)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return UnauthorizedRequest("Authentication is required.");
+        }
+
+        return new VendorContactRoute
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug,
+            VendorId = vendorId,
+            VendorContactId = vendorContactId
+        };
+    }
 }
