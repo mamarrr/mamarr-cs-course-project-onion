@@ -19,6 +19,7 @@ public class AdminUserRepository : IAdminUserRepository
 
     public async Task<IReadOnlyList<AdminUserListItemDalDto>> SearchUsersAsync(AdminUserSearchDalDto search, CancellationToken cancellationToken = default)
     {
+        var now = DateTimeOffset.UtcNow;
         var query = _dbContext.Users.AsNoTracking().AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search.SearchText))
@@ -44,7 +45,7 @@ public class AdminUserRepository : IAdminUserRepository
 
         if (search.LockedOnly)
         {
-            query = query.Where(user => user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow);
+            query = query.Where(user => user.LockoutEnd != null);
         }
 
         if (search.CreatedFrom.HasValue)
@@ -66,6 +67,11 @@ public class AdminUserRepository : IAdminUserRepository
         var users = await query
             .OrderByDescending(user => user.CreatedAt)
             .ToListAsync(cancellationToken);
+
+        if (search.LockedOnly)
+        {
+            users = users.Where(user => user.LockoutEnd.HasValue && user.LockoutEnd.Value > now).ToList();
+        }
 
         return users.Select(user => _mapper.Map(user, systemAdminUserIds.Contains(user.Id))).ToList();
     }
@@ -151,7 +157,9 @@ public class AdminUserRepository : IAdminUserRepository
 
     public async Task<bool> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEnd, CancellationToken cancellationToken = default)
     {
-        var user = await _dbContext.Users.FirstOrDefaultAsync(user => user.Id == userId, cancellationToken);
+        var user = await _dbContext.Users
+            .AsTracking()
+            .FirstOrDefaultAsync(user => user.Id == userId, cancellationToken);
         if (user is null)
         {
             return false;

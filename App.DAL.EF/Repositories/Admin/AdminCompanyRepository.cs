@@ -119,7 +119,9 @@ public class AdminCompanyRepository : IAdminCompanyRepository
 
     public async Task<bool> UpdateCompanyAsync(Guid id, AdminCompanyUpdateDalDto dto, CancellationToken cancellationToken = default)
     {
-        var company = await _dbContext.ManagementCompanies.FirstOrDefaultAsync(company => company.Id == id, cancellationToken);
+        var company = await _dbContext.ManagementCompanies
+            .AsTracking()
+            .FirstOrDefaultAsync(company => company.Id == id, cancellationToken);
         if (company is null)
         {
             return false;

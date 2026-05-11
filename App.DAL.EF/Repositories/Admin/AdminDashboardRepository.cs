@@ -16,7 +16,8 @@ public class AdminDashboardRepository : IAdminDashboardRepository
     public async Task<AdminDashboardDalDto> GetDashboardAsync(CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
-        var today = DateTime.UtcNow.Date;
+        var lockoutNow = DateTimeOffset.UtcNow;
+        var today = now.Date;
         var tomorrow = today.AddDays(1);
 
         var pendingStatusIds = await _dbContext.ManagementCompanyJoinRequestStatuses
@@ -31,12 +32,20 @@ public class AdminDashboardRepository : IAdminDashboardRepository
             .Select(status => status.Id)
             .ToListAsync(cancellationToken);
 
+        var lockoutEnds = await _dbContext.Users
+            .AsNoTracking()
+            .Where(user => user.LockoutEnd != null)
+            .Select(user => user.LockoutEnd)
+            .ToListAsync(cancellationToken);
+
+        var lockedUsers = lockoutEnds.Count(lockoutEnd => lockoutEnd.HasValue && lockoutEnd.Value > lockoutNow);
+
         return new AdminDashboardDalDto
         {
             Stats = new AdminDashboardStatsDalDto
             {
                 TotalUsers = await _dbContext.Users.CountAsync(cancellationToken),
-                LockedUsers = await _dbContext.Users.CountAsync(user => user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.UtcNow, cancellationToken),
+                LockedUsers = lockedUsers,
                 TotalManagementCompanies = await _dbContext.ManagementCompanies.CountAsync(cancellationToken),
                 PendingJoinRequests = await _dbContext.ManagementCompanyJoinRequests.CountAsync(request => pendingStatusIds.Contains(request.ManagementCompanyJoinRequestStatusId), cancellationToken),
                 OpenTickets = await _dbContext.Tickets.CountAsync(ticket => ticket.ClosedAt == null && !closedStatusIds.Contains(ticket.TicketStatusId), cancellationToken),

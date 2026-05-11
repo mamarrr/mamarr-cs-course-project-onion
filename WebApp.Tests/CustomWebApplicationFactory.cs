@@ -1,6 +1,9 @@
 using App.DAL.EF;
 using Asp.Versioning;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +17,8 @@ namespace WebApp.Tests;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
+    private const string TestPolicyScheme = "TestPolicy";
+
     // A shared-cache in-memory SQLite DB named per factory instance. The keep-alive
     // connection keeps the DB alive for the lifetime of this factory; every DbContext
     // opens its own connection to the same DB.
@@ -84,6 +89,36 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                 options.AssumeDefaultVersionWhenUnspecified = true;
                 options.DefaultApiVersion = new ApiVersion(1, 0);
             });
+
+            services.AddAuthentication()
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
+                    TestAuthHandler.AuthenticationScheme,
+                    _ => { })
+                .AddPolicyScheme(TestPolicyScheme, TestPolicyScheme, options =>
+                {
+                    options.ForwardDefaultSelector = context =>
+                    {
+                        if (context.Request.Headers.ContainsKey(TestAuthHandler.UserIdHeader))
+                        {
+                            return TestAuthHandler.AuthenticationScheme;
+                        }
+
+                        var authorization = context.Request.Headers.Authorization.ToString();
+                        if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return JwtBearerDefaults.AuthenticationScheme;
+                        }
+
+                        return IdentityConstants.ApplicationScheme;
+                    };
+                });
+
+            services.PostConfigure<AuthenticationOptions>(options =>
+            {
+                options.DefaultAuthenticateScheme = TestPolicyScheme;
+                options.DefaultChallengeScheme = TestPolicyScheme;
+                options.DefaultForbidScheme = TestPolicyScheme;
+            });
         });
 
         // Run schema + seed once after the host is fully built so UserManager/RoleManager are available.
@@ -119,6 +154,31 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
                                 "database with test data. Error: {Message}", ex.Message);
             throw;
         }
+    }
+
+    public HttpClient CreateClientNoRedirect()
+    {
+        return CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+    }
+
+    public HttpClient CreateAuthenticatedMvcClient(TestUser user)
+    {
+        var client = CreateClientNoRedirect();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.UserIdHeader, user.Id.ToString());
+        client.DefaultRequestHeaders.Add(TestAuthHandler.EmailHeader, user.Email);
+        if (user.IsSystemAdmin)
+        {
+            client.DefaultRequestHeaders.Add(TestAuthHandler.RoleHeader, "SystemAdmin");
+        }
+        else
+        {
+            client.DefaultRequestHeaders.Add(TestAuthHandler.RoleHeader, "User");
+        }
+
+        return client;
     }
 
     protected override void Dispose(bool disposing)

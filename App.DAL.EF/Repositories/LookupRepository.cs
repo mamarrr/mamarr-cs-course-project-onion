@@ -522,7 +522,9 @@ public class LookupRepository : ILookupRepository
     private async Task<LookupItemDalDto?> UpdateItemAsync<TLookup>(Guid id, string code, string label, CancellationToken cancellationToken)
         where TLookup : BaseEntity, ILookUpEntity
     {
-        var entity = await _dbContext.Set<TLookup>().FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+        var entity = await _dbContext.Set<TLookup>()
+            .AsTracking()
+            .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
         if (entity is null)
         {
             return null;
