@@ -181,6 +181,15 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         return client;
     }
 
+    public async Task<HttpClient> CreateAuthenticatedApiClientAsync(TestUser user)
+    {
+        var client = CreateClientNoRedirect();
+        var token = await JwtTestHelper.GenerateTokenAsync(Services, user.Email);
+        client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        return client;
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
