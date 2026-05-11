@@ -1,6 +1,6 @@
 # Test coverage plan for `mamarrr/mamarr-cs-course-project` `dev`
 
-Generated for manual test execution. The goal is to build the same layered style as `akaver-hw-demo`: unit tests first, then DAL/BLL integration, API integration, MVC integration, and browser E2E tests.
+Generated for manual test execution. The goal is to build the same layered style as `akaver-hw-demo`: unit tests first, then DAL/BLL integration, API integration, and only light Admin MVC/browser safety coverage. Admin MVC should not become the primary place for business-rule coverage.
 
 ## 1. Baseline facts from the current `dev` branch
 
@@ -11,7 +11,7 @@ The application is a multi-tenant property maintenance CRM. Core dimensions to c
 - Authentication: cookie auth for MVC and JWT auth for API.
 - Onboarding: register, login, create management company, join management company, choose workspace context.
 - Multi-tenant authorization: management company slug, customer slug, property slug, unit slug, resident id code, and object IDs.
-- Portals: public onboarding, admin, management, customer, property, unit, resident.
+- Portals exist for public onboarding, admin, management, customer, property, unit, and resident. For MVC-controller-level tests, only light Admin MVC safety coverage is in scope. Non-admin workflows should be covered through BLL, DAL, API, and non-MVC layers.
 - Core business entities: management companies, memberships, join requests, customers, properties, units, residents, contacts, leases, vendors, ticket categories, tickets, scheduled work, work logs, lookup tables.
 - Localization: `LangStr` values persisted as JSON and translated through query-string/cookie culture selection.
 - API versioning: `api/v{version:apiVersion}` endpoints.
@@ -55,16 +55,11 @@ WebApp.Tests/
     BLL/
     API/
     MVC/
+      Admin/
   E2E/
     E2ECollection.cs
     PlaywrightWebAppFactory.cs
-    Public/
     Admin/
-    Management/
-    Customer/
-    Property/
-    Unit/
-    Resident/
 ```
 
 Use these xUnit collections:
@@ -189,7 +184,11 @@ Add `PlaywrightWebAppFactory`:
 - Keep TestServer alive for WebApplicationFactory internals.
 - Use `RootUri = "http://host.docker.internal:<port>"`.
 - Ensure schema exists before browser tests.
-- Prefer self-contained E2E tests that create their own users and tenant data through the UI or API helper.
+- Prefer very small self-contained Admin E2E smoke tests. Non-admin MVC/browser workflows are out of scope and should be covered through BLL/API tests instead.
+
+## Scope update: MVC is Admin-only
+
+MVC-controller integration tests are required only as light Admin-area safety coverage. Do not test non-admin MVC controllers or their MVC-only mappers/view-model mappers. Do not exhaustively test every Admin scaffold CRUD controller through MVC. Public, Management, Customer, Property, Unit, and Resident workflows remain in scope through BLL, DAL, API, and non-MVC mapper tests.
 
 ## 4. Manual commands
 
@@ -371,6 +370,12 @@ Tests:
 ### 5.3 Mapper unit tests
 
 Create mapper round-trip tests for every mapper in API, BLL, and DAL layers.
+
+MVC-specific mapper/view-model mapper scope:
+
+- Include Admin MVC mapper/view-model mapper tests if the mapper is used by Admin controllers.
+- Exclude mapper tests whose only purpose is mapping to non-admin MVC controllers/views, including Public, Management, Customer, Property, Unit, and Resident MVC areas.
+- Non-admin workflow mapping should be covered through API DTO, BLL DTO, and DAL DTO mappers instead.
 
 #### DAL mapper tests
 
@@ -1302,282 +1307,167 @@ If admin API endpoints exist:
 
 Use `WebApplicationFactory` client with cookies and redirects disabled for controller-level MVC tests.
 
-### 9.1 Public MVC
+Only light Admin MVC safety coverage is in scope. Admin MVC should be tested because it is a privileged surface, but it should not duplicate the deeper BLL, DAL, API, and repository tests. Do not create exhaustive CRUD tests for every Admin scaffold controller.
 
-#### `Integration/MVC/PublicOnboardingController_Tests`
+### 9.1 Admin MVC scope
 
-- `GET /` anonymous returns flow chooser.
-- `GET /onboarding` anonymous returns flow chooser.
-- `GET /register` anonymous returns register view.
-- `POST /register` invalid model returns view.
-- `POST /register` valid creates user and redirects to login.
-- Authenticated user hitting register redirects to onboarding/admin.
-- `GET /login` anonymous returns login view.
-- `POST /login` invalid model returns view.
-- `POST /login` invalid credentials returns model error.
-- `POST /login` valid no-context redirects to onboarding chooser.
-- `POST /login` valid management user redirects to `/m/{companySlug}`.
-- `POST /login` system admin redirects to admin dashboard.
-- Local return URL is honored.
-- External return URL is ignored.
-- `POST /logout` signs out and redirects home.
-- `GET /set-context` invalid type redirects safely.
-- Set management context writes context cookies and redirects to dashboard.
-- Unauthorized set context is rejected/falls back.
-- New management company GET requires auth.
-- New management company POST creates company and cookies.
-- Join management company GET loads role list.
-- Join management company POST validates missing role.
-- Join management company POST submits request.
-- Resident access view loads.
+Admin MVC tests should answer these questions:
 
-### 9.2 Admin MVC
+- Can only `SystemAdmin` users access the Admin area?
+- Are anonymous and non-admin users blocked correctly?
+- Do key Admin pages load without runtime/view/model-binding errors?
+- Are high-risk Admin mutations protected by anti-forgery?
+- Do a few representative Admin mutations work end to end through MVC?
+- Are dangerous deletes blocked when entities are referenced?
+- Do missing IDs return 404 instead of crashing?
+- Does Admin global access behave intentionally and not accidentally apply tenant-scoped restrictions?
 
-For each admin controller:
+### 9.2 Required Admin MVC tests
 
-- Anonymous requests redirect to login.
-- Non-admin authenticated user gets access denied.
-- System admin can access index.
-- Details for existing id loads.
-- Details for missing id returns 404.
-- Create GET loads lookup/select lists.
-- Create POST invalid model redisplays view.
-- Create POST valid redirects to details/index.
-- Edit GET loads selected values.
-- Edit POST invalid model redisplays view.
-- Edit POST valid persists.
-- Delete GET shows confirmation/delete check.
-- Delete POST blocked when referenced.
-- Delete POST valid removes item.
-- List/search filters work.
+#### `Integration/MVC/Admin/AdminAuthorization_Tests`
 
-Apply to admin scaffold controllers:
+- Anonymous Admin dashboard request redirects to login or returns the configured unauthorized response.
+- Non-admin authenticated user cannot access Admin dashboard.
+- System admin can access Admin dashboard.
+- Non-admin user cannot access Admin list/detail pages.
+- Admin-only POST endpoints reject non-admin users.
+- Admin-only POST endpoints require anti-forgery token.
+- Local return URL behavior is safe when Admin login redirection is involved.
+- External return URLs are ignored/rejected.
+- Locked user cannot access Admin area after sign-in is rejected or session is invalidated, depending on implemented behavior.
 
-- app roles
-- management companies
-- management company roles
-- management company users
-- customers
-- customer representatives
-- contact types
-- contacts
-- residents
-- resident contacts
-- resident users
-- properties
-- property types
-- units
-- leases
-- lease roles
-- vendors
-- vendor contacts
-- vendor ticket categories
-- tickets
-- ticket categories
-- ticket priorities
-- ticket statuses
-- scheduled works
-- work statuses
-- work logs
-- admin dashboard
+#### `Integration/MVC/Admin/AdminSmoke_Tests`
 
-### 9.3 Management portal MVC
+Smoke-test representative Admin pages only. These are not deep CRUD tests.
 
-#### `Integration/MVC/ManagementPortal_Tests`
+- Admin dashboard loads.
+- Admin users list/search page loads.
+- Admin user details page loads for an existing user.
+- Admin companies list/search page loads.
+- Admin company details page loads for an existing company.
+- One representative lookup index page loads.
+- One representative business-entity index page loads.
+- Missing ID on representative details page returns 404.
+- Admin layout/navigation renders without broken links for the main Admin sections.
 
-- Anonymous `/m/{companySlug}` redirects to login.
-- User without membership gets access denied.
-- Owner/admin opens management dashboard.
-- Viewer opens read-only pages if allowed.
-- Wrong company slug returns 404.
-- Dashboard shows scoped counts.
-- Customers index scoped to company.
-- Customer create/edit/delete workflow.
-- Properties index/detail under customer.
-- Units index/detail under property.
-- Residents index/detail workflow.
-- Leases from resident and unit views.
-- Vendors index/detail workflow.
-- Vendor contacts/categories workflow.
-- Tickets index/detail/create/edit/delete/advance.
-- Scheduled work schedule/start/complete/cancel.
-- Work logs add/edit/delete.
-- User/membership management workflows.
-- Pending access request approve/reject workflow.
-- Ownership transfer workflow.
-- Breadcrumbs and navigation reflect current context.
+Recommended representative pages:
 
-### 9.4 Customer/property/unit/resident MVC portals
+- Dashboard
+- Users
+- Management companies
+- One lookup type, such as ticket priorities or property types
+- One tenant-owned entity, such as tickets or customers
+- One work-related entity, such as scheduled works or work logs, if exposed in Admin MVC
 
-Add analogous controller/view tests for each portal shell:
+#### `Integration/MVC/Admin/AdminRepresentativeMutation_Tests`
 
-#### Customer portal
+Test only a small number of high-risk Admin MVC mutations:
 
-- Authorized customer representative can access dashboard.
-- Management company user with rights can access if supported.
-- Foreign customer is forbidden/not found.
-- Properties list scoped.
-- Tickets list scoped.
-- Navigation uses customer layout.
+- Admin can lock and unlock a normal user.
+- Admin cannot lock self or the last system admin, if that rule is implemented.
+- Admin can edit allowed fields of a management company.
+- Admin can create/edit/delete one safe lookup item.
+- Admin cannot delete a referenced lookup item.
+- Admin delete of a missing entity returns 404.
+- Admin delete does not accidentally delete related/shared data.
 
-#### Property portal
+### 9.3 Admin MVC tests that are intentionally not required
 
-- Authorized user can access property dashboard.
-- Units list scoped.
-- Tickets list scoped.
-- Foreign property rejected.
-- Navigation uses property layout.
+Do not add full MVC CRUD coverage for every Admin scaffold controller. These belong in BLL/DAL/API tests unless a specific Admin page has custom behavior that is not covered elsewhere.
 
-#### Unit portal
+Do not require exhaustive MVC tests for:
 
-- Authorized user can access unit dashboard.
-- Tenant/lease list scoped.
-- Tickets list scoped.
-- Foreign unit rejected.
-- Navigation uses unit layout.
+- App roles
+- Every lookup controller
+- Every customer/resident/property/unit controller
+- Every lease/vendor/ticket/scheduled-work/work-log controller
+- Every create/edit/delete form variant
+- Every select-list/view-model binding variant
+- Every Admin MVC view-model mapper
 
-#### Resident portal
+Only add a specific Admin MVC controller test beyond the smoke/mutation set when the controller contains custom logic that cannot be reasonably covered through service/API/repository tests.
 
-- Resident user can access own resident dashboard.
-- Resident user cannot access another resident.
-- Management user can access resident if role permits.
-- Profile, units/leases, and tickets are scoped.
-- Navigation uses resident layout.
+### 9.4 Out of scope for MVC integration
+
+Do not create MVC controller integration tests for:
+
+- Public onboarding MVC controllers
+- Public login/register/logout MVC controllers
+- Public language/context selection MVC controllers
+- Management portal MVC controllers
+- Customer portal MVC controllers
+- Property portal MVC controllers
+- Unit portal MVC controllers
+- Resident portal MVC controllers
+- MVC-specific mappers/view-model mappers used only by those non-admin MVC controllers
+
+Coverage for those workflows should come from:
+
+- BLL unit tests
+- BLL integration workflow tests
+- DAL/repository integration tests
+- API integration tests
+- API mapper tests
+
 
 ## 10. E2E browser tests
 
 Tag all E2E tests with `[Trait("Category", "E2E")]`.
 
-### 10.1 Public onboarding E2E
+Only very small Admin browser/UI smoke coverage is in scope. Admin E2E should not duplicate Admin MVC integration tests or BLL/API business workflow tests.
 
-#### `E2E/Public/PublicOnboarding_E2E`
+### 10.1 Admin E2E smoke tests
 
-- Anonymous home shows flow chooser.
-- Register new user, then login.
-- Invalid login shows validation error.
-- New user with no context sees onboarding choices.
-- Create new management company from UI.
-- After creation, user lands on management dashboard.
-- Logout clears session and returns to public page.
-- Language switch persists cookie.
-- Registration and login pages render in Estonian after language switch.
+#### `E2E/Admin/AdminSmoke_E2E`
 
-### 10.2 Join company E2E
-
-#### `E2E/Public/JoinManagementCompany_E2E`
-
-- User registers.
-- Opens join management company flow.
-- Role dropdown is populated.
-- Missing role shows validation.
-- Unknown registry code shows error.
-- Valid request shows success.
-- Company owner logs in and sees pending request.
-- Owner approves request.
-- Joined user logs in and sees management dashboard.
-
-### 10.3 Management portal E2E
-
-#### `E2E/Management/ManagementCompany_E2E`
-
-- Owner logs in and opens `/m/{companySlug}`.
-- Dashboard shows company-specific counts.
-- Navigation to customers, residents, vendors, tickets, users works.
-- User menu shows current user.
-- Context switcher shows available contexts.
-
-#### `E2E/Management/CustomerPropertyUnit_CRUD_E2E`
-
-- Create customer.
-- Create property under customer.
-- Create unit under property.
-- Edit unit.
-- View unit details/profile.
-- Delete unit with confirmation.
-- Delete property after unit removal.
-- Delete customer after property removal.
-- Verify Company B user cannot see created data.
-
-#### `E2E/Management/ResidentContactLease_E2E`
-
-- Create resident.
-- Add resident contact.
-- Set contact primary.
-- Confirm contact.
-- Create lease for resident by selecting property/unit.
-- Verify lease appears on unit view.
-- Edit lease.
-- Delete lease.
-- Delete resident after dependencies removed.
-
-#### `E2E/Management/VendorTicketWork_E2E`
-
-- Create vendor.
-- Assign ticket category.
-- Add vendor contact.
-- Create ticket assigned to customer/property/unit/resident/vendor.
-- Advance ticket status.
-- Schedule work for ticket.
-- Start scheduled work.
-- Add work log.
-- Complete scheduled work.
-- Verify ticket/work status updates are visible.
-- Attempt invalid transition and verify UI prevents or shows error.
-
-#### `E2E/Management/Membership_E2E`
-
-- Owner adds existing user by email.
-- Owner changes role.
-- Non-owner cannot access membership page.
-- Last owner cannot be deleted.
-- Owner transfers ownership to another admin.
-- Old owner cannot perform owner-only action if demoted.
-
-### 10.4 Admin E2E
-
-#### `E2E/Admin/Admin_E2E`
-
-- System admin logs in and lands on admin dashboard.
+- Anonymous user cannot open Admin dashboard.
+- Non-admin user cannot open Admin dashboard.
+- System admin logs in and lands on Admin dashboard.
+- Admin navigation opens users page.
+- Admin navigation opens companies page.
+- Admin navigation opens one representative lookup page.
 - Admin user search works.
-- Admin locks and unlocks a normal user.
-- Admin company search opens details.
-- Admin lookup CRUD for a safe lookup type.
-- Non-admin cannot open admin dashboard.
+- Admin opens user details.
+- Optional: Admin locks and unlocks a normal user, if this is easy and stable through the UI.
+- Optional: Admin creates and deletes one safe lookup item, if this is easy and stable through the UI.
 
-### 10.5 Portal isolation E2E
+Keep Admin E2E short. Prefer API/BLL/DAL tests for detailed business-rule coverage.
 
-#### `E2E/Security/TenantIsolation_E2E`
+### 10.2 Out of scope for E2E
 
-- Company A owner cannot open Company B management URL.
-- Company A owner cannot guess Company B customer slug under Company A route.
-- Company A owner cannot open Company B ticket id.
-- Resident A cannot open Resident B dashboard.
-- Customer A representative cannot open Customer B dashboard.
-- Browser back button after logout does not expose protected data.
+Do not create E2E browser tests for:
 
-### 10.6 Localization E2E
+- Public onboarding/register/login/logout MVC flows
+- Join management company MVC flow
+- Management portal MVC flows
+- Customer portal MVC flows
+- Property portal MVC flows
+- Unit portal MVC flows
+- Resident portal MVC flows
+- Exhaustive Admin CRUD flows
+- Non-admin MVC navigation, breadcrumbs, layouts, or view-model mappers
 
-#### `E2E/Localization/Localization_E2E`
+Equivalent workflow confidence should come from:
 
-- Switch to Estonian and verify main navigation labels.
-- Create lookup/item with English text.
-- Switch to Estonian and edit only Estonian translation.
-- Switch back to English and verify English value was preserved.
-- Query-string culture overrides cookie.
-- Cookie culture survives new browser context when cookie is copied.
+- API integration tests for auth/onboarding/workspace/business workflows
+- BLL integration workflow tests
+- BLL service unit tests
+- DAL/repository tests
+- Light Admin MVC integration tests for Admin-specific safety
+
 
 ## 11. Cross-cutting tests
 
 ### 11.1 Security tests
 
-Add these at API, MVC integration, and E2E levels where relevant:
+Add these at API, light Admin MVC integration, and light Admin E2E levels where relevant:
 
 - Anonymous user receives 401 on API protected routes.
-- Anonymous user redirects to login on MVC protected routes.
-- Authenticated user without tenant access receives 403 or 404.
+- Anonymous user redirects to login on Admin MVC protected routes.
+- Authenticated user without required Admin role receives 403/access denied for Admin MVC; tenant access is covered in BLL/API tests.
 - Cross-tenant IDs never expose data.
 - Cross-parent routes never expose data.
-- Anti-forgery is required on MVC POSTs.
+- Anti-forgery is required on Admin MVC POSTs.
 - Local return URLs are allowed.
 - External return URLs are rejected.
 - Locked user cannot login.
@@ -1611,12 +1501,14 @@ For every create/update command:
 - Updating one culture preserves other cultures.
 - Lookup labels translate by current UI culture.
 - API can return culture-specific labels using query-string culture.
-- MVC can return culture-specific labels using cookie culture.
+- Admin MVC can return culture-specific labels using cookie culture, if Admin views expose localized labels.
 - Culture-sensitive tests run serially.
 
 ### 11.4 Dashboard/reporting tests
 
-For every dashboard:
+Dashboard correctness should be covered mostly through BLL/API tests. Admin MVC only needs a page-load/smoke check for the Admin dashboard.
+
+For dashboard service/API tests:
 
 - Empty tenant returns zero counts.
 - Seeded tenant returns expected counts.
@@ -1744,24 +1636,26 @@ Entities:
 6. admin APIs
 7. API error and versioning behavior
 
-### Phase 6: MVC integration
+### Phase 6: Light Admin MVC integration
 
-1. public onboarding controller
-2. admin controllers
-3. management portal controllers
-4. customer/property/unit/resident portal controllers
-5. navigation/chrome/breadcrumb integration
+1. Admin authorization and access-denied behavior.
+2. Admin dashboard smoke test.
+3. Admin users and companies list/details smoke tests.
+4. One representative lookup smoke/mutation test.
+5. One representative business-entity smoke test.
+6. Admin anti-forgery behavior.
+7. Missing-id 404 behavior.
+8. Admin layout/navigation/chrome smoke coverage.
 
-### Phase 7: E2E
+### Phase 7: Light Admin E2E smoke
 
-1. public register/login/create company
-2. join company approval
-3. management CRUD flow
-4. resident/contact/lease flow
-5. vendor/ticket/scheduled work/work log flow
-6. admin flow
-7. tenant isolation flow
-8. localization flow
+1. Anonymous and non-admin Admin access blocked.
+2. System admin login/access.
+3. Admin dashboard loads.
+4. Admin navigation opens users and companies.
+5. Admin user search/details smoke test.
+6. One representative lookup page smoke test.
+7. Optional one stable Admin mutation, such as lock/unlock user or safe lookup create/delete.
 
 ## 13. Minimum acceptance criteria
 
@@ -1770,12 +1664,12 @@ The suite is “full enough” when these statements are true:
 - Every public service method in `IAppBLL` has at least one success and one failure test.
 - Every repository has tenant-scope tests.
 - Every route hierarchy is tested for correct parent/child ownership.
-- Every create/update/delete workflow has API or MVC integration coverage.
-- Every critical workflow has at least one E2E test.
+- Every non-admin create/update/delete workflow has API integration coverage. Admin business rules have BLL/DAL coverage; Admin MVC has only light authorization, smoke, anti-forgery, and representative mutation coverage.
+- Only critical Admin access/navigation behavior needs Admin E2E smoke coverage. Non-admin workflows do not require MVC/E2E coverage.
 - Every lookup type has CRUD and delete-blocking tests.
 - Every `LangStr` field has persistence coverage.
 - Every authentication mode is covered:
-  - cookie MVC
+  - cookie-based Admin MVC access smoke coverage
   - JWT API
   - refresh-token rotation
 - Every role/context boundary is tested:
@@ -1786,4 +1680,4 @@ The suite is “full enough” when these statements are true:
   - customer representative
   - resident user
   - cross-tenant user
-- The E2E suite can be run manually with Playwright server and no CI dependency.
+- The small Admin E2E smoke suite can be run manually with Playwright server and no CI dependency.
