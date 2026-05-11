@@ -14,7 +14,7 @@ and public API DTOs under:
 App.DTO/v1
 ```
 
-API mapper implementations should live under `App.DTO/Mappers` and map between public `App.DTO.v1.*` API DTOs and BLL DTOs/models. Use `IBaseMapper<ApiDto, BllDto>` wherever the mapping is naturally two-way, especially for command/save DTOs such as `TicketBllDto`, `LeaseBllDto`, `CustomerBllDto`, `PropertyBllDto`, `UnitBllDto`, `ResidentBllDto`, `VendorBllDto`, `ScheduledWorkBllDto`, and `WorkLogBllDto`.
+API mapper implementations should live under `App.DTO/v1/Mappers` and map between public `App.DTO.v1.*` API DTOs and BLL DTOs/models. Keep mapper namespaces versioned with the DTOs, for example `App.DTO.v1.Mappers.Portal.Tickets`. Use `IBaseMapper<ApiDto, BllDto>` wherever the mapping is naturally two-way, especially for command/save DTOs such as `TicketBllDto`, `LeaseBllDto`, `CustomerBllDto`, `PropertyBllDto`, `UnitBllDto`, `ResidentBllDto`, `VendorBllDto`, `ScheduledWorkBllDto`, and `WorkLogBllDto`.
 
 Do not implement API endpoints for placeholder/shell-only MVC workflows such as Resident Access onboarding, customer-scoped residents, property-scoped residents, resident representations, and disabled management-level properties. Customer, property, unit, and resident ticket list workflows are implemented and must be exposed as scoped ticket APIs.
 
@@ -36,6 +36,19 @@ API controllers must call only public services exposed by `IAppBLL`. They must n
 - `App.DTO` referenced from `WebApp`.
 
 Use this existing infrastructure instead of creating a parallel startup configuration.
+
+### Existing partial API foundation
+
+The repository already contains a partial API foundation:
+
+- `WebApp/ApiControllers/ApiControllerBase.cs`
+- `WebApp/ApiControllers/Auth/AuthController.cs`
+- `WebApp/Services/Identity/IIdentityAccountService.cs`
+- `WebApp/Services/Identity/IJwtTokenService.cs`
+- identity DTOs under `App.DTO/v1/Identity`
+- shared error/lookup DTOs under `App.DTO/v1`
+
+Audit and align these existing files with the public contract instead of recreating them.
 
 ### Existing mapper contract
 
@@ -61,18 +74,14 @@ public sealed class TicketApiMapper : IBaseMapper<TicketDto, TicketBllDto>
 }
 ```
 
-### App.DTO mapper reference
+### API mapper placement
 
-`App.DTO` currently has no project references. Because API mappers live in `App.DTO/Mappers` and must map to BLL DTOs/models, add a reference from `App.DTO` to `App.BLL.Contracts`.
-
-```xml
-<ProjectReference Include="..\App.BLL.Contracts\App.BLL.Contracts.csproj" />
-```
+API mappers belong beside the versioned public DTOs so each API version owns its transport mapping. `App.DTO` must add the project references needed for those mappers, specifically `Base.Contracts` for `IBaseMapper` and `App.BLL.DTO` for BLL DTO/model inputs. `App.DTO` must not depend on `WebApp`, MVC ViewModels, DAL DTOs, EF, or domain entities.
 
 Required placement:
 
 - public DTO contracts in `App.DTO/v1` using `App.DTO.v1.*` namespaces
-- API mapper implementations in `App.DTO/Mappers`
+- API mapper implementations in `App.DTO/v1/Mappers`
 - no API mapper implementations in `WebApp/Mappers/Api`
 
 Suggested folders:
@@ -98,29 +107,28 @@ App.DTO/v1/
     Contacts/
     Users/
     Lookups/
-
-App.DTO/Mappers/
-  Auth/
-  Onboarding/
-  Workspace/
-  Portal/
-    Companies/
-    Dashboards/
-    Customers/
-    Properties/
-    Units/
-    Residents/
-    Leases/
-    Tickets/
-    ScheduledWork/
-    WorkLogs/
-    Vendors/
-    Contacts/
-    Users/
-    Lookups/
+  Mappers/
+    Auth/
+    Onboarding/
+    Workspace/
+    Portal/
+      Companies/
+      Dashboards/
+      Customers/
+      Properties/
+      Units/
+      Residents/
+      Leases/
+      Tickets/
+      ScheduledWork/
+      WorkLogs/
+      Vendors/
+      Contacts/
+      Users/
+      Lookups/
 ```
 
-The rest of this plan assumes versioned public DTOs in `App.DTO/v1` and mappers in `App.DTO/Mappers`.
+The rest of this plan assumes versioned public DTOs in `App.DTO/v1` and mappers in `App.DTO/v1/Mappers`.
 
 ---
 
@@ -136,6 +144,22 @@ Use versioned REST routes:
 ```
 
 Use resource-oriented controller names. Do not mirror Razor MVC page controllers 1:1 unless the MVC controller already maps cleanly to a resource.
+
+Use route constraints for all GUID route values. This is required anywhere fixed route segments share a prefix with dynamic routes, and is preferred everywhere for consistency:
+
+```text
+{ticketId:guid}
+{scheduledWorkId:guid}
+{workLogId:guid}
+{leaseId:guid}
+{vendorId:guid}
+{residentContactId:guid}
+{vendorContactId:guid}
+{ticketCategoryId:guid}
+{membershipId:guid}
+{requestId:guid}
+{propertyId:guid}
+```
 
 ### Base controller conventions
 
@@ -164,7 +188,7 @@ Responsibilities:
 
 ### Authorization convention
 
-For API controllers except login/register/refresh:
+For API controllers except login/register/refresh/logout:
 
 ```csharp
 [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -251,42 +275,32 @@ App.DTO/v1/Identity/JWTResponse.cs
 App.DTO/v1/Identity/UserDto.cs
 ```
 
-Reuse existing identity DTOs before adding new request/response shapes. Add only the missing `UserDto` or related response details needed by the SPA contract.
-If an existing `JWTResponse` property is named `Jwt`, rename it or annotate it so the public JSON property is `accessToken`.
+Reuse existing identity DTOs before adding new request/response shapes. Keep `JWTResponse` token-only with `Jwt` and `RefreshToken`; remove any `ExpiresAt`, `User`, or profile fields from that DTO. User profile data belongs to `GET /api/v1/auth/me`.
 
 ### Implementation tasks
 
-1. Reuse `IIdentityAccountService.CreateUserAsync` for registration.
-2. Reuse `IIdentityAccountService.PasswordSignInAsync` for login.
-3. Add or implement token issuing service:
-
-```text
-WebApp/Services/Identity/IJwtTokenService.cs
-WebApp/Services/Identity/JwtTokenService.cs
-```
-
-4. Use existing `_bll.AuthSessions` for refresh-token persistence, rotation, reuse handling, and revocation. Do not add a parallel WebApp refresh-token service.
-5. Use existing `AppRefreshToken` domain entity through the BLL auth-session flow.
-6. Login and refresh responses should return:
+1. Audit the existing `AuthController`, `IIdentityAccountService`, and `IJwtTokenService` implementation instead of recreating them.
+2. Reuse `IIdentityAccountService.CreateUserAsync` for registration.
+3. Reuse `IIdentityAccountService.ValidateCredentialsAsync` for JWT login.
+4. Keep `register`, `login`, `refresh`, and `logout` as `[AllowAnonymous]`; keep `me` protected with JWT bearer authentication.
+5. Use existing `_bll.AuthSessions` for refresh-token persistence, rotation, reuse handling, and revocation. Do not add a parallel WebApp refresh-token service.
+6. Use existing `AppRefreshToken` domain entity through the BLL auth-session flow.
+7. Login and refresh responses should return only the access token and refresh token:
 
 ```json
 {
-  "accessToken": "...",
-  "refreshToken": "...",
-  "expiresAt": "2026-05-08T12:00:00Z",
-  "user": {
-    "id": "...",
-    "email": "...",
-    "firstName": "...",
-    "lastName": "...",
-    "roles": ["..."]
-  }
+  "jwt": "...",
+  "refreshToken": "..."
 }
 ```
+
+8. Registration does not log the user in and must not issue JWT or refresh tokens. Return the created public user DTO from `POST /auth/register`; the client must call `POST /auth/login` to start an authenticated session.
+9. `GET /auth/me` should remain the dedicated endpoint for current user details.
 
 ### Notes
 
 - Access token lifetime should be short, for example 15 minutes.
+- Do not include access-token expiry in `JWTResponse`; the JWT already carries its expiry in the `exp` claim.
 - Refresh token lifetime should match the domain default or config, currently conceptually 7 days.
 - Store refresh tokens hashed through the existing auth-session implementation.
 - `logout` should revoke/delete the current refresh token.
@@ -328,7 +342,7 @@ App.DTO/v1/Onboarding/JoinRequestResultDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Onboarding/ManagementCompanyApiMapper.cs
+App.DTO/v1/Mappers/Onboarding/ManagementCompanyApiMapper.cs
 ```
 
 Use:
@@ -378,11 +392,24 @@ POST /api/v1/workspaces/select
 ```text
 App.DTO/v1/Workspace/WorkspaceCatalogDto.cs
 App.DTO/v1/Workspace/WorkspaceOptionDto.cs
+App.DTO/v1/Workspace/WorkspaceOptionPermissionsDto.cs
 App.DTO/v1/Workspace/WorkspaceRedirectDto.cs
 App.DTO/v1/Workspace/SelectWorkspaceDto.cs
 ```
 
-`WorkspaceOptionDto` must include enough data for direct SPA navigation:
+`WorkspaceCatalogDto` must make management-company workspaces first-class and treat customer/resident workspaces as optional data-driven contexts. Customer and resident contexts currently depend on deferred `CustomerRepresentatives` and `ResidentUsers` workflows, so these collections may be empty in v1 and must not block management-company Portal APIs.
+
+```csharp
+public class WorkspaceCatalogDto
+{
+    public IReadOnlyList<WorkspaceOptionDto> ManagementCompanies { get; set; } = [];
+    public IReadOnlyList<WorkspaceOptionDto> Customers { get; set; } = [];
+    public IReadOnlyList<WorkspaceOptionDto> Residents { get; set; } = [];
+    public WorkspaceOptionDto? DefaultContext { get; set; }
+}
+```
+
+`WorkspaceOptionDto` must include enough data for direct SPA navigation and per-workspace permissions:
 
 ```csharp
 public class WorkspaceOptionDto
@@ -394,6 +421,22 @@ public class WorkspaceOptionDto
     public string? ManagementCompanySlug { get; set; }
     public string Path { get; set; } = string.Empty;
     public bool IsDefault { get; set; }
+    public WorkspaceOptionPermissionsDto Permissions { get; set; } = new();
+}
+
+public class WorkspaceOptionPermissionsDto
+{
+    public bool CanManageCompanyUsers { get; set; }
+}
+```
+
+`SelectWorkspaceDto` must require an explicit context id. Do not auto-select a resident workspace when the id is omitted.
+
+```csharp
+public class SelectWorkspaceDto
+{
+    public string ContextType { get; set; } = string.Empty;
+    public Guid ContextId { get; set; }
 }
 ```
 
@@ -412,6 +455,10 @@ public class WorkspaceRedirectDto
 
 `Path` is always a route path starting with `/`, never an absolute URL.
 
+Supported `ContextType` values are `management`, `customer`, and `resident`. Management-company users can still manage customers, properties, units, residents, leases, tickets, scheduled work, work logs, vendors, contacts, and company users through company-scoped Portal APIs even when no customer/resident self-service workspace contexts exist.
+
+SystemAdmin workspaces are MVC-only for this plan. Do not add an API default destination or workspace option for SystemAdmin.
+
 ### BLL workspace entry-point cleanup
 
 The BLL should resolve authorized workspace targets, not Web/MVC/Vue redirects. Rename the current BLL redirect concepts before implementing the API:
@@ -423,44 +470,167 @@ WorkspaceRedirectModel             -> WorkspaceEntryPointModel
 WorkspaceRedirectDestination       -> WorkspaceEntryPointKind
 ```
 
+Keep the existing `GetCatalogAsync(ManagementCompanyRoute route)` behavior and the current MVC-shaped `WorkspaceCatalogModel` for MVC chrome and company-scoped internal flows. MVC already enters the Portal through a company route and uses this method to build current-company shell state such as current company display name, current workspace option, and catalog-level `CanManageCompanyUsers`.
+
+Do not force the global Vue workspace catalog into the MVC-shaped `WorkspaceCatalogModel`. Add a separate user-wide BLL model for the API:
+
+```csharp
+public class UserWorkspaceCatalogModel
+{
+    public IReadOnlyList<WorkspaceOptionModel> ManagementCompanies { get; init; } = [];
+    public IReadOnlyList<WorkspaceOptionModel> Customers { get; init; } = [];
+    public IReadOnlyList<WorkspaceOptionModel> Residents { get; init; } = [];
+    public WorkspaceOptionModel? DefaultContext { get; init; }
+}
+```
+
+Extend `WorkspaceOptionModel` with `CanManageCompanyUsers` so permissions can be attached per workspace option:
+
+```csharp
+public class WorkspaceOptionModel
+{
+    public Guid Id { get; init; }
+    public string ContextType { get; init; } = default!;
+    public string Name { get; init; } = default!;
+    public string? Slug { get; init; }
+    public string? ManagementCompanySlug { get; init; }
+    public bool IsDefault { get; init; }
+    public bool CanManageCompanyUsers { get; init; }
+}
+```
+
+Only management workspace options may set `CanManageCompanyUsers = true`, and only when the management-company role code is `OWNER` or `MANAGER`. Customer and resident options default to `false`.
+
+Add a user-level catalog contract for the global workspace API:
+
+```csharp
+Task<Result<UserWorkspaceCatalogModel>> GetUserCatalogAsync(
+    Guid appUserId,
+    CancellationToken cancellationToken = default);
+```
+
+`GetUserCatalogAsync` is for `/api/v1/workspaces`, where Vue may not yet have a selected company route. It returns all authorized management-company workspace options for the authenticated user without requiring a `companySlug` parameter. It may also return customer and resident workspace options if data already exists, but v1 must work correctly when those collections are empty because customer representative and resident-user link workflows are deferred.
+
+Build `GetUserCatalogAsync` from existing DAL capabilities where possible:
+
+- management options from `ActiveUserManagementContextsAsync`
+- customer options from `ActiveUserCustomerContextsAsync`
+- resident options from `FirstActiveUserResidentContextAsync`, returned as a 0/1 `Residents` list for v1
+
+Default context precedence is: first management company, then resident, then customer.
+
+The workspace service contract after cleanup should expose:
+
+```csharp
+Task<Result<WorkspaceCatalogModel>> GetCatalogAsync(
+    ManagementCompanyRoute route,
+    CancellationToken cancellationToken = default);
+
+Task<Result<UserWorkspaceCatalogModel>> GetUserCatalogAsync(
+    Guid appUserId,
+    CancellationToken cancellationToken = default);
+
+Task<Result<WorkspaceEntryPointModel?>> ResolveWorkspaceEntryPointAsync(
+    ResolveWorkspaceEntryPointQuery query,
+    CancellationToken cancellationToken = default);
+
+Task<Result<WorkspaceSelectionAuthorizationModel>> AuthorizeContextSelectionAsync(
+    AuthorizeContextSelectionQuery query,
+    CancellationToken cancellationToken = default);
+```
+
 `WorkspaceEntryPointModel` must contain only business/application context facts:
 
 ```csharp
 public class WorkspaceEntryPointModel
 {
     public required WorkspaceEntryPointKind Kind { get; init; }
+    public Guid? ContextId { get; init; }
     public string? CompanySlug { get; init; }
     public string? CustomerSlug { get; init; }
     public string? ResidentIdCode { get; init; }
 }
 ```
 
-Do not add `Path` or Vue route strings to BLL DTOs/models. Build `WorkspaceOptionDto.Path` and `WorkspaceRedirectDto.Path` in the WebApp API mapper/controller layer from BLL context facts.
+`WorkspaceSelectionAuthorizationModel` must also return route facts for the selected workspace so both MVC and API can use the same BLL method:
+
+```csharp
+public class WorkspaceSelectionAuthorizationModel
+{
+    public bool Authorized { get; init; }
+    public string ContextType { get; init; } = default!;
+    public Guid? ContextId { get; init; }
+    public string? Name { get; init; }
+    public string? ManagementCompanySlug { get; init; }
+    public string? CustomerSlug { get; init; }
+    public string? ResidentIdCode { get; init; }
+}
+```
+
+For management selection, BLL must authorize the selected management company by id and return its management company slug. For customer selection, BLL must authorize the selected customer context by id and return its customer slug and management company slug if that context exists. For resident selection, BLL must authorize the selected resident context by id and return its resident id code and management company slug if that context exists. If the selected customer/resident context does not exist because the deferred workflows have not created those links, return `Authorized = false`; do not create links or infer access.
+
+`AuthorizeContextSelectionAsync` must require `ContextId` for all supported context types:
+
+- management: authorize by management company id and return company slug
+- customer: match the id from the active customer context list and return management company slug and customer slug
+- resident: match the id from the active resident context and return management company slug and resident id code
+
+`ResolveWorkspaceEntryPointAsync` should first honor a remembered context when one is supplied and still authorized, then fall back to the default precedence used by `GetUserCatalogAsync`. API callers should pass no MVC cookie state for default redirect; MVC onboarding may continue passing cookie-derived remembered context.
+
+Do not add `Path` or Vue route strings to BLL DTOs/models. Build `WorkspaceOptionDto.Path` and `WorkspaceRedirectDto.Path` in the API mapper/controller layer from BLL context facts:
+
+```text
+management -> /companies/{companySlug}
+customer   -> /companies/{companySlug}/customers/{customerSlug}
+resident   -> /companies/{companySlug}/residents/{residentIdCode}
+```
+
+Update MVC callers affected by the rename, especially public onboarding redirect logic, so the web app compiles against the entry-point terminology.
 
 ### Mappers
 
 ```text
-App.DTO/Mappers/Workspace/WorkspaceCatalogApiMapper.cs
-App.DTO/Mappers/Workspace/WorkspaceOptionApiMapper.cs
+App.DTO/v1/Mappers/Workspace/WorkspaceCatalogApiMapper.cs
+App.DTO/v1/Mappers/Workspace/WorkspaceOptionApiMapper.cs
 ```
 
 ### Implementation tasks
 
 1. `GET /workspaces`
-   - Use `_bll.Workspaces.GetCatalogAsync(...)`.
-   - Return management companies, customer contexts, resident context, default context, and permission flags from BLL.
-   - Add path-only SPA routes while mapping to public API DTOs in WebApp.
+   - Use `_bll.Workspaces.GetUserCatalogAsync(appUserId, ...)`.
+   - Return management companies, optional customer contexts, optional resident contexts, and default context from BLL.
+   - Return per-option permission flags; do not return catalog-level `CanManageCompanyUsers`.
+   - Add path-only SPA routes while mapping to public API DTOs.
 2. `GET /default-redirect`
-   - Use `_bll.Workspaces.ResolveWorkspaceEntryPointAsync(...)`.
-   - Return a direct `path`, not an MVC redirect.
-   - Extend the BLL entry-point model/service if needed so customer and resident entry points include the `customerSlug` or `residentIdCode` required by WebApp to build the path.
+   - Use `_bll.Workspaces.ResolveWorkspaceEntryPointAsync(...)` without MVC cookie state.
+   - Return a direct tenant workspace `path`, not an MVC redirect.
+   - Return `404 NotFound` with `RestApiErrorResponse` when the authenticated user has no tenant workspace.
+   - Do not add a SystemAdmin default destination; SystemAdmin is MVC-only in this plan.
 3. `POST /select`
    - Use `_bll.Workspaces.AuthorizeContextSelectionAsync(...)`.
+   - Require a non-empty `ContextId` for `management`, `customer`, and `resident`; return `400 BadRequest` for malformed or unsupported context types.
+   - Return a structured authorization/not-found error for unauthorized selections through the shared API error mapping.
    - Return selected context metadata from BLL and build `path` in WebApp.
+
+### Workspace verification scenarios
+
+Manual verification must cover:
+
+- unauthenticated workspace calls return `401`
+- user with no tenant workspace gets `404` from default redirect
+- management member sees management workspaces with correct per-option user-management permissions
+- invalid or cross-tenant context selection is rejected without leaking existence
+- MVC onboarding redirects still compile and behave through entry-point terminology
 
 ### Important
 
 Do not depend on MVC `ctx.*` cookies for Vue. The SPA should store selected workspace state client-side or derive it from the route and `/workspaces`.
+
+### Assumptions
+
+- Customer and resident self-service links remain deferred; customer/resident collections may be empty.
+- Current v1 resident catalog supports at most one active resident context because the repository exposes a first active resident context.
+- No persistence schema or migration changes are required.
 
 ---
 
@@ -510,7 +680,7 @@ Use context-specific dashboard DTOs instead of one over-wide response object. Sh
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Dashboards/PortalDashboardApiMapper.cs
+App.DTO/v1/Mappers/Portal/Dashboards/PortalDashboardApiMapper.cs
 ```
 
 Map from:
@@ -555,7 +725,6 @@ WebApp/ApiControllers/Portal/ManagementCompaniesController.cs
 Routes:
 
 ```text
-GET    /api/v1/portal/companies/{companySlug}/summary
 GET    /api/v1/portal/companies/{companySlug}/profile
 PUT    /api/v1/portal/companies/{companySlug}/profile
 DELETE /api/v1/portal/companies/{companySlug}/profile
@@ -564,7 +733,6 @@ DELETE /api/v1/portal/companies/{companySlug}/profile
 ### DTOs
 
 ```text
-App.DTO/v1/Portal/Companies/ManagementCompanySummaryDto.cs
 App.DTO/v1/Portal/Companies/ManagementCompanyProfileDto.cs
 App.DTO/v1/Portal/Companies/UpdateManagementCompanyProfileDto.cs
 App.DTO/v1/Portal/Companies/DeleteManagementCompanyDto.cs
@@ -573,7 +741,7 @@ App.DTO/v1/Portal/Companies/DeleteManagementCompanyDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Companies/ManagementCompanyProfileApiMapper.cs
+App.DTO/v1/Mappers/Portal/Companies/ManagementCompanyProfileApiMapper.cs
 ```
 
 Use:
@@ -584,17 +752,16 @@ IBaseMapper<UpdateManagementCompanyProfileDto, ManagementCompanyBllDto>
 
 ### Implementation tasks
 
-1. `GET /summary`
-   - Return lightweight workspace data for layout/header.
-   - Do not add this unless there is real summary data to return.
-2. `GET /profile`
+1. `GET /profile`
    - Use `_bll.ManagementCompanies.GetProfileAsync(...)`.
-3. `PUT /profile`
+2. `PUT /profile`
    - Map API DTO -> `ManagementCompanyBllDto`.
    - Use `_bll.ManagementCompanies.UpdateAsync(...)`.
-4. `DELETE /profile`
+3. `DELETE /profile`
    - Require confirmation value.
    - Use `_bll.ManagementCompanies.DeleteAsync(...)`.
+
+Do not add a company summary endpoint unless a real BLL summary model exists. Use workspace catalog and dashboard APIs for SPA shell/header context.
 
 ---
 
@@ -615,9 +782,6 @@ POST   /api/v1/portal/companies/{companySlug}/customers
 GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/profile
 PUT    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/profile
 DELETE /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/profile
-
-GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties
-POST   /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties
 ```
 
 ### DTOs
@@ -633,9 +797,9 @@ App.DTO/v1/Portal/Customers/DeleteCustomerDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Customers/CustomerApiMapper.cs
-App.DTO/Mappers/Portal/Customers/CustomerListItemApiMapper.cs
-App.DTO/Mappers/Portal/Customers/CustomerProfileApiMapper.cs
+App.DTO/v1/Mappers/Portal/Customers/CustomerApiMapper.cs
+App.DTO/v1/Mappers/Portal/Customers/CustomerListItemApiMapper.cs
+App.DTO/v1/Mappers/Portal/Customers/CustomerProfileApiMapper.cs
 ```
 
 Use:
@@ -678,9 +842,6 @@ POST   /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/propertie
 GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/profile
 PUT    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/profile
 DELETE /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/profile
-
-GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units
-POST   /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units
 ```
 
 ### DTOs
@@ -696,9 +857,9 @@ App.DTO/v1/Portal/Properties/DeletePropertyDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Properties/PropertyApiMapper.cs
-App.DTO/Mappers/Portal/Properties/PropertyListItemApiMapper.cs
-App.DTO/Mappers/Portal/Properties/PropertyProfileApiMapper.cs
+App.DTO/v1/Mappers/Portal/Properties/PropertyApiMapper.cs
+App.DTO/v1/Mappers/Portal/Properties/PropertyListItemApiMapper.cs
+App.DTO/v1/Mappers/Portal/Properties/PropertyProfileApiMapper.cs
 ```
 
 Use:
@@ -750,9 +911,9 @@ App.DTO/v1/Portal/Units/DeleteUnitDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Units/UnitApiMapper.cs
-App.DTO/Mappers/Portal/Units/UnitListItemApiMapper.cs
-App.DTO/Mappers/Portal/Units/UnitProfileApiMapper.cs
+App.DTO/v1/Mappers/Portal/Units/UnitApiMapper.cs
+App.DTO/v1/Mappers/Portal/Units/UnitListItemApiMapper.cs
+App.DTO/v1/Mappers/Portal/Units/UnitProfileApiMapper.cs
 ```
 
 Use:
@@ -814,9 +975,9 @@ App.DTO/v1/Portal/Residents/DeleteResidentDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Residents/ResidentApiMapper.cs
-App.DTO/Mappers/Portal/Residents/ResidentListItemApiMapper.cs
-App.DTO/Mappers/Portal/Residents/ResidentProfileApiMapper.cs
+App.DTO/v1/Mappers/Portal/Residents/ResidentApiMapper.cs
+App.DTO/v1/Mappers/Portal/Residents/ResidentListItemApiMapper.cs
+App.DTO/v1/Mappers/Portal/Residents/ResidentProfileApiMapper.cs
 ```
 
 Use:
@@ -861,18 +1022,20 @@ Routes:
 ```text
 GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/leases
 POST   /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/leases
-PUT    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/leases/{leaseId}
-DELETE /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/leases/{leaseId}
+GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/leases/{leaseId:guid}
+PUT    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/leases/{leaseId:guid}
+DELETE /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/leases/{leaseId:guid}
 
 GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/resident-search?searchTerm=
 
 GET    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/leases
 POST   /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/leases
-PUT    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/leases/{leaseId}
-DELETE /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/leases/{leaseId}
+GET    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/leases/{leaseId:guid}
+PUT    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/leases/{leaseId:guid}
+DELETE /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/leases/{leaseId:guid}
 
 GET    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/property-search?searchTerm=
-GET    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/properties/{propertyId}/units
+GET    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/properties/{propertyId:guid}/units
 ```
 
 ### DTOs
@@ -880,6 +1043,7 @@ GET    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/propert
 ```text
 App.DTO/v1/Portal/Leases/UnitLeaseListItemDto.cs
 App.DTO/v1/Portal/Leases/ResidentLeaseListItemDto.cs
+App.DTO/v1/Portal/Leases/LeaseDto.cs
 App.DTO/v1/Portal/Leases/CreateUnitLeaseDto.cs
 App.DTO/v1/Portal/Leases/UpdateUnitLeaseDto.cs
 App.DTO/v1/Portal/Leases/CreateResidentLeaseDto.cs
@@ -892,9 +1056,9 @@ App.DTO/v1/Portal/Leases/LeaseUnitOptionDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Leases/LeaseApiMapper.cs
-App.DTO/Mappers/Portal/Leases/UnitLeaseListItemApiMapper.cs
-App.DTO/Mappers/Portal/Leases/ResidentLeaseListItemApiMapper.cs
+App.DTO/v1/Mappers/Portal/Leases/LeaseApiMapper.cs
+App.DTO/v1/Mappers/Portal/Leases/UnitLeaseListItemApiMapper.cs
+App.DTO/v1/Mappers/Portal/Leases/ResidentLeaseListItemApiMapper.cs
 ```
 
 Use:
@@ -908,26 +1072,35 @@ IBaseMapper<UpdateResidentLeaseDto, LeaseBllDto>
 
 ### Implementation tasks
 
-1. Reuse `LeaseBllDto` for create/update commands.
+1. Reuse the same BLL mutation methods as MVC for create/update/delete. Do not introduce API-only BLL mutation methods just to change the response shape.
 2. Unit-side actions:
    - `ListForUnitAsync`
+   - `GetForUnitAsync`
    - `SearchResidentsAsync`
    - `CreateForUnitAsync`
    - `UpdateFromUnitAsync`
    - `DeleteFromUnitAsync`
 3. Resident-side actions:
    - `ListForResidentAsync`
+   - `GetForResidentAsync`
    - `SearchPropertiesAsync`
    - `ListUnitsForPropertyAsync`
    - `CreateForResidentAsync`
    - `UpdateFromResidentAsync`
    - `DeleteFromResidentAsync`
+4. Response behavior:
+   - List endpoints return context-specific enriched rows: `UnitLeaseListItemDto[]` or `ResidentLeaseListItemDto[]`.
+   - Detail endpoints return minimal `LeaseDto` mapped from `LeaseModel`.
+   - Create returns `201 Created` with minimal `LeaseDto` mapped from the returned `LeaseBllDto`.
+   - Update returns `200 OK` with minimal `LeaseDto` mapped from the returned `LeaseBllDto`.
+   - Delete returns `204 NoContent`.
+   - If Vue needs enriched row labels after create/update, it should refresh the relevant list endpoint instead of forcing read-after-write behavior inside the BLL.
 
 ---
 
 ## Phase 11 — Contacts API
 
-Implement resident and vendor contact assignment workflows. Prefer one controller with two resource groups.
+Implement resident and vendor contact assignment workflows. Prefer one controller with two resource groups. Contacts are owned through resident and vendor workflows in v1; do not add `IAppBLL.Contacts` or a generic contact service dependency for this API pass.
 
 ### Controller
 
@@ -941,20 +1114,20 @@ Routes:
 GET    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts
 POST   /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/attach
 POST   /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts
-PUT    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId}
-DELETE /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId}
-POST   /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId}/set-primary
-POST   /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId}/confirm
-POST   /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId}/unconfirm
+PUT    /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId:guid}
+DELETE /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId:guid}
+POST   /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId:guid}/set-primary
+POST   /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId:guid}/confirm
+POST   /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId:guid}/unconfirm
 
-GET    /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/contacts
-POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/contacts/attach
-POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/contacts
-PUT    /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/contacts/{vendorContactId}
-DELETE /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/contacts/{vendorContactId}
-POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/contacts/{vendorContactId}/set-primary
-POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/contacts/{vendorContactId}/confirm
-POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/contacts/{vendorContactId}/unconfirm
+GET    /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/contacts
+POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/contacts/attach
+POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/contacts
+PUT    /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/contacts/{vendorContactId:guid}
+DELETE /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/contacts/{vendorContactId:guid}
+POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/contacts/{vendorContactId:guid}/set-primary
+POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/contacts/{vendorContactId:guid}/confirm
+POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/contacts/{vendorContactId:guid}/unconfirm
 ```
 
 ### DTOs
@@ -984,9 +1157,9 @@ App.DTO/v1/Portal/Contacts/UpdateVendorContactDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Contacts/ContactApiMapper.cs
-App.DTO/Mappers/Portal/Contacts/ResidentContactApiMapper.cs
-App.DTO/Mappers/Portal/Contacts/VendorContactApiMapper.cs
+App.DTO/v1/Mappers/Portal/Contacts/ContactApiMapper.cs
+App.DTO/v1/Mappers/Portal/Contacts/ResidentContactApiMapper.cs
+App.DTO/v1/Mappers/Portal/Contacts/VendorContactApiMapper.cs
 ```
 
 Use where possible:
@@ -1023,7 +1196,7 @@ Vendor contacts must call `_bll.Vendors` directly:
    - `_bll.Vendors.UnconfirmContactAsync(...)`
    - `_bll.Vendors.RemoveContactAsync(...)`
 
-Do not plan `_bll.Contacts` usage unless `IAppBLL` is intentionally expanded later.
+Do not plan `_bll.Contacts` usage in this implementation. Resident contact endpoints call `_bll.Residents`; vendor contact endpoints call `_bll.Vendors`.
 
 ---
 
@@ -1042,10 +1215,10 @@ Routes:
 ```text
 GET    /api/v1/portal/companies/{companySlug}/tickets
 POST   /api/v1/portal/companies/{companySlug}/tickets
-GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}
-PUT    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}
-DELETE /api/v1/portal/companies/{companySlug}/tickets/{ticketId}
-POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/advance-status
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}
+PUT    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}
+DELETE /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}
+POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/advance-status
 
 GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/tickets
 GET    /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/tickets
@@ -1078,12 +1251,12 @@ App.DTO/v1/Shared/LookupOptionDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Tickets/TicketApiMapper.cs
-App.DTO/Mappers/Portal/Tickets/TicketListApiMapper.cs
-App.DTO/Mappers/Portal/Tickets/ContextTicketListApiMapper.cs
-App.DTO/Mappers/Portal/Tickets/TicketListItemApiMapper.cs
-App.DTO/Mappers/Portal/Tickets/TicketDetailsApiMapper.cs
-App.DTO/Mappers/Portal/Tickets/TicketOptionsApiMapper.cs
+App.DTO/v1/Mappers/Portal/Tickets/TicketApiMapper.cs
+App.DTO/v1/Mappers/Portal/Tickets/TicketListApiMapper.cs
+App.DTO/v1/Mappers/Portal/Tickets/ContextTicketListApiMapper.cs
+App.DTO/v1/Mappers/Portal/Tickets/TicketListItemApiMapper.cs
+App.DTO/v1/Mappers/Portal/Tickets/TicketDetailsApiMapper.cs
+App.DTO/v1/Mappers/Portal/Tickets/TicketOptionsApiMapper.cs
 ```
 
 Use:
@@ -1139,16 +1312,16 @@ WebApp/ApiControllers/Portal/ScheduledWorkController.cs
 Routes:
 
 ```text
-GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work
-GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/form
-POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work
-GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}
-GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/form
-PUT    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}
-DELETE /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}
-POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/start
-POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/complete
-POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/cancel
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/form
+POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/form
+PUT    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}
+DELETE /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}
+POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/start
+POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/complete
+POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/cancel
 ```
 
 ### DTOs
@@ -1166,9 +1339,9 @@ App.DTO/v1/Portal/ScheduledWork/ScheduledWorkActionDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/ScheduledWork/ScheduledWorkApiMapper.cs
-App.DTO/Mappers/Portal/ScheduledWork/ScheduledWorkListItemApiMapper.cs
-App.DTO/Mappers/Portal/ScheduledWork/ScheduledWorkDetailsApiMapper.cs
+App.DTO/v1/Mappers/Portal/ScheduledWork/ScheduledWorkApiMapper.cs
+App.DTO/v1/Mappers/Portal/ScheduledWork/ScheduledWorkListItemApiMapper.cs
+App.DTO/v1/Mappers/Portal/ScheduledWork/ScheduledWorkDetailsApiMapper.cs
 ```
 
 Use:
@@ -1222,13 +1395,13 @@ WebApp/ApiControllers/Portal/WorkLogsController.cs
 Routes:
 
 ```text
-GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs
-GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs/form
-POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs
-GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs/{workLogId}/form
-GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs/{workLogId}/delete-model
-PUT    /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs/{workLogId}
-DELETE /api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work/{scheduledWorkId}/work-logs/{workLogId}
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/work-logs
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/work-logs/form
+POST   /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/work-logs
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/work-logs/{workLogId:guid}/form
+GET    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/work-logs/{workLogId:guid}/delete-model
+PUT    /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/work-logs/{workLogId:guid}
+DELETE /api/v1/portal/companies/{companySlug}/tickets/{ticketId:guid}/scheduled-work/{scheduledWorkId:guid}/work-logs/{workLogId:guid}
 ```
 
 ### DTOs
@@ -1247,8 +1420,8 @@ App.DTO/v1/Portal/WorkLogs/UpdateWorkLogDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/WorkLogs/WorkLogApiMapper.cs
-App.DTO/Mappers/Portal/WorkLogs/WorkLogListItemApiMapper.cs
+App.DTO/v1/Mappers/Portal/WorkLogs/WorkLogApiMapper.cs
+App.DTO/v1/Mappers/Portal/WorkLogs/WorkLogListItemApiMapper.cs
 ```
 
 Use:
@@ -1293,14 +1466,14 @@ Routes:
 ```text
 GET    /api/v1/portal/companies/{companySlug}/vendors
 POST   /api/v1/portal/companies/{companySlug}/vendors
-GET    /api/v1/portal/companies/{companySlug}/vendors/{vendorId}
-PUT    /api/v1/portal/companies/{companySlug}/vendors/{vendorId}
-DELETE /api/v1/portal/companies/{companySlug}/vendors/{vendorId}
+GET    /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}
+PUT    /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}
+DELETE /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}
 
-GET    /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/categories
-POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/categories
-PUT    /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/categories/{ticketCategoryId}
-DELETE /api/v1/portal/companies/{companySlug}/vendors/{vendorId}/categories/{ticketCategoryId}
+GET    /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/categories
+POST   /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/categories
+PUT    /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/categories/{ticketCategoryId:guid}
+DELETE /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/categories/{ticketCategoryId:guid}
 ```
 
 ### DTOs
@@ -1323,10 +1496,10 @@ App.DTO/v1/Portal/Vendors/UpdateVendorCategoryDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Vendors/VendorApiMapper.cs
-App.DTO/Mappers/Portal/Vendors/VendorListItemApiMapper.cs
-App.DTO/Mappers/Portal/Vendors/VendorProfileApiMapper.cs
-App.DTO/Mappers/Portal/Vendors/VendorCategoryApiMapper.cs
+App.DTO/v1/Mappers/Portal/Vendors/VendorApiMapper.cs
+App.DTO/v1/Mappers/Portal/Vendors/VendorListItemApiMapper.cs
+App.DTO/v1/Mappers/Portal/Vendors/VendorProfileApiMapper.cs
+App.DTO/v1/Mappers/Portal/Vendors/VendorCategoryApiMapper.cs
 ```
 
 Use:
@@ -1383,16 +1556,16 @@ Routes:
 ```text
 GET    /api/v1/portal/companies/{companySlug}/users
 POST   /api/v1/portal/companies/{companySlug}/users
-GET    /api/v1/portal/companies/{companySlug}/users/{membershipId}
-PUT    /api/v1/portal/companies/{companySlug}/users/{membershipId}
-DELETE /api/v1/portal/companies/{companySlug}/users/{membershipId}
+GET    /api/v1/portal/companies/{companySlug}/users/{membershipId:guid}
+PUT    /api/v1/portal/companies/{companySlug}/users/{membershipId:guid}
+DELETE /api/v1/portal/companies/{companySlug}/users/{membershipId:guid}
 
 GET    /api/v1/portal/companies/{companySlug}/users/roles
 GET    /api/v1/portal/companies/{companySlug}/users/ownership-transfer-candidates
 POST   /api/v1/portal/companies/{companySlug}/users/transfer-ownership
 
-POST   /api/v1/portal/companies/{companySlug}/users/access-requests/{requestId}/approve
-POST   /api/v1/portal/companies/{companySlug}/users/access-requests/{requestId}/reject
+POST   /api/v1/portal/companies/{companySlug}/users/access-requests/{requestId:guid}/approve
+POST   /api/v1/portal/companies/{companySlug}/users/access-requests/{requestId:guid}/reject
 ```
 
 ### DTOs
@@ -1411,9 +1584,9 @@ App.DTO/v1/Portal/Users/CompanyUsersPageDto.cs
 ### Mappers
 
 ```text
-App.DTO/Mappers/Portal/Users/CompanyUserApiMapper.cs
-App.DTO/Mappers/Portal/Users/PendingAccessRequestApiMapper.cs
-App.DTO/Mappers/Portal/Users/OwnershipTransferApiMapper.cs
+App.DTO/v1/Mappers/Portal/Users/CompanyUserApiMapper.cs
+App.DTO/v1/Mappers/Portal/Users/PendingAccessRequestApiMapper.cs
+App.DTO/v1/Mappers/Portal/Users/OwnershipTransferApiMapper.cs
 ```
 
 ### Implementation tasks
@@ -1705,21 +1878,22 @@ Run build and manual verification only:
 
 ## Suggested Implementation Order
 
-### Milestone 1 — API foundation
+### Milestone 1 — API foundation alignment
 
-1. Add `ApiControllerBase`.
-2. Add `ApiErrorMappingExtensions`.
-3. Add `AuthController`.
-4. Add JWT token service.
-5. Add refresh token service.
-6. Add common DTOs.
+1. Align existing `ApiControllerBase`, `AuthController`, identity services, and identity DTOs with the public API contract.
+2. Keep `JWTResponse` token-only with `Jwt` and `RefreshToken`; registration returns `UserDto` only and never starts a session.
+3. Add missing common DTOs only.
+4. Add `Base.Contracts` and `App.BLL.DTO` references to `App.DTO` for versioned API mapper implementations.
+5. Add `ApiErrorMappingExtensions` only if the existing base controller does not cover the shared error mapping cleanly.
+6. Register API mappers in WebApp.
 
 ### Milestone 2 — Onboarding and workspace
 
 1. Add onboarding DTOs and mapper.
 2. Add `OnboardingController`.
-3. Add workspace DTOs and mappers.
-4. Add `WorkspacesController`.
+3. Rename workspace redirect BLL concepts to entry-point concepts and add `GetUserCatalogAsync`.
+4. Add workspace DTOs and mappers.
+5. Add `WorkspacesController`.
 
 ### Milestone 3 — Core property-management resources
 
@@ -1796,26 +1970,25 @@ App.DTO/v1/
     Vendors/
     Users/
     Lookups/
-App.DTO/Mappers/
-  Auth/
-  Onboarding/
-  Workspace/
-  Portal/
-    Companies/
-    Dashboards/
-    Customers/
-    Properties/
-    Units/
-    Residents/
-    Leases/
-    Contacts/
-    Tickets/
-    ScheduledWork/
-    WorkLogs/
-    Vendors/
-    Users/
-    Lookups/
-
+  Mappers/
+    Auth/
+    Onboarding/
+    Workspace/
+    Portal/
+      Companies/
+      Dashboards/
+      Customers/
+      Properties/
+      Units/
+      Residents/
+      Leases/
+      Contacts/
+      Tickets/
+      ScheduledWork/
+      WorkLogs/
+      Vendors/
+      Users/
+      Lookups/
 WebApp/
   ApiControllers/
     ApiControllerBase.cs
@@ -1855,7 +2028,7 @@ WebApp/
 
 The implementation is complete when:
 
-- Vue can register/login/refresh/logout using JWT and refresh token.
+- Vue can register without being logged in automatically, then login/refresh/logout using JWT and refresh token.
 - Vue can create a management company and enter its Portal workspace.
 - Vue can submit a join request for a management company.
 - Vue can list/select available workspaces.
@@ -1875,10 +2048,12 @@ The implementation is complete when:
   - vendor categories
   - company users/access requests
 - All public API contracts live in `App.DTO/v1` and use `App.DTO.v1.*` namespaces.
-- API mapper implementations live in `App.DTO/Mappers`.
+- API mapper implementations live in `App.DTO/v1/Mappers`.
 - Error responses are compatible with `RestApiErrorResponse`.
 - Mapping logic is separated from controllers.
 - `IBaseMapper<ApiDto, BllDto>` is used where mapping is two-way and canonical BLL DTOs are available.
+- MVC and API share the same BLL methods for the same business operations; API-only BLL methods are added only for genuinely different application queries such as the user-wide workspace catalog.
+- GUID route parameters use route constraints such as `{ticketId:guid}` and `{membershipId:guid}`.
 - Controllers call only public `IAppBLL` services; they do not invent DAL access.
 - `DashboardsController` only calls `_bll.PortalDashboards`.
 - `TicketsController` only calls `_bll.Tickets`.
