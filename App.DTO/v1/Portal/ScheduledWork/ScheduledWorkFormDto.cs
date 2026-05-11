@@ -18,10 +18,3 @@ public class ScheduledWorkFormDto
     public IReadOnlyList<ScheduledWorkOptionDto> Vendors { get; set; } = [];
     public IReadOnlyList<ScheduledWorkOptionDto> WorkStatuses { get; set; } = [];
 }
-
-public class ScheduledWorkOptionDto
-{
-    public Guid Id { get; set; }
-    public string Label { get; set; } = string.Empty;
-    public string? Code { get; set; }
-}

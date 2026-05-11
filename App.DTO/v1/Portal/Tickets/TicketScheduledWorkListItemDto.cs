@@ -1,6 +1,6 @@
-namespace App.DTO.v1.Portal.ScheduledWork;
+namespace App.DTO.v1.Portal.Tickets;
 
-public class ScheduledWorkListItemDto
+public class TicketScheduledWorkListItemDto
 {
     public Guid ScheduledWorkId { get; set; }
     public Guid VendorId { get; set; }
@@ -15,6 +15,4 @@ public class ScheduledWorkListItemDto
     public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; }
     public int WorkLogCount { get; set; }
-    public string Path { get; set; } = string.Empty;
-    public string WorkLogsPath { get; set; } = string.Empty;
 }

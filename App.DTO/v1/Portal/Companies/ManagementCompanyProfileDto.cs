@@ -13,13 +13,3 @@ public class ManagementCompanyProfileDto
     public string Path { get; set; } = string.Empty;
     public string EditPath { get; set; } = string.Empty;
 }
-
-public class UpdateManagementCompanyDto
-{
-    public string Name { get; set; } = string.Empty;
-    public string RegistryCode { get; set; } = string.Empty;
-    public string VatNumber { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Phone { get; set; } = string.Empty;
-    public string Address { get; set; } = string.Empty;
-}
