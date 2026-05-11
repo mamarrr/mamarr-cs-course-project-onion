@@ -196,4 +196,62 @@ public abstract class PortalApiControllerBase : ApiControllerBase
             VendorContactId = vendorContactId
         };
     }
+
+    protected ActionResult<TicketRoute> TicketRoute(string companySlug, Guid ticketId)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return UnauthorizedRequest("Authentication is required.");
+        }
+
+        return new TicketRoute
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug,
+            TicketId = ticketId
+        };
+    }
+
+    protected ActionResult<ScheduledWorkRoute> ScheduledWorkRoute(
+        string companySlug,
+        Guid ticketId,
+        Guid scheduledWorkId)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return UnauthorizedRequest("Authentication is required.");
+        }
+
+        return new ScheduledWorkRoute
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug,
+            TicketId = ticketId,
+            ScheduledWorkId = scheduledWorkId
+        };
+    }
+
+    protected ActionResult<WorkLogRoute> WorkLogRoute(
+        string companySlug,
+        Guid ticketId,
+        Guid scheduledWorkId,
+        Guid workLogId)
+    {
+        var appUserId = GetAppUserId();
+        if (appUserId is null)
+        {
+            return UnauthorizedRequest("Authentication is required.");
+        }
+
+        return new WorkLogRoute
+        {
+            AppUserId = appUserId.Value,
+            CompanySlug = companySlug,
+            TicketId = ticketId,
+            ScheduledWorkId = scheduledWorkId,
+            WorkLogId = workLogId
+        };
+    }
 }
