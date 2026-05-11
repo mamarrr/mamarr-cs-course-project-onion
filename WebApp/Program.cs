@@ -380,3 +380,9 @@ static void WaitDbConnection(AppDbContext ctx, ILogger<IApplicationBuilder> logg
     }
 }
 
+// needed for integration testing with WebApplicationFactory
+// ReSharper disable once ClassNeverInstantiated.Global
+public partial class Program
+{
+}
+

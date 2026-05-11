@@ -132,11 +132,29 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Active leases.
+        /// </summary>
+        public static string ActiveLeases {
+            get {
+                return ResourceManager.GetString("ActiveLeases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} active records.
         /// </summary>
         public static string ActiveRecords {
             get {
                 return ResourceManager.GetString("ActiveRecords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Active users.
+        /// </summary>
+        public static string ActiveUsers {
+            get {
+                return ResourceManager.GetString("ActiveUsers", resourceCulture);
             }
         }
         
@@ -380,6 +398,15 @@ namespace App.Resources.Views {
         public static string ApproveAccessRequestConfirm {
             get {
                 return ResourceManager.GetString("ApproveAccessRequestConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Approved last 30 days.
+        /// </summary>
+        public static string ApprovedLast30Days {
+            get {
+                return ResourceManager.GetString("ApprovedLast30Days", resourceCulture);
             }
         }
         
@@ -663,6 +690,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Connected residents.
+        /// </summary>
+        public static string ConnectedResidents {
+            get {
+                return ResourceManager.GetString("ConnectedResidents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Contact.
         /// </summary>
         public static string Contact {
@@ -825,6 +861,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add work log.
+        /// </summary>
+        public static string CreateWorkLog {
+            get {
+                return ResourceManager.GetString("CreateWorkLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Create your management company.
         /// </summary>
         public static string CreateYourManagementCompany {
@@ -902,6 +947,15 @@ namespace App.Resources.Views {
         public static string CurrentResidentsDescription {
             get {
                 return ResourceManager.GetString("CurrentResidentsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Current role.
+        /// </summary>
+        public static string CurrentRole {
+            get {
+                return ResourceManager.GetString("CurrentRole", resourceCulture);
             }
         }
         
@@ -1068,6 +1122,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delayed work.
+        /// </summary>
+        public static string DelayedWork {
+            get {
+                return ResourceManager.GetString("DelayedWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         public static string Delete {
@@ -1158,6 +1221,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delete work log.
+        /// </summary>
+        public static string DeleteWorkLog {
+            get {
+                return ResourceManager.GetString("DeleteWorkLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete this work log for {0}?.
+        /// </summary>
+        public static string DeleteWorkLogConfirmation {
+            get {
+                return ResourceManager.GetString("DeleteWorkLogConfirmation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Details.
         /// </summary>
         public static string Details {
@@ -1190,6 +1271,15 @@ namespace App.Resources.Views {
         public static string DueFrom {
             get {
                 return ResourceManager.GetString("DueFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Due next 7 days.
+        /// </summary>
+        public static string DueNext7Days {
+            get {
+                return ResourceManager.GetString("DueNext7Days", resourceCulture);
             }
         }
         
@@ -1311,6 +1401,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Edit work log.
+        /// </summary>
+        public static string EditWorkLog {
+            get {
+                return ResourceManager.GetString("EditWorkLog", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Email.
         /// </summary>
         public static string Email {
@@ -1343,6 +1442,15 @@ namespace App.Resources.Views {
         public static string ErrorOccurred {
             get {
                 return ResourceManager.GetString("ErrorOccurred", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expiring access.
+        /// </summary>
+        public static string ExpiringAccess {
+            get {
+                return ResourceManager.GetString("ExpiringAccess", resourceCulture);
             }
         }
         
@@ -1419,11 +1527,29 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to High/urgent tickets.
+        /// </summary>
+        public static string HighPriorityTickets {
+            get {
+                return ResourceManager.GetString("HighPriorityTickets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Home.
         /// </summary>
         public static string Home {
             get {
                 return ResourceManager.GetString("Home", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hours.
+        /// </summary>
+        public static string Hours {
+            get {
+                return ResourceManager.GetString("Hours", resourceCulture);
             }
         }
         
@@ -1608,6 +1734,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Selected work status is invalid..
+        /// </summary>
+        public static string InvalidWorkStatus {
+            get {
+                return ResourceManager.GetString("InvalidWorkStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Job title.
         /// </summary>
         public static string JobTitle {
@@ -1644,11 +1779,38 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Join requests.
+        /// </summary>
+        public static string JoinRequests {
+            get {
+                return ResourceManager.GetString("JoinRequests", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Join request submitted. Please wait for management company approval..
         /// </summary>
         public static string JoinRequestSubmitted {
             get {
                 return ResourceManager.GetString("JoinRequestSubmitted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Known m2.
+        /// </summary>
+        public static string KnownSquareMeters {
+            get {
+                return ResourceManager.GetString("KnownSquareMeters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Labor cost.
+        /// </summary>
+        public static string LaborCost {
+            get {
+                return ResourceManager.GetString("LaborCost", resourceCulture);
             }
         }
         
@@ -1716,6 +1878,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Logs.
+        /// </summary>
+        public static string LogCount {
+            get {
+                return ResourceManager.GetString("LogCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logged by.
+        /// </summary>
+        public static string LoggedBy {
+            get {
+                return ResourceManager.GetString("LoggedBy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Login.
         /// </summary>
         public static string Login {
@@ -1770,6 +1950,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Management company dashboard.
+        /// </summary>
+        public static string ManagementCompanyDashboard {
+            get {
+                return ResourceManager.GetString("ManagementCompanyDashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Review and update the current management company profile details..
         /// </summary>
         public static string ManagementCompanyProfileDescription {
@@ -1811,6 +2000,15 @@ namespace App.Resources.Views {
         public static string ManagementWorkspace {
             get {
                 return ResourceManager.GetString("ManagementWorkspace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Material cost.
+        /// </summary>
+        public static string MaterialCost {
+            get {
+                return ResourceManager.GetString("MaterialCost", resourceCulture);
             }
         }
         
@@ -1959,6 +2157,24 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No items to show..
+        /// </summary>
+        public static string NoItemsToShow {
+            get {
+                return ResourceManager.GetString("NoItemsToShow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No pending join requests..
+        /// </summary>
+        public static string NoPendingJoinRequests {
+            get {
+                return ResourceManager.GetString("NoPendingJoinRequests", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No pending requests.
         /// </summary>
         public static string NoPendingRequests {
@@ -2000,6 +2216,15 @@ namespace App.Resources.Views {
         public static string NoPropertiesFoundDescription {
             get {
                 return ResourceManager.GetString("NoPropertiesFoundDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No recent activity..
+        /// </summary>
+        public static string NoRecentActivity {
+            get {
+                return ResourceManager.GetString("NoRecentActivity", resourceCulture);
             }
         }
         
@@ -2103,6 +2328,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No tickets to show..
+        /// </summary>
+        public static string NoTicketsToShow {
+            get {
+                return ResourceManager.GetString("NoTicketsToShow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to No residents are currently linked to this unit..
         /// </summary>
         public static string NoUnitLeasesFoundDescription {
@@ -2153,6 +2387,33 @@ namespace App.Resources.Views {
         public static string NoVendorsFoundDescription {
             get {
                 return ResourceManager.GetString("NoVendorsFoundDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No work logs have been added yet..
+        /// </summary>
+        public static string NoWorkLogs {
+            get {
+                return ResourceManager.GetString("NoWorkLogs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No work to show..
+        /// </summary>
+        public static string NoWorkToShow {
+            get {
+                return ResourceManager.GetString("NoWorkToShow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Occupied units.
+        /// </summary>
+        public static string OccupiedUnits {
+            get {
+                return ResourceManager.GetString("OccupiedUnits", resourceCulture);
             }
         }
         
@@ -2234,6 +2495,15 @@ namespace App.Resources.Views {
         public static string PendingAccessRequestsDescription {
             get {
                 return ResourceManager.GetString("PendingAccessRequestsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Pending join requests.
+        /// </summary>
+        public static string PendingJoinRequests {
+            get {
+                return ResourceManager.GetString("PendingJoinRequests", resourceCulture);
             }
         }
         
@@ -2454,11 +2724,74 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Actual end cannot be before actual start..
+        /// </summary>
+        public static string RealEndCannotBeBeforeRealStart {
+            get {
+                return ResourceManager.GetString("RealEndCannotBeBeforeRealStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Actual end is required..
+        /// </summary>
+        public static string RealEndRequired {
+            get {
+                return ResourceManager.GetString("RealEndRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Actual start.
         /// </summary>
         public static string RealStart {
             get {
                 return ResourceManager.GetString("RealStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Actual start is required..
+        /// </summary>
+        public static string RealStartRequired {
+            get {
+                return ResourceManager.GetString("RealStartRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recent activity.
+        /// </summary>
+        public static string RecentActivity {
+            get {
+                return ResourceManager.GetString("RecentActivity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recently closed.
+        /// </summary>
+        public static string RecentlyClosedTickets {
+            get {
+                return ResourceManager.GetString("RecentlyClosedTickets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recently completed work.
+        /// </summary>
+        public static string RecentlyCompletedWork {
+            get {
+                return ResourceManager.GetString("RecentlyCompletedWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recent tickets.
+        /// </summary>
+        public static string RecentTickets {
+            get {
+                return ResourceManager.GetString("RecentTickets", resourceCulture);
             }
         }
         
@@ -2513,6 +2846,15 @@ namespace App.Resources.Views {
         public static string RejectAccessRequestConfirm {
             get {
                 return ResourceManager.GetString("RejectAccessRequestConfirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rejected last 30 days.
+        /// </summary>
+        public static string RejectedLast30Days {
+            get {
+                return ResourceManager.GetString("RejectedLast30Days", resourceCulture);
             }
         }
         
@@ -2877,6 +3219,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Role distribution.
+        /// </summary>
+        public static string RoleDistribution {
+            get {
+                return ResourceManager.GetString("RoleDistribution", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Role is required..
         /// </summary>
         public static string RoleRequired {
@@ -2913,11 +3264,47 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Scheduled end cannot be before scheduled start..
+        /// </summary>
+        public static string ScheduledEndCannotBeBeforeScheduledStart {
+            get {
+                return ResourceManager.GetString("ScheduledEndCannotBeBeforeScheduledStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled next 7 days.
+        /// </summary>
+        public static string ScheduledNext7Days {
+            get {
+                return ResourceManager.GetString("ScheduledNext7Days", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scheduled start.
         /// </summary>
         public static string ScheduledStart {
             get {
                 return ResourceManager.GetString("ScheduledStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled start is required..
+        /// </summary>
+        public static string ScheduledStartRequired {
+            get {
+                return ResourceManager.GetString("ScheduledStartRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled today.
+        /// </summary>
+        public static string ScheduledToday {
+            get {
+                return ResourceManager.GetString("ScheduledToday", resourceCulture);
             }
         }
         
@@ -2958,6 +3345,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Scheduled work cannot be deleted while work logs exist..
+        /// </summary>
+        public static string ScheduledWorkDeleteBlockedByLogs {
+            get {
+                return ResourceManager.GetString("ScheduledWorkDeleteBlockedByLogs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scheduled work deleted successfully..
         /// </summary>
         public static string ScheduledWorkDeletedSuccessfully {
@@ -2967,11 +3363,56 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} work logs have been recorded..
+        /// </summary>
+        public static string ScheduledWorkLogSummary {
+            get {
+                return ResourceManager.GetString("ScheduledWorkLogSummary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled work must be started before it can be completed..
+        /// </summary>
+        public static string ScheduledWorkMustStartBeforeComplete {
+            get {
+                return ResourceManager.GetString("ScheduledWorkMustStartBeforeComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notes must be 4000 characters or fewer..
+        /// </summary>
+        public static string ScheduledWorkNotesMaxLength {
+            get {
+                return ResourceManager.GetString("ScheduledWorkNotesMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled work was not found..
+        /// </summary>
+        public static string ScheduledWorkNotFound {
+            get {
+                return ResourceManager.GetString("ScheduledWorkNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scheduled work started successfully..
         /// </summary>
         public static string ScheduledWorkStartedSuccessfully {
             get {
                 return ResourceManager.GetString("ScheduledWorkStartedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scheduled work status is not configured..
+        /// </summary>
+        public static string ScheduledWorkStatusMissing {
+            get {
+                return ResourceManager.GetString("ScheduledWorkStatusMissing", resourceCulture);
             }
         }
         
@@ -3246,6 +3687,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Team overview.
+        /// </summary>
+        public static string TeamOverview {
+            get {
+                return ResourceManager.GetString("TeamOverview", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tenants.
         /// </summary>
         public static string Tenants {
@@ -3264,6 +3714,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assign a vendor before moving the ticket to assigned..
+        /// </summary>
+        public static string TicketAssignedRequiresVendor {
+            get {
+                return ResourceManager.GetString("TicketAssignedRequiresVendor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Category.
         /// </summary>
         public static string TicketCategory {
@@ -3278,6 +3737,33 @@ namespace App.Resources.Views {
         public static string TicketCategoryRequired {
             get {
                 return ResourceManager.GetString("TicketCategoryRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ticket command area.
+        /// </summary>
+        public static string TicketCommandArea {
+            get {
+                return ResourceManager.GetString("TicketCommandArea", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Complete scheduled work before moving the ticket to completed..
+        /// </summary>
+        public static string TicketCompletedRequiresCompletedWork {
+            get {
+                return ResourceManager.GetString("TicketCompletedRequiresCompletedWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add at least one work log before moving the ticket to completed..
+        /// </summary>
+        public static string TicketCompletedRequiresWorkLog {
+            get {
+                return ResourceManager.GetString("TicketCompletedRequiresWorkLog", resourceCulture);
             }
         }
         
@@ -3341,6 +3827,42 @@ namespace App.Resources.Views {
         public static string TicketDescription {
             get {
                 return ResourceManager.GetString("TicketDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start scheduled work before moving the ticket to in progress..
+        /// </summary>
+        public static string TicketInProgressRequiresStartedWork {
+            get {
+                return ResourceManager.GetString("TicketInProgressRequiresStartedWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assign the ticket before scheduling work..
+        /// </summary>
+        public static string TicketMustBeAssignedBeforeSchedulingWork {
+            get {
+                return ResourceManager.GetString("TicketMustBeAssignedBeforeSchedulingWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the ticket to in progress before completing work..
+        /// </summary>
+        public static string TicketMustBeInProgressBeforeCompletingWork {
+            get {
+                return ResourceManager.GetString("TicketMustBeInProgressBeforeCompletingWork", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the ticket to scheduled before starting work..
+        /// </summary>
+        public static string TicketMustBeScheduledBeforeStartingWork {
+            get {
+                return ResourceManager.GetString("TicketMustBeScheduledBeforeStartingWork", resourceCulture);
             }
         }
         
@@ -3426,11 +3948,29 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tickets by status.
+        /// </summary>
+        public static string TicketsByStatus {
+            get {
+                return ResourceManager.GetString("TicketsByStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scheduled or later tickets require a due date..
         /// </summary>
         public static string TicketScheduledRequiresDueDate {
             get {
                 return ResourceManager.GetString("TicketScheduledRequiresDueDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Schedule vendor work before moving the ticket to scheduled..
+        /// </summary>
+        public static string TicketScheduledRequiresScheduledWork {
+            get {
+                return ResourceManager.GetString("TicketScheduledRequiresScheduledWork", resourceCulture);
             }
         }
         
@@ -3480,6 +4020,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Status advancement is blocked..
+        /// </summary>
+        public static string TicketTransitionBlocked {
+            get {
+                return ResourceManager.GetString("TicketTransitionBlocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ticket updated successfully..
         /// </summary>
         public static string TicketUpdatedSuccessfully {
@@ -3521,6 +4070,24 @@ namespace App.Resources.Views {
         public static string TitleResidentAccess {
             get {
                 return ResourceManager.GetString("TitleResidentAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total cost.
+        /// </summary>
+        public static string TotalCost {
+            get {
+                return ResourceManager.GetString("TotalCost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Total units.
+        /// </summary>
+        public static string TotalUnits {
+            get {
+                return ResourceManager.GetString("TotalUnits", resourceCulture);
             }
         }
         
@@ -3701,6 +4268,15 @@ namespace App.Resources.Views {
         public static string UnableToDeleteTicket {
             get {
                 return ResourceManager.GetString("UnableToDeleteTicket", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to delete work log..
+        /// </summary>
+        public static string UnableToDeleteWorkLog {
+            get {
+                return ResourceManager.GetString("UnableToDeleteWorkLog", resourceCulture);
             }
         }
         
@@ -4002,6 +4578,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Vacant units.
+        /// </summary>
+        public static string VacantUnits {
+            get {
+                return ResourceManager.GetString("VacantUnits", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Valid from.
         /// </summary>
         public static string ValidFrom {
@@ -4245,6 +4830,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Vendor is required..
+        /// </summary>
+        public static string VendorRequired {
+            get {
+                return ResourceManager.GetString("VendorRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Vendors.
         /// </summary>
         public static string Vendors {
@@ -4308,6 +4902,15 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to View work logs.
+        /// </summary>
+        public static string ViewWorkLogs {
+            get {
+                return ResourceManager.GetString("ViewWorkLogs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Work actions.
         /// </summary>
         public static string WorkActions {
@@ -4317,11 +4920,191 @@ namespace App.Resources.Views {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cancelled work status is not configured..
+        /// </summary>
+        public static string WorkCancelledStatusMissing {
+            get {
+                return ResourceManager.GetString("WorkCancelledStatusMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work command area.
+        /// </summary>
+        public static string WorkCommandArea {
+            get {
+                return ResourceManager.GetString("WorkCommandArea", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Completed work status is not configured..
+        /// </summary>
+        public static string WorkCompletedStatusMissing {
+            get {
+                return ResourceManager.GetString("WorkCompletedStatusMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work end.
+        /// </summary>
+        public static string WorkEnd {
+            get {
+                return ResourceManager.GetString("WorkEnd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to In-progress work status is not configured..
+        /// </summary>
+        public static string WorkInProgressStatusMissing {
+            get {
+                return ResourceManager.GetString("WorkInProgressStatusMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work logs cannot be changed after the ticket is closed..
+        /// </summary>
+        public static string WorkLogClosedTicketBlocked {
+            get {
+                return ResourceManager.GetString("WorkLogClosedTicketBlocked", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work log added successfully..
+        /// </summary>
+        public static string WorkLogCreatedSuccessfully {
+            get {
+                return ResourceManager.GetString("WorkLogCreatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work log deleted successfully..
+        /// </summary>
+        public static string WorkLogDeletedSuccessfully {
+            get {
+                return ResourceManager.GetString("WorkLogDeletedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Description must be 4000 characters or fewer..
+        /// </summary>
+        public static string WorkLogDescriptionMaxLength {
+            get {
+                return ResourceManager.GetString("WorkLogDescriptionMaxLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work end cannot be before work start..
+        /// </summary>
+        public static string WorkLogEndCannotBeBeforeStart {
+            get {
+                return ResourceManager.GetString("WorkLogEndCannotBeBeforeStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hours must be zero or greater..
+        /// </summary>
+        public static string WorkLogHoursNonNegative {
+            get {
+                return ResourceManager.GetString("WorkLogHoursNonNegative", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Labor cost must be zero or greater..
+        /// </summary>
+        public static string WorkLogLaborCostNonNegative {
+            get {
+                return ResourceManager.GetString("WorkLogLaborCostNonNegative", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Material cost must be zero or greater..
+        /// </summary>
+        public static string WorkLogMaterialCostNonNegative {
+            get {
+                return ResourceManager.GetString("WorkLogMaterialCostNonNegative", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work log was not found..
+        /// </summary>
+        public static string WorkLogNotFound {
+            get {
+                return ResourceManager.GetString("WorkLogNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter at least one work log value..
+        /// </summary>
+        public static string WorkLogRequiresMeaningfulField {
+            get {
+                return ResourceManager.GetString("WorkLogRequiresMeaningfulField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work logs.
+        /// </summary>
+        public static string WorkLogs {
+            get {
+                return ResourceManager.GetString("WorkLogs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work log updated successfully..
+        /// </summary>
+        public static string WorkLogUpdatedSuccessfully {
+            get {
+                return ResourceManager.GetString("WorkLogUpdatedSuccessfully", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work start.
+        /// </summary>
+        public static string WorkStart {
+            get {
+                return ResourceManager.GetString("WorkStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Work status.
         /// </summary>
         public static string WorkStatus {
             get {
                 return ResourceManager.GetString("WorkStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work status is required..
+        /// </summary>
+        public static string WorkStatusRequired {
+            get {
+                return ResourceManager.GetString("WorkStatusRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Work window.
+        /// </summary>
+        public static string WorkWindow {
+            get {
+                return ResourceManager.GetString("WorkWindow", resourceCulture);
             }
         }
         
