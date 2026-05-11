@@ -532,6 +532,7 @@ public class LookupRepository : ILookupRepository
 
         entity.Code = code.Trim();
         entity.Label.SetTranslation(label.Trim());
+        _dbContext.Entry(entity).Property(e => e.Label).IsModified = true;
         return new LookupItemDalDto
         {
             Id = entity.Id,
@@ -543,7 +544,9 @@ public class LookupRepository : ILookupRepository
     private async Task<bool> DeleteItemAsync<TLookup>(Guid id, CancellationToken cancellationToken)
         where TLookup : BaseEntity, ILookUpEntity
     {
-        var entity = await _dbContext.Set<TLookup>().FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+        var entity = await _dbContext.Set<TLookup>()
+            .AsTracking()
+            .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
         if (entity is null)
         {
             return false;
