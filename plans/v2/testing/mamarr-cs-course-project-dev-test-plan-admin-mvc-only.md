@@ -1,6 +1,8 @@
 # Test coverage plan for `mamarrr/mamarr-cs-course-project` `dev`
 
-Generated for manual test execution. The goal is to build the same layered style as `akaver-hw-demo`: unit tests first, then DAL/BLL integration, API integration, and only light Admin MVC/browser safety coverage. Admin MVC should not become the primary place for business-rule coverage.
+Generated for manual test execution. The goal is to build the same layered style as `akaver-hw-demo`: API pipeline smoke coverage as soon as the host harness exists, then unit tests, DAL/BLL integration, full API integration, and only light Admin MVC/browser safety coverage. Admin MVC should not become the primary place for business-rule coverage.
+
+This is a future testing roadmap only. It does not require application public APIs, contracts, or production behavior to change, and it does not override the current project instruction to defer writing tests.
 
 ## 1. Baseline facts from the current `dev` branch
 
@@ -16,6 +18,8 @@ The application is a multi-tenant property maintenance CRM. Core dimensions to c
 - Localization: `LangStr` values persisted as JSON and translated through query-string/cookie culture selection.
 - API versioning: `api/v{version:apiVersion}` endpoints.
 - Manual test execution: no CI test stage is required.
+- SQLite is the only database provider required for this test plan. PostgreSQL, migrations-on-PostgreSQL, and containerized database tests are out of scope.
+- No Admin API endpoints will be added or tested by this plan. Admin business rules stay covered through Admin BLL/DAL tests and light Admin MVC integration/E2E coverage.
 
 ## 2. Test project structure to add
 
@@ -87,10 +91,10 @@ Required behavior:
   - `DataInitialization:MigrateDatabase=false`
   - `DataInitialization:SeedIdentity=false`
   - `DataInitialization:SeedData=false`
-- Replace PostgreSQL with SQLite in-memory shared-cache DB.
+- Replace the production database provider with SQLite in-memory shared-cache DB.
 - Keep the SQLite connection alive for the lifetime of the factory.
 - Use `EnsureCreated()` instead of migrations.
-- Seed deterministic users, roles, management companies, lookups, customers, properties, units, residents, vendors, tickets, scheduled works, and work logs.
+- Seed deterministic identity roles, app users, management company roles, lookup rows, management companies, hierarchy data, resident mappings, customer representative context, vendors, tickets, scheduled works, work logs, refresh-token scenarios, and locked-user state before any business/API tests run.
 - Configure API versioning so unversioned or default-version requests in tests behave predictably.
 - Configure JWT settings with a stable test signing key.
 - Keep production-like EF query tracking behavior if the app uses no-tracking identity resolution.
@@ -100,24 +104,39 @@ Required behavior:
   - `CreateAuthenticatedMvcClientAsync(user)`
   - `CreateDbContext()`
   - `ResetDatabaseAsync()` or per-factory unique DB name.
+  - stable IDs, slugs, codes, user IDs, and route helpers through `TestUsers`, `TestTenants`, `TestLookupIds`, and `RouteFactory` so tests do not discover random data ad hoc.
 
 ### 3.2 Test seed model
 
-Seed at least the following deterministic dataset:
+Deterministic seed data is a blocking prerequisite before business, DAL, BLL, API, MVC, or E2E tests are implemented. Seed at least the following deterministic dataset:
 
 #### Users
 
 - `SystemAdmin`
 - `CompanyAOwner`
-- `CompanyAAdmin`
 - `CompanyAManager`
-- `CompanyAViewer`
+- `CompanyASupport`
+- `CompanyAFinance`
 - `CompanyBOwner`
 - `CustomerARepresentative`
 - `ResidentA`
 - `ResidentB`
 - `NoContextUser`
 - `LockedUser`
+
+Management-company authorization tests must assert behavior by real role codes:
+
+- `OWNER`
+- `MANAGER`
+- `SUPPORT`
+- `FINANCE`
+
+Do not introduce nonexistent management role labels just for tests.
+
+Seed identity roles:
+
+- `SystemAdmin`
+- `User`
 
 #### Tenants and hierarchy
 
@@ -134,6 +153,12 @@ Seed at least the following deterministic dataset:
   - ticket A1
   - scheduled work A1
   - work log A1
+  - customer representative mapping for `CustomerARepresentative`
+  - resident mappings for `ResidentA` and `ResidentB` as applicable
+  - refresh-token scenarios:
+    - active token
+    - expired token
+    - revoked token
 - Management company B:
   - customer B1
   - property B1-P1
@@ -160,6 +185,8 @@ Seed all lookup/code rows required by the application:
 - work statuses
 
 Every lookup label should have at least English and Estonian `LangStr` entries to support localization tests.
+
+`LangStr` persistence coverage in this plan means EF model plus SQLite JSON/value-conversion behavior only. PostgreSQL `jsonb` behavior and migration execution against PostgreSQL are out of scope.
 
 ### 3.3 Playwright setup
 
@@ -369,13 +396,14 @@ Tests:
 
 ### 5.3 Mapper unit tests
 
-Create mapper round-trip tests for every mapper in API, BLL, and DAL layers.
+Create mapper round-trip tests for real mapper classes in API, BLL, and DAL layers. Prioritize mappers used by active API/BLL/DAL paths and do not invent tests for DTO groups that do not have mapper classes.
 
 MVC-specific mapper/view-model mapper scope:
 
 - Include Admin MVC mapper/view-model mapper tests if the mapper is used by Admin controllers.
 - Exclude mapper tests whose only purpose is mapping to non-admin MVC controllers/views, including Public, Management, Customer, Property, Unit, and Resident MVC areas.
 - Non-admin workflow mapping should be covered through API DTO, BLL DTO, and DAL DTO mappers instead.
+- Admin MVC inline controller mapping is covered by Admin MVC smoke/mutation tests, not exhaustive mapper unit tests.
 
 #### DAL mapper tests
 
@@ -446,22 +474,46 @@ For each:
 
 #### API mapper tests
 
-Add tests for all `App.DTO.v1` mappers:
+Inventory `App.DTO/v1/Mappers` before implementing these tests and test only mapper classes that exist. Current mapper inventory:
 
-- auth DTOs
-- onboarding DTOs
-- workspace DTOs
-- management company DTOs
-- customer DTOs
-- property DTOs
-- unit DTOs
-- resident DTOs
-- lease DTOs
-- vendor DTOs
-- ticket DTOs
-- scheduled work DTOs
-- work log DTOs
-- lookup DTOs
+- `App.DTO.v1.Mappers.Onboarding.ManagementCompanyApiMapper`
+- `App.DTO.v1.Mappers.Workspace.WorkspaceApiMapper`
+- `App.DTO.v1.Mappers.Portal.Companies.ManagementCompanyApiMapper`
+- `App.DTO.v1.Mappers.Portal.Contacts.ResidentContactApiMapper`
+- `App.DTO.v1.Mappers.Portal.Contacts.ResidentContactListApiMapper`
+- `App.DTO.v1.Mappers.Portal.Customers.CustomerApiMapper`
+- `App.DTO.v1.Mappers.Portal.Customers.CustomerListItemApiMapper`
+- `App.DTO.v1.Mappers.Portal.Customers.CustomerProfileApiMapper`
+- `App.DTO.v1.Mappers.Portal.Dashboards.PortalDashboardApiMapper`
+- `App.DTO.v1.Mappers.Portal.Leases.LeaseApiMapper`
+- `App.DTO.v1.Mappers.Portal.Leases.LeaseResponseApiMapper`
+- `App.DTO.v1.Mappers.Portal.Lookups.LookupApiMapper`
+- `App.DTO.v1.Mappers.Portal.Properties.PropertyApiMapper`
+- `App.DTO.v1.Mappers.Portal.Properties.PropertyListItemApiMapper`
+- `App.DTO.v1.Mappers.Portal.Properties.PropertyProfileApiMapper`
+- `App.DTO.v1.Mappers.Portal.Residents.ResidentApiMapper`
+- `App.DTO.v1.Mappers.Portal.Residents.ResidentListItemApiMapper`
+- `App.DTO.v1.Mappers.Portal.Residents.ResidentProfileApiMapper`
+- `App.DTO.v1.Mappers.Portal.ScheduledWork.ScheduledWorkApiMapper`
+- `App.DTO.v1.Mappers.Portal.ScheduledWork.ScheduledWorkDetailsApiMapper`
+- `App.DTO.v1.Mappers.Portal.ScheduledWork.ScheduledWorkListItemApiMapper`
+- `App.DTO.v1.Mappers.Portal.Tickets.TicketApiMapper`
+- `App.DTO.v1.Mappers.Portal.Units.UnitApiMapper`
+- `App.DTO.v1.Mappers.Portal.Units.UnitListItemApiMapper`
+- `App.DTO.v1.Mappers.Portal.Units.UnitProfileApiMapper`
+- `App.DTO.v1.Mappers.Portal.Users.CompanyUserApiMapper`
+- `App.DTO.v1.Mappers.Portal.Users.OwnershipTransferApiMapper`
+- `App.DTO.v1.Mappers.Portal.Users.PendingAccessRequestApiMapper`
+- `App.DTO.v1.Mappers.Portal.VendorContacts.VendorContactApiMapper`
+- `App.DTO.v1.Mappers.Portal.VendorContacts.VendorContactListApiMapper`
+- `App.DTO.v1.Mappers.Portal.Vendors.VendorApiMapper`
+- `App.DTO.v1.Mappers.Portal.Vendors.VendorCategoryApiMapper`
+- `App.DTO.v1.Mappers.Portal.Vendors.VendorListItemApiMapper`
+- `App.DTO.v1.Mappers.Portal.Vendors.VendorProfileApiMapper`
+- `App.DTO.v1.Mappers.Portal.WorkLogs.WorkLogApiMapper`
+- `App.DTO.v1.Mappers.Portal.WorkLogs.WorkLogListItemApiMapper`
+
+Do not require an auth DTO mapper test unless an actual auth mapper class is added.
 
 For each:
 
@@ -573,10 +625,13 @@ These tests verify orchestration, not EF queries.
 
 #### `Unit/BLL/Services/CompanyMembershipService_Tests`
 
-- Authorize management area access: owner/admin allowed.
-- Authorize management area access: viewer allowed where expected.
-- Authorize admin context: owner/admin allowed.
-- Authorize admin context: viewer denied.
+- Authorize management area access by real management role codes:
+  - `OWNER`
+  - `MANAGER`
+  - `SUPPORT`
+  - `FINANCE`
+- Authorize privileged management actions for `OWNER` and any other real codes allowed by current policy.
+- Deny privileged management actions for real codes that current policy restricts.
 - List members returns all company members and excludes other companies.
 - Add user by email succeeds for existing user.
 - Add user by email fails for unknown email.
@@ -1016,10 +1071,10 @@ These tests run real services against SQLite through `AppBLL`.
 
 #### `Integration/BLL/MultiTenantAuthorization_Tests`
 
-- Company A owner cannot read Company B dashboard.
-- Company A admin cannot mutate Company B customer.
-- Company A viewer can read but cannot mutate, if viewer role exists.
-- Company B owner cannot access Company A vendor.
+- Company A `OWNER` cannot read Company B dashboard.
+- Company A `MANAGER`, `SUPPORT`, or `FINANCE` cannot mutate Company B customer.
+- Company A role behavior is asserted by the real codes `OWNER`, `MANAGER`, `SUPPORT`, and `FINANCE`, with read/mutate expectations taken from current policy.
+- Company B `OWNER` cannot access Company A vendor.
 - Customer representative cannot access management-only operations.
 - Resident user cannot access management-only operations.
 - No-context user is redirected or receives forbidden for protected resources.
@@ -1154,18 +1209,26 @@ These tests run real services against SQLite through `AppBLL`.
 
 All API tests should use `CustomWebApplicationFactory`, real HTTP clients, and real JWTs.
 
+No Admin API endpoints are in scope for this plan. Do not add Admin REST implementation tasks or REST coverage for the Admin area. The only `SystemAdmin` HTTP surface covered here is Admin MVC.
+
 ### 8.1 Common API behavior
 
 #### `Integration/API/Api_Common_Tests`
 
+- App boots through `WebApplicationFactory`.
+- `/swagger/v1/swagger.json` loads.
 - Unknown endpoint returns 404.
 - Unsupported API version returns expected versioning error.
 - Default API version behaves as expected.
 - Swagger JSON is available for v1.
 - CORS exposes expected version headers.
 - Error responses use `RestApiErrorResponse`.
+- Controller-produced errors use the `RestApiErrorResponse` shape.
 - Validation errors include field dictionary.
 - Unauthorized endpoints return 401 rather than redirect.
+- Protected API route without JWT returns 401, not an MVC redirect.
+- Protected API route with invalid JWT returns 401.
+- Protected API route with valid JWT reaches `/api/v1/auth/me`.
 - Forbidden endpoints return 403.
 - Not found returns 404.
 - Conflict returns 409.
@@ -1224,7 +1287,7 @@ If workspace endpoints exist, add:
 - Context authorization rejects foreign context id.
 - Context authorization returns slug/path for valid context.
 
-### 8.5 Management/company API
+### 8.5 Portal management/company API
 
 For each API controller under management/company context:
 
@@ -1239,21 +1302,23 @@ For each API controller under management/company context:
 - Delete requires confirmation where applicable.
 - Delete removes only tenant-owned entity.
 
-Apply to:
+Apply to every non-admin create/update/delete workflow exposed by these API controllers:
 
-- management company profile
-- customers
-- properties
-- units
-- residents
-- resident contacts
-- leases
-- vendors
-- vendor contacts
-- vendor category assignments
-- tickets
-- scheduled works
-- work logs
+- `ManagementCompaniesController`: management company profile.
+- `CompanyUsersController`: list members, add member, edit member, delete member, role options, ownership transfer candidates, ownership transfer, approve access request, reject access request.
+- `DashboardsController`: management dashboard and context dashboard endpoints.
+- `CustomersController`: customers.
+- `PropertiesController`: properties.
+- `UnitsController`: units.
+- `ResidentsController`: residents.
+- `ResidentContactsController`: resident contacts.
+- `LeasesController`: resident and unit leases.
+- `VendorsController`: vendors and vendor category assignments.
+- `VendorContactsController`: vendor contacts.
+- `TicketsController`: tickets and lifecycle actions.
+- `ScheduledWorkController`: scheduled work.
+- `WorkLogsController`: work logs.
+- `LookupsController`: property types, lease roles, and tenant-scoped ticket options.
 
 ### 8.6 Context API tests
 
@@ -1290,18 +1355,9 @@ Apply to:
 - Resident tickets list only resident tickets.
 - Management user without resident mapping cannot use resident endpoint unless business rule allows it.
 
-### 8.7 Admin API tests
+### 8.7 Out of scope: Admin REST surface
 
-If admin API endpoints exist:
-
-- Non-admin JWT returns 403.
-- System admin JWT succeeds.
-- Dashboard returns global counts.
-- User search returns all users.
-- Lock/unlock endpoints work and protect self/last admin.
-- Company search/update works.
-- Lookup CRUD works for all lookup types.
-- Ticket monitor search works globally.
+Do not add REST tests for the Admin area in this plan. Admin API endpoints are not part of the required test roadmap, and this testing plan must not create pressure to add them. Cover Admin business behavior through Admin BLL/DAL tests and light Admin MVC integration/E2E safety tests.
 
 ## 9. MVC integration tests
 
@@ -1346,7 +1402,7 @@ Smoke-test representative Admin pages only. These are not deep CRUD tests.
 - Admin companies list/search page loads.
 - Admin company details page loads for an existing company.
 - One representative lookup index page loads.
-- One representative business-entity index page loads.
+- Admin tickets monitor/index page loads.
 - Missing ID on representative details page returns 404.
 - Admin layout/navigation renders without broken links for the main Admin sections.
 
@@ -1356,7 +1412,7 @@ Recommended representative pages:
 - Users
 - Management companies
 - One lookup type, such as ticket priorities or property types
-- One tenant-owned entity, such as tickets or customers
+- Tickets
 - One work-related entity, such as scheduled works or work logs, if exposed in Admin MVC
 
 #### `Integration/MVC/Admin/AdminRepresentativeMutation_Tests`
@@ -1577,15 +1633,21 @@ Entities:
 
 1. Add `CustomWebApplicationFactory`.
 2. Add SQLite test DB setup.
-3. Add deterministic seed data.
-4. Add JWT helper.
+3. Finish deterministic SQLite seed data. This blocks later business/API tests.
+4. Add JWT helper and authenticated client helpers.
 5. Add culture helper.
-6. Add smoke tests:
+6. Add API pipeline smoke tests:
    - app starts
    - DB schema creates
-   - `/` returns 200
-   - `/api/v1/auth/login` invalid returns 401
-   - authenticated `/api/v1/auth/me` returns current user
+   - `/swagger/v1/swagger.json` loads
+   - unknown API route returns 404
+   - unsupported API version returns versioning error
+   - protected API route without JWT returns 401, not MVC redirect
+   - protected API route with invalid JWT returns 401
+   - protected API route with valid JWT reaches `/api/v1/auth/me`
+   - CORS exposes version headers
+   - controller-produced errors use `RestApiErrorResponse`
+7. Add one authenticated success path and one unauthorized path for the core API host.
 
 ### Phase 2: Pure unit tests
 
@@ -1593,7 +1655,7 @@ Entities:
 2. slug generator
 3. route models
 4. API error mapping
-5. all mappers
+5. actual API/BLL/DAL mappers
 6. `AppBLL` lazy service creation
 7. small service tests with mocked UOW
 
@@ -1631,16 +1693,18 @@ Entities:
 1. auth
 2. onboarding
 3. workspace
-4. management hierarchy APIs
+4. management hierarchy and company-user APIs
 5. context APIs
-6. admin APIs
-7. API error and versioning behavior
+6. lookup APIs
+7. ticket, scheduled work, and work-log workflow APIs
+8. API error and versioning behavior
+9. no Admin REST coverage
 
 ### Phase 6: Light Admin MVC integration
 
 1. Admin authorization and access-denied behavior.
 2. Admin dashboard smoke test.
-3. Admin users and companies list/details smoke tests.
+3. Admin users, companies, lookups, and tickets smoke tests.
 4. One representative lookup smoke/mutation test.
 5. One representative business-entity smoke test.
 6. Admin anti-forgery behavior.
@@ -1659,8 +1723,11 @@ Entities:
 
 ## 13. Minimum acceptance criteria
 
-The suite is “full enough” when these statements are true:
+The suite is "full enough" when these statements are true:
 
+- API pipeline tests are runnable immediately after the harness, deterministic seed data, and JWT helpers are complete.
+- SQLite is the only database provider required by the test suite.
+- No Admin REST coverage or Admin API implementation tasks remain in this plan.
 - Every public service method in `IAppBLL` has at least one success and one failure test.
 - Every repository has tenant-scope tests.
 - Every route hierarchy is tested for correct parent/child ownership.
@@ -1668,6 +1735,8 @@ The suite is “full enough” when these statements are true:
 - Only critical Admin access/navigation behavior needs Admin E2E smoke coverage. Non-admin workflows do not require MVC/E2E coverage.
 - Every lookup type has CRUD and delete-blocking tests.
 - Every `LangStr` field has persistence coverage.
+- API mapper tests reference only actual mapper classes in `App.DTO/v1/Mappers`; auth mapper tests are not required unless an auth mapper class is added.
+- Non-admin MVC controllers and MVC-only mappers/view-model mappers remain intentionally excluded.
 - Every authentication mode is covered:
   - cookie-based Admin MVC access smoke coverage
   - JWT API
@@ -1676,7 +1745,10 @@ The suite is “full enough” when these statements are true:
   - anonymous
   - no-context user
   - system admin
-  - management owner/admin/viewer
+  - management `OWNER`
+  - management `MANAGER`
+  - management `SUPPORT`
+  - management `FINANCE`
   - customer representative
   - resident user
   - cross-tenant user
