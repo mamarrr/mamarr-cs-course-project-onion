@@ -112,6 +112,7 @@ public class ResidentContactsController : ApiControllerBase
             : Ok(_listMapper.Map(result.Value));
     }
 
+    [HttpPost]
     [HttpPost("create")]
     [ProducesResponseType(typeof(ResidentContactListDto), StatusCodes.Status201Created)]
     public async Task<ActionResult<ResidentContactListDto>> CreateAndAttach(
@@ -293,4 +294,3 @@ public class ResidentContactsController : ApiControllerBase
         };
     }
 }
-

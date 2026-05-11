@@ -101,8 +101,9 @@ public class VendorContactsController : ApiControllerBase
         return result.IsFailed ? ToApiError(result.Errors) : Ok(_listMapper.Map(result.Value));
     }
 
+    [HttpPost]
     [HttpPost("create")]
-    [ProducesResponseType(typeof(VendorContactListDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(VendorContactListDto), StatusCodes.Status201Created)]
     public async Task<ActionResult<VendorContactListDto>> CreateAndAttach(
         string companySlug,
         Guid vendorId,
@@ -123,7 +124,9 @@ public class VendorContactsController : ApiControllerBase
         }
 
         var result = await _bll.Vendors.AddContactAsync(route, assignmentDto, contactDto, cancellationToken);
-        return result.IsFailed ? ToApiError(result.Errors) : Ok(_listMapper.Map(result.Value));
+        return result.IsFailed
+            ? ToApiError(result.Errors)
+            : StatusCode(StatusCodes.Status201Created, _listMapper.Map(result.Value));
     }
 
     [HttpPut("{vendorContactId:guid}")]

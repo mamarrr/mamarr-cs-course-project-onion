@@ -46,6 +46,7 @@ public class TicketsController : ApiControllerBase
     }
 
     [HttpGet("customers/{customerSlug}")]
+    [HttpGet("/api/v{version:apiVersion}/portal/companies/{companySlug}/customers/{customerSlug}/tickets")]
     [ProducesResponseType(typeof(ContextTicketsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ContextTicketsDto>> CustomerTickets(
         string companySlug,
@@ -64,6 +65,7 @@ public class TicketsController : ApiControllerBase
     }
 
     [HttpGet("customers/{customerSlug}/properties/{propertySlug}")]
+    [HttpGet("/api/v{version:apiVersion}/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/tickets")]
     [ProducesResponseType(typeof(ContextTicketsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ContextTicketsDto>> PropertyTickets(
         string companySlug,
@@ -87,6 +89,7 @@ public class TicketsController : ApiControllerBase
     }
 
     [HttpGet("customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}")]
+    [HttpGet("/api/v{version:apiVersion}/portal/companies/{companySlug}/customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/tickets")]
     [ProducesResponseType(typeof(ContextTicketsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ContextTicketsDto>> UnitTickets(
         string companySlug,
@@ -112,6 +115,7 @@ public class TicketsController : ApiControllerBase
     }
 
     [HttpGet("residents/{residentIdCode}")]
+    [HttpGet("/api/v{version:apiVersion}/portal/companies/{companySlug}/residents/{residentIdCode}/tickets")]
     [ProducesResponseType(typeof(ContextTicketsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ContextTicketsDto>> ResidentTickets(
         string companySlug,
@@ -147,6 +151,10 @@ public class TicketsController : ApiControllerBase
     }
 
     [HttpGet("options")]
+    [HttpGet("options/properties")]
+    [HttpGet("options/units")]
+    [HttpGet("options/residents")]
+    [HttpGet("options/vendors")]
     [ProducesResponseType(typeof(TicketSelectorOptionsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<TicketSelectorOptionsDto>> SelectorOptions(
         string companySlug,

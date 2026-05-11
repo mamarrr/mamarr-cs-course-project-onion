@@ -184,6 +184,7 @@ public class LeasesController : ApiControllerBase
     }
 
     [HttpGet("residents/{residentIdCode}/leases/property-search")]
+    [HttpGet("residents/{residentIdCode}/property-search")]
     [ProducesResponseType(typeof(LeasePropertySearchResultDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeasePropertySearchResultDto>> SearchProperties(
         string companySlug,
@@ -429,6 +430,7 @@ public class LeasesController : ApiControllerBase
     }
 
     [HttpGet("customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/leases/resident-search")]
+    [HttpGet("customers/{customerSlug}/properties/{propertySlug}/units/{unitSlug}/resident-search")]
     [ProducesResponseType(typeof(LeaseResidentSearchResultDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<LeaseResidentSearchResultDto>> SearchResidents(
         string companySlug,

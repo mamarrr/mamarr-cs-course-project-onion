@@ -24,6 +24,7 @@ public class ManagementCompaniesController : ApiControllerBase
     }
 
     [HttpGet]
+    [HttpGet("profile")]
     [ProducesResponseType(typeof(ManagementCompanyProfileDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ManagementCompanyProfileDto>> GetProfile(
         string companySlug,
@@ -45,6 +46,7 @@ public class ManagementCompaniesController : ApiControllerBase
     }
 
     [HttpPut]
+    [HttpPut("profile")]
     [ProducesResponseType(typeof(ManagementCompanyProfileDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ManagementCompanyProfileDto>> UpdateProfile(
         string companySlug,
@@ -73,6 +75,7 @@ public class ManagementCompaniesController : ApiControllerBase
     }
 
     [HttpDelete]
+    [HttpDelete("profile")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteProfile(
         string companySlug,
