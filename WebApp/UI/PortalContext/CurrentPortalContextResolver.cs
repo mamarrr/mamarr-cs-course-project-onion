@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Routing;
 
 namespace WebApp.UI.PortalContext;
 
-public sealed class CurrentPortalContextResolver : ICurrentPortalContextResolver
+public class CurrentPortalContextResolver : ICurrentPortalContextResolver
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
 

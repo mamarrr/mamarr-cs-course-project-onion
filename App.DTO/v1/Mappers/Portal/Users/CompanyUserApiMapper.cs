@@ -4,7 +4,7 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Users;
 
-public sealed class CompanyUserApiMapper :
+public class CompanyUserApiMapper :
     IBaseMapper<AddCompanyUserDto, CompanyMembershipAddRequest>,
     IBaseMapper<UpdateCompanyUserDto, CompanyMembershipUpdateRequest>
 {

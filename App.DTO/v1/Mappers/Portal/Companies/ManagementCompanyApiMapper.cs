@@ -4,7 +4,7 @@ using App.DTO.v1.Portal.Companies;
 
 namespace App.DTO.v1.Mappers.Portal.Companies;
 
-public sealed class ManagementCompanyApiMapper
+public class ManagementCompanyApiMapper
 {
     public ManagementCompanyProfileDto Map(CompanyProfileModel model)
     {

@@ -2,11 +2,12 @@ using App.BLL.DTO.ScheduledWorks.Models;
 using App.BLL.DTO.Tickets;
 using App.BLL.DTO.Tickets.Models;
 using App.DTO.v1.Portal.Tickets;
+using App.DTO.v1.Shared;
 using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Tickets;
 
-public sealed class TicketApiMapper :
+public class TicketApiMapper :
     IBaseMapper<CreateTicketDto, TicketBllDto>,
     IBaseMapper<UpdateTicketDto, TicketBllDto>,
     IBaseMapper<TicketDto, TicketBllDto>
@@ -307,9 +308,9 @@ public sealed class TicketApiMapper :
         };
     }
 
-    private static TicketOptionDto MapOption(TicketOptionModel model)
+    private static LookupOptionDto MapOption(TicketOptionModel model)
     {
-        return new TicketOptionDto
+        return new LookupOptionDto
         {
             Id = model.Id,
             Label = model.Label,

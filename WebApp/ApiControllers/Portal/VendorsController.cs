@@ -18,8 +18,7 @@ namespace WebApp.ApiControllers.Portal;
 public class VendorsController : ApiControllerBase
 {
     private readonly IAppBLL _bll;
-    private readonly IBaseMapper<CreateVendorDto, VendorBllDto> _createMapper = new VendorApiMapper();
-    private readonly IBaseMapper<UpdateVendorDto, VendorBllDto> _updateMapper = new VendorApiMapper();
+    private readonly IBaseMapper<VendorRequestDto, VendorBllDto> _requestMapper = new VendorApiMapper();
     private readonly IBaseMapper<AssignVendorCategoryDto, VendorTicketCategoryBllDto> _assignCategoryMapper =
         new VendorCategoryApiMapper();
     private readonly IBaseMapper<UpdateVendorCategoryDto, VendorTicketCategoryBllDto> _updateCategoryMapper =
@@ -55,7 +54,7 @@ public class VendorsController : ApiControllerBase
     [ProducesResponseType(typeof(VendorProfileDto), StatusCodes.Status201Created)]
     public async Task<ActionResult<VendorProfileDto>> Create(
         string companySlug,
-        CreateVendorDto? dto,
+        VendorRequestDto? dto,
         CancellationToken cancellationToken)
     {
         var route = ToCompanyRoute(companySlug);
@@ -64,7 +63,7 @@ public class VendorsController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _createMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Vendor payload is required.");
@@ -110,7 +109,7 @@ public class VendorsController : ApiControllerBase
     public async Task<ActionResult<VendorProfileDto>> Update(
         string companySlug,
         Guid vendorId,
-        UpdateVendorDto? dto,
+        VendorRequestDto? dto,
         CancellationToken cancellationToken)
     {
         var route = ToVendorRoute(companySlug, vendorId);
@@ -119,7 +118,7 @@ public class VendorsController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _updateMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Vendor payload is required.");

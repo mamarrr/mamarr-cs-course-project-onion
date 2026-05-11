@@ -3,7 +3,7 @@ using App.DTO.v1.Portal.Residents;
 
 namespace App.DTO.v1.Mappers.Portal.Residents;
 
-public sealed class ResidentListItemApiMapper
+public class ResidentListItemApiMapper
 {
     public ResidentListItemDto Map(ResidentListItemModel model, string companySlug)
     {

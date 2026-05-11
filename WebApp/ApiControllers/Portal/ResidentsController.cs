@@ -4,6 +4,7 @@ using App.BLL.DTO.Residents;
 using App.DTO.v1.Common;
 using App.DTO.v1.Mappers.Portal.Residents;
 using App.DTO.v1.Portal.Residents;
+using App.DTO.v1.Shared;
 using Asp.Versioning;
 using Base.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,8 +20,7 @@ namespace WebApp.ApiControllers.Portal;
 public class ResidentsController : ApiControllerBase
 {
     private readonly IAppBLL _bll;
-    private readonly IBaseMapper<CreateResidentDto, ResidentBllDto> _createMapper;
-    private readonly IBaseMapper<UpdateResidentProfileDto, ResidentBllDto> _updateMapper;
+    private readonly IBaseMapper<ResidentRequestDto, ResidentBllDto> _requestMapper;
     private readonly ResidentListItemApiMapper _listItemMapper;
     private readonly ResidentProfileApiMapper _profileMapper;
 
@@ -29,8 +29,7 @@ public class ResidentsController : ApiControllerBase
         _bll = bll;
 
         var commandMapper = new ResidentApiMapper();
-        _createMapper = commandMapper;
-        _updateMapper = commandMapper;
+        _requestMapper = commandMapper;
         _listItemMapper = new ResidentListItemApiMapper();
         _profileMapper = new ResidentProfileApiMapper();
     }
@@ -66,7 +65,7 @@ public class ResidentsController : ApiControllerBase
     [ProducesResponseType(typeof(ResidentProfileDto), StatusCodes.Status201Created)]
     public async Task<ActionResult<ResidentProfileDto>> Create(
         string companySlug,
-        CreateResidentDto? dto,
+        ResidentRequestDto? dto,
         CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();
@@ -75,7 +74,7 @@ public class ResidentsController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _createMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Resident payload is required.");
@@ -123,7 +122,7 @@ public class ResidentsController : ApiControllerBase
     public async Task<ActionResult<ResidentProfileDto>> UpdateProfile(
         string companySlug,
         string residentIdCode,
-        UpdateResidentProfileDto? dto,
+        ResidentRequestDto? dto,
         CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();
@@ -132,7 +131,7 @@ public class ResidentsController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _updateMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Resident profile payload is required.");
@@ -155,7 +154,7 @@ public class ResidentsController : ApiControllerBase
     public async Task<ActionResult<CommandResultDto>> DeleteProfile(
         string companySlug,
         string residentIdCode,
-        DeleteResidentDto? dto,
+        DeleteConfirmationDto? dto,
         CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();

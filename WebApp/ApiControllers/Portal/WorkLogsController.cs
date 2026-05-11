@@ -19,9 +19,8 @@ namespace WebApp.ApiControllers.Portal;
 public class WorkLogsController : ApiControllerBase
 {
     private readonly IAppBLL _bll;
-    private readonly IBaseMapper<CreateWorkLogDto, WorkLogBllDto> _createMapper = new WorkLogApiMapper();
+    private readonly IBaseMapper<WorkLogRequestDto, WorkLogBllDto> _requestMapper = new WorkLogApiMapper();
     private readonly WorkLogListItemApiMapper _responseMapper = new();
-    private readonly IBaseMapper<UpdateWorkLogDto, WorkLogBllDto> _updateMapper = new WorkLogApiMapper();
 
     public WorkLogsController(IAppBLL bll)
     {
@@ -70,7 +69,7 @@ public class WorkLogsController : ApiControllerBase
         string companySlug,
         Guid ticketId,
         Guid scheduledWorkId,
-        CreateWorkLogDto? dto,
+        WorkLogRequestDto? dto,
         CancellationToken cancellationToken)
     {
         var route = ToScheduledWorkRoute(companySlug, ticketId, scheduledWorkId);
@@ -79,7 +78,7 @@ public class WorkLogsController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _createMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Work log payload is required.");
@@ -140,7 +139,7 @@ public class WorkLogsController : ApiControllerBase
         Guid ticketId,
         Guid scheduledWorkId,
         Guid workLogId,
-        UpdateWorkLogDto? dto,
+        WorkLogRequestDto? dto,
         CancellationToken cancellationToken)
     {
         var route = ToWorkLogRoute(companySlug, ticketId, scheduledWorkId, workLogId);
@@ -149,7 +148,7 @@ public class WorkLogsController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _updateMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Work log payload is required.");

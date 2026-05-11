@@ -3,7 +3,7 @@ using App.DTO.v1.Portal.Dashboards;
 
 namespace App.DTO.v1.Mappers.Portal.Dashboards;
 
-public sealed class PortalDashboardApiMapper
+public class PortalDashboardApiMapper
 {
     public ManagementDashboardDto Map(ManagementDashboardModel model)
     {

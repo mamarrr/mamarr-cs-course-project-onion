@@ -3,7 +3,7 @@ using App.DTO.v1.Portal.Residents;
 
 namespace App.DTO.v1.Mappers.Portal.Residents;
 
-public sealed class ResidentProfileApiMapper
+public class ResidentProfileApiMapper
 {
     public ResidentProfileDto Map(ResidentProfileModel model)
     {

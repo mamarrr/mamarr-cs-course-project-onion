@@ -3,7 +3,7 @@ using App.DTO.v1.Portal.Customers;
 
 namespace App.DTO.v1.Mappers.Portal.Customers;
 
-public sealed class CustomerListItemApiMapper
+public class CustomerListItemApiMapper
 {
     public CustomerListItemDto Map(CustomerListItemModel model)
     {

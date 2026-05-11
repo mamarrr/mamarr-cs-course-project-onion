@@ -1,6 +1,6 @@
 namespace App.DTO.v1.Portal.Units;
 
-public class CreateUnitDto
+public class UnitRequestDto
 {
     public string UnitNr { get; set; } = default!;
     public int? FloorNr { get; set; }

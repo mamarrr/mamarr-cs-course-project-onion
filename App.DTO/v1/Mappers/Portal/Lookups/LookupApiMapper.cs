@@ -4,7 +4,7 @@ using App.DTO.v1.Shared;
 
 namespace App.DTO.v1.Mappers.Portal.Lookups;
 
-public sealed class LookupApiMapper
+public class LookupApiMapper
 {
     public IReadOnlyList<LookupOptionDto> MapPropertyTypes(IReadOnlyList<PropertyTypeOptionModel> models)
     {
@@ -31,7 +31,7 @@ public sealed class LookupApiMapper
         return new LookupOptionDto
         {
             Id = model.Id,
-            Code = model.Code ?? string.Empty,
+            Code = model.Code,
             Label = model.Label
         };
     }

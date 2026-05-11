@@ -3,6 +3,7 @@ using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Properties;
 using App.DTO.v1.Mappers.Portal.Properties;
 using App.DTO.v1.Portal.Properties;
+using App.DTO.v1.Shared;
 using Asp.Versioning;
 using Base.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -152,7 +153,7 @@ public class PropertiesController : ApiControllerBase
         string companySlug,
         string customerSlug,
         string propertySlug,
-        DeletePropertyDto dto,
+        DeleteConfirmationDto? dto,
         CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();
@@ -163,7 +164,7 @@ public class PropertiesController : ApiControllerBase
 
         var result = await _bll.Properties.DeleteAsync(
             ToPropertyRoute(companySlug, customerSlug, propertySlug, appUserId.Value),
-            dto.ConfirmationName,
+            dto?.DeleteConfirmation ?? string.Empty,
             cancellationToken);
 
         return result.IsFailed

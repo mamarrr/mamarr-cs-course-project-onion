@@ -32,7 +32,7 @@ public class TicketsController : ApiControllerBase
     [ProducesResponseType(typeof(ManagementTicketsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ManagementTicketsDto>> Search(
         string companySlug,
-        [FromQuery] TicketSearchQueryDto query,
+        [FromQuery] TicketFilterDto query,
         CancellationToken cancellationToken)
     {
         var route = ToManagementSearchRoute(companySlug, query);
@@ -51,7 +51,7 @@ public class TicketsController : ApiControllerBase
     public async Task<ActionResult<ContextTicketsDto>> CustomerTickets(
         string companySlug,
         string customerSlug,
-        [FromQuery] TicketSearchQueryDto query,
+        [FromQuery] TicketFilterDto query,
         CancellationToken cancellationToken)
     {
         var route = ToContextSearchRoute(companySlug, query, customerSlug: customerSlug);
@@ -71,7 +71,7 @@ public class TicketsController : ApiControllerBase
         string companySlug,
         string customerSlug,
         string propertySlug,
-        [FromQuery] TicketSearchQueryDto query,
+        [FromQuery] TicketFilterDto query,
         CancellationToken cancellationToken)
     {
         var route = ToContextSearchRoute(
@@ -96,7 +96,7 @@ public class TicketsController : ApiControllerBase
         string customerSlug,
         string propertySlug,
         string unitSlug,
-        [FromQuery] TicketSearchQueryDto query,
+        [FromQuery] TicketFilterDto query,
         CancellationToken cancellationToken)
     {
         var route = ToContextSearchRoute(
@@ -120,7 +120,7 @@ public class TicketsController : ApiControllerBase
     public async Task<ActionResult<ContextTicketsDto>> ResidentTickets(
         string companySlug,
         string residentIdCode,
-        [FromQuery] TicketSearchQueryDto query,
+        [FromQuery] TicketFilterDto query,
         CancellationToken cancellationToken)
     {
         var route = ToContextSearchRoute(companySlug, query, residentIdCode: residentIdCode);
@@ -329,7 +329,7 @@ public class TicketsController : ApiControllerBase
 
     private ManagementTicketSearchRoute? ToManagementSearchRoute(
         string companySlug,
-        TicketSearchQueryDto query)
+        TicketFilterDto query)
     {
         var appUserId = GetAppUserId();
         return appUserId is null
@@ -354,7 +354,7 @@ public class TicketsController : ApiControllerBase
 
     private ContextTicketSearchRoute? ToContextSearchRoute(
         string companySlug,
-        TicketSearchQueryDto query,
+        TicketFilterDto query,
         string? customerSlug = null,
         string? propertySlug = null,
         string? unitSlug = null,

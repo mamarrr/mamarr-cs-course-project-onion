@@ -7,7 +7,7 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Vendors;
 
-public sealed class VendorCategoryApiMapper :
+public class VendorCategoryApiMapper :
     IBaseMapper<AssignVendorCategoryDto, VendorTicketCategoryBllDto>,
     IBaseMapper<UpdateVendorCategoryDto, VendorTicketCategoryBllDto>
 {
@@ -95,7 +95,7 @@ public sealed class VendorCategoryApiMapper :
         return new LookupOptionDto
         {
             Id = option.Id,
-            Code = option.Code ?? string.Empty,
+            Code = option.Code,
             Label = option.Label
         };
     }

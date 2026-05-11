@@ -4,6 +4,7 @@ using App.BLL.DTO.Units;
 using App.DTO.v1.Common;
 using App.DTO.v1.Mappers.Portal.Units;
 using App.DTO.v1.Portal.Units;
+using App.DTO.v1.Shared;
 using Asp.Versioning;
 using Base.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,8 +20,7 @@ namespace WebApp.ApiControllers.Portal;
 public class UnitsController : ApiControllerBase
 {
     private readonly IAppBLL _bll;
-    private readonly IBaseMapper<CreateUnitDto, UnitBllDto> _createMapper;
-    private readonly IBaseMapper<UpdateUnitProfileDto, UnitBllDto> _updateMapper;
+    private readonly IBaseMapper<UnitRequestDto, UnitBllDto> _requestMapper;
     private readonly UnitListItemApiMapper _listItemMapper;
     private readonly UnitProfileApiMapper _profileMapper;
 
@@ -29,8 +29,7 @@ public class UnitsController : ApiControllerBase
         _bll = bll;
 
         var commandMapper = new UnitApiMapper();
-        _createMapper = commandMapper;
-        _updateMapper = commandMapper;
+        _requestMapper = commandMapper;
         _listItemMapper = new UnitListItemApiMapper();
         _profileMapper = new UnitProfileApiMapper();
     }
@@ -74,7 +73,7 @@ public class UnitsController : ApiControllerBase
         string companySlug,
         string customerSlug,
         string propertySlug,
-        CreateUnitDto? dto,
+        UnitRequestDto? dto,
         CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();
@@ -83,7 +82,7 @@ public class UnitsController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _createMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Unit payload is required.");
@@ -135,7 +134,7 @@ public class UnitsController : ApiControllerBase
         string customerSlug,
         string propertySlug,
         string unitSlug,
-        UpdateUnitProfileDto? dto,
+        UnitRequestDto? dto,
         CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();
@@ -144,7 +143,7 @@ public class UnitsController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _updateMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Unit profile payload is required.");
@@ -169,7 +168,7 @@ public class UnitsController : ApiControllerBase
         string customerSlug,
         string propertySlug,
         string unitSlug,
-        DeleteUnitDto? dto,
+        DeleteConfirmationDto? dto,
         CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();

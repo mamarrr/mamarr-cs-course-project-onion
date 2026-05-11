@@ -4,7 +4,7 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Onboarding;
 
-public sealed class ManagementCompanyApiMapper
+public class ManagementCompanyApiMapper
     : IBaseMapper<CreateManagementCompanyDto, ManagementCompanyBllDto>
 {
     public CreateManagementCompanyDto? Map(ManagementCompanyBllDto? entity)

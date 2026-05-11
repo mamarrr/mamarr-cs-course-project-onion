@@ -1,6 +1,6 @@
 namespace App.DTO.v1.Portal.Customers;
 
-public class CreateCustomerDto
+public class CustomerRequestDto
 {
     public string Name { get; set; } = string.Empty;
     public string RegistryCode { get; set; } = string.Empty;

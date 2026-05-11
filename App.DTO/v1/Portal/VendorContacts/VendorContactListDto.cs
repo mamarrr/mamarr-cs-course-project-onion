@@ -1,3 +1,5 @@
+using App.DTO.v1.Shared;
+
 namespace App.DTO.v1.Portal.VendorContacts;
 
 public class VendorContactListDto
@@ -9,5 +11,5 @@ public class VendorContactListDto
     public string Path { get; set; } = string.Empty;
     public IReadOnlyList<VendorContactDto> Contacts { get; set; } = [];
     public IReadOnlyList<ExistingVendorContactOptionDto> ExistingContactOptions { get; set; } = [];
-    public IReadOnlyList<VendorContactTypeOptionDto> ContactTypeOptions { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> ContactTypeOptions { get; set; } = [];
 }

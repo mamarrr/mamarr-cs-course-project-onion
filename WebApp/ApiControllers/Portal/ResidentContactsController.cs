@@ -21,10 +21,9 @@ namespace WebApp.ApiControllers.Portal;
 public class ResidentContactsController : ApiControllerBase
 {
     private readonly IAppBLL _bll;
-    private readonly IBaseMapper<AttachExistingResidentContactDto, ResidentContactBllDto> _attachMapper;
+    private readonly IBaseMapper<ResidentContactAssignmentDto, ResidentContactBllDto> _assignmentMapper;
     private readonly IBaseMapper<CreateAndAttachResidentContactDto, ResidentContactBllDto> _createAssignmentMapper;
     private readonly IBaseMapper<CreateAndAttachResidentContactDto, ContactBllDto> _createContactMapper;
-    private readonly IBaseMapper<UpdateResidentContactDto, ResidentContactBllDto> _updateMapper;
     private readonly ResidentContactListApiMapper _listMapper = new();
 
     public ResidentContactsController(IAppBLL bll)
@@ -32,10 +31,9 @@ public class ResidentContactsController : ApiControllerBase
         _bll = bll;
 
         var commandMapper = new ResidentContactApiMapper();
-        _attachMapper = commandMapper;
+        _assignmentMapper = commandMapper;
         _createAssignmentMapper = commandMapper;
         _createContactMapper = commandMapper;
-        _updateMapper = commandMapper;
     }
 
     [HttpGet]
@@ -91,7 +89,7 @@ public class ResidentContactsController : ApiControllerBase
     public async Task<ActionResult<ResidentContactListDto>> AttachExisting(
         string companySlug,
         string residentIdCode,
-        AttachExistingResidentContactDto? dto,
+        ResidentContactAssignmentDto? dto,
         CancellationToken cancellationToken)
     {
         var route = ToResidentRoute(companySlug, residentIdCode);
@@ -100,7 +98,7 @@ public class ResidentContactsController : ApiControllerBase
             return route.Result;
         }
 
-        var bllDto = _attachMapper.Map(dto);
+        var bllDto = _assignmentMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Resident contact payload is required.");
@@ -146,7 +144,7 @@ public class ResidentContactsController : ApiControllerBase
         string companySlug,
         string residentIdCode,
         Guid residentContactId,
-        UpdateResidentContactDto? dto,
+        ResidentContactAssignmentDto? dto,
         CancellationToken cancellationToken)
     {
         var route = ToResidentContactRoute(companySlug, residentIdCode, residentContactId);
@@ -155,7 +153,7 @@ public class ResidentContactsController : ApiControllerBase
             return route.Result;
         }
 
-        var bllDto = _updateMapper.Map(dto);
+        var bllDto = _assignmentMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Resident contact payload is required.");

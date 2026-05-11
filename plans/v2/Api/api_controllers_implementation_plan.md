@@ -233,7 +233,7 @@ public class RestApiErrorResponse
 public class LookupOptionDto
 {
     public Guid Id { get; set; }
-    public string Code { get; set; } = string.Empty;
+    public string? Code { get; set; }
     public string Label { get; set; } = string.Empty;
 }
 
@@ -788,10 +788,9 @@ DELETE /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/profile
 
 ```text
 App.DTO/v1/Portal/Customers/CustomerListItemDto.cs
-App.DTO/v1/Portal/Customers/CreateCustomerDto.cs
+App.DTO/v1/Portal/Customers/CustomerRequestDto.cs
 App.DTO/v1/Portal/Customers/CustomerProfileDto.cs
-App.DTO/v1/Portal/Customers/UpdateCustomerProfileDto.cs
-App.DTO/v1/Portal/Customers/DeleteCustomerDto.cs
+App.DTO/v1/Shared/DeleteConfirmationDto.cs
 ```
 
 ### Mappers
@@ -805,8 +804,7 @@ App.DTO/v1/Mappers/Portal/Customers/CustomerProfileApiMapper.cs
 Use:
 
 ```csharp
-IBaseMapper<CreateCustomerDto, CustomerBllDto>
-IBaseMapper<UpdateCustomerProfileDto, CustomerBllDto>
+IBaseMapper<CustomerRequestDto, CustomerBllDto>
 ```
 
 ### Implementation tasks
@@ -851,7 +849,7 @@ App.DTO/v1/Portal/Properties/PropertyListItemDto.cs
 App.DTO/v1/Portal/Properties/CreatePropertyDto.cs
 App.DTO/v1/Portal/Properties/PropertyProfileDto.cs
 App.DTO/v1/Portal/Properties/UpdatePropertyProfileDto.cs
-App.DTO/v1/Portal/Properties/DeletePropertyDto.cs
+App.DTO/v1/Shared/DeleteConfirmationDto.cs
 ```
 
 ### Mappers
@@ -902,10 +900,9 @@ DELETE /api/v1/portal/companies/{companySlug}/customers/{customerSlug}/propertie
 
 ```text
 App.DTO/v1/Portal/Units/UnitListItemDto.cs
-App.DTO/v1/Portal/Units/CreateUnitDto.cs
+App.DTO/v1/Portal/Units/UnitRequestDto.cs
 App.DTO/v1/Portal/Units/UnitProfileDto.cs
-App.DTO/v1/Portal/Units/UpdateUnitProfileDto.cs
-App.DTO/v1/Portal/Units/DeleteUnitDto.cs
+App.DTO/v1/Shared/DeleteConfirmationDto.cs
 ```
 
 ### Mappers
@@ -919,8 +916,7 @@ App.DTO/v1/Mappers/Portal/Units/UnitProfileApiMapper.cs
 Use:
 
 ```csharp
-IBaseMapper<CreateUnitDto, UnitBllDto>
-IBaseMapper<UpdateUnitProfileDto, UnitBllDto>
+IBaseMapper<UnitRequestDto, UnitBllDto>
 ```
 
 ### Implementation tasks
@@ -928,17 +924,17 @@ IBaseMapper<UpdateUnitProfileDto, UnitBllDto>
 1. List units:
    - Call `_bll.Units.ListForPropertyAsync(...)`.
 2. Create unit:
-   - Map `CreateUnitDto` -> `UnitBllDto`.
+   - Map `UnitRequestDto` -> `UnitBllDto`.
    - Call `_bll.Units.CreateAndGetProfileAsync(...)`.
    - Return `201 Created` with profile data and `path`.
 3. Get unit profile:
    - Call `_bll.Units.GetProfileAsync(...)`.
 4. Update unit profile:
-   - Map `UpdateUnitProfileDto` -> `UnitBllDto`.
+   - Map `UnitRequestDto` -> `UnitBllDto`.
    - Call `_bll.Units.UpdateAndGetProfileAsync(...)`.
    - Return updated profile data and `path` because the unit slug can change.
 5. Delete unit:
-   - Use `DeleteUnitDto.DeleteConfirmation`.
+   - Use `DeleteConfirmationDto.DeleteConfirmation`.
    - Call `_bll.Units.DeleteAsync(...)`.
 
 ---
@@ -966,10 +962,9 @@ DELETE /api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/profile
 
 ```text
 App.DTO/v1/Portal/Residents/ResidentListItemDto.cs
-App.DTO/v1/Portal/Residents/CreateResidentDto.cs
+App.DTO/v1/Portal/Residents/ResidentRequestDto.cs
 App.DTO/v1/Portal/Residents/ResidentProfileDto.cs
-App.DTO/v1/Portal/Residents/UpdateResidentProfileDto.cs
-App.DTO/v1/Portal/Residents/DeleteResidentDto.cs
+App.DTO/v1/Shared/DeleteConfirmationDto.cs
 ```
 
 ### Mappers
@@ -983,8 +978,7 @@ App.DTO/v1/Mappers/Portal/Residents/ResidentProfileApiMapper.cs
 Use:
 
 ```csharp
-IBaseMapper<CreateResidentDto, ResidentBllDto>
-IBaseMapper<UpdateResidentProfileDto, ResidentBllDto>
+IBaseMapper<ResidentRequestDto, ResidentBllDto>
 ```
 
 ### Implementation tasks
@@ -992,17 +986,17 @@ IBaseMapper<UpdateResidentProfileDto, ResidentBllDto>
 1. List residents:
    - Call `_bll.Residents.ListForCompanyAsync(...)`.
 2. Create resident:
-   - Map `CreateResidentDto` -> `ResidentBllDto`.
+   - Map `ResidentRequestDto` -> `ResidentBllDto`.
    - Call `_bll.Residents.CreateAndGetProfileAsync(...)`.
    - Return `201 Created` with profile data and `path`.
 3. Get resident profile:
    - Call `_bll.Residents.GetProfileAsync(...)`.
 4. Update resident profile:
-   - Map `UpdateResidentProfileDto` -> `ResidentBllDto`.
+   - Map `ResidentRequestDto` -> `ResidentBllDto`.
    - Call `_bll.Residents.UpdateAndGetProfileAsync(...)`.
    - Return updated profile data and `path` because the resident id code can change.
 5. Delete resident:
-   - Use `DeleteResidentDto.DeleteConfirmation`.
+   - Use `DeleteConfirmationDto.DeleteConfirmation`.
    - Call `_bll.Residents.DeleteAsync(...)`.
 
 ---
@@ -1139,12 +1133,12 @@ App.DTO/v1/Portal/Contacts/ResidentContactListDto.cs
 App.DTO/v1/Portal/Contacts/ResidentContactAssignmentDto.cs
 App.DTO/v1/Portal/Contacts/AttachResidentContactDto.cs
 App.DTO/v1/Portal/Contacts/CreateResidentContactDto.cs
-App.DTO/v1/Portal/Contacts/UpdateResidentContactDto.cs
+App.DTO/v1/Portal/Contacts/ResidentContactAssignmentDto.cs
 App.DTO/v1/Portal/Contacts/VendorContactListDto.cs
 App.DTO/v1/Portal/Contacts/VendorContactAssignmentDto.cs
 App.DTO/v1/Portal/Contacts/AttachVendorContactDto.cs
 App.DTO/v1/Portal/Contacts/CreateVendorContactDto.cs
-App.DTO/v1/Portal/Contacts/UpdateVendorContactDto.cs
+App.DTO/v1/Portal/VendorContacts/VendorContactAssignmentDto.cs
 ```
 
 `ResidentContactListDto` and `VendorContactListDto` must include:
@@ -1167,9 +1161,9 @@ Use where possible:
 ```csharp
 IBaseMapper<CreateContactDto, ContactBllDto>
 IBaseMapper<AttachResidentContactDto, ResidentContactBllDto>
-IBaseMapper<UpdateResidentContactDto, ResidentContactBllDto>
+IBaseMapper<ResidentContactAssignmentDto, ResidentContactBllDto>
 IBaseMapper<AttachVendorContactDto, VendorContactBllDto>
-IBaseMapper<UpdateVendorContactDto, VendorContactBllDto>
+IBaseMapper<VendorContactAssignmentDto, VendorContactBllDto>
 ```
 
 ### Implementation tasks
@@ -1331,8 +1325,7 @@ App.DTO/v1/Portal/ScheduledWork/ScheduledWorkListItemDto.cs
 App.DTO/v1/Portal/ScheduledWork/ScheduledWorkDetailsDto.cs
 App.DTO/v1/Portal/ScheduledWork/ScheduledWorkFormDto.cs
 App.DTO/v1/Portal/ScheduledWork/ScheduledWorkDto.cs
-App.DTO/v1/Portal/ScheduledWork/CreateScheduledWorkDto.cs
-App.DTO/v1/Portal/ScheduledWork/UpdateScheduledWorkDto.cs
+App.DTO/v1/Portal/ScheduledWork/ScheduledWorkRequestDto.cs
 App.DTO/v1/Portal/ScheduledWork/ScheduledWorkActionDto.cs
 ```
 
@@ -1347,8 +1340,7 @@ App.DTO/v1/Mappers/Portal/ScheduledWork/ScheduledWorkDetailsApiMapper.cs
 Use:
 
 ```csharp
-IBaseMapper<CreateScheduledWorkDto, ScheduledWorkBllDto>
-IBaseMapper<UpdateScheduledWorkDto, ScheduledWorkBllDto>
+IBaseMapper<ScheduledWorkRequestDto, ScheduledWorkBllDto>
 ```
 
 ### Implementation tasks
@@ -1359,14 +1351,14 @@ IBaseMapper<UpdateScheduledWorkDto, ScheduledWorkBllDto>
    - Call `_bll.ScheduledWorks.GetCreateFormAsync(TicketRoute, ...)`.
    - Return create defaults plus vendor and work-status options.
 3. Schedule:
-   - Map `CreateScheduledWorkDto` -> `ScheduledWorkBllDto`.
+   - Map `ScheduledWorkRequestDto` -> `ScheduledWorkBllDto`.
    - Call `_bll.ScheduledWorks.ScheduleAsync(TicketRoute, dto, ...)`.
 4. Details:
    - Call `_bll.ScheduledWorks.GetDetailsAsync(ScheduledWorkRoute, ...)`.
 5. Edit form:
    - Call `_bll.ScheduledWorks.GetEditFormAsync(ScheduledWorkRoute, ...)`.
 6. Update:
-   - Map `UpdateScheduledWorkDto` -> `ScheduledWorkBllDto`.
+   - Map `ScheduledWorkRequestDto` -> `ScheduledWorkBllDto`.
    - Call `_bll.ScheduledWorks.UpdateScheduleAsync(ScheduledWorkRoute, dto, ...)`.
 7. Delete:
    - Call `_bll.ScheduledWorks.DeleteAsync(ScheduledWorkRoute, ...)`.
@@ -1413,8 +1405,7 @@ App.DTO/v1/Portal/WorkLogs/WorkLogListDto.cs
 App.DTO/v1/Portal/WorkLogs/WorkLogFormDto.cs
 App.DTO/v1/Portal/WorkLogs/WorkLogDeleteDto.cs
 App.DTO/v1/Portal/WorkLogs/WorkLogDto.cs
-App.DTO/v1/Portal/WorkLogs/CreateWorkLogDto.cs
-App.DTO/v1/Portal/WorkLogs/UpdateWorkLogDto.cs
+App.DTO/v1/Portal/WorkLogs/WorkLogRequestDto.cs
 ```
 
 ### Mappers
@@ -1427,8 +1418,7 @@ App.DTO/v1/Mappers/Portal/WorkLogs/WorkLogListItemApiMapper.cs
 Use:
 
 ```csharp
-IBaseMapper<CreateWorkLogDto, WorkLogBllDto>
-IBaseMapper<UpdateWorkLogDto, WorkLogBllDto>
+IBaseMapper<WorkLogRequestDto, WorkLogBllDto>
 ```
 
 ### Implementation tasks
@@ -1439,14 +1429,14 @@ IBaseMapper<UpdateWorkLogDto, WorkLogBllDto>
 2. Create form:
    - Call `_bll.WorkLogs.GetCreateFormAsync(ScheduledWorkRoute, ...)`.
 3. Add:
-   - Map `CreateWorkLogDto` -> `WorkLogBllDto`.
+   - Map `WorkLogRequestDto` -> `WorkLogBllDto`.
    - Call `_bll.WorkLogs.AddAsync(ScheduledWorkRoute, dto, ...)`.
 4. Edit form:
    - Call `_bll.WorkLogs.GetEditFormAsync(WorkLogRoute, ...)`.
 5. Delete model:
    - Call `_bll.WorkLogs.GetDeleteModelAsync(WorkLogRoute, ...)`.
 6. Update:
-   - Map `UpdateWorkLogDto` -> `WorkLogBllDto`.
+   - Map `WorkLogRequestDto` -> `WorkLogBllDto`.
    - Call `_bll.WorkLogs.UpdateAsync(WorkLogRoute, dto, ...)`.
 7. Delete:
    - Call `_bll.WorkLogs.DeleteAsync(WorkLogRoute, ...)`.
@@ -1482,8 +1472,7 @@ DELETE /api/v1/portal/companies/{companySlug}/vendors/{vendorId:guid}/categories
 App.DTO/v1/Portal/Vendors/VendorListItemDto.cs
 App.DTO/v1/Portal/Vendors/VendorProfileDto.cs
 App.DTO/v1/Portal/Vendors/VendorDto.cs
-App.DTO/v1/Portal/Vendors/CreateVendorDto.cs
-App.DTO/v1/Portal/Vendors/UpdateVendorDto.cs
+App.DTO/v1/Portal/Vendors/VendorRequestDto.cs
 App.DTO/v1/Portal/Vendors/DeleteVendorDto.cs
 App.DTO/v1/Portal/Vendors/VendorCategoryAssignmentListDto.cs
 App.DTO/v1/Portal/Vendors/VendorCategoryAssignmentDto.cs
@@ -1505,8 +1494,7 @@ App.DTO/v1/Mappers/Portal/Vendors/VendorCategoryApiMapper.cs
 Use:
 
 ```csharp
-IBaseMapper<CreateVendorDto, VendorBllDto>
-IBaseMapper<UpdateVendorDto, VendorBllDto>
+IBaseMapper<VendorRequestDto, VendorBllDto>
 IBaseMapper<AssignVendorCategoryDto, VendorTicketCategoryBllDto>
 IBaseMapper<UpdateVendorCategoryDto, VendorTicketCategoryBllDto>
 ```
@@ -1516,13 +1504,13 @@ IBaseMapper<UpdateVendorCategoryDto, VendorTicketCategoryBllDto>
 1. List vendors:
    - Call `_bll.Vendors.ListForCompanyAsync(...)`.
 2. Create vendor:
-   - Map `CreateVendorDto` -> `VendorBllDto`.
+   - Map `VendorRequestDto` -> `VendorBllDto`.
    - Call `_bll.Vendors.CreateAndGetProfileAsync(...)`.
    - Return `201 Created` with profile data and `path`.
 3. Details/profile:
    - Call `_bll.Vendors.GetProfileAsync(...)`.
 4. Update vendor:
-   - Map `UpdateVendorDto` -> `VendorBllDto`.
+   - Map `VendorRequestDto` -> `VendorBllDto`.
    - Call `_bll.Vendors.UpdateAndGetProfileAsync(...)`.
 5. Delete vendor:
    - Use `DeleteVendorDto.ConfirmationRegistryCode`.
@@ -1706,7 +1694,7 @@ Each controller action should follow this pattern:
 [HttpPost]
 public async Task<ActionResult<CustomerProfileDto>> Create(
     string companySlug,
-    CreateCustomerDto dto,
+    CustomerRequestDto dto,
     CancellationToken cancellationToken)
 {
     var appUserId = GetAppUserId();

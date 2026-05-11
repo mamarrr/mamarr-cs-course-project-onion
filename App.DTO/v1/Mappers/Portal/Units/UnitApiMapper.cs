@@ -4,15 +4,14 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Units;
 
-public sealed class UnitApiMapper :
-    IBaseMapper<CreateUnitDto, UnitBllDto>,
-    IBaseMapper<UpdateUnitProfileDto, UnitBllDto>
+public class UnitApiMapper :
+    IBaseMapper<UnitRequestDto, UnitBllDto>
 {
-    CreateUnitDto? IBaseMapper<CreateUnitDto, UnitBllDto>.Map(UnitBllDto? entity)
+    public UnitRequestDto? Map(UnitBllDto? entity)
     {
         return entity is null
             ? null
-            : new CreateUnitDto
+            : new UnitRequestDto
             {
                 UnitNr = entity.UnitNr,
                 FloorNr = entity.FloorNr,
@@ -21,33 +20,7 @@ public sealed class UnitApiMapper :
             };
     }
 
-    UnitBllDto? IBaseMapper<CreateUnitDto, UnitBllDto>.Map(CreateUnitDto? entity)
-    {
-        return entity is null
-            ? null
-            : new UnitBllDto
-            {
-                UnitNr = entity.UnitNr,
-                FloorNr = entity.FloorNr,
-                SizeM2 = entity.SizeM2,
-                Notes = entity.Notes
-            };
-    }
-
-    UpdateUnitProfileDto? IBaseMapper<UpdateUnitProfileDto, UnitBllDto>.Map(UnitBllDto? entity)
-    {
-        return entity is null
-            ? null
-            : new UpdateUnitProfileDto
-            {
-                UnitNr = entity.UnitNr,
-                FloorNr = entity.FloorNr,
-                SizeM2 = entity.SizeM2,
-                Notes = entity.Notes
-            };
-    }
-
-    UnitBllDto? IBaseMapper<UpdateUnitProfileDto, UnitBllDto>.Map(UpdateUnitProfileDto? entity)
+    public UnitBllDto? Map(UnitRequestDto? entity)
     {
         return entity is null
             ? null

@@ -4,7 +4,7 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Users;
 
-public sealed class OwnershipTransferApiMapper :
+public class OwnershipTransferApiMapper :
     IBaseMapper<TransferOwnershipDto, TransferOwnershipRequest>
 {
     public OwnershipTransferCandidateDto? Map(OwnershipTransferCandidate? entity)

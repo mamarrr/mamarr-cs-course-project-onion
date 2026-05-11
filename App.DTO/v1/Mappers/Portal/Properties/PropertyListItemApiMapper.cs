@@ -3,7 +3,7 @@ using App.DTO.v1.Portal.Properties;
 
 namespace App.DTO.v1.Mappers.Portal.Properties;
 
-public sealed class PropertyListItemApiMapper
+public class PropertyListItemApiMapper
 {
     public PropertyListItemDto Map(PropertyListItemModel model)
     {

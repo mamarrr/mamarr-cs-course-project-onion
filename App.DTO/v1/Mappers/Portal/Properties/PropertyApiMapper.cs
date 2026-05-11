@@ -4,7 +4,7 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Properties;
 
-public sealed class PropertyApiMapper :
+public class PropertyApiMapper :
     IBaseMapper<CreatePropertyDto, PropertyBllDto>,
     IBaseMapper<UpdatePropertyProfileDto, PropertyBllDto>
 {

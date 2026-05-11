@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace WebApp.UI.PortalContext;
 
-public sealed class PortalFeatureViewLocationExpander : IViewLocationExpander
+public class PortalFeatureViewLocationExpander : IViewLocationExpander
 {
     private const string FeatureKey = "portalFeature";
 

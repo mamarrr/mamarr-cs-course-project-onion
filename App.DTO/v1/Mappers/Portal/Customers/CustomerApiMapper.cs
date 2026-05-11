@@ -4,11 +4,10 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Customers;
 
-public sealed class CustomerApiMapper :
-    IBaseMapper<CreateCustomerDto, CustomerBllDto>,
-    IBaseMapper<UpdateCustomerProfileDto, CustomerBllDto>
+public class CustomerApiMapper :
+    IBaseMapper<CustomerRequestDto, CustomerBllDto>
 {
-    public CustomerBllDto? Map(CreateCustomerDto? entity)
+    public CustomerBllDto? Map(CustomerRequestDto? entity)
     {
         return entity is null
             ? null
@@ -22,39 +21,11 @@ public sealed class CustomerApiMapper :
             };
     }
 
-    public CustomerBllDto? Map(UpdateCustomerProfileDto? entity)
+    public CustomerRequestDto? Map(CustomerBllDto? entity)
     {
         return entity is null
             ? null
-            : new CustomerBllDto
-            {
-                Name = entity.Name,
-                RegistryCode = entity.RegistryCode,
-                BillingEmail = entity.BillingEmail,
-                BillingAddress = entity.BillingAddress,
-                Phone = entity.Phone
-            };
-    }
-
-    CreateCustomerDto? IBaseMapper<CreateCustomerDto, CustomerBllDto>.Map(CustomerBllDto? entity)
-    {
-        return entity is null
-            ? null
-            : new CreateCustomerDto
-            {
-                Name = entity.Name,
-                RegistryCode = entity.RegistryCode,
-                BillingEmail = entity.BillingEmail,
-                BillingAddress = entity.BillingAddress,
-                Phone = entity.Phone
-            };
-    }
-
-    UpdateCustomerProfileDto? IBaseMapper<UpdateCustomerProfileDto, CustomerBllDto>.Map(CustomerBllDto? entity)
-    {
-        return entity is null
-            ? null
-            : new UpdateCustomerProfileDto
+            : new CustomerRequestDto
             {
                 Name = entity.Name,
                 RegistryCode = entity.RegistryCode,

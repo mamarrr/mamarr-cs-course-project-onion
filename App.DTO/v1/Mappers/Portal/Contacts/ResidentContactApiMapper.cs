@@ -5,13 +5,12 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Contacts;
 
-public sealed class ResidentContactApiMapper :
-    IBaseMapper<AttachExistingResidentContactDto, ResidentContactBllDto>,
+public class ResidentContactApiMapper :
+    IBaseMapper<ResidentContactAssignmentDto, ResidentContactBllDto>,
     IBaseMapper<CreateAndAttachResidentContactDto, ResidentContactBllDto>,
-    IBaseMapper<CreateAndAttachResidentContactDto, ContactBllDto>,
-    IBaseMapper<UpdateResidentContactDto, ResidentContactBllDto>
+    IBaseMapper<CreateAndAttachResidentContactDto, ContactBllDto>
 {
-    public ResidentContactBllDto? Map(AttachExistingResidentContactDto? entity)
+    public ResidentContactBllDto? Map(ResidentContactAssignmentDto? entity)
     {
         return entity is null
             ? null
@@ -52,26 +51,12 @@ public sealed class ResidentContactApiMapper :
             };
     }
 
-    public ResidentContactBllDto? Map(UpdateResidentContactDto? entity)
-    {
-        return entity is null
-            ? null
-            : new ResidentContactBllDto
-            {
-                ContactId = entity.ContactId,
-                ValidFrom = entity.ValidFrom,
-                ValidTo = entity.ValidTo,
-                Confirmed = entity.Confirmed,
-                IsPrimary = entity.IsPrimary
-            };
-    }
-
-    AttachExistingResidentContactDto? IBaseMapper<AttachExistingResidentContactDto, ResidentContactBllDto>.Map(
+    ResidentContactAssignmentDto? IBaseMapper<ResidentContactAssignmentDto, ResidentContactBllDto>.Map(
         ResidentContactBllDto? entity)
     {
         return entity is null
             ? null
-            : new AttachExistingResidentContactDto
+            : new ResidentContactAssignmentDto
             {
                 ContactId = entity.ContactId,
                 ValidFrom = entity.ValidFrom,
@@ -108,19 +93,4 @@ public sealed class ResidentContactApiMapper :
             };
     }
 
-    UpdateResidentContactDto? IBaseMapper<UpdateResidentContactDto, ResidentContactBllDto>.Map(
-        ResidentContactBllDto? entity)
-    {
-        return entity is null
-            ? null
-            : new UpdateResidentContactDto
-            {
-                ContactId = entity.ContactId,
-                ValidFrom = entity.ValidFrom,
-                ValidTo = entity.ValidTo,
-                Confirmed = entity.Confirmed,
-                IsPrimary = entity.IsPrimary
-            };
-    }
 }
-

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace App.DTO.v1.Portal.ScheduledWork;
 
-public class UpdateScheduledWorkDto
+public class ScheduledWorkRequestDto
 {
     public Guid VendorId { get; set; }
     public Guid WorkStatusId { get; set; }

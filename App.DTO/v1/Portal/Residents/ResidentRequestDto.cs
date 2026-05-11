@@ -1,6 +1,6 @@
 namespace App.DTO.v1.Portal.Residents;
 
-public class CreateResidentDto
+public class ResidentRequestDto
 {
     public string FirstName { get; set; } = default!;
     public string LastName { get; set; } = default!;

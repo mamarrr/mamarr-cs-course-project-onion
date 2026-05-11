@@ -1,10 +1,11 @@
 using App.BLL.DTO.ScheduledWorks.Models;
 using App.BLL.DTO.Tickets.Models;
 using App.DTO.v1.Portal.ScheduledWork;
+using App.DTO.v1.Shared;
 
 namespace App.DTO.v1.Mappers.Portal.ScheduledWork;
 
-public sealed class ScheduledWorkDetailsApiMapper
+public class ScheduledWorkDetailsApiMapper
 {
     private readonly ScheduledWorkListItemApiMapper _listItemMapper = new();
 
@@ -61,10 +62,10 @@ public sealed class ScheduledWorkDetailsApiMapper
         };
     }
 
-    private static IReadOnlyList<ScheduledWorkOptionDto> MapOptions(IReadOnlyList<TicketOptionModel> options)
+    private static IReadOnlyList<LookupOptionDto> MapOptions(IReadOnlyList<TicketOptionModel> options)
     {
         return options
-            .Select(option => new ScheduledWorkOptionDto
+            .Select(option => new LookupOptionDto
             {
                 Id = option.Id,
                 Label = option.Label,

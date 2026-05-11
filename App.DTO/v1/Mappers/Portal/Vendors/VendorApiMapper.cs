@@ -4,15 +4,14 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Vendors;
 
-public sealed class VendorApiMapper :
-    IBaseMapper<CreateVendorDto, VendorBllDto>,
-    IBaseMapper<UpdateVendorDto, VendorBllDto>
+public class VendorApiMapper :
+    IBaseMapper<VendorRequestDto, VendorBllDto>
 {
-    CreateVendorDto? IBaseMapper<CreateVendorDto, VendorBllDto>.Map(VendorBllDto? entity)
+    public VendorRequestDto? Map(VendorBllDto? entity)
     {
         return entity is null
             ? null
-            : new CreateVendorDto
+            : new VendorRequestDto
             {
                 Name = entity.Name,
                 RegistryCode = entity.RegistryCode,
@@ -20,24 +19,7 @@ public sealed class VendorApiMapper :
             };
     }
 
-    VendorBllDto? IBaseMapper<CreateVendorDto, VendorBllDto>.Map(CreateVendorDto? entity)
-    {
-        return entity is null ? null : MapCommand(entity.Name, entity.RegistryCode, entity.Notes);
-    }
-
-    UpdateVendorDto? IBaseMapper<UpdateVendorDto, VendorBllDto>.Map(VendorBllDto? entity)
-    {
-        return entity is null
-            ? null
-            : new UpdateVendorDto
-            {
-                Name = entity.Name,
-                RegistryCode = entity.RegistryCode,
-                Notes = entity.Notes
-            };
-    }
-
-    VendorBllDto? IBaseMapper<UpdateVendorDto, VendorBllDto>.Map(UpdateVendorDto? entity)
+    public VendorBllDto? Map(VendorRequestDto? entity)
     {
         return entity is null ? null : MapCommand(entity.Name, entity.RegistryCode, entity.Notes);
     }

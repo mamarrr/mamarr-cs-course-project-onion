@@ -1,6 +1,6 @@
 namespace App.DTO.v1.Portal.VendorContacts;
 
-public class UpdateVendorContactDto : VendorContactMetadataDto
+public class VendorContactAssignmentDto : VendorContactMetadataDto
 {
     public Guid ContactId { get; set; }
 }

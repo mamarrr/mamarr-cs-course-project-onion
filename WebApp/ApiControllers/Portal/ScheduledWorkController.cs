@@ -19,8 +19,8 @@ namespace WebApp.ApiControllers.Portal;
 public class ScheduledWorkController : ApiControllerBase
 {
     private readonly IAppBLL _bll;
-    private readonly IBaseMapper<CreateScheduledWorkDto, ScheduledWorkBllDto> _createMapper = new ScheduledWorkApiMapper();
-    private readonly IBaseMapper<UpdateScheduledWorkDto, ScheduledWorkBllDto> _updateMapper = new ScheduledWorkApiMapper();
+    private readonly IBaseMapper<ScheduledWorkRequestDto, ScheduledWorkBllDto> _requestMapper =
+        new ScheduledWorkApiMapper();
     private readonly ScheduledWorkApiMapper _commandResponseMapper = new();
     private readonly ScheduledWorkDetailsApiMapper _detailsMapper = new();
     private readonly ScheduledWorkListItemApiMapper _listMapper = new();
@@ -69,7 +69,7 @@ public class ScheduledWorkController : ApiControllerBase
     public async Task<ActionResult<ScheduledWorkDto>> Schedule(
         string companySlug,
         Guid ticketId,
-        CreateScheduledWorkDto? dto,
+        ScheduledWorkRequestDto? dto,
         CancellationToken cancellationToken)
     {
         var route = ToTicketRoute(companySlug, ticketId);
@@ -78,7 +78,7 @@ public class ScheduledWorkController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _createMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Scheduled work payload is required.");
@@ -136,7 +136,7 @@ public class ScheduledWorkController : ApiControllerBase
         string companySlug,
         Guid ticketId,
         Guid scheduledWorkId,
-        UpdateScheduledWorkDto? dto,
+        ScheduledWorkRequestDto? dto,
         CancellationToken cancellationToken)
     {
         var route = ToScheduledWorkRoute(companySlug, ticketId, scheduledWorkId);
@@ -145,7 +145,7 @@ public class ScheduledWorkController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _updateMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Scheduled work payload is required.");

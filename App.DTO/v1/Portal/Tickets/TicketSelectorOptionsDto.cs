@@ -1,13 +1,15 @@
+using App.DTO.v1.Shared;
+
 namespace App.DTO.v1.Portal.Tickets;
 
 public class TicketSelectorOptionsDto
 {
-    public IReadOnlyList<TicketOptionDto> Statuses { get; set; } = [];
-    public IReadOnlyList<TicketOptionDto> Priorities { get; set; } = [];
-    public IReadOnlyList<TicketOptionDto> Categories { get; set; } = [];
-    public IReadOnlyList<TicketOptionDto> Customers { get; set; } = [];
-    public IReadOnlyList<TicketOptionDto> Properties { get; set; } = [];
-    public IReadOnlyList<TicketOptionDto> Units { get; set; } = [];
-    public IReadOnlyList<TicketOptionDto> Residents { get; set; } = [];
-    public IReadOnlyList<TicketOptionDto> Vendors { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> Statuses { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> Priorities { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> Categories { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> Customers { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> Properties { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> Units { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> Residents { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> Vendors { get; set; } = [];
 }

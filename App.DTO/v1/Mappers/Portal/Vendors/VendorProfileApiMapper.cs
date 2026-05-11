@@ -3,7 +3,7 @@ using App.DTO.v1.Portal.Vendors;
 
 namespace App.DTO.v1.Mappers.Portal.Vendors;
 
-public sealed class VendorProfileApiMapper
+public class VendorProfileApiMapper
 {
     public VendorProfileDto Map(VendorProfileModel model)
     {

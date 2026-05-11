@@ -3,7 +3,7 @@ using App.DTO.v1.Portal.ScheduledWork;
 
 namespace App.DTO.v1.Mappers.Portal.ScheduledWork;
 
-public sealed class ScheduledWorkListItemApiMapper
+public class ScheduledWorkListItemApiMapper
 {
     public ScheduledWorkListDto Map(ScheduledWorkListModel model)
     {

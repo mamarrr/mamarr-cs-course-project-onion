@@ -1,6 +1,6 @@
 namespace WebApp.UI.PortalContext;
 
-public sealed class PortalRouteContext
+public class PortalRouteContext
 {
     public Guid? AppUserId { get; init; }
     public string? CompanySlug { get; init; }

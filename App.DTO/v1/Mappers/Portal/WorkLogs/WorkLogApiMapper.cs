@@ -4,11 +4,10 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.WorkLogs;
 
-public sealed class WorkLogApiMapper :
-    IBaseMapper<CreateWorkLogDto, WorkLogBllDto>,
-    IBaseMapper<UpdateWorkLogDto, WorkLogBllDto>
+public class WorkLogApiMapper :
+    IBaseMapper<WorkLogRequestDto, WorkLogBllDto>
 {
-    public WorkLogBllDto? Map(CreateWorkLogDto? entity)
+    public WorkLogBllDto? Map(WorkLogRequestDto? entity)
     {
         return entity is null
             ? null
@@ -23,41 +22,11 @@ public sealed class WorkLogApiMapper :
             };
     }
 
-    public WorkLogBllDto? Map(UpdateWorkLogDto? entity)
+    public WorkLogRequestDto? Map(WorkLogBllDto? entity)
     {
         return entity is null
             ? null
-            : new WorkLogBllDto
-            {
-                WorkStart = entity.WorkStart,
-                WorkEnd = entity.WorkEnd,
-                Hours = entity.Hours,
-                MaterialCost = entity.MaterialCost,
-                LaborCost = entity.LaborCost,
-                Description = entity.Description
-            };
-    }
-
-    CreateWorkLogDto? IBaseMapper<CreateWorkLogDto, WorkLogBllDto>.Map(WorkLogBllDto? entity)
-    {
-        return entity is null
-            ? null
-            : new CreateWorkLogDto
-            {
-                WorkStart = entity.WorkStart,
-                WorkEnd = entity.WorkEnd,
-                Hours = entity.Hours,
-                MaterialCost = entity.MaterialCost,
-                LaborCost = entity.LaborCost,
-                Description = entity.Description
-            };
-    }
-
-    UpdateWorkLogDto? IBaseMapper<UpdateWorkLogDto, WorkLogBllDto>.Map(WorkLogBllDto? entity)
-    {
-        return entity is null
-            ? null
-            : new UpdateWorkLogDto
+            : new WorkLogRequestDto
             {
                 WorkStart = entity.WorkStart,
                 WorkEnd = entity.WorkEnd,

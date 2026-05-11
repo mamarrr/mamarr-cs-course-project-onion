@@ -19,10 +19,9 @@ namespace WebApp.ApiControllers.Portal;
 public class VendorContactsController : ApiControllerBase
 {
     private readonly IAppBLL _bll;
-    private readonly IBaseMapper<AttachExistingVendorContactDto, VendorContactBllDto> _attachMapper;
+    private readonly IBaseMapper<VendorContactAssignmentDto, VendorContactBllDto> _assignmentMapper;
     private readonly IBaseMapper<CreateAndAttachVendorContactDto, VendorContactBllDto> _createAssignmentMapper;
     private readonly IBaseMapper<CreateAndAttachVendorContactDto, ContactBllDto> _createContactMapper;
-    private readonly IBaseMapper<UpdateVendorContactDto, VendorContactBllDto> _updateMapper;
     private readonly VendorContactListApiMapper _listMapper = new();
 
     public VendorContactsController(IAppBLL bll)
@@ -30,10 +29,9 @@ public class VendorContactsController : ApiControllerBase
         _bll = bll;
 
         var commandMapper = new VendorContactApiMapper();
-        _attachMapper = commandMapper;
+        _assignmentMapper = commandMapper;
         _createAssignmentMapper = commandMapper;
         _createContactMapper = commandMapper;
-        _updateMapper = commandMapper;
     }
 
     [HttpGet]
@@ -82,7 +80,7 @@ public class VendorContactsController : ApiControllerBase
     public async Task<ActionResult<VendorContactListDto>> AttachExisting(
         string companySlug,
         Guid vendorId,
-        AttachExistingVendorContactDto? dto,
+        VendorContactAssignmentDto? dto,
         CancellationToken cancellationToken)
     {
         var route = ToVendorRoute(companySlug, vendorId);
@@ -91,7 +89,7 @@ public class VendorContactsController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _attachMapper.Map(dto);
+        var bllDto = _assignmentMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Vendor contact payload is required.");
@@ -135,7 +133,7 @@ public class VendorContactsController : ApiControllerBase
         string companySlug,
         Guid vendorId,
         Guid vendorContactId,
-        UpdateVendorContactDto? dto,
+        VendorContactAssignmentDto? dto,
         CancellationToken cancellationToken)
     {
         var route = ToVendorContactRoute(companySlug, vendorId, vendorContactId);
@@ -144,7 +142,7 @@ public class VendorContactsController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _updateMapper.Map(dto);
+        var bllDto = _assignmentMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Vendor contact payload is required.");

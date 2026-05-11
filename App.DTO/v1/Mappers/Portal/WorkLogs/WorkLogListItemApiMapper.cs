@@ -4,7 +4,7 @@ using App.DTO.v1.Portal.WorkLogs;
 
 namespace App.DTO.v1.Mappers.Portal.WorkLogs;
 
-public sealed class WorkLogListItemApiMapper
+public class WorkLogListItemApiMapper
 {
     public WorkLogListDto Map(WorkLogListModel model)
     {

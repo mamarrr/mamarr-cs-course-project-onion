@@ -5,7 +5,7 @@ using App.DTO.v1.Portal.Contacts;
 
 namespace App.DTO.v1.Mappers.Portal.Contacts;
 
-public sealed class ResidentContactListApiMapper
+public class ResidentContactListApiMapper
 {
     public ResidentContactListDto Map(ResidentContactListModel model)
     {
@@ -36,7 +36,7 @@ public sealed class ResidentContactListApiMapper
             ResidentIdCode = model.ResidentIdCode,
             ResidentName = model.ResidentName,
             Contact = MapContact(contact, model.CompanySlug, model.ResidentIdCode),
-            Form = new UpdateResidentContactDto
+            Form = new ResidentContactAssignmentDto
             {
                 ContactId = contact.ContactId,
                 ValidFrom = contact.ValidFrom,
@@ -108,4 +108,3 @@ public sealed class ResidentContactListApiMapper
         return $"/api/v1/portal/companies/{companySlug}/residents/{residentIdCode}/contacts/{residentContactId}";
     }
 }
-

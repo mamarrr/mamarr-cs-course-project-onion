@@ -5,7 +5,7 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Leases;
 
-public sealed class LeaseApiMapper :
+public class LeaseApiMapper :
     IBaseMapper<CreateResidentLeaseDto, LeaseBllDto>,
     IBaseMapper<CreateUnitLeaseDto, LeaseBllDto>,
     IBaseMapper<UpdateLeaseDto, LeaseBllDto>
@@ -93,7 +93,7 @@ public sealed class LeaseApiMapper :
     }
 }
 
-public sealed class LeaseResponseApiMapper
+public class LeaseResponseApiMapper
 {
     public LeaseDto MapForResident(
         LeaseModel model,

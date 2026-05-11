@@ -3,6 +3,7 @@ using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.Customers;
 using App.DTO.v1.Mappers.Portal.Customers;
 using App.DTO.v1.Portal.Customers;
+using App.DTO.v1.Shared;
 using Asp.Versioning;
 using Base.Contracts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -18,8 +19,7 @@ namespace WebApp.ApiControllers.Portal;
 public class CustomersController : ApiControllerBase
 {
     private readonly IAppBLL _bll;
-    private readonly IBaseMapper<CreateCustomerDto, CustomerBllDto> _createMapper = new CustomerApiMapper();
-    private readonly IBaseMapper<UpdateCustomerProfileDto, CustomerBllDto> _updateMapper = new CustomerApiMapper();
+    private readonly IBaseMapper<CustomerRequestDto, CustomerBllDto> _requestMapper = new CustomerApiMapper();
     private readonly CustomerListItemApiMapper _listItemMapper = new();
     private readonly CustomerProfileApiMapper _profileMapper = new();
 
@@ -53,7 +53,7 @@ public class CustomersController : ApiControllerBase
     [ProducesResponseType(typeof(CustomerProfileDto), StatusCodes.Status201Created)]
     public async Task<ActionResult<CustomerProfileDto>> Create(
         string companySlug,
-        CreateCustomerDto dto,
+        CustomerRequestDto dto,
         CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();
@@ -62,7 +62,7 @@ public class CustomersController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _createMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Customer payload is required.");
@@ -116,7 +116,7 @@ public class CustomersController : ApiControllerBase
     public async Task<ActionResult<CustomerProfileDto>> UpdateProfile(
         string companySlug,
         string customerSlug,
-        UpdateCustomerProfileDto dto,
+        CustomerRequestDto dto,
         CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();
@@ -125,7 +125,7 @@ public class CustomersController : ApiControllerBase
             return UnauthorizedRequest("Authentication is required.");
         }
 
-        var bllDto = _updateMapper.Map(dto);
+        var bllDto = _requestMapper.Map(dto);
         if (bllDto is null)
         {
             return InvalidRequest("Customer payload is required.");
@@ -146,7 +146,7 @@ public class CustomersController : ApiControllerBase
     public async Task<IActionResult> DeleteProfile(
         string companySlug,
         string customerSlug,
-        DeleteCustomerDto dto,
+        DeleteConfirmationDto? dto,
         CancellationToken cancellationToken)
     {
         var appUserId = GetAppUserId();
@@ -157,7 +157,7 @@ public class CustomersController : ApiControllerBase
 
         var result = await _bll.Customers.DeleteAsync(
             ToCustomerRoute(companySlug, customerSlug, appUserId.Value),
-            dto.ConfirmationName,
+            dto?.DeleteConfirmation ?? string.Empty,
             cancellationToken);
 
         return result.IsFailed

@@ -3,7 +3,7 @@ using App.DTO.v1.Portal.Users;
 
 namespace App.DTO.v1.Mappers.Portal.Users;
 
-public sealed class PendingAccessRequestApiMapper
+public class PendingAccessRequestApiMapper
 {
     public PendingAccessRequestDto? Map(PendingAccessRequestItem? entity)
     {

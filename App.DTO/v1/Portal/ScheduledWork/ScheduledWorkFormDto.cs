@@ -1,3 +1,5 @@
+using App.DTO.v1.Shared;
+
 namespace App.DTO.v1.Portal.ScheduledWork;
 
 public class ScheduledWorkFormDto
@@ -15,6 +17,6 @@ public class ScheduledWorkFormDto
     public DateTime? RealStart { get; set; }
     public DateTime? RealEnd { get; set; }
     public string? Notes { get; set; }
-    public IReadOnlyList<ScheduledWorkOptionDto> Vendors { get; set; } = [];
-    public IReadOnlyList<ScheduledWorkOptionDto> WorkStatuses { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> Vendors { get; set; } = [];
+    public IReadOnlyList<LookupOptionDto> WorkStatuses { get; set; } = [];
 }

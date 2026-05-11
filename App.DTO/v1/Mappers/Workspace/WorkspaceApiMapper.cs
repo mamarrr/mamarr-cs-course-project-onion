@@ -3,7 +3,7 @@ using App.DTO.v1.Workspace;
 
 namespace App.DTO.v1.Mappers.Workspace;
 
-public sealed class WorkspaceApiMapper
+public class WorkspaceApiMapper
 {
     public WorkspaceCatalogDto Map(UserWorkspaceCatalogModel model)
     {

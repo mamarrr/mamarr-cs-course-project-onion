@@ -4,16 +4,14 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.ScheduledWork;
 
-public sealed class ScheduledWorkApiMapper :
-    IBaseMapper<CreateScheduledWorkDto, ScheduledWorkBllDto>,
-    IBaseMapper<UpdateScheduledWorkDto, ScheduledWorkBllDto>
+public class ScheduledWorkApiMapper :
+    IBaseMapper<ScheduledWorkRequestDto, ScheduledWorkBllDto>
 {
-    CreateScheduledWorkDto? IBaseMapper<CreateScheduledWorkDto, ScheduledWorkBllDto>.Map(
-        ScheduledWorkBllDto? entity)
+    public ScheduledWorkRequestDto? Map(ScheduledWorkBllDto? entity)
     {
         return entity is null
             ? null
-            : new CreateScheduledWorkDto
+            : new ScheduledWorkRequestDto
             {
                 VendorId = entity.VendorId,
                 WorkStatusId = entity.WorkStatusId,
@@ -25,42 +23,7 @@ public sealed class ScheduledWorkApiMapper :
             };
     }
 
-    ScheduledWorkBllDto? IBaseMapper<CreateScheduledWorkDto, ScheduledWorkBllDto>.Map(
-        CreateScheduledWorkDto? entity)
-    {
-        return entity is null
-            ? null
-            : new ScheduledWorkBllDto
-            {
-                VendorId = entity.VendorId,
-                WorkStatusId = entity.WorkStatusId,
-                ScheduledStart = entity.ScheduledStart,
-                ScheduledEnd = entity.ScheduledEnd,
-                RealStart = entity.RealStart,
-                RealEnd = entity.RealEnd,
-                Notes = entity.Notes
-            };
-    }
-
-    UpdateScheduledWorkDto? IBaseMapper<UpdateScheduledWorkDto, ScheduledWorkBllDto>.Map(
-        ScheduledWorkBllDto? entity)
-    {
-        return entity is null
-            ? null
-            : new UpdateScheduledWorkDto
-            {
-                VendorId = entity.VendorId,
-                WorkStatusId = entity.WorkStatusId,
-                ScheduledStart = entity.ScheduledStart,
-                ScheduledEnd = entity.ScheduledEnd,
-                RealStart = entity.RealStart,
-                RealEnd = entity.RealEnd,
-                Notes = entity.Notes
-            };
-    }
-
-    ScheduledWorkBllDto? IBaseMapper<UpdateScheduledWorkDto, ScheduledWorkBllDto>.Map(
-        UpdateScheduledWorkDto? entity)
+    public ScheduledWorkBllDto? Map(ScheduledWorkRequestDto? entity)
     {
         return entity is null
             ? null

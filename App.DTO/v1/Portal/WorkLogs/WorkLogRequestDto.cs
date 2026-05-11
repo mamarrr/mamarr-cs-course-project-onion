@@ -1,6 +1,6 @@
 namespace App.DTO.v1.Portal.WorkLogs;
 
-public class CreateWorkLogDto
+public class WorkLogRequestDto
 {
     public DateTime? WorkStart { get; set; }
     public DateTime? WorkEnd { get; set; }

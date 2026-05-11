@@ -3,7 +3,7 @@ using App.DTO.v1.Portal.Units;
 
 namespace App.DTO.v1.Mappers.Portal.Units;
 
-public sealed class UnitProfileApiMapper
+public class UnitProfileApiMapper
 {
     public UnitProfileDto Map(UnitProfileModel model)
     {

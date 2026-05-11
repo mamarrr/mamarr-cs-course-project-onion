@@ -2,10 +2,11 @@ using App.BLL.DTO.Contacts;
 using App.BLL.DTO.Tickets.Models;
 using App.BLL.DTO.Vendors.Models;
 using App.DTO.v1.Portal.VendorContacts;
+using App.DTO.v1.Shared;
 
 namespace App.DTO.v1.Mappers.Portal.VendorContacts;
 
-public sealed class VendorContactListApiMapper
+public class VendorContactListApiMapper
 {
     public VendorContactListDto Map(VendorContactListModel model)
     {
@@ -94,9 +95,9 @@ public sealed class VendorContactListApiMapper
         };
     }
 
-    private static VendorContactTypeOptionDto MapContactTypeOption(TicketOptionModel option)
+    private static LookupOptionDto MapContactTypeOption(TicketOptionModel option)
     {
-        return new VendorContactTypeOptionDto
+        return new LookupOptionDto
         {
             Id = option.Id,
             Label = option.Label,

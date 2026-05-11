@@ -4,15 +4,14 @@ using Base.Contracts;
 
 namespace App.DTO.v1.Mappers.Portal.Residents;
 
-public sealed class ResidentApiMapper :
-    IBaseMapper<CreateResidentDto, ResidentBllDto>,
-    IBaseMapper<UpdateResidentProfileDto, ResidentBllDto>
+public class ResidentApiMapper :
+    IBaseMapper<ResidentRequestDto, ResidentBllDto>
 {
-    CreateResidentDto? IBaseMapper<CreateResidentDto, ResidentBllDto>.Map(ResidentBllDto? entity)
+    public ResidentRequestDto? Map(ResidentBllDto? entity)
     {
         return entity is null
             ? null
-            : new CreateResidentDto
+            : new ResidentRequestDto
             {
                 FirstName = entity.FirstName,
                 LastName = entity.LastName,
@@ -21,33 +20,7 @@ public sealed class ResidentApiMapper :
             };
     }
 
-    ResidentBllDto? IBaseMapper<CreateResidentDto, ResidentBllDto>.Map(CreateResidentDto? entity)
-    {
-        return entity is null
-            ? null
-            : new ResidentBllDto
-            {
-                FirstName = entity.FirstName,
-                LastName = entity.LastName,
-                IdCode = entity.IdCode,
-                PreferredLanguage = entity.PreferredLanguage
-            };
-    }
-
-    UpdateResidentProfileDto? IBaseMapper<UpdateResidentProfileDto, ResidentBllDto>.Map(ResidentBllDto? entity)
-    {
-        return entity is null
-            ? null
-            : new UpdateResidentProfileDto
-            {
-                FirstName = entity.FirstName,
-                LastName = entity.LastName,
-                IdCode = entity.IdCode,
-                PreferredLanguage = entity.PreferredLanguage
-            };
-    }
-
-    ResidentBllDto? IBaseMapper<UpdateResidentProfileDto, ResidentBllDto>.Map(UpdateResidentProfileDto? entity)
+    public ResidentBllDto? Map(ResidentRequestDto? entity)
     {
         return entity is null
             ? null

@@ -8,7 +8,7 @@ public class ResidentContactEditDto
     public string ResidentIdCode { get; set; } = string.Empty;
     public string ResidentName { get; set; } = string.Empty;
     public ResidentContactDto Contact { get; set; } = new();
-    public UpdateResidentContactDto Form { get; set; } = new();
+    public ResidentContactAssignmentDto Form { get; set; } = new();
     public IReadOnlyList<ExistingContactOptionDto> ExistingContactOptions { get; set; } =
         Array.Empty<ExistingContactOptionDto>();
     public IReadOnlyList<ContactTypeOptionDto> ContactTypeOptions { get; set; } =
