@@ -218,17 +218,17 @@ public class OnboardingController : Controller
 
         if (authorizationResult.IsSuccess && authorizationResult.Value.Authorized)
         {
-            switch (authorizationResult.Value.NormalizedType)
+            switch (authorizationResult.Value.ContextType)
             {
                 case "management":
                 Response.Cookies.Append("ctx.type", "management", cookieOptions);
-                Response.Cookies.Append("ctx.management.company", authorizationResult.Value.ManagementCompanyId!.Value.ToString(), cookieOptions);
+                Response.Cookies.Append("ctx.management.company", authorizationResult.Value.ContextId!.Value.ToString(), cookieOptions);
                 Response.Cookies.Append("ctx.management.slug", authorizationResult.Value.ManagementCompanySlug!, cookieOptions);
                 return RedirectToManagementDashboard(authorizationResult.Value.ManagementCompanySlug!);
 
                 case "customer":
                 Response.Cookies.Append("ctx.type", "customer", cookieOptions);
-                Response.Cookies.Append("ctx.customer.id", authorizationResult.Value.CustomerId!.Value.ToString(), cookieOptions);
+                Response.Cookies.Append("ctx.customer.id", authorizationResult.Value.ContextId!.Value.ToString(), cookieOptions);
                 return RedirectToAction(nameof(Index), new { showChooser = true });
 
                 case "resident":
@@ -375,8 +375,8 @@ public class OnboardingController : Controller
             return RedirectToAdminDashboard();
         }
 
-        var redirectTarget = await _bll.Workspaces.ResolveContextRedirectAsync(
-            new ResolveWorkspaceRedirectQuery
+        var redirectTarget = await _bll.Workspaces.ResolveWorkspaceEntryPointAsync(
+            new ResolveWorkspaceEntryPointQuery
             {
                 AppUserId = appUserId,
                 RememberedContext = new RememberedWorkspaceContext
@@ -393,12 +393,12 @@ public class OnboardingController : Controller
             return null;
         }
 
-        return redirectTarget.Value.Destination switch
+        return redirectTarget.Value.Kind switch
         {
-            WorkspaceRedirectDestination.ManagementDashboard when !string.IsNullOrWhiteSpace(redirectTarget.Value.CompanySlug)
+            WorkspaceEntryPointKind.ManagementDashboard when !string.IsNullOrWhiteSpace(redirectTarget.Value.CompanySlug)
                 => RedirectToManagementDashboard(redirectTarget.Value.CompanySlug!),
-            WorkspaceRedirectDestination.CustomerDashboard => RedirectToAction(nameof(Index), new { showChooser = true }),
-            WorkspaceRedirectDestination.ResidentDashboard => RedirectToAction(nameof(Index), new { showChooser = true }),
+            WorkspaceEntryPointKind.CustomerDashboard => RedirectToAction(nameof(Index), new { showChooser = true }),
+            WorkspaceEntryPointKind.ResidentDashboard => RedirectToAction(nameof(Index), new { showChooser = true }),
             _ => null
         };
     }

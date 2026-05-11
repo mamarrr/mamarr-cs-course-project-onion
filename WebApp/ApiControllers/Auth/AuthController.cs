@@ -194,9 +194,7 @@ public class AuthController : ApiControllerBase
         return Ok(new JWTResponse
         {
             Jwt = jwt.Value.Token,
-            RefreshToken = refreshToken,
-            ExpiresAt = jwt.Value.ExpiresAt,
-            User = MapUser(jwt.Value.User)
+            RefreshToken = refreshToken
         });
     }
 

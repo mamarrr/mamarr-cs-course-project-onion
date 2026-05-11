@@ -16,6 +16,7 @@ using Npgsql;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using WebApp;
 using WebApp.Helpers;
+using WebApp.Extensions;
 using WebApp.Middleware;
 using WebApp.Services.Identity;
 using WebApp.UI.Breadcrumbs;
@@ -65,6 +66,7 @@ builder.Services.AddScoped<INavigationBuilder, NavigationBuilder>();
 builder.Services.AddScoped<ICurrentPortalContextResolver, CurrentPortalContextResolver>();
 builder.Services.AddScoped<ICultureOptionsBuilder, CultureOptionsBuilder>();
 builder.Services.AddScoped<IUserMenuBuilder, UserMenuBuilder>();
+builder.Services.AddApiMappers();
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear(); // => remove default claims
 builder.Services

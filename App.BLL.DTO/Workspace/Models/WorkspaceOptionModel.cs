@@ -8,4 +8,5 @@ public class WorkspaceOptionModel
     public string? Slug { get; init; }
     public string? ManagementCompanySlug { get; init; }
     public bool IsDefault { get; init; }
+    public bool CanManageCompanyUsers { get; init; }
 }

@@ -74,7 +74,8 @@ public class WorkspaceService : IWorkspaceService
                 Name = context.CompanyName,
                 Slug = context.Slug,
                 ManagementCompanySlug = context.Slug,
-                IsDefault = string.Equals(context.Slug, managementContexts.FirstOrDefault()?.Slug, StringComparison.OrdinalIgnoreCase)
+                IsDefault = string.Equals(context.Slug, managementContexts.FirstOrDefault()?.Slug, StringComparison.OrdinalIgnoreCase),
+                CanManageCompanyUsers = CompanyUserManagerRoles.Contains(context.RoleCode)
             })
             .ToList();
 
@@ -97,7 +98,8 @@ public class WorkspaceService : IWorkspaceService
                 ContextType = "customer",
                 Name = customer.Name,
                 Slug = customer.Slug,
-                ManagementCompanySlug = customer.ManagementCompanySlug
+                ManagementCompanySlug = customer.ManagementCompanySlug,
+                CanManageCompanyUsers = false
             })
             .ToList();
 
@@ -113,7 +115,8 @@ public class WorkspaceService : IWorkspaceService
                 ContextType = "resident",
                 Name = residentContext.DisplayName,
                 Slug = residentContext.IdCode,
-                ManagementCompanySlug = residentContext.ManagementCompanySlug
+                ManagementCompanySlug = residentContext.ManagementCompanySlug,
+                CanManageCompanyUsers = false
             };
 
         var defaultContext = managementOptions.FirstOrDefault(option => option.IsDefault)
@@ -132,8 +135,75 @@ public class WorkspaceService : IWorkspaceService
         });
     }
 
-    public async Task<Result<WorkspaceRedirectModel?>> ResolveContextRedirectAsync(
-        ResolveWorkspaceRedirectQuery query,
+    public async Task<Result<UserWorkspaceCatalogModel>> GetUserCatalogAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var managementContexts = await _uow.ManagementCompanies.ActiveUserManagementContextsAsync(
+            appUserId,
+            cancellationToken);
+
+        var managementOptions = managementContexts
+            .Select(context => new WorkspaceOptionModel
+            {
+                Id = context.ManagementCompanyId,
+                ContextType = "management",
+                Name = context.CompanyName,
+                Slug = context.Slug,
+                ManagementCompanySlug = context.Slug,
+                IsDefault = string.Equals(context.Slug, managementContexts.FirstOrDefault()?.Slug, StringComparison.OrdinalIgnoreCase),
+                CanManageCompanyUsers = CompanyUserManagerRoles.Contains(context.RoleCode)
+            })
+            .ToList();
+
+        var customerOptions = (await _uow.Customers.ActiveUserCustomerContextsAsync(
+                appUserId,
+                cancellationToken))
+            .Select(customer => new WorkspaceOptionModel
+            {
+                Id = customer.CustomerId,
+                ContextType = "customer",
+                Name = customer.Name,
+                Slug = customer.Slug,
+                ManagementCompanySlug = customer.ManagementCompanySlug,
+                CanManageCompanyUsers = false
+            })
+            .ToList();
+
+        var residentContext = await _uow.Residents.FirstActiveUserResidentContextAsync(
+            appUserId,
+            cancellationToken);
+
+        IReadOnlyList<WorkspaceOptionModel> residentOptions = residentContext is null
+            ? []
+            : new List<WorkspaceOptionModel>
+            {
+                new()
+                {
+                    Id = residentContext.ResidentId,
+                    ContextType = "resident",
+                    Name = residentContext.DisplayName,
+                    Slug = residentContext.IdCode,
+                    ManagementCompanySlug = residentContext.ManagementCompanySlug,
+                    CanManageCompanyUsers = false
+                }
+            };
+
+        var defaultContext = managementOptions.FirstOrDefault()
+                             ?? residentOptions.FirstOrDefault()
+                             ?? customerOptions.FirstOrDefault();
+
+        return Result.Ok(new UserWorkspaceCatalogModel
+        {
+            ManagementCompanies = managementOptions,
+            Customers = customerOptions,
+            Residents = residentOptions,
+            DefaultContext = defaultContext
+        });
+    }
+
+    public async Task<Result<WorkspaceEntryPointModel?>> ResolveWorkspaceEntryPointAsync(
+        ResolveWorkspaceEntryPointQuery query,
         CancellationToken cancellationToken = default)
     {
         var rememberedContext = query.RememberedContext;
@@ -149,9 +219,9 @@ public class WorkspaceService : IWorkspaceService
                 cancellationToken);
             if (hasSelectedManagementAccess.Value)
             {
-                return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
+                return Result.Ok<WorkspaceEntryPointModel?>(new WorkspaceEntryPointModel
                 {
-                    Destination = WorkspaceRedirectDestination.ManagementDashboard,
+                    Kind = WorkspaceEntryPointKind.ManagementDashboard,
                     CompanySlug = rememberedContext.ManagementCompanySlug
                 });
             }
@@ -159,29 +229,35 @@ public class WorkspaceService : IWorkspaceService
 
         if (rememberedContext.ContextType == "resident")
         {
-            var hasSelectedResidentContext = await _uow.Residents.HasActiveUserResidentContextAsync(
+            var residentContext = await _uow.Residents.FirstActiveUserResidentContextAsync(
                 query.AppUserId,
                 cancellationToken);
-            if (hasSelectedResidentContext)
+            if (residentContext is not null)
             {
-                return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
+                return Result.Ok<WorkspaceEntryPointModel?>(new WorkspaceEntryPointModel
                 {
-                    Destination = WorkspaceRedirectDestination.ResidentDashboard
+                    Kind = WorkspaceEntryPointKind.ResidentDashboard,
+                    ContextId = residentContext.ResidentId,
+                    CompanySlug = residentContext.ManagementCompanySlug,
+                    ResidentIdCode = residentContext.IdCode
                 });
             }
         }
 
         if (rememberedContext.ContextType == "customer" && Guid.TryParse(rememberedContext.CustomerId, out var selectedCustomerId))
         {
-            var hasSelectedCustomerContext = await _uow.Customers.ActiveUserCustomerContextExistsAsync(
-                query.AppUserId,
-                selectedCustomerId,
-                cancellationToken);
-            if (hasSelectedCustomerContext)
+            var customerContext = (await _uow.Customers.ActiveUserCustomerContextsAsync(
+                    query.AppUserId,
+                    cancellationToken))
+                .FirstOrDefault(customer => customer.CustomerId == selectedCustomerId);
+            if (customerContext is not null)
             {
-                return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
+                return Result.Ok<WorkspaceEntryPointModel?>(new WorkspaceEntryPointModel
                 {
-                    Destination = WorkspaceRedirectDestination.CustomerDashboard
+                    Kind = WorkspaceEntryPointKind.CustomerDashboard,
+                    ContextId = customerContext.CustomerId,
+                    CompanySlug = customerContext.ManagementCompanySlug,
+                    CustomerSlug = customerContext.Slug
                 });
             }
         }
@@ -191,36 +267,43 @@ public class WorkspaceService : IWorkspaceService
             cancellationToken);
         if (!string.IsNullOrWhiteSpace(defaultManagementCompanySlug.Value))
         {
-            return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
+            return Result.Ok<WorkspaceEntryPointModel?>(new WorkspaceEntryPointModel
             {
-                Destination = WorkspaceRedirectDestination.ManagementDashboard,
+                Kind = WorkspaceEntryPointKind.ManagementDashboard,
                 CompanySlug = defaultManagementCompanySlug.Value
             });
         }
 
-        var hasResidentContext = await _uow.Residents.HasActiveUserResidentContextAsync(
+        var defaultResidentContext = await _uow.Residents.FirstActiveUserResidentContextAsync(
             query.AppUserId,
             cancellationToken);
-        if (hasResidentContext)
+        if (defaultResidentContext is not null)
         {
-            return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
+            return Result.Ok<WorkspaceEntryPointModel?>(new WorkspaceEntryPointModel
             {
-                Destination = WorkspaceRedirectDestination.ResidentDashboard
+                Kind = WorkspaceEntryPointKind.ResidentDashboard,
+                ContextId = defaultResidentContext.ResidentId,
+                CompanySlug = defaultResidentContext.ManagementCompanySlug,
+                ResidentIdCode = defaultResidentContext.IdCode
             });
         }
 
-        var hasCustomerContext = (await _uow.Customers.ActiveUserCustomerContextsAsync(
-            query.AppUserId,
-            cancellationToken)).Count > 0;
-        if (hasCustomerContext)
+        var defaultCustomerContext = (await _uow.Customers.ActiveUserCustomerContextsAsync(
+                query.AppUserId,
+                cancellationToken))
+            .FirstOrDefault();
+        if (defaultCustomerContext is not null)
         {
-            return Result.Ok<WorkspaceRedirectModel?>(new WorkspaceRedirectModel
+            return Result.Ok<WorkspaceEntryPointModel?>(new WorkspaceEntryPointModel
             {
-                Destination = WorkspaceRedirectDestination.CustomerDashboard
+                Kind = WorkspaceEntryPointKind.CustomerDashboard,
+                ContextId = defaultCustomerContext.CustomerId,
+                CompanySlug = defaultCustomerContext.ManagementCompanySlug,
+                CustomerSlug = defaultCustomerContext.Slug
             });
         }
 
-        return Result.Ok<WorkspaceRedirectModel?>(null);
+        return Result.Ok<WorkspaceEntryPointModel?>(null);
     }
 
     public Task<Result<WorkspaceSelectionAuthorizationModel>> AuthorizeContextSelectionAsync(
@@ -250,7 +333,7 @@ public class WorkspaceService : IWorkspaceService
                     return Result.Ok(new WorkspaceSelectionAuthorizationModel
                     {
                         Authorized = false,
-                        NormalizedType = normalizedType
+                        ContextType = normalizedType
                     });
                 }
 
@@ -264,15 +347,16 @@ public class WorkspaceService : IWorkspaceService
                     return Result.Ok(new WorkspaceSelectionAuthorizationModel
                     {
                         Authorized = false,
-                        NormalizedType = normalizedType
+                        ContextType = normalizedType
                     });
                 }
 
                 return Result.Ok(new WorkspaceSelectionAuthorizationModel
                 {
                     Authorized = true,
-                    NormalizedType = normalizedType,
-                    ManagementCompanyId = managementCompany.ManagementCompanyId,
+                    ContextType = normalizedType,
+                    ContextId = managementCompany.ManagementCompanyId,
+                    Name = managementCompany.CompanyName,
                     ManagementCompanySlug = managementCompany.Slug
                 });
 
@@ -282,38 +366,56 @@ public class WorkspaceService : IWorkspaceService
                     return Result.Ok(new WorkspaceSelectionAuthorizationModel
                     {
                         Authorized = false,
-                        NormalizedType = normalizedType
+                        ContextType = normalizedType
                     });
                 }
 
-                var hasCustomerContext = await _uow.Customers.ActiveUserCustomerContextExistsAsync(
-                    appUserId,
-                    contextId.Value,
-                    cancellationToken);
+                var customerContext = (await _uow.Customers.ActiveUserCustomerContextsAsync(
+                        appUserId,
+                        cancellationToken))
+                    .FirstOrDefault(customer => customer.CustomerId == contextId.Value);
 
                 return Result.Ok(new WorkspaceSelectionAuthorizationModel
                 {
-                    Authorized = hasCustomerContext,
-                    NormalizedType = normalizedType,
-                    CustomerId = hasCustomerContext ? contextId : null
+                    Authorized = customerContext is not null,
+                    ContextType = normalizedType,
+                    ContextId = customerContext?.CustomerId,
+                    Name = customerContext?.Name,
+                    ManagementCompanySlug = customerContext?.ManagementCompanySlug,
+                    CustomerSlug = customerContext?.Slug
                 });
 
             case "resident":
-                var hasResidentContext = await _uow.Residents.HasActiveUserResidentContextAsync(
+                if (!contextId.HasValue)
+                {
+                    return Result.Ok(new WorkspaceSelectionAuthorizationModel
+                    {
+                        Authorized = false,
+                        ContextType = normalizedType
+                    });
+                }
+
+                var residentContext = await _uow.Residents.FirstActiveUserResidentContextAsync(
                     appUserId,
                     cancellationToken);
+                var hasResidentContext = residentContext is not null
+                                         && residentContext.ResidentId == contextId.Value;
 
                 return Result.Ok(new WorkspaceSelectionAuthorizationModel
                 {
                     Authorized = hasResidentContext,
-                    NormalizedType = normalizedType
+                    ContextType = normalizedType,
+                    ContextId = hasResidentContext ? residentContext!.ResidentId : null,
+                    Name = hasResidentContext ? residentContext!.DisplayName : null,
+                    ManagementCompanySlug = hasResidentContext ? residentContext!.ManagementCompanySlug : null,
+                    ResidentIdCode = hasResidentContext ? residentContext!.IdCode : null
                 });
 
             default:
                 return Result.Ok(new WorkspaceSelectionAuthorizationModel
                 {
                     Authorized = false,
-                    NormalizedType = normalizedType
+                    ContextType = normalizedType
                 });
         }
     }

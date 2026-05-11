@@ -1,6 +1,6 @@
 namespace App.BLL.DTO.Workspace.Queries;
 
-public class ResolveWorkspaceRedirectQuery
+public class ResolveWorkspaceEntryPointQuery
 {
     public Guid AppUserId { get; init; }
     public RememberedWorkspaceContext RememberedContext { get; init; } = new();

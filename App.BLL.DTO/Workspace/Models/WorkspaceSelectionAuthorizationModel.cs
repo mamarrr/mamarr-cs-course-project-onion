@@ -3,8 +3,10 @@ namespace App.BLL.DTO.Workspace.Models;
 public class WorkspaceSelectionAuthorizationModel
 {
     public bool Authorized { get; init; }
-    public string? NormalizedType { get; init; }
-    public Guid? ManagementCompanyId { get; init; }
+    public string ContextType { get; init; } = default!;
+    public Guid? ContextId { get; init; }
+    public string? Name { get; init; }
     public string? ManagementCompanySlug { get; init; }
-    public Guid? CustomerId { get; init; }
+    public string? CustomerSlug { get; init; }
+    public string? ResidentIdCode { get; init; }
 }

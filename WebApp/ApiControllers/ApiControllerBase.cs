@@ -66,6 +66,17 @@ public abstract class ApiControllerBase : ControllerBase
         });
     }
 
+    protected ActionResult ForbiddenRequest(string message)
+    {
+        return StatusCode(StatusCodes.Status403Forbidden, new RestApiErrorResponse
+        {
+            Status = HttpStatusCode.Forbidden,
+            Error = message,
+            ErrorCode = ApiErrorCodes.Forbidden,
+            TraceId = HttpContext.TraceIdentifier
+        });
+    }
+
     private static int ResolveStatusCode(IError? error)
     {
         return error switch

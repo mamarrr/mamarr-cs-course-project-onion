@@ -23,8 +23,12 @@ public interface IWorkspaceService
         ManagementCompanyRoute route,
         CancellationToken cancellationToken = default);
 
-    Task<Result<WorkspaceRedirectModel?>> ResolveContextRedirectAsync(
-        ResolveWorkspaceRedirectQuery query,
+    Task<Result<UserWorkspaceCatalogModel>> GetUserCatalogAsync(
+        Guid appUserId,
+        CancellationToken cancellationToken = default);
+
+    Task<Result<WorkspaceEntryPointModel?>> ResolveWorkspaceEntryPointAsync(
+        ResolveWorkspaceEntryPointQuery query,
         CancellationToken cancellationToken = default);
 
     Task<Result<WorkspaceSelectionAuthorizationModel>> AuthorizeContextSelectionAsync(
