@@ -144,8 +144,27 @@ public class TicketRepository_Tests : IClassFixture<CustomWebApplicationFactory>
     {
         using var scope = _factory.Services.CreateScope();
         var uow = scope.ServiceProvider.GetRequiredService<IAppUOW>();
+        var ticketId = Guid.NewGuid();
 
-        var hasDependencies = await uow.Tickets.HasDeleteDependenciesAsync(TestTenants.TicketAId, TestTenants.CompanyAId);
+        uow.Tickets.Add(new TicketDalDto
+        {
+            Id = ticketId,
+            ManagementCompanyId = TestTenants.CompanyAId,
+            TicketNr = UniqueTicketNr(),
+            Title = "Dependency check ticket",
+            Description = "No scheduled work",
+            TicketCategoryId = TestTenants.TicketCategoryReferencedId,
+            TicketStatusId = TestTenants.TicketStatusCreatedId,
+            TicketPriorityId = TestTenants.TicketPriorityReferencedId,
+            CustomerId = TestTenants.CustomerAId,
+            PropertyId = TestTenants.PropertyAId,
+            UnitId = TestTenants.UnitAId,
+            VendorId = TestTenants.VendorAId,
+            DueAt = DateTime.UtcNow.AddDays(3)
+        });
+        await uow.SaveChangesAsync(CancellationToken.None);
+
+        var hasDependencies = await uow.Tickets.HasDeleteDependenciesAsync(ticketId, TestTenants.CompanyAId);
 
         hasDependencies.Should().BeFalse();
     }

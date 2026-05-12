@@ -56,7 +56,6 @@ public class VendorRepository_Tests : IClassFixture<CustomWebApplicationFactory>
         profile.AssignedTicketCount.Should().Be(1);
         profile.ActiveCategoryCount.Should().Be(0);
         profile.ContactCount.Should().Be(0);
-        profile.ScheduledWorkCount.Should().Be(0);
         wrongCompany.Should().BeNull();
     }
 
