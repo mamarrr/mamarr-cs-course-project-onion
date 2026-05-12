@@ -63,7 +63,8 @@ public class IdentityAccountService : IIdentityAccountService
             UserName = email,
             FirstName = firstName,
             LastName = lastName,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            CreatedAt = DateTime.UtcNow
         };
 
         var createResult = await _userManager.CreateAsync(appUser, password);
@@ -87,9 +88,13 @@ public class IdentityAccountService : IIdentityAccountService
         }
 
         var isValidPassword = await _userManager.CheckPasswordAsync(appUser, password);
-        return isValidPassword
-            ? Result.Ok(appUser.Id)
-            : Result.Fail<Guid>(App.Resources.Views.UiText.InvalidEmailOrPassword);
+
+        if (!isValidPassword)
+        {
+            return Result.Fail<Guid>(App.Resources.Views.UiText.InvalidEmailOrPassword);
+        }
+        await UpdateLastLoginAt(appUser);
+        return Result.Ok(appUser.Id);
     }
 
     public async Task<Result<IdentityUserInfo>> GetUserInfoAsync(
@@ -132,13 +137,23 @@ public class IdentityAccountService : IIdentityAccountService
             rememberMe,
             lockoutOnFailure: true);
 
-        return signInResult.Succeeded
-            ? Result.Ok(appUser.Id)
-            : Result.Fail<Guid>(App.Resources.Views.UiText.InvalidEmailOrPassword);
+        if (!signInResult.Succeeded)
+        {
+            return Result.Fail<Guid>(App.Resources.Views.UiText.InvalidEmailOrPassword);
+        }
+        await UpdateLastLoginAt(appUser);
+        return Result.Ok(appUser.Id);
+        
     }
 
     public Task SignOutAsync(CancellationToken cancellationToken = default)
     {
         return _signInManager.SignOutAsync();
+    }
+
+    private async Task UpdateLastLoginAt(AppUser appUser)
+    {
+        appUser.LastLoginAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(appUser);
     }
 }
