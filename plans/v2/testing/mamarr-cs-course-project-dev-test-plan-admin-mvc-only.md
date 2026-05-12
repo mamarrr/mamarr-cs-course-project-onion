@@ -4,6 +4,13 @@ Generated for manual test execution. The goal is to build the same layered style
 
 This is a future testing roadmap only. It does not require application public APIs, contracts, or production behavior to change, and it does not override the current project instruction to defer writing tests.
 
+Testing pyramid guidance:
+
+- Unit tests are fast, isolated tests of individual components under developer control. They must not require database, filesystem, network, web host, or DI infrastructure. Write the largest number of tests at this level when behavior can be checked without real infrastructure.
+- Integration tests exercise two or more components together. DAL tests use EF Core + SQLite; BLL workflow tests use the real DI container, `IAppBLL`, UOW, repositories, EF Core, SQLite, and deterministic seed data; MVC/API integration tests use the application host and HTTP pipeline.
+- E2E tests exercise the application through UI/browser flows as a real user would. They are slow and brittle; keep them sparse and limited to critical Admin smoke paths.
+- Each level up is slower and more expensive to maintain. Do not duplicate every branch at every level. Use BLL/DAL integration where real tenant scoping, EF translation, transactions, route hierarchy, lookup persistence, or UOW behavior is the risk; otherwise prefer unit tests.
+
 ## 1. Baseline facts from the current `dev` branch
 
 The solution already contains a `WebApp.Tests` project targeting `net10.0` with xUnit, AwesomeAssertions, Moq, ASP.NET Core MVC testing, EF Core SQLite, Playwright, xUnit runner, and coverlet packages. That is a good base for the layered test suite.
@@ -1099,51 +1106,82 @@ These tests run real services against SQLite through `AppBLL`.
 
 ### 7.3 Workflow integration tests
 
-#### `Integration/BLL/Onboarding_Workflow_Tests`
+BLL workflow integration tests should be broad, domain-focused service tests. Split files by primary domain entity or bounded workflow: `ManagementCompany`, `CompanyMembership`, `Workspace`, `Customer`, `Property`, `Unit`, `Resident`, `Lease`, `Vendor`, `Ticket`, `ScheduledWork`, `WorkLog`, and `Admin`. Keep child concepts that are owned by the aggregate in the parent file when they are naturally part of that workflow, such as vendor categories and vendor contacts inside `Vendor_Workflow_Tests`. Keep separate domain concepts in separate files, such as `Lease_Workflow_Tests` instead of mixing lease assertions into resident tests.
 
-- New user has no context.
-- User creates management company and becomes owner.
+#### `Integration/BLL/Workspace_Workflow_Tests`
+
 - Owner gets default management dashboard entry point.
+- New user has no context.
+- Remembered invalid or unauthorized context is ignored.
+- Unauthorized user cannot choose another company context.
+
+#### `Integration/BLL/ManagementCompany_Workflow_Tests`
+
+- User creates management company and becomes owner.
+- Create company with slug collision produces unique slug.
+- Update company changes profile fields.
+- Duplicate registry code returns conflict.
+- Required field validation returns a business result.
+
+#### `Integration/BLL/CompanyMembership_Workflow_Tests`
+
 - User submits join request by registry code.
 - Duplicate pending join request fails.
 - Owner approves join request and user receives membership.
 - Owner rejects join request and user receives no membership.
-- After approval, joined user resolves workspace.
-- Unauthorized user cannot choose another company context.
-- Remembered invalid context is ignored.
-
-#### `Integration/BLL/ManagementCompany_Workflow_Tests`
-
-- Create company with slug collision produces unique slug.
-- Update company changes profile fields.
-- Duplicate registry code returns conflict.
+- Existing members cannot request duplicate membership.
 - Membership add/update/delete works.
 - Last owner protection works.
 - Ownership transfer changes owner rights.
 - Pending access requests list only current company.
 
-#### `Integration/BLL/CustomerPropertyUnit_Workflow_Tests`
+#### `Integration/BLL/Customer_Workflow_Tests`
 
-- Create customer -> property -> unit in order.
-- List at each level includes created child.
-- Profile at each level resolves by route.
-- Update at each level persists.
-- Delete unit succeeds after confirmation.
-- Delete property with child unit is blocked until unit removed.
-- Delete customer with child property is blocked until property removed.
+- Create customer.
+- List customers includes created customer.
+- Profile resolves by route.
+- Update customer persists.
+- Delete customer succeeds after confirmation when no dependencies exist.
+- Delete customer with child property is blocked.
+- Duplicate registry code and validation failures return business results.
 - Cross-company route cannot read/update/delete.
+
+#### `Integration/BLL/Property_Workflow_Tests`
+
+- Create property under customer.
+- List customer properties includes created property.
+- Profile resolves by route.
+- Update property persists.
+- Delete property succeeds after confirmation when no dependencies exist.
+- Delete property with child unit is blocked.
+- Invalid property type and wrong parent route return business results.
+
+#### `Integration/BLL/Unit_Workflow_Tests`
+
+- Create unit under property.
+- List property units includes created unit.
+- Profile resolves by route.
+- Update unit persists.
+- Delete unit succeeds after confirmation.
+- Validation and wrong parent route return business results.
+
+#### `Integration/BLL/Resident_Workflow_Tests`
+
+- Create resident.
+- List residents includes created resident.
+- Profile resolves by route.
+- Update resident persists.
+- Delete resident is blocked by active lease, if applicable.
+- Cross-company resident route is rejected.
 
 #### `Integration/BLL/ResidentContact_Workflow_Tests`
 
-- Create resident.
 - Add new email contact.
 - Add new phone contact.
 - Confirm email contact.
 - Set phone as primary and verify email no longer primary.
 - Update contact notes/role.
 - Remove contact assignment.
-- Delete resident is blocked by active lease, if applicable.
-- Cross-company resident route is rejected.
 
 #### `Integration/BLL/Lease_Workflow_Tests`
 
@@ -1680,13 +1718,17 @@ Entities:
 ### Phase 4: BLL integration
 
 1. tenant authorization
-2. onboarding/company creation
+2. workspace and management company creation/update
 3. membership/join requests
-4. customer/property/unit CRUD
-5. resident/contact/lease
-6. vendor/contact/category
-7. ticket/scheduled work/work log
-8. admin services
+4. customer CRUD and dependency blocking
+5. property CRUD and dependency blocking
+6. unit CRUD
+7. resident CRUD and resident contact workflow
+8. lease workflow
+9. vendor/contact/category workflow
+10. ticket workflow
+11. scheduled work and work log workflow
+12. admin services
 
 ### Phase 5: API integration
 
