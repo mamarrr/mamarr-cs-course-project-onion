@@ -219,6 +219,13 @@ public class CompanyMembershipService : ICompanyMembershipService
         CompanyMembershipAddRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            return Result.Fail<Guid>(WithBlockReason(
+                ValidationError("User email is required.", nameof(request.Email)),
+                CompanyMembershipUserActionBlockReason.None));
+        }
+
         if (!IsValidDateRange(request.ValidFrom, request.ValidTo))
         {
             return Result.Fail<Guid>(WithBlockReason(
