@@ -2,11 +2,11 @@
 services:
   aspnet:
     build: .
-    container_name: apartmentcrmsaas
+    container_name: apartmentcrmsaasonion
     ports:
-      - "8082:8080"
+      - "8083:8080"
     environment:
-      - ConnectionStrings__DefaultConnection=Host=postgres-dev;Port=5432;Database=apartmentcrmsaas;Username=postgres;Password=postgres
+      - ConnectionStrings__DefaultConnection=Host=postgres-dev;Port=5432;Database=apartmentcrmsaasonion;Username=postgres;Password=postgres
     networks:
       - backend
 

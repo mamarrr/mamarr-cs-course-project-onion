@@ -9,4 +9,4 @@ deploy:
   tags:
     - shared
   script:
-    - docker compose -p apartmentcrmsaas up --build --remove-orphans --detach
+    - docker compose -p apartmentcrmsaasonion up --build --remove-orphans --detach

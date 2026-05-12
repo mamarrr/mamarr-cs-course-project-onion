@@ -4,5 +4,13 @@
 **/out
 **/.vscode
 **/.vs
+.git
+.gitlab
+.idea
+Docs
+plans
 .dotnet
 .Microsoft.DotNet.ImageBuilder
+TestResults
+*.user
+*.suo
