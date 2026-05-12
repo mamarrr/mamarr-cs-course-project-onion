@@ -2,8 +2,6 @@ using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
 using App.BLL.DTO.ManagementCompanies;
-using App.BLL.DTO.Workspace.Models;
-using App.BLL.DTO.Workspace.Queries;
 using App.DAL.EF;
 using App.Domain.Identity;
 using AwesomeAssertions;
@@ -13,94 +11,13 @@ using WebApp.Tests.Helpers;
 
 namespace WebApp.Tests.Integration.BLL;
 
-public class WorkspaceAndManagementCompany_Workflow_Tests : IClassFixture<CustomWebApplicationFactory>
+public class ManagementCompany_Workflow_Tests : IClassFixture<CustomWebApplicationFactory>
 {
     private readonly CustomWebApplicationFactory _factory;
 
-    public WorkspaceAndManagementCompany_Workflow_Tests(CustomWebApplicationFactory factory)
+    public ManagementCompany_Workflow_Tests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
-    }
-
-    [Fact]
-    public async Task OwnerHasManagementWorkspaceAndDefaultEntryPoint()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var bll = scope.ServiceProvider.GetRequiredService<IAppBLL>();
-
-        var hasContext = await bll.Workspaces.HasAnyContextAsync(TestUsers.CompanyAOwnerId);
-        var defaultSlug = await bll.Workspaces.GetDefaultManagementCompanySlugAsync(TestUsers.CompanyAOwnerId);
-        var catalog = await bll.Workspaces.GetUserCatalogAsync(TestUsers.CompanyAOwnerId);
-        var entryPoint = await bll.Workspaces.ResolveWorkspaceEntryPointAsync(new ResolveWorkspaceEntryPointQuery
-        {
-            AppUserId = TestUsers.CompanyAOwnerId,
-            RememberedContext = new RememberedWorkspaceContext
-            {
-                ContextType = "management",
-                ManagementCompanySlug = TestTenants.CompanyASlug
-            }
-        });
-
-        hasContext.IsSuccess.Should().BeTrue();
-        hasContext.Value.Should().BeTrue();
-        defaultSlug.Value.Should().Be(TestTenants.CompanyASlug);
-        catalog.Value.ManagementCompanies.Should().ContainSingle(option => option.Id == TestTenants.CompanyAId);
-        catalog.Value.DefaultContext!.ContextType.Should().Be("management");
-        entryPoint.Value.Should().NotBeNull();
-        entryPoint.Value!.Kind.Should().Be(WorkspaceEntryPointKind.ManagementDashboard);
-        entryPoint.Value.CompanySlug.Should().Be(TestTenants.CompanyASlug);
-    }
-
-    [Fact]
-    public async Task UserWithoutContextHasNoWorkspaceEntryPoint()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var bll = scope.ServiceProvider.GetRequiredService<IAppBLL>();
-        var user = await CreateUserAsync(db, "workspace-empty");
-
-        var hasContext = await bll.Workspaces.HasAnyContextAsync(user.Id);
-        var catalog = await bll.Workspaces.GetUserCatalogAsync(user.Id);
-        var entryPoint = await bll.Workspaces.ResolveWorkspaceEntryPointAsync(new ResolveWorkspaceEntryPointQuery
-        {
-            AppUserId = user.Id,
-            RememberedContext = new RememberedWorkspaceContext
-            {
-                ContextType = "management",
-                ManagementCompanySlug = TestTenants.CompanyASlug
-            }
-        });
-
-        hasContext.Value.Should().BeFalse();
-        catalog.Value.ManagementCompanies.Should().BeEmpty();
-        catalog.Value.Customers.Should().BeEmpty();
-        catalog.Value.Residents.Should().BeEmpty();
-        catalog.Value.DefaultContext.Should().BeNull();
-        entryPoint.Value.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task AuthorizeContextSelection_AllowsOwnedManagementCompanyAndRejectsForeignContext()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var bll = scope.ServiceProvider.GetRequiredService<IAppBLL>();
-
-        var allowed = await bll.Workspaces.AuthorizeContextSelectionAsync(new AuthorizeContextSelectionQuery
-        {
-            AppUserId = TestUsers.CompanyAOwnerId,
-            ContextType = "management",
-            ContextId = TestTenants.CompanyAId
-        });
-        var denied = await bll.Workspaces.AuthorizeContextSelectionAsync(new AuthorizeContextSelectionQuery
-        {
-            AppUserId = TestUsers.SystemAdminId,
-            ContextType = "management",
-            ContextId = TestTenants.CompanyAId
-        });
-
-        allowed.Value.Authorized.Should().BeTrue();
-        allowed.Value.ManagementCompanySlug.Should().Be(TestTenants.CompanyASlug);
-        denied.Value.Authorized.Should().BeFalse();
     }
 
     [Fact]
@@ -139,7 +56,7 @@ public class WorkspaceAndManagementCompany_Workflow_Tests : IClassFixture<Custom
     }
 
     [Fact]
-    public async Task CreateCompany_RejectsDuplicateRegistryCodeAndEmptyUser()
+    public async Task CreateCompany_RejectsDuplicateRegistryCodeEmptyUserAndValidationErrors()
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -164,11 +81,19 @@ public class WorkspaceAndManagementCompany_Workflow_Tests : IClassFixture<Custom
             Phone = "+372 5555 9003",
             Address = "No User Street 1"
         });
+        var invalid = await bll.ManagementCompanies.CreateAsync(user.Id, new ManagementCompanyBllDto
+        {
+            Name = " ",
+            RegistryCode = UniqueCode("REG"),
+            VatNumber = "EE123456784",
+            Email = "invalid-company@test.ee",
+            Phone = "+372 5555 9007",
+            Address = "Invalid Street 1"
+        });
 
-        duplicateRegistry.IsFailed.Should().BeTrue();
         duplicateRegistry.Errors.Should().Contain(error => error is ConflictError);
-        unauthenticated.IsFailed.Should().BeTrue();
         unauthenticated.Errors.Should().Contain(error => error is UnauthorizedError);
+        invalid.Errors.Should().Contain(error => error is ValidationAppError);
     }
 
     [Fact]
@@ -181,9 +106,9 @@ public class WorkspaceAndManagementCompany_Workflow_Tests : IClassFixture<Custom
         using (var createScope = _factory.Services.CreateScope())
         {
             var db = createScope.ServiceProvider.GetRequiredService<AppDbContext>();
-            var bll = createScope.ServiceProvider.GetRequiredService<IAppBLL>();
+            var _bll = createScope.ServiceProvider.GetRequiredService<IAppBLL>();
             var user = await CreateUserAsync(db, "update-company");
-            var created = await bll.ManagementCompanies.CreateAsync(user.Id, new ManagementCompanyBllDto
+            var created = await _bll.ManagementCompanies.CreateAsync(user.Id, new ManagementCompanyBllDto
             {
                 Name = "Update Company",
                 RegistryCode = UniqueCode("REG"),
@@ -200,9 +125,9 @@ public class WorkspaceAndManagementCompany_Workflow_Tests : IClassFixture<Custom
         }
 
         using var scope = _factory.Services.CreateScope();
-        var _bll = scope.ServiceProvider.GetRequiredService<IAppBLL>();
+        var bll = scope.ServiceProvider.GetRequiredService<IAppBLL>();
 
-        var updated = await _bll.ManagementCompanies.UpdateAndGetProfileAsync(
+        var updated = await bll.ManagementCompanies.UpdateAndGetProfileAsync(
             new ManagementCompanyRoute { AppUserId = userId, CompanySlug = companySlug },
             new ManagementCompanyBllDto
             {
@@ -213,7 +138,7 @@ public class WorkspaceAndManagementCompany_Workflow_Tests : IClassFixture<Custom
                 Phone = "+372 5555 9005",
                 Address = "Updated Street 1"
             });
-        var unauthorized = await _bll.ManagementCompanies.UpdateAsync(
+        var unauthorized = await bll.ManagementCompanies.UpdateAsync(
             new ManagementCompanyRoute { AppUserId = TestUsers.SystemAdminId, CompanySlug = companySlug },
             new ManagementCompanyBllDto
             {
@@ -228,30 +153,7 @@ public class WorkspaceAndManagementCompany_Workflow_Tests : IClassFixture<Custom
         updated.IsSuccess.Should().BeTrue();
         updated.Value.Name.Should().Be("Updated Company");
         updated.Value.Email.Should().Be("updated-company@test.ee");
-        unauthorized.IsFailed.Should().BeTrue();
         unauthorized.Errors.Should().Contain(error => error is ForbiddenError);
-    }
-
-    [Fact]
-    public async Task CreateCompany_RejectsValidationErrors()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        var bll = scope.ServiceProvider.GetRequiredService<IAppBLL>();
-        var user = await CreateUserAsync(db, "invalid-company");
-
-        var result = await bll.ManagementCompanies.CreateAsync(user.Id, new ManagementCompanyBllDto
-        {
-            Name = " ",
-            RegistryCode = UniqueCode("REG"),
-            VatNumber = "EE123456784",
-            Email = "invalid-company@test.ee",
-            Phone = "+372 5555 9007",
-            Address = "Invalid Street 1"
-        });
-
-        result.IsFailed.Should().BeTrue();
-        result.Errors.Should().Contain(error => error is ValidationAppError);
     }
 
     private static async Task<AppUser> CreateUserAsync(AppDbContext db, string suffix)

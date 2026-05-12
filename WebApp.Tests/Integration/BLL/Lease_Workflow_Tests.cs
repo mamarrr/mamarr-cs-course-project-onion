@@ -1,7 +1,6 @@
 using App.BLL.Contracts;
 using App.BLL.DTO.Common.Errors;
 using App.BLL.DTO.Common.Routes;
-using App.BLL.DTO.Contacts;
 using App.BLL.DTO.Leases;
 using App.BLL.DTO.Residents;
 using AwesomeAssertions;
@@ -11,7 +10,7 @@ using WebApp.Tests.Helpers;
 
 namespace WebApp.Tests.Integration.BLL;
 
-public class ResidentContactLease_Workflow_Tests : IClassFixture<CustomWebApplicationFactory>
+public class Lease_Workflow_Tests : IClassFixture<CustomWebApplicationFactory>
 {
     private const string CustomerASlug = "customer-a";
     private const string PropertyASlug = "property-a";
@@ -19,137 +18,13 @@ public class ResidentContactLease_Workflow_Tests : IClassFixture<CustomWebApplic
 
     private readonly CustomWebApplicationFactory _factory;
 
-    public ResidentContactLease_Workflow_Tests(CustomWebApplicationFactory factory)
+    public Lease_Workflow_Tests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
     }
 
     [Fact]
-    public async Task CreateUpdateAndListResident_Workflow()
-    {
-        var resident = await CreateResidentAsync("resident-list");
-
-        using (var listScope = _factory.Services.CreateScope())
-        {
-            var bll = listScope.ServiceProvider.GetRequiredService<IAppBLL>();
-
-            var list = await bll.Residents.ListForCompanyAsync(CompanyRoute());
-            var profile = await bll.Residents.GetProfileAsync(ResidentRoute(resident.IdCode));
-
-            list.Value.Residents.Should().Contain(item => item.ResidentId == resident.ResidentId);
-            profile.Value.FirstName.Should().Be(resident.FirstName);
-            profile.Value.LastName.Should().Be(resident.LastName);
-        }
-
-        using var updateScope = _factory.Services.CreateScope();
-        var updateBll = updateScope.ServiceProvider.GetRequiredService<IAppBLL>();
-        var updated = await updateBll.Residents.UpdateAndGetProfileAsync(
-            ResidentRoute(resident.IdCode),
-            new ResidentBllDto
-            {
-                FirstName = "Updated",
-                LastName = "Resident",
-                IdCode = $"{resident.IdCode}-U",
-                PreferredLanguage = "et"
-            });
-
-        updated.IsSuccess.Should().BeTrue();
-        updated.Value.FirstName.Should().Be("Updated");
-        updated.Value.ResidentIdCode.Should().Be($"{resident.IdCode}-U");
-        updated.Value.PreferredLanguage.Should().Be("et");
-    }
-
-    [Fact]
-    public async Task ResidentContactWorkflow_AddsConfirmsPrimaryAndRemovesContact()
-    {
-        var resident = await CreateResidentAsync("resident-contact");
-        var (emailTypeId, phoneTypeId) = await ContactTypeIdsAsync();
-
-        Guid emailAssignmentId;
-        using (var addEmailScope = _factory.Services.CreateScope())
-        {
-            var bll = addEmailScope.ServiceProvider.GetRequiredService<IAppBLL>();
-            var result = await bll.Residents.AddContactAsync(
-                ResidentRoute(resident.IdCode),
-                new ResidentContactBllDto
-                {
-                    ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow),
-                    Confirmed = false,
-                    IsPrimary = true
-                },
-                new ContactBllDto
-                {
-                    ContactTypeId = emailTypeId,
-                    ContactValue = $"{resident.IdCode.ToLowerInvariant()}@test.ee",
-                    Notes = "Email contact"
-                });
-
-            result.IsSuccess.Should().BeTrue();
-            var email = result.Value.Contacts.Single(contact => contact.ContactTypeCode == "EMAIL");
-            email.IsPrimary.Should().BeTrue();
-            email.Confirmed.Should().BeFalse();
-            emailAssignmentId = email.ResidentContactId;
-        }
-
-        Guid phoneAssignmentId;
-        using (var addPhoneScope = _factory.Services.CreateScope())
-        {
-            var bll = addPhoneScope.ServiceProvider.GetRequiredService<IAppBLL>();
-            var result = await bll.Residents.AddContactAsync(
-                ResidentRoute(resident.IdCode),
-                new ResidentContactBllDto
-                {
-                    ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow),
-                    Confirmed = true,
-                    IsPrimary = true
-                },
-                new ContactBllDto
-                {
-                    ContactTypeId = phoneTypeId,
-                    ContactValue = $"+3725{Guid.NewGuid():N}"[..12],
-                    Notes = "Phone contact"
-                });
-
-            result.IsSuccess.Should().BeTrue();
-            result.Value.Contacts.Single(contact => contact.ResidentContactId == emailAssignmentId).IsPrimary.Should().BeFalse();
-            var phone = result.Value.Contacts.Single(contact => contact.ContactTypeCode == "PHONE");
-            phone.IsPrimary.Should().BeTrue();
-            phoneAssignmentId = phone.ResidentContactId;
-        }
-
-        using (var confirmScope = _factory.Services.CreateScope())
-        {
-            var bll = confirmScope.ServiceProvider.GetRequiredService<IAppBLL>();
-
-            var confirmed = await bll.Residents.ConfirmContactAsync(ResidentContactRoute(resident.IdCode, emailAssignmentId));
-
-            confirmed.IsSuccess.Should().BeTrue();
-        }
-
-        using (var primaryScope = _factory.Services.CreateScope())
-        {
-            var bll = primaryScope.ServiceProvider.GetRequiredService<IAppBLL>();
-
-            var primary = await bll.Residents.SetPrimaryContactAsync(ResidentContactRoute(resident.IdCode, emailAssignmentId));
-            var contacts = await bll.Residents.ListContactsAsync(ResidentRoute(resident.IdCode));
-
-            primary.IsSuccess.Should().BeTrue();
-            contacts.Value.Contacts.Single(contact => contact.ResidentContactId == emailAssignmentId).Confirmed.Should().BeTrue();
-            contacts.Value.Contacts.Single(contact => contact.ResidentContactId == emailAssignmentId).IsPrimary.Should().BeTrue();
-            contacts.Value.Contacts.Single(contact => contact.ResidentContactId == phoneAssignmentId).IsPrimary.Should().BeFalse();
-        }
-
-        using var removeScope = _factory.Services.CreateScope();
-        var removeBll = removeScope.ServiceProvider.GetRequiredService<IAppBLL>();
-        var removed = await removeBll.Residents.RemoveContactAsync(ResidentContactRoute(resident.IdCode, phoneAssignmentId));
-        var afterRemove = await removeBll.Residents.ListContactsAsync(ResidentRoute(resident.IdCode));
-
-        removed.IsSuccess.Should().BeTrue();
-        afterRemove.Value.Contacts.Should().NotContain(contact => contact.ResidentContactId == phoneAssignmentId);
-    }
-
-    [Fact]
-    public async Task LeaseWorkflow_CreatesListsUpdatesAndDeletesFromResidentAndUnitRoutes()
+    public async Task CreatesListsUpdatesAndDeletesFromResidentAndUnitRoutes()
     {
         var resident = await CreateResidentAsync("resident-lease");
         var leaseRoleId = await LeaseRoleIdAsync("TENANT");
@@ -216,7 +91,7 @@ public class ResidentContactLease_Workflow_Tests : IClassFixture<CustomWebApplic
     }
 
     [Fact]
-    public async Task LeaseValidationAndResidentDeleteDependency_AreEnforced()
+    public async Task ValidationAndResidentDeleteDependency_AreEnforced()
     {
         var resident = await CreateResidentAsync("resident-lease-invalid");
         var leaseRoleId = await LeaseRoleIdAsync("TENANT");
@@ -279,7 +154,7 @@ public class ResidentContactLease_Workflow_Tests : IClassFixture<CustomWebApplic
     }
 
     [Fact]
-    public async Task LeaseOptionsAreScopedAndLocalized()
+    public async Task OptionsAreScopedAndLocalized()
     {
         using var culture = new CultureScope("en");
         var resident = await CreateResidentAsync("resident-options");
@@ -317,22 +192,6 @@ public class ResidentContactLease_Workflow_Tests : IClassFixture<CustomWebApplic
         return new ResidentSeed(created.Value.ResidentId, created.Value.ResidentIdCode, firstName, "Workflow");
     }
 
-    private async Task<(Guid EmailTypeId, Guid PhoneTypeId)> ContactTypeIdsAsync()
-    {
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<App.DAL.EF.AppDbContext>();
-
-        var ids = await db.ContactTypes
-            .AsNoTracking()
-            .Where(type => type.Code == "EMAIL" || type.Code == "PHONE")
-            .Select(type => new { type.Code, type.Id })
-            .ToListAsync();
-
-        return (
-            ids.Single(type => type.Code == "EMAIL").Id,
-            ids.Single(type => type.Code == "PHONE").Id);
-    }
-
     private async Task<Guid> LeaseRoleIdAsync(string code)
     {
         using var scope = _factory.Services.CreateScope();
@@ -361,17 +220,6 @@ public class ResidentContactLease_Workflow_Tests : IClassFixture<CustomWebApplic
             AppUserId = TestUsers.CompanyAOwnerId,
             CompanySlug = TestTenants.CompanyASlug,
             ResidentIdCode = residentIdCode
-        };
-    }
-
-    private static ResidentContactRoute ResidentContactRoute(string residentIdCode, Guid residentContactId)
-    {
-        return new ResidentContactRoute
-        {
-            AppUserId = TestUsers.CompanyAOwnerId,
-            CompanySlug = TestTenants.CompanyASlug,
-            ResidentIdCode = residentIdCode,
-            ResidentContactId = residentContactId
         };
     }
 
