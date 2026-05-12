@@ -39,9 +39,7 @@
       <Folder Include="Integration\API\" />
       <Folder Include="Integration\DAL\" />
       <Folder Include="Unit\API\Mappers\" />
-      <Folder Include="Unit\BLL\Mappers\" />
       <Folder Include="Unit\BLL\Services\" />
-      <Folder Include="Unit\DAL\Mappers\" />
     </ItemGroup>
 
 </Project>

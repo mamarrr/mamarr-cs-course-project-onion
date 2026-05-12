@@ -3,7 +3,7 @@ using App.BLL.Mappers.Admin;
 using App.DAL.DTO.Admin.Tickets;
 using AwesomeAssertions;
 
-namespace WebApp.Tests.Unit.Mappers.BLL;
+namespace WebApp.Tests.Unit.BLL.Mappers;
 
 public class AdminTicketMonitorBllMapper_Tests
 {

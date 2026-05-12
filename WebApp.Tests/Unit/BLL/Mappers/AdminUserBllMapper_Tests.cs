@@ -3,7 +3,7 @@ using App.BLL.Mappers.Admin;
 using App.DAL.DTO.Admin.Users;
 using AwesomeAssertions;
 
-namespace WebApp.Tests.Unit.Mappers.BLL;
+namespace WebApp.Tests.Unit.BLL.Mappers;
 
 public class AdminUserBllMapper_Tests
 {

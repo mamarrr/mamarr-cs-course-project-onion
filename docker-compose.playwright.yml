@@ -1,0 +1,10 @@
+services:
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.59.0-noble
+    ipc: host
+    ports:
+      - "3000:3000"
+    command: >
+      npx -y playwright@1.59.0 run-server --port 3000 --host 0.0.0.0
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

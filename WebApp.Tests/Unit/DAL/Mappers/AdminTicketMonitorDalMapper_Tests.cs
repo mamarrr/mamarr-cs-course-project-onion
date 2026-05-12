@@ -3,7 +3,7 @@ using App.Domain;
 using AwesomeAssertions;
 using WebApp.Tests.Helpers;
 
-namespace WebApp.Tests.Unit.Mappers.DAL;
+namespace WebApp.Tests.Unit.DAL.Mappers;
 
 public class AdminTicketMonitorDalMapper_Tests
 {

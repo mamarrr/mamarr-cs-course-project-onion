@@ -4,7 +4,7 @@ using App.Domain.Identity;
 using AwesomeAssertions;
 using WebApp.Tests.Helpers;
 
-namespace WebApp.Tests.Unit.Mappers.DAL;
+namespace WebApp.Tests.Unit.DAL.Mappers;
 
 public class AdminUserDalMapper_Tests
 {

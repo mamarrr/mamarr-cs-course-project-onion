@@ -2,7 +2,7 @@ using App.DAL.EF.Mappers.Admin;
 using App.Domain;
 using AwesomeAssertions;
 
-namespace WebApp.Tests.Unit.Mappers.DAL;
+namespace WebApp.Tests.Unit.DAL.Mappers;
 
 public class AdminCompanyDalMapper_Tests
 {

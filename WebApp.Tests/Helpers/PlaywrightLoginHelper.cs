@@ -6,17 +6,17 @@ public static class PlaywrightLoginHelper
 {
     public static async Task LoginAsync(IPage page, string rootUri, string email, string password)
     {
-        await page.GotoAsync($"{rootUri}/Identity/Account/Login");
-        await page.FillAsync("#Input_Email", email);
-        await page.FillAsync("#Input_Password", password);
-        await page.ClickAsync("#login-submit");
+        await page.GotoAsync($"{rootUri}/login");
+        await page.FillAsync("#Email", email);
+        await page.FillAsync("#Password", password);
+        await page.ClickAsync("form button[type=submit]");
 
         await page.WaitForFunctionAsync(
-            "() => !window.location.pathname.toLowerCase().includes('/identity/account/login') " +
+            "() => !window.location.pathname.toLowerCase().includes('/login') " +
             "|| document.querySelector('.text-danger:not(:empty), .validation-summary-errors') !== null",
             options: new PageWaitForFunctionOptions { Timeout = 15_000 });
 
-        if (page.Url.Contains("/Identity/Account/Login", StringComparison.OrdinalIgnoreCase))
+        if (page.Url.Contains("/login", StringComparison.OrdinalIgnoreCase))
         {
             var errors = await page.Locator(".text-danger, .validation-summary-errors").AllTextContentsAsync();
             throw new InvalidOperationException(
@@ -26,18 +26,19 @@ public static class PlaywrightLoginHelper
 
     public static async Task RegisterAsync(IPage page, string rootUri, string email, string password)
     {
-        await page.GotoAsync($"{rootUri}/Identity/Account/Register");
-        await page.FillAsync("#Input_Email", email);
-        await page.FillAsync("#Input_Password", password);
-        await page.FillAsync("#Input_ConfirmPassword", password);
-        await page.ClickAsync("#registerSubmit");
+        await page.GotoAsync($"{rootUri}/register");
+        await page.FillAsync("#Email", email);
+        await page.FillAsync("#Password", password);
+        await page.FillAsync("#FirstName", "E2E");
+        await page.FillAsync("#LastName", "User");
+        await page.ClickAsync("form button[type=submit]");
 
         await page.WaitForFunctionAsync(
-            "() => !window.location.pathname.toLowerCase().includes('/identity/account/register') " +
+            "() => !window.location.pathname.toLowerCase().includes('/register') " +
             "|| document.querySelector('.text-danger:not(:empty), .validation-summary-errors') !== null",
             options: new PageWaitForFunctionOptions { Timeout = 15_000 });
 
-        if (page.Url.Contains("/Identity/Account/Register", StringComparison.OrdinalIgnoreCase))
+        if (page.Url.Contains("/register", StringComparison.OrdinalIgnoreCase))
         {
             var errors = await page.Locator(".text-danger, .validation-summary-errors").AllTextContentsAsync();
             throw new InvalidOperationException(
@@ -61,7 +62,7 @@ public static class PlaywrightLoginHelper
     {
         // Use the SetLanguage endpoint. It plants the AspNetCore.Culture cookie and
         // local-redirects to the supplied returnUrl (we send the caller back to Home).
-        await page.GotoAsync($"{rootUri}/Home/SetLanguage?culture={culture}&returnUrl=%2F");
+        await page.GotoAsync($"{rootUri}/set-language?culture={culture}&returnUrl=%2F");
         await page.WaitForURLAsync($"{rootUri}/");
     }
 }

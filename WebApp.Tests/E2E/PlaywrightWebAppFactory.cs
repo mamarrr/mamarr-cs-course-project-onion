@@ -1,6 +1,4 @@
-using App.DAL.EF;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -33,11 +31,7 @@ public class PlaywrightWebAppFactory : CustomWebApplicationFactory
 
         testHost.Start();
 
-        // Schema only. E2E tests are self-contained and create their own users via UI register
-        // (cookie auth needs users created through the Identity Razor Pages flow).
-        using var scope = _kestrelHost.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        db.Database.EnsureCreated();
+        EnsureCreatedAndSeed(_kestrelHost.Services);
 
         return testHost;
     }
