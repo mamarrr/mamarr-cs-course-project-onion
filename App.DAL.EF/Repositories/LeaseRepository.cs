@@ -76,7 +76,7 @@ public class LeaseRepository :
                 ResidentId = entity.ResidentId,
                 UnitId = entity.UnitId,
                 PropertyId = entity.Unit!.PropertyId,
-                ResidentFullName = string.Join(" ", new[] { entity.Resident!.FirstName, entity.Resident.LastName }.Where(value => !string.IsNullOrWhiteSpace(value))),
+                ResidentFullName = (entity.Resident!.FirstName + " " + entity.Resident.LastName).Trim(),
                 ResidentIdCode = entity.Resident.IdCode,
                 LeaseRoleId = entity.LeaseRoleId,
                 LeaseRoleCode = entity.LeaseRole!.Code,
