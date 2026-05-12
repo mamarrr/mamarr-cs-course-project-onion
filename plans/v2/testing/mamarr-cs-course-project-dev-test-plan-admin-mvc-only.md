@@ -1227,11 +1227,20 @@ BLL workflow integration tests should be broad, domain-focused service tests. Sp
 - Scheduled work appears under ticket.
 - Update schedule.
 - Start work sets real start and status.
-- Add work log.
 - Complete work sets real end and status.
 - Cancel unstarted work.
 - Delete unstarted work.
 - Invalid status transitions are rejected.
+
+#### `Integration/BLL/WorkLog_Workflow_Tests`
+
+- Add work log to scheduled work.
+- Work log appears under scheduled work.
+- Totals include hours and cost for roles allowed to see costs.
+- Update work log fields.
+- Delete model loads the expected context.
+- Delete work log removes it from the scheduled work.
+- Closed tickets block work log create/update/delete.
 
 #### `Integration/BLL/Admin_Workflow_Tests`
 
@@ -1727,8 +1736,9 @@ Entities:
 8. lease workflow
 9. vendor/contact/category workflow
 10. ticket workflow
-11. scheduled work and work log workflow
-12. admin services
+11. scheduled work workflow
+12. work log workflow
+13. admin services
 
 ### Phase 5: API integration
 
