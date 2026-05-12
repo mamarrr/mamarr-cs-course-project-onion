@@ -42,6 +42,58 @@ public class PortalHierarchyApi_Tests : IClassFixture<CustomWebApplicationFactor
     }
 
     [Fact]
+    public async Task CompanyProfileApi_UpdateValidatesAndPersistsAllowedFields()
+    {
+        using var owner = await _factory.CreateAuthenticatedApiClientAsync(TestUsers.CompanyAOwner);
+        using var systemAdmin = await _factory.CreateAuthenticatedApiClientAsync(TestUsers.SystemAdmin);
+        var registryCode = UniqueCode("COMP");
+
+        var forbidden = await systemAdmin.PutAsJsonAsync(CompanyPath(), new UpdateManagementCompanyDto
+        {
+            Name = "Forbidden Company",
+            RegistryCode = registryCode,
+            VatNumber = "EE100000099",
+            Email = "forbidden-company@test.ee",
+            Phone = "+372 5555 9901",
+            Address = "Forbidden Street 1"
+        });
+        var invalid = await owner.PutAsJsonAsync(CompanyPath(), new UpdateManagementCompanyDto
+        {
+            Name = "Company A Updated",
+            RegistryCode = registryCode,
+            VatNumber = "EE100000099",
+            Email = "invalid-email",
+            Phone = "+372 5555 9902",
+            Address = "Invalid Street 1"
+        });
+        var updated = await owner.PutAsJsonAsync(CompanyPath(), new UpdateManagementCompanyDto
+        {
+            Name = "Company A API Updated",
+            RegistryCode = registryCode,
+            VatNumber = "EE100000099",
+            Email = "company-a-api-updated@test.ee",
+            Phone = "+372 5555 9903",
+            Address = "Updated Company Street 1"
+        });
+        var updatedProfile = await updated.Content.ReadFromJsonAsync<ManagementCompanyProfileDto>();
+        var fetched = await owner.GetFromJsonAsync<ManagementCompanyProfileDto>(CompanyPath());
+
+        forbidden.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        invalid.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        updated.StatusCode.Should().Be(HttpStatusCode.OK);
+        updatedProfile.Should().NotBeNull();
+        updatedProfile!.ManagementCompanyId.Should().Be(TestTenants.CompanyAId);
+        updatedProfile.CompanySlug.Should().Be(TestTenants.CompanyASlug);
+        updatedProfile.Name.Should().Be("Company A API Updated");
+        updatedProfile.RegistryCode.Should().Be(registryCode);
+        updatedProfile.Email.Should().Be("company-a-api-updated@test.ee");
+        updatedProfile.Path.Should().Be($"/companies/{TestTenants.CompanyASlug}");
+        fetched.Should().NotBeNull();
+        fetched!.Name.Should().Be("Company A API Updated");
+        fetched.RegistryCode.Should().Be(registryCode);
+    }
+
+    [Fact]
     public async Task DashboardApi_LoadsManagementCustomerPropertyAndUnitDashboards()
     {
         using var client = await _factory.CreateAuthenticatedApiClientAsync(TestUsers.CompanyAOwner);
