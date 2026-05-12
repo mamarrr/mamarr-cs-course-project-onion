@@ -588,7 +588,6 @@
   <data name="OccupiedUnits" xml:space="preserve"><value>Occupied units</value></data>
   <data name="VacantUnits" xml:space="preserve"><value>Vacant units</value></data>
   <data name="KnownSquareMeters" xml:space="preserve"><value>Known m2</value></data>
-  <data name="CurrentResidents" xml:space="preserve"><value>Current residents</value></data>
   <data name="RecentlyClosedTickets" xml:space="preserve"><value>Recently closed</value></data>
   <data name="NoTicketsToShow" xml:space="preserve"><value>No tickets to show.</value></data>
   <data name="NoWorkToShow" xml:space="preserve"><value>No work to show.</value></data>

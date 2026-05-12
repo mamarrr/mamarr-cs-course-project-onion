@@ -578,7 +578,6 @@
   <data name="OccupiedUnits" xml:space="preserve"><value>Hõivatud uksused</value></data>
   <data name="VacantUnits" xml:space="preserve"><value>Vabad uksused</value></data>
   <data name="KnownSquareMeters" xml:space="preserve"><value>Teadaolev m2</value></data>
-  <data name="CurrentResidents" xml:space="preserve"><value>Praegused elanikud</value></data>
   <data name="RecentlyClosedTickets" xml:space="preserve"><value>Hiljuti suletud</value></data>
   <data name="NoTicketsToShow" xml:space="preserve"><value>Pileteid ei ole kuvada.</value></data>
   <data name="NoWorkToShow" xml:space="preserve"><value>Toid ei ole kuvada.</value></data>
