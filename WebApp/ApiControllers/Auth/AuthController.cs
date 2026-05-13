@@ -1,3 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using App.BLL.DTO.Common;
+using App.BLL.DTO.Common.Errors;
 using App.BLL.Contracts;
 using App.DTO.v1.Identity;
 using Asp.Versioning;
@@ -35,16 +38,16 @@ public class AuthController : ApiControllerBase
         RegisterInfo registerInfo,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(registerInfo.Email)
-            || string.IsNullOrWhiteSpace(registerInfo.Password)
-            || string.IsNullOrWhiteSpace(registerInfo.FirstName)
-            || string.IsNullOrWhiteSpace(registerInfo.LastName))
+        var validationError = ValidateRegisterInfo(registerInfo);
+        if (validationError is not null)
         {
-            return InvalidRequest("Email, password, first name, and last name are required.");
+            return ToApiError([validationError]);
         }
 
+        var email = registerInfo.Email.Trim();
+
         var createResult = await _identityAccountService.CreateUserAsync(
-            registerInfo.Email,
+            email,
             registerInfo.Password,
             registerInfo.FirstName,
             registerInfo.LastName,
@@ -56,7 +59,7 @@ public class AuthController : ApiControllerBase
         }
 
         var appUserId = await _identityAccountService.FindUserIdByEmailAsync(
-            registerInfo.Email,
+            email,
             cancellationToken);
 
         if (appUserId is null)
@@ -208,5 +211,68 @@ public class AuthController : ApiControllerBase
             LastName = user.LastName,
             Roles = user.Roles
         };
+    }
+
+    private static ValidationAppError? ValidateRegisterInfo(RegisterInfo registerInfo)
+    {
+        var failures = new List<ValidationFailureModel>();
+
+        AddRequiredFailure(
+            failures,
+            registerInfo.Email,
+            nameof(registerInfo.Email),
+            App.Resources.Views.UiText.Email);
+
+        AddRequiredFailure(
+            failures,
+            registerInfo.Password,
+            nameof(registerInfo.Password),
+            App.Resources.Views.UiText.Password);
+
+        AddRequiredFailure(
+            failures,
+            registerInfo.FirstName,
+            nameof(registerInfo.FirstName),
+            App.Resources.Views.UiText.FirstName);
+
+        AddRequiredFailure(
+            failures,
+            registerInfo.LastName,
+            nameof(registerInfo.LastName),
+            App.Resources.Views.UiText.LastName);
+
+        if (!string.IsNullOrWhiteSpace(registerInfo.Email)
+            && !new EmailAddressAttribute().IsValid(registerInfo.Email.Trim()))
+        {
+            failures.Add(new ValidationFailureModel
+            {
+                PropertyName = nameof(registerInfo.Email),
+                ErrorMessage = string.Format(
+                    App.Resources.Views.UiText.InvalidEmailAddress,
+                    App.Resources.Views.UiText.Email)
+            });
+        }
+
+        return failures.Count == 0
+            ? null
+            : new ValidationAppError("Validation failed.", failures);
+    }
+
+    private static void AddRequiredFailure(
+        List<ValidationFailureModel> failures,
+        string? value,
+        string propertyName,
+        string displayName)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        failures.Add(new ValidationFailureModel
+        {
+            PropertyName = propertyName,
+            ErrorMessage = string.Format(App.Resources.Views.UiText.RequiredField, displayName)
+        });
     }
 }
